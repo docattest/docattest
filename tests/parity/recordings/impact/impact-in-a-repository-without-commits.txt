@@ -1,0 +1,12 @@
+# impact in a repository without commits
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 1
+stdout empty
+stderr 1 line
+docattest: "HEAD" is not a commit in this repository
+=== impact --base main
+exit 1
+stdout empty
+stderr 1 line
+docattest: "main" is not a commit in this repository

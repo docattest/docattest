@@ -1,0 +1,123 @@
+# surfaces: the default is preferred, others are named
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 6 lines
+docs/p.md
+  ? L1 list matches SHARED → <!-- fact: SHARED --> above the list
+  ? L7 list matches PORTS → <!-- fact @server: PORTS --> above the list
+  ? L12 list matches ONLY_DEFAULT → <!-- fact: ONLY_DEFAULT --> above the list
+  ? L17 block matches MOTD → <!-- fact @server: MOTD --> above the block
+audit: 4 suggestions on 1 page, 4 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 48 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "SHARED",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: SHARED -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 7,
+      "target": "list",
+      "expression": "PORTS",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "server",
+      "directive": "<!-- fact @server: PORTS -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 12,
+      "target": "list",
+      "expression": "ONLY_DEFAULT",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: ONLY_DEFAULT -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 17,
+      "target": "block",
+      "expression": "MOTD",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "server",
+      "directive": "<!-- fact @server: MOTD -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 6 lines
+ONLY_DEFAULT  →  [d1, d2]
+SHARED  →  [s1, s2, s3]
+@server MOTD  →  welcome to the server, friend
+@server PORTS  →  [8080, 9090]
+@server SHARED  →  [s1, s2, s3]
+inventory: 5 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 45 lines
+[
+  {
+    "surface": "default",
+    "expression": "ONLY_DEFAULT",
+    "value": "d1,d2",
+    "items": [
+      "d1",
+      "d2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "SHARED",
+    "value": "s1,s2,s3",
+    "items": [
+      "s1",
+      "s2",
+      "s3"
+    ]
+  },
+  {
+    "surface": "server",
+    "expression": "MOTD",
+    "value": "welcome to the server, friend"
+  },
+  {
+    "surface": "server",
+    "expression": "PORTS",
+    "value": "8080,9090",
+    "items": [
+      "8080",
+      "9090"
+    ]
+  },
+  {
+    "surface": "server",
+    "expression": "SHARED",
+    "value": "s1,s2,s3",
+    "items": [
+      "s1",
+      "s2",
+      "s3"
+    ]
+  }
+]
+stderr empty

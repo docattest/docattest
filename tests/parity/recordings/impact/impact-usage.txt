@@ -1,0 +1,17 @@
+# impact usage
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact extra
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest impact [--base <ref>] [--file <path>] [--json]
+=== impact a b --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest impact [--base <ref>] [--file <path>] [--json]
+=== impact --hook x
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest impact [--base <ref>] [--file <path>] [--json]

@@ -1,0 +1,74 @@
+# impact --hook stays silent
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook --base nope
+exit 0
+stdout empty
+stderr empty

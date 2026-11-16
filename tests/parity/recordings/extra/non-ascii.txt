@@ -1,0 +1,15 @@
+# non-ascii
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== check
+exit 0
+stdout 9 lines
+docs/é.md
+  ✓ L3 fact: N is 3
+results: 1 pass, 0 fail, 0 error, 0 skipped
+coverage: 3 living pages, 1 covered (1 attestation, 0 weak), 2 uncovered, 0 frozen
+  uncovered: docs/a😀.md, docs/z.md
+surface default: 3 symbols, 1 attested, 2 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+snapshots: none
+ok
+stderr empty

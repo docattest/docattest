@@ -1,0 +1,70 @@
+# unit: candidates with fact item values
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L7 column matches METHODS → <!-- fact column=Method: METHODS --> above the table
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 7,
+      "target": "column",
+      "expression": "METHODS",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=Method: METHODS -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 4 lines
+KEYS  →  [A, B, plain text]
+METHODS  →  [GET, POST]
+PATHS  →  [/a, /c]
+inventory: 3 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 30 lines
+[
+  {
+    "surface": "default",
+    "expression": "KEYS",
+    "value": "A,B,plain text",
+    "items": [
+      "A",
+      "B",
+      "plain text"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "METHODS",
+    "value": "GET,POST",
+    "items": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "PATHS",
+    "value": "/a,/c",
+    "items": [
+      "/a",
+      "/c"
+    ]
+  }
+]
+stderr empty

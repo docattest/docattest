@@ -1,0 +1,12 @@
+{
+  "pages": ["README.md"],
+  "sources": ["src/**/*.rs"],
+  "surfaces": {
+    "default": "docattest::config",
+    "adapter": "docattest::adapter",
+    "agents": "docattest::agents",
+    "command": "docattest::cli::command",
+    "text": "docattest::text"
+  },
+  "adapter": "rust"
+}

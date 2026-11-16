@@ -1,0 +1,104 @@
+# verify: the same list on several pages
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 9 lines
+docs/a.md
+  ? L3 list drifts from K (missing: k1) → <!-- fact: K --> above the list
+docs/p.md
+  ? L1 list matches K → <!-- fact: K --> above the list
+  ? L7 list matches K → <!-- fact: K --> above the list
+  ? L13 list drifts from K (missing: k3) → <!-- fact: K --> above the list
+docs/q.md
+  ? L1 list matches K → <!-- fact: K --> above the list
+audit: 5 suggestions on 3 pages, 3 match, 2 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 63 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/a.md",
+      "line": 3,
+      "target": "list",
+      "expression": "K",
+      "status": "drift",
+      "missing": [
+        "k1"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "K",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 7,
+      "target": "list",
+      "expression": "K",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 13,
+      "target": "list",
+      "expression": "K",
+      "status": "drift",
+      "missing": [
+        "k3"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    },
+    {
+      "page": "docs/q.md",
+      "line": 1,
+      "target": "list",
+      "expression": "K",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 2 lines
+K  →  [k1, k2, k3]
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 12 lines
+[
+  {
+    "surface": "default",
+    "expression": "K",
+    "value": "k1,k2,k3",
+    "items": [
+      "k1",
+      "k2",
+      "k3"
+    ]
+  }
+]
+stderr empty

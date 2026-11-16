@@ -1,0 +1,159 @@
+# inventory: searches
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== inventory scopes
+exit 0
+stdout 2 lines
+SCOPES  →  [read, write, admin]
+inventory: 1 value
+stderr empty
+=== inventory ADMIN
+exit 0
+stdout 2 lines
+SCOPES  →  [read, write, admin]
+inventory: 1 value
+stderr empty
+=== inventory nothing-matches-this
+exit 0
+stdout 1 line
+inventory: nothing matches
+stderr empty
+=== inventory nothing-matches-this --json
+exit 0
+stdout 1 line
+[]
+stderr empty
+=== inventory 
+exit 0
+stdout 12 lines
+BANNER  →  docattest keeps documentation honest
+ROUTES.map((r) => r.method)  →  [GET, POST, PUT]
+ROUTES.map((r) => r.path)  →  [/jobs, /projects, /x]
+ROUTES.map((r) => `${r.method} ${r.path}`)  →  [GET /jobs, POST /projects, PUT /x]
+ROUTES.map((r) => `${r.path} ${r.method}`)  →  [/jobs GET, /projects POST, /x PUT]
+SCOPES  →  [read, write, admin]
+TEMPLATE  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 7 values
+stderr empty
+=== inventory read,write
+exit 0
+stdout 1 line
+inventory: nothing matches
+stderr empty
+=== inventory demo
+exit 0
+stdout 6 lines
+TEMPLATE  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 1 value
+stderr empty
+=== inventory ROUTES.map --json
+exit 0
+stdout 42 lines
+[
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.method)",
+    "value": "GET,POST,PUT",
+    "items": [
+      "GET",
+      "POST",
+      "PUT"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.path)",
+    "value": "/jobs,/projects,/x",
+    "items": [
+      "/jobs",
+      "/projects",
+      "/x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.method} ${r.path}`)",
+    "value": "GET /jobs,POST /projects,PUT /x",
+    "items": [
+      "GET /jobs",
+      "POST /projects",
+      "PUT /x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.path} ${r.method}`)",
+    "value": "/jobs GET,/projects POST,/x PUT",
+    "items": [
+      "/jobs GET",
+      "/projects POST",
+      "/x PUT"
+    ]
+  }
+]
+stderr empty
+=== inventory a b
+exit 0
+stdout 12 lines
+BANNER  →  docattest keeps documentation honest
+ROUTES.map((r) => r.method)  →  [GET, POST, PUT]
+ROUTES.map((r) => r.path)  →  [/jobs, /projects, /x]
+ROUTES.map((r) => `${r.method} ${r.path}`)  →  [GET /jobs, POST /projects, PUT /x]
+ROUTES.map((r) => `${r.path} ${r.method}`)  →  [/jobs GET, /projects POST, /x PUT]
+SCOPES  →  [read, write, admin]
+TEMPLATE  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 7 values
+stderr empty
+=== inventory --json honest
+exit 0
+stdout 7 lines
+[
+  {
+    "surface": "default",
+    "expression": "BANNER",
+    "value": "docattest keeps documentation honest"
+  }
+]
+stderr empty
+=== audit ignored words
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== inventory --quiet
+exit 0
+stdout 12 lines
+BANNER  →  docattest keeps documentation honest
+ROUTES.map((r) => r.method)  →  [GET, POST, PUT]
+ROUTES.map((r) => r.path)  →  [/jobs, /projects, /x]
+ROUTES.map((r) => `${r.method} ${r.path}`)  →  [GET /jobs, POST /projects, PUT /x]
+ROUTES.map((r) => `${r.path} ${r.method}`)  →  [/jobs GET, /projects POST, /x PUT]
+SCOPES  →  [read, write, admin]
+TEMPLATE  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 7 values
+stderr empty
+=== audit --surface default
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== inventory --nope
+exit 1
+stdout empty
+stderr 1 line
+docattest: Unknown option '--nope'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- "--nope"

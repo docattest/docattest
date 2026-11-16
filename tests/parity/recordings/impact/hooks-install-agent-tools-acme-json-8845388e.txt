@@ -1,0 +1,42 @@
+# hooks install: --agent tools/acme.json
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install --agent tools/acme.json
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/acme/config.json
+  file.saved (**/*): npx --no docattest impact --hook --agent "${ACME_WORKSPACE}"/tools/acme.json
+  turn.ending: npx --no docattest check --hook --agent "${ACME_WORKSPACE}"/tools/acme.json
+stderr empty
+directory acme/
+file acme/config.json 21 lines
+{
+  "schema": 3,
+  "enabled": true,
+  "automation": {
+    "file.saved": [
+      {
+        "matcher": "**/*",
+        "shell": "sh",
+        "timeoutMs": 60000,
+        "exec": "npx --no docattest impact --hook --agent \"${ACME_WORKSPACE}\"/tools/acme.json"
+      }
+    ],
+    "turn.ending": [
+      {
+        "shell": "sh",
+        "timeoutMs": 60000,
+        "exec": "npx --no docattest check --hook --agent \"${ACME_WORKSPACE}\"/tools/acme.json"
+      }
+    ]
+  }
+}
+=== hooks install --agent tools/acme.json
+exit 0
+stdout 1 line
+docattest hooks: already installed in <root>/acme/config.json
+stderr empty
+=== hooks install --agent tools/acme.json
+exit 0
+stdout 1 line
+docattest hooks: already installed in <root>/acme/config.json
+stderr empty

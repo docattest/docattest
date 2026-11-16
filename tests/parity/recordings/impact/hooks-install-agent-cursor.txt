@@ -1,0 +1,30 @@
+# hooks install: --agent cursor
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install --agent cursor
+exit 0
+stdout 2 lines
+docattest hooks: added to <root>/.cursor/hooks.json
+  stop: npx --no docattest check --hook --agent cursor
+stderr empty
+directory .cursor/
+file .cursor/hooks.json 10 lines
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "command": "npx --no docattest check --hook --agent cursor"
+      }
+    ]
+  }
+}
+=== hooks install --agent cursor
+exit 0
+stdout 1 line
+docattest hooks: already installed in <root>/.cursor/hooks.json
+stderr empty
+=== hooks install --agent cursor
+exit 0
+stdout 1 line
+docattest hooks: already installed in <root>/.cursor/hooks.json
+stderr empty

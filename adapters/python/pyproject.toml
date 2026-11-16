@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docattest"
+version = "0.1.0"
+description = "docattest for Python projects: documentation that CI can fail"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+# setup.py gives both: the README with its relative links made absolute for PyPI's page,
+# and the links to the repository, whose address it holds.
+dynamic = ["readme", "urls"]
+
+# `docattest` is what a user runs: the launcher, which starts the docattest core. The
+# adapter keeps its own command, which is how a bare core finds it on the PATH.
+[project.scripts]
+docattest = "docattest.launcher:main"
+docattest-adapter-python = "docattest_python.server.server:main"
+
+[tool.setuptools]
+# The worker's parts: docattest_python/workers/worker.py, started by its path, imports them
+# by the name docattest_worker.
+packages = [
+  "docattest",
+  "docattest_python",
+  "docattest_python.analysis",
+  "docattest_python.server",
+  "docattest_python.session",
+  "docattest_python.workers",
+  "docattest_python.workers.docattest_worker",
+]
+
+# A platform wheel ships the core binary inside the launcher package.
+[tool.setuptools.package-data]
+docattest = ["bin/*"]
+# The protocol's schemas and the core version this package is built for (sync_protocol.py).
+docattest_python = ["protocol/core.json", "protocol/platforms.json", "protocol/schema/*.json", "protocol/agents/*.json"]
+
+# Lint, format and types: ruff and pyright, pinned here and installed into a virtualenv of
+# their own, so nothing is installed globally (CONTRIBUTING.md, "Coding standards"):
+#   python3 -m venv .venv && .venv/bin/pip install --group lint
+#   .venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/pyright
+[dependency-groups]
+lint = ["ruff==0.17.5", "pyright==1.1.414"]
+
+# Types: the package is checked strictly; the tests, which drive it as a process and read
+# JSON, in the standard mode. The worker runs on the project's own interpreter, so the
+# oldest Python the package supports is the one checked against.
+[tool.pyright]
+pythonVersion = "3.10"
+typeCheckingMode = "standard"
+strict = ["docattest", "docattest_python", "build_wheel.py", "setup.py", "sync_protocol.py"]
+exclude = ["tests/fixture", "**/__pycache__", "**/.*", "build", "dist"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+# The fixture is a sample project whose pages cite its lines; it is kept as written.
+extend-exclude = ["tests/fixture"]
+
+[tool.ruff.lint]
+# ANN: every function of the package is annotated (pyright checks the annotations).
+select = ["E", "F", "W", "I", "B", "UP", "ANN"]
+ignore = [
+  # The formatter wraps code; a long string or comment is left as written.
+  "E501",
+  # %-formatting builds many user-facing messages; rewriting them for style alone risks
+  # changing what they say.
+  "UP031",
+  # zip() pairs lists that have one length by construction; strict= would only add noise.
+  "B905",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests are checked by pyright in its standard mode, which needs no annotations.
+"tests/*" = ["ANN"]

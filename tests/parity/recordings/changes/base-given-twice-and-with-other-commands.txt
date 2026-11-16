@@ -1,0 +1,38 @@
+# base given twice, and with other commands
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== check --base nope --base HEAD
+exit 1
+stdout 12 lines
+docs/retry.md
+  ✓ L7 example: all assertions held
+results: 1 pass, 0 fail, 0 error, 0 skipped
+coverage: 1 living page, 1 covered (1 attestation, 0 weak), 0 uncovered, 0 frozen
+surface default: 4 symbols, 1 attested, 3 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+surface extra: 2 symbols, 0 attested, 2 not referenced by any page
+  fixture/extra → src/extra.ts (fixture@1.0.0)
+snapshots: none
+changes since the base: 1 fail, 0 warnings
+  ✗ docs/retry.md:3 orphaned-claim: "A call is tried at most `3` times." is still on the page, but the fact that proved it (docs/retry.md:3 at the base) is gone
+FAILED
+stderr empty
+=== index --base nope
+exit 0
+stdout 2 lines
+LIMIT
+  docs/retry.md:7 example  A successful call returns its value unchanged.
+stderr empty
+=== where LIMIT --base HEAD
+exit 0
+stdout 1 line
+docs/retry.md:7 example  A successful call returns its value unchanged.
+stderr empty
+=== uncovered --base nope --json
+exit 0
+stdout 5 lines
+[
+  "KEYS",
+  "TEXT",
+  "add"
+]
+stderr empty

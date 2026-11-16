@@ -1,0 +1,53 @@
+# example failure
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --json
+exit 1
+stdout 47 lines
+{
+  "results": [
+    {
+      "page": "docs/a.md",
+      "line": 3,
+      "kind": "example",
+      "status": "fail",
+      "symbols": [
+        "add"
+      ],
+      "message": "AssertionError: expected 4, got 3 (assert.equal, block line 2)",
+      "expected": "4",
+      "actual": "3"
+    }
+  ],
+  "coverage": {
+    "living": 1,
+    "covered": 1,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 1,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 3,
+      "attested": 1,
+      "unattested": [
+        "KEYS",
+        "N"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1
+}
+stderr empty

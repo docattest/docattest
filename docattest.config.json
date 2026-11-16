@@ -1,0 +1,47 @@
+{
+  "pages": ["docs/**/*.md", "README.md", "adapters/typescript/README.md"],
+  "frozen": ["docs/README.md", "docs/design/*.md"],
+  "sources": ["adapters/typescript/src/**/*.ts"],
+  "surfaces": {
+    "default": { "import": "docattest", "path": "adapters/typescript/dist/index.js" }
+  },
+  "setup": "docs/docattest.setup.ts",
+  "snapshots": { "dir": "docs/.snapshots", "maxAgeDays": 90 },
+  "adapter": "typescript",
+  "runtime": { "timeoutMs": 30000 },
+  "commands": { "docattest": ["adapters/typescript/src/**/*.ts", "core/src/**/*.rs"] },
+  "members": [
+    {
+      "path": "core",
+      "adapterCommand": [
+        "cargo",
+        "run",
+        "--quiet",
+        "--manifest-path",
+        "adapters/rust/Cargo.toml",
+        "--bin",
+        "docattest-adapter-rust"
+      ]
+    },
+    {
+      "path": "adapters/rust",
+      "adapterCommand": [
+        "cargo",
+        "run",
+        "--quiet",
+        "--manifest-path",
+        "adapters/rust/Cargo.toml",
+        "--bin",
+        "docattest-adapter-rust"
+      ]
+    },
+    {
+      "path": "adapters/python",
+      "adapterCommand": ["python3", "adapters/python/bin/docattest-adapter-python"]
+    },
+    {
+      "path": "adapters/go",
+      "adapterCommand": ["go", "-C", "adapters/go", "run", "./cmd/docattest-adapter-go"]
+    }
+  ]
+}

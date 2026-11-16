@@ -1,0 +1,9 @@
+# audit --json
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty

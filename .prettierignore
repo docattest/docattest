@@ -1,0 +1,16 @@
+# Build output and installed packages.
+**/node_modules/
+adapters/typescript/dist/
+core/target/
+package-lock.json
+# Markdown is never reformatted: pages are attested by line, and tables are hand-aligned.
+*.md
+# Data that must stay byte for byte as it was written or generated: parity recordings,
+# benchmark results, the core's test fixtures.
+tests/parity/recordings/
+tests/bench/results/
+core/tests/fixtures/*.json
+# Not this tool's: Rust is formatted by rustfmt, the vendored crate is upstream's, and Python
+# (with the JSON its package copies from protocol/) is ruff's.
+core/vendor/
+adapters/python/

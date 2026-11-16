@@ -1,0 +1,12 @@
+# head config invalid, and an unknown ref
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== check --base nope
+exit 1
+stdout empty
+stderr 1 line
+docattest: docattest.config.json is not valid JSON: EOF while parsing an object at line 1 column 1
+=== check --base HEAD
+exit 1
+stdout empty
+stderr 1 line
+docattest: docattest.config.json is not valid JSON: EOF while parsing an object at line 1 column 1

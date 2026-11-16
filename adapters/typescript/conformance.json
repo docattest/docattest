@@ -1,0 +1,68 @@
+{
+  "adapter": "typescript",
+  "files": {
+    "src/index.ts": "/** A small library. */\nexport const N = 3;\nexport const KEYS = ['A', 'B', 'C'];\nexport const NAME = 'conformance kit';\nexport const LIMITS = { small: 1 };\n\n/**\n * Adds two numbers.\n * @example\n * ```ts\n * // check\n * import { add } from 'docattest-fixture';\n * assert.equal(add(1, 2), 3);\n * ```\n */\nexport function add(a: number, b: number): number {\n  return a + b;\n}\n",
+    "docs/setup.ts": "import assert from 'node:assert/strict';\nimport { add } from 'docattest-fixture';\n\nexport const cases = {\n  adds: (row: Record<string, string>) => {\n    assert.equal(String(add(Number(row.a), Number(row.b))), row.sum);\n  },\n};\n",
+    "test/lib.test.ts": "import { describe, expect, it } from 'vitest';\nimport { add } from '../src/index.js';\n\ndescribe('add', () => {\n  it('adds', () => {\n    expect(add(1, 2)).toBe(3);\n  });\n});\n"
+  },
+  "surfaces": [{ "name": "default", "entry": "./src/index.ts" }],
+  "setup": "docs/setup.ts",
+  "notSource": "docs/notes.txt",
+  "docComment": {
+    "page": "src/index.ts",
+    "text": "/**\n * Adds two numbers.\n * @example\n * ```ts\n * // check\n * import { add } from 'docattest-fixture';\n * assert.equal(add(1, 2), 3);\n * ```\n */\nexport function add(a: number, b: number): number {\n  return a + b;\n}\n",
+    "examples": 1,
+    "prose": "Adds two numbers."
+  },
+  "examples": {
+    "passes": {
+      "lang": "ts",
+      "code": "import { add } from 'docattest-fixture';\n\nassert.equal(add(1, 2), 3);"
+    },
+    "fails": {
+      "lang": "ts",
+      "code": "import { add } from 'docattest-fixture';\n\nassert.equal(add(1, 2), 4);"
+    },
+    "broken": {
+      "lang": "ts",
+      "code": "import { noSuchName } from 'docattest-fixture';\n\nnoSuchName();"
+    },
+    "weak": { "lang": "ts", "code": "import { add } from 'docattest-fixture';\n\nadd(1, 2);" },
+    "prints": {
+      "lang": "ts",
+      "code": "import { writeSync } from 'node:fs';\n\nconsole.log('to stdout');\nprocess.stdout.write('more\\n');\nwriteSync(1, 'to descriptor 1\\n');\nassert.ok(true);"
+    },
+    "slow": {
+      "lang": "ts",
+      "code": "await new Promise((resolve) => setTimeout(resolve, 500));\nassert.ok(true);"
+    }
+  },
+  "facts": {
+    "scalar": { "expression": "N", "text": "3", "symbol": "N" },
+    "list": { "expression": "KEYS", "items": ["A", "B", "C"] },
+    "text": { "expression": "NAME", "text": "conformance kit" },
+    "invalid": { "expression": "N +" },
+    "manifest": { "expression": "manifest(\"meta.json\").version" }
+  },
+  "exports": ["N", "KEYS", "add"],
+  "expressions": { "one": "LIMITS.small", "renamed": "BOUNDS.small", "other": "LIMITS.small + 1" },
+  "mention": { "span": "add(1, 2)", "symbol": "add", "other": "added" },
+  "inCode": { "present": "add", "absent": "noSuchNameAnywhere", "files": ["src/index.ts"] },
+  "test": { "file": "test/lib.test.ts", "title": "adds", "suite": "add" },
+  "cases": {
+    "runner": "adds",
+    "header": ["a", "b", "sum"],
+    "rows": [
+      { "a": "1", "b": "2", "sum": "3" },
+      { "a": "1", "b": "1", "sum": "3" }
+    ],
+    "statuses": ["pass", "fail"]
+  },
+  "affected": {
+    "base": {
+      "src/index.ts": "export const N = 3;\nexport const KEYS = ['A', 'B', 'C'];\nexport const NAME = 'conformance kit';\nexport const LIMITS = { small: 1 };\nexport function add(a: number, b: number): number {\n  return a - b;\n}\n"
+    },
+    "changed": ["src/index.ts"],
+    "names": ["add"]
+  }
+}

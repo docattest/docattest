@@ -1,0 +1,9 @@
+# quiet
+# recorded from: check --quiet prints only what needs attention
+=== check --quiet
+exit 1
+stdout 3 lines
+docs/a.md
+  ✗ L3 fact: expected 4, got 3 from N
+FAILED
+stderr empty

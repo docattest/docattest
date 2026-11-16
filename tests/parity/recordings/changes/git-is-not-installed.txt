@@ -1,0 +1,12 @@
+# git is not installed
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD
+exit 1
+stdout empty
+stderr 1 line
+docattest: a base ref is read with git, which was not found
+=== check --base=-x --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: a base ref is read with git, which was not found

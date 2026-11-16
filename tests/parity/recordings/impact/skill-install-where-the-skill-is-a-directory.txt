@@ -1,0 +1,12 @@
+# skill install where the skill is a directory
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== skill install
+exit 1
+stdout empty
+stderr 1 line
+docattest: cannot read <root>/.claude/skills/docattest/SKILL.md: Is a directory (os error 21)
+=== skill install --force
+exit 1
+stdout empty
+stderr 1 line
+docattest: cannot read <root>/.claude/skills/docattest/SKILL.md: Is a directory (os error 21)

@@ -1,0 +1,60 @@
+# unit: closer value wins
+# recorded from: fixture names made neutral; no behaviour change
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list matches BOTH → <!-- fact: BOTH --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "BOTH",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: BOTH -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 3 lines
+BOTH  →  [RPC, SESSION]
+MORE  →  [RPC, SESSION, X1]
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 21 lines
+[
+  {
+    "surface": "default",
+    "expression": "BOTH",
+    "value": "RPC,SESSION",
+    "items": [
+      "RPC",
+      "SESSION"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "MORE",
+    "value": "RPC,SESSION,X1",
+    "items": [
+      "RPC",
+      "SESSION",
+      "X1"
+    ]
+  }
+]
+stderr empty

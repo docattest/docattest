@@ -1,0 +1,6 @@
+# impact --hook when the edit affects nothing
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --hook
+exit 0
+stdout empty
+stderr empty

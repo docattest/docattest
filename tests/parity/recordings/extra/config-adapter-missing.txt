@@ -1,0 +1,7 @@
+# config adapter missing
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== check
+exit 1
+stdout empty
+stderr 1 line
+docattest: invalid docattest.config.json: "adapter" must name a language adapter, such as "typescript", in lower-case letters, digits and "_" (got nothing)

@@ -1,0 +1,24 @@
+{
+  // Type-checks the sources, the setup module of the repository's own docs (../../docs) and
+  // tool configs. Emits nothing; the build is tsconfig.build.json.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    // The docs' setup module and the tests import the package by name; type-check that
+    // against the sources so typechecking never depends on a build.
+    "paths": { "docattest": ["./src/index.ts"] }
+  },
+  "include": ["src", "../../docs/docattest.setup.ts", "vitest.config.ts"]
+}

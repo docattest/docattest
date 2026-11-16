@@ -1,0 +1,36 @@
+[package]
+name = "docattest"
+version = "0.1.0"
+edition = "2024"
+description = "The language-neutral core of docattest: documentation that CI can fail."
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "docattest"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = { version = "1", features = ["preserve_order"] }
+markdown = "=1.0.0"
+fancy-regex = "0.16"
+yaml-rust2 = { version = "0.13", default-features = false }
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+# `manifest("<path>")` in facts: TOML files are read into the same data as JSON, in their order.
+toml = { version = "1", default-features = false, features = ["parse", "serde", "std", "preserve_order"] }
+# `refresh` only: a small blocking HTTP client; TLS by rustls with bundled roots, as Node bundles its own.
+ureq = { version = "3", default-features = false, features = ["rustls", "gzip"] }
+
+[build-dependencies]
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "unwind"
+
+# markdown-rs 1.0.0 with small fixes where it parsed differently from micromark, the
+# reference's parser (see vendor/markdown/PATCHES.md).
+[patch.crates-io]
+markdown = { path = "vendor/markdown" }

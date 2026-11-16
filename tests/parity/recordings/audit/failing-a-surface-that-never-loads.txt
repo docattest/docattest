@@ -1,0 +1,12 @@
+# failing: a surface that never loads
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" failed to load: SyntaxError: await is only valid in async functions and the top level bodies of modules
+=== inventory --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" failed to load: SyntaxError: await is only valid in async functions and the top level bodies of modules

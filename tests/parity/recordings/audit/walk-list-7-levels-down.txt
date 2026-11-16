@@ -1,0 +1,88 @@
+# walk: list 7 levels down
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 8 lines
+Object.keys(DEEP)  →  [l0]
+Object.keys(DEEP.l0)  →  [l1]
+Object.keys(DEEP.l0.l1)  →  [l2]
+Object.keys(DEEP.l0.l1.l2)  →  [l3]
+Object.keys(DEEP.l0.l1.l2.l3)  →  [l4]
+Object.keys(DEEP.l0.l1.l2.l3.l4)  →  [l5]
+Object.keys(DEEP.l0.l1.l2.l3.l4.l5)  →  [l6]
+inventory: 7 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 58 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP)",
+    "value": "l0",
+    "items": [
+      "l0"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0)",
+    "value": "l1",
+    "items": [
+      "l1"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0.l1)",
+    "value": "l2",
+    "items": [
+      "l2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0.l1.l2)",
+    "value": "l3",
+    "items": [
+      "l3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0.l1.l2.l3)",
+    "value": "l4",
+    "items": [
+      "l4"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0.l1.l2.l3.l4)",
+    "value": "l5",
+    "items": [
+      "l5"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0.l1.l2.l3.l4.l5)",
+    "value": "l6",
+    "items": [
+      "l6"
+    ]
+  }
+]
+stderr empty

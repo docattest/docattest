@@ -1,0 +1,30 @@
+# impact --hook with an adapter nobody installed
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --hook
+exit 1
+stdout empty
+stderr 1 line
+docattest: no nobody_installed_this adapter: set DOCATTEST_ADAPTER_NOBODY_INSTALLED_THIS to its command, or put docattest-adapter-nobody_installed_this on the PATH
+=== impact --hook
+exit 1
+stdout empty
+stderr 1 line
+docattest: no nobody_installed_this adapter: set DOCATTEST_ADAPTER_NOBODY_INSTALLED_THIS to its command, or put docattest-adapter-nobody_installed_this on the PATH
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== check --hook
+exit 1
+stdout empty
+stderr 1 line
+docattest: no nobody_installed_this adapter: set DOCATTEST_ADAPTER_NOBODY_INSTALLED_THIS to its command, or put docattest-adapter-nobody_installed_this on the PATH
+=== check --hook
+exit 0
+stdout empty
+stderr empty
+=== impact
+exit 1
+stdout empty
+stderr 1 line
+docattest: no nobody_installed_this adapter: set DOCATTEST_ADAPTER_NOBODY_INSTALLED_THIS to its command, or put docattest-adapter-nobody_installed_this on the PATH

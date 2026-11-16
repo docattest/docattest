@@ -1,0 +1,41 @@
+# impact names from Object.prototype
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== impact
+exit 0
+stdout 6 lines
+docattest impact: changes since HEAD affect 2 exported symbols
+hasOwnProperty
+  docs/a.md:1 mention (unproven)  See `other` and `hasOwnProperty`.
+other
+  docs/a.md:1 mention (unproven)  See `other` and `hasOwnProperty`.
+next: re-read docs/a.md and correct any sentence above that the change made untrue
+stderr empty
+=== impact --json
+exit 0
+stdout 25 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "hasOwnProperty",
+    "other"
+  ],
+  "references": [
+    {
+      "symbol": "hasOwnProperty",
+      "page": "docs/a.md",
+      "line": 1,
+      "kind": "mention",
+      "claim": "See `other` and `hasOwnProperty`.",
+      "proven": false
+    },
+    {
+      "symbol": "other",
+      "page": "docs/a.md",
+      "line": 1,
+      "kind": "mention",
+      "claim": "See `other` and `hasOwnProperty`.",
+      "proven": false
+    }
+  ]
+}
+stderr empty

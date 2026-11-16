@@ -1,0 +1,52 @@
+# unicode: search
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== inventory GRÖSSE
+exit 0
+stdout 1 line
+inventory: nothing matches
+stderr empty
+=== inventory größe --json
+exit 0
+stdout 12 lines
+[
+  {
+    "surface": "default",
+    "expression": "K",
+    "value": "Größe,ΣΊΣΥΦΟΣ,İstanbul",
+    "items": [
+      "Größe",
+      "ΣΊΣΥΦΟΣ",
+      "İstanbul"
+    ]
+  }
+]
+stderr empty
+=== inventory σίσυφος
+exit 0
+stdout 2 lines
+K  →  [Größe, ΣΊΣΥΦΟΣ, İstanbul]
+inventory: 1 value
+stderr empty
+=== inventory σίσυφοσ
+exit 0
+stdout 1 line
+inventory: nothing matches
+stderr empty
+=== inventory déjà
+exit 0
+stdout 2 lines
+TITLE  →  DÉJÀ vu
+inventory: 1 value
+stderr empty
+=== inventory i̇stanbul
+exit 0
+stdout 2 lines
+K  →  [Größe, ΣΊΣΥΦΟΣ, İstanbul]
+inventory: 1 value
+stderr empty
+=== inventory İ
+exit 0
+stdout 2 lines
+K  →  [Größe, ΣΊΣΥΦΟΣ, İstanbul]
+inventory: 1 value
+stderr empty

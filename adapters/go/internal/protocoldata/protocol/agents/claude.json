@@ -1,0 +1,30 @@
+{
+  "$schema": "../schema/agent.json#/$defs/Agent",
+  "name": "claude",
+  "docs": "https://code.claude.com/docs/en/hooks",
+  "projectRoot": "\"$CLAUDE_PROJECT_DIR\"",
+  "skill": ".claude/skills/docattest/SKILL.md",
+  "settings": {
+    "file": ".claude/settings.json",
+    "hooks": "hooks",
+    "group": "hooks",
+    "handler": { "type": "command" },
+    "command": "command"
+  },
+  "hooks": {
+    "impact": {
+      "event": "PostToolUse",
+      "matcher": "Edit|Write",
+      "file": ["tool_input", "file_path"],
+      "reply": {
+        "fixed": { "hookSpecificOutput": { "hookEventName": "PostToolUse" } },
+        "text": ["hookSpecificOutput", "additionalContext"]
+      }
+    },
+    "check": {
+      "event": "Stop",
+      "continuing": ["stop_hook_active"],
+      "reply": { "fixed": { "decision": "block" }, "text": ["reason"] }
+    }
+  }
+}

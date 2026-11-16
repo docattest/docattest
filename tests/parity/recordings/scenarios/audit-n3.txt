@@ -1,0 +1,57 @@
+# audit-n3
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== check --json
+exit 0
+stdout 44 lines
+{
+  "results": [
+    {
+      "page": "docs/regions.md",
+      "line": 3,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "REGIONS"
+      ],
+      "message": "3 items match REGIONS",
+      "expected": "[eu, us, ap]",
+      "actual": "[eu, us, ap]"
+    }
+  ],
+  "coverage": {
+    "living": 1,
+    "covered": 1,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 1,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 1,
+      "attested": 1,
+      "unattested": [],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0
+}
+stderr empty

@@ -1,0 +1,61 @@
+# guard-02
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD --json
+exit 1
+stdout 55 lines
+{
+  "results": [
+    {
+      "page": "docs/retry.md",
+      "line": 3,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "RETRY_DEFAULTS"
+      ],
+      "message": "RETRY_DEFAULTS.maxAttempts is 3",
+      "expected": "3",
+      "actual": "3"
+    }
+  ],
+  "coverage": {
+    "living": 1,
+    "covered": 1,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 1,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 2,
+      "attested": 1,
+      "unattested": [
+        "retry"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1,
+  "changes": [
+    {
+      "type": "orphaned-claim",
+      "page": "docs/retry.md",
+      "line": 5,
+      "severity": "fail",
+      "message": "\"A successful call returns its value unchanged.\" is still on the page, but the example that proved it (docs/retry.md:7 at the base) is gone"
+    }
+  ]
+}
+stderr empty

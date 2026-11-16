@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docattest adapter protocol, version 1: an adapter's conformance kit",
+  "description": "What the conformance suite must be told about a language (PROTOCOL.md section 5): a small project, and labelled pieces of code in the language. `docattest conformance run` refuses a kit that does not fit.",
+  "$defs": {
+    "Kit": {
+      "type": "object",
+      "properties": {
+        "adapter": { "description": "The name the adapter greets with.", "type": "string" },
+        "page": {
+          "description": "The page the suite's attestations claim to be on (default docs/conformance.md).",
+          "type": "string"
+        },
+        "files": { "description": "The project: path to text.", "$ref": "#/$defs/Texts" },
+        "surfaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "name": { "type": "string" }, "entry": { "type": "string" } },
+            "required": ["name", "entry"]
+          }
+        },
+        "setup": { "description": "The setup module, a path among files.", "type": "string" },
+        "notSource": {
+          "description": "A path that is not a source file of the language.",
+          "type": "string"
+        },
+        "docComment": {
+          "description": "A source file with doc comments: its text, how many examples they hold, one's prose.",
+          "type": "object",
+          "properties": {
+            "page": { "type": "string" },
+            "text": { "type": "string" },
+            "examples": { "type": "integer", "minimum": 0 },
+            "prose": { "type": "string" }
+          },
+          "required": ["page", "text", "examples", "prose"]
+        },
+        "examples": {
+          "description": "Examples that pass, fail, do not compile, assert nothing, print, and take half a second.",
+          "type": "object",
+          "properties": {
+            "passes": { "$ref": "#/$defs/Example" },
+            "fails": { "$ref": "#/$defs/Example" },
+            "broken": { "$ref": "#/$defs/Example" },
+            "weak": { "$ref": "#/$defs/Example" },
+            "prints": { "$ref": "#/$defs/Example" },
+            "slow": { "$ref": "#/$defs/Example" }
+          },
+          "required": ["passes", "fails", "broken", "weak", "prints", "slow"]
+        },
+        "facts": {
+          "description": "Fact expressions, with what they display.",
+          "type": "object",
+          "properties": {
+            "scalar": {
+              "type": "object",
+              "properties": {
+                "expression": { "type": "string" },
+                "text": { "type": "string" },
+                "symbol": { "type": "string" }
+              },
+              "required": ["expression", "text", "symbol"]
+            },
+            "list": {
+              "type": "object",
+              "properties": {
+                "expression": { "type": "string" },
+                "items": { "$ref": "#/$defs/Words" }
+              },
+              "required": ["expression", "items"]
+            },
+            "text": {
+              "type": "object",
+              "properties": { "expression": { "type": "string" }, "text": { "type": "string" } },
+              "required": ["expression", "text"]
+            },
+            "invalid": {
+              "type": "object",
+              "properties": { "expression": { "type": "string" } },
+              "required": ["expression"]
+            },
+            "manifest": {
+              "description": "An expression that reads the field version of manifest(\"meta.json\"), which the suite opens every session with.",
+              "type": "object",
+              "properties": { "expression": { "type": "string" } },
+              "required": ["expression"]
+            }
+          },
+          "required": ["scalar", "list", "text", "invalid", "manifest"]
+        },
+        "exports": { "description": "Names the default surface exports.", "$ref": "#/$defs/Words" },
+        "expressions": {
+          "description": "Two expressions of one shape with other names, and one of another shape.",
+          "type": "object",
+          "properties": {
+            "one": { "type": "string" },
+            "renamed": { "type": "string" },
+            "other": { "type": "string" }
+          },
+          "required": ["one", "renamed", "other"]
+        },
+        "mention": {
+          "description": "A code span that names symbol, and one that names nothing.",
+          "type": "object",
+          "properties": {
+            "span": { "type": "string" },
+            "symbol": { "type": "string" },
+            "other": { "type": "string" }
+          },
+          "required": ["span", "symbol", "other"]
+        },
+        "inCode": {
+          "description": "A name the files hold, one they do not, and the files.",
+          "type": "object",
+          "properties": {
+            "present": { "type": "string" },
+            "absent": { "type": "string" },
+            "files": { "$ref": "#/$defs/Words" }
+          },
+          "required": ["present", "absent", "files"]
+        },
+        "test": {
+          "description": "A test the tests capability lists, and its suite if the language has them.",
+          "type": "object",
+          "properties": {
+            "file": { "type": "string" },
+            "title": { "type": "string" },
+            "suite": { "type": "string" }
+          },
+          "required": ["file", "title"]
+        },
+        "cases": {
+          "description": "A cases table: its runner, header, rows (header name to text), and each row's status.",
+          "type": "object",
+          "properties": {
+            "runner": { "type": "string" },
+            "header": { "$ref": "#/$defs/Words" },
+            "rows": { "type": "array", "items": { "$ref": "#/$defs/Texts" } },
+            "statuses": { "$ref": "#/$defs/Words" }
+          },
+          "required": ["runner", "header", "rows", "statuses"]
+        },
+        "affected": {
+          "description": "A change the affected capability sees: the files at the base, what changed, the names it affects.",
+          "type": "object",
+          "properties": {
+            "base": { "$ref": "#/$defs/Texts" },
+            "changed": { "$ref": "#/$defs/Words" },
+            "names": { "$ref": "#/$defs/Words" }
+          },
+          "required": ["base", "changed", "names"]
+        }
+      },
+      "required": [
+        "adapter",
+        "files",
+        "surfaces",
+        "notSource",
+        "docComment",
+        "examples",
+        "facts",
+        "exports",
+        "expressions",
+        "mention",
+        "inCode",
+        "test"
+      ]
+    },
+    "Example": {
+      "description": "A piece of code in a block of the language.",
+      "type": "object",
+      "properties": {
+        "lang": { "type": "string" },
+        "code": { "type": "string" },
+        "tags": { "$ref": "#/$defs/Words" }
+      },
+      "required": ["lang", "code"]
+    },
+    "Texts": {
+      "description": "An object whose every property is a string.",
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "Words": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

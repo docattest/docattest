@@ -1,0 +1,5 @@
+{
+  "source": "https://api.example.com/regions",
+  "fetchedAt": "2026-10-01",
+  "data": [{ "code": "NL" }, { "code": "DE" }, { "code": "FR" }]
+}

@@ -1,0 +1,22 @@
+# failing: the second surface throws
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "server" failed to load: Error: server down
+=== audit --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "server" failed to load: Error: server down
+=== inventory
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "server" failed to load: Error: server down
+=== inventory --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "server" failed to load: Error: server down

@@ -1,0 +1,83 @@
+# moved out of pages
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD --json
+exit 0
+stdout 63 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 0,
+    "covered": 0,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 4,
+      "attested": 0,
+      "unattested": [
+        "KEYS",
+        "LIMIT",
+        "TEXT",
+        "add"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    },
+    "extra": {
+      "symbols": 2,
+      "attested": 0,
+      "unattested": [
+        "LIMIT",
+        "OTHER"
+      ],
+      "resolution": {
+        "import": "fixture/extra",
+        "entry": "src/extra.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0,
+  "changes": [
+    {
+      "type": "frozen-page",
+      "page": "notes/Retry.MD",
+      "line": 1,
+      "severity": "warning",
+      "message": "docs/retry.md moved to notes/Retry.MD, which is not a living page, so its attestations no longer run"
+    }
+  ]
+}
+stderr empty
+=== check --base HEAD
+exit 0
+stdout 10 lines
+results: 0 pass, 0 fail, 0 error, 0 skipped
+coverage: 0 living pages, 0 covered (0 attestations, 0 weak), 0 uncovered, 0 frozen
+surface default: 4 symbols, 0 attested, 4 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+surface extra: 2 symbols, 0 attested, 2 not referenced by any page
+  fixture/extra → src/extra.ts (fixture@1.0.0)
+snapshots: none
+changes since the base: 0 fail, 1 warning
+  ⚠ notes/Retry.MD:1 frozen-page: docs/retry.md moved to notes/Retry.MD, which is not a living page, so its attestations no longer run
+ok
+stderr empty

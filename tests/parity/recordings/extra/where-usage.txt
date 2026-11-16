@@ -1,0 +1,7 @@
+# where usage
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== where
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest where <symbol>

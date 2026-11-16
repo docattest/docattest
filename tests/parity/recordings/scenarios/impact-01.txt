@@ -1,0 +1,101 @@
+# impact-01
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --json
+exit 0
+stdout 25 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "RETRY_DEFAULTS",
+    "retry"
+  ],
+  "references": [
+    {
+      "symbol": "RETRY_DEFAULTS",
+      "page": "docs/retry.md",
+      "line": 3,
+      "kind": "fact",
+      "claim": "A call is tried at most `3` times.",
+      "proven": true
+    },
+    {
+      "symbol": "retry",
+      "page": "docs/retry.md",
+      "line": 7,
+      "kind": "example",
+      "claim": "A successful call returns its value unchanged.",
+      "proven": true
+    }
+  ]
+}
+stderr empty
+=== check --json
+exit 1
+stdout 66 lines
+{
+  "results": [
+    {
+      "page": "docs/parse.md",
+      "line": 5,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "parse"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/retry.md",
+      "line": 3,
+      "kind": "fact",
+      "status": "fail",
+      "symbols": [
+        "RETRY_DEFAULTS"
+      ],
+      "message": "expected 3, got 5 from RETRY_DEFAULTS.maxAttempts",
+      "expected": "3",
+      "actual": "5"
+    },
+    {
+      "page": "docs/retry.md",
+      "line": 7,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "retry"
+      ],
+      "message": "all assertions held"
+    }
+  ],
+  "coverage": {
+    "living": 3,
+    "covered": 2,
+    "uncovered": [
+      "docs/guide.md"
+    ],
+    "frozen": [],
+    "attestations": 3,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 3,
+      "attested": 3,
+      "unattested": [],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1
+}
+stderr empty

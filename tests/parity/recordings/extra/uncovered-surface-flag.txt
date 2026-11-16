@@ -1,0 +1,9 @@
+# uncovered surface flag
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== uncovered --surface
+exit 0
+stdout 3 lines
+KEYS
+N
+add
+stderr empty

@@ -1,0 +1,63 @@
+# unit: block drift and match
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 4 lines
+docs/p.md
+  ? L1 block matches TEMPLATE → <!-- fact: TEMPLATE --> above the block
+  ? L10 block drifts from TEMPLATE (missing: log: info) → <!-- fact: TEMPLATE --> above the block
+audit: 2 suggestions on 1 page, 1 match, 1 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 28 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "block",
+      "expression": "TEMPLATE",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: TEMPLATE -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 10,
+      "target": "block",
+      "expression": "TEMPLATE",
+      "status": "drift",
+      "missing": [
+        "log: info"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: TEMPLATE -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 6 lines
+TEMPLATE  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 7 lines
+[
+  {
+    "surface": "default",
+    "expression": "TEMPLATE",
+    "value": "name: demo\nregion: eu\nport: 8080\nlog: info\n"
+  }
+]
+stderr empty

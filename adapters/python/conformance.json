@@ -1,0 +1,48 @@
+{
+  "adapter": "python",
+  "files": {
+    "lib.py": "\"\"\"A small library.\"\"\"\n\nN = 3\nKEYS = [\"A\", \"B\", \"C\"]\nNAME = \"conformance kit\"\nLIMITS = {\"small\": 1}\n\n\ndef add(a, b):\n    \"\"\"Adds two numbers.\n\n    >>> add(1, 2)\n    3\n    \"\"\"\n    return a + b\n",
+    "docs/setup.py": "from lib import add\n\n\ndef adds(row):\n    assert str(add(int(row[\"a\"]), int(row[\"b\"]))) == row[\"sum\"]\n\n\ncases = {\"adds\": adds}\n",
+    "tests/test_lib.py": "from lib import add\n\n\nclass TestAdd:\n    def test_adds(self):\n        assert add(1, 2) == 3\n"
+  },
+  "surfaces": [{ "name": "default", "entry": "./lib.py" }],
+  "setup": "docs/setup.py",
+  "notSource": "docs/notes.txt",
+  "docComment": {
+    "page": "lib.py",
+    "text": "def add(a, b):\n    \"\"\"Adds two numbers.\n\n    >>> add(1, 2)\n    3\n    \"\"\"\n    return a + b\n",
+    "examples": 1,
+    "prose": "Adds two numbers."
+  },
+  "examples": {
+    "passes": { "lang": "python", "code": "from lib import add\n\nassert add(1, 2) == 3" },
+    "fails": { "lang": "python", "code": "from lib import add\n\nassert add(1, 2) == 4" },
+    "broken": { "lang": "python", "code": "from lib import no_such_name\n" },
+    "weak": { "lang": "python", "code": "from lib import add\n\nadd(1, 2)" },
+    "prints": { "lang": "python", "code": "import os, sys\n\nprint(\"to stdout\")\nsys.stdout.flush()\nos.write(1, b\"to descriptor 1\\n\")\nassert True" },
+    "slow": { "lang": "python", "code": "import time\n\ntime.sleep(0.5)\nassert True" }
+  },
+  "facts": {
+    "scalar": { "expression": "N", "text": "3", "symbol": "N" },
+    "list": { "expression": "KEYS", "items": ["A", "B", "C"] },
+    "text": { "expression": "NAME", "text": "conformance kit" },
+    "invalid": { "expression": "N +" },
+    "manifest": { "expression": "manifest(\"meta.json\")[\"version\"]" }
+  },
+  "exports": ["N", "KEYS", "add"],
+  "expressions": { "one": "LIMITS['small']", "renamed": "BOUNDS['small']", "other": "LIMITS['small'] + 1" },
+  "mention": { "span": "add(1, 2)", "symbol": "add", "other": "added" },
+  "inCode": { "present": "add", "absent": "no_such_name_anywhere", "files": ["lib.py"] },
+  "test": { "file": "tests/test_lib.py", "title": "test_adds", "suite": "TestAdd" },
+  "cases": {
+    "runner": "adds",
+    "header": ["a", "b", "sum"],
+    "rows": [{ "a": "1", "b": "2", "sum": "3" }, { "a": "1", "b": "1", "sum": "3" }],
+    "statuses": ["pass", "fail"]
+  },
+  "affected": {
+    "base": { "lib.py": "N = 3\nKEYS = [\"A\", \"B\", \"C\"]\nNAME = \"conformance kit\"\nLIMITS = {\"small\": 1}\n\n\ndef add(a, b):\n    return a - b\n" },
+    "changed": ["lib.py"],
+    "names": ["add"]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "note": "Median wall-clock ms of each command on this project, by what ran it, when the recordings were made. Fixed: tests/parity/bench.ts compares every run with them.",
+  "runs": 5,
+  "machine": "darwin-arm64",
+  "medians": {
+    "reference": {
+      "check --json": 6313,
+      "index --json": 624,
+      "audit --json": 1073
+    },
+    "core": {
+      "check --json": 5804,
+      "index --json": 531,
+      "audit --json": 941
+    }
+  }
+}

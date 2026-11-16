@@ -1,0 +1,9 @@
+# ambiguous root
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --root --json
+exit 1
+stdout empty
+stderr 3 lines
+docattest: Option '--root' argument is ambiguous.
+Did you forget to specify the option argument for '--root'?
+To specify an option argument starting with a dash use '--root=-XYZ'.

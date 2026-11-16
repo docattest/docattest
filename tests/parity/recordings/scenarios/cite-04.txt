@@ -1,0 +1,49 @@
+# cite-04
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --json
+exit 1
+stdout 43 lines
+{
+  "results": [
+    {
+      "page": "docs/retry.md",
+      "line": 3,
+      "kind": "test",
+      "status": "error",
+      "symbols": [],
+      "message": "test at L3 names no test title after test/retry.test.ts; expected <!-- test: <file> > \"<title>\" -->"
+    }
+  ],
+  "coverage": {
+    "living": 1,
+    "covered": 1,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 1,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 2,
+      "attested": 0,
+      "unattested": [
+        "RETRY_DEFAULTS",
+        "retry"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1
+}
+stderr empty

@@ -1,0 +1,62 @@
+# audit-r2
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit --json
+exit 0
+stdout 17 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/s3.md",
+      "line": 3,
+      "target": "column",
+      "expression": "Object.keys(jobSchemas.components.schemas.S3Resource.properties)",
+      "status": "drift",
+      "missing": [
+        "allowWrite"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=Field: Object.keys(jobSchemas.components.schemas.S3Resource.properties) -->"
+    }
+  ]
+}
+stderr empty
+=== check --json
+exit 0
+stdout 35 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 1,
+    "covered": 0,
+    "uncovered": [
+      "docs/s3.md"
+    ],
+    "frozen": [],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 1,
+      "attested": 0,
+      "unattested": [
+        "jobSchemas"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0
+}
+stderr empty

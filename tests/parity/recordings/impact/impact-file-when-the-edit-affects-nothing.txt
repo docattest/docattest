@@ -1,0 +1,10 @@
+# impact --file when the edit affects nothing
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --file src/parse.ts
+exit 0
+stdout empty
+stderr empty
+=== impact --file src/parse.ts --json
+exit 0
+stdout empty
+stderr empty

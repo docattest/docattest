@@ -1,0 +1,51 @@
+# threshold: block of sixteen characters
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 block matches S16 → <!-- fact: S16 --> above the block
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "block",
+      "expression": "S16",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: S16 -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 3 lines
+S15  →  abcdefg  hijklmn
+S16  →  abcdefgh ijklmno
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 12 lines
+[
+  {
+    "surface": "default",
+    "expression": "S15",
+    "value": "abcdefg  hijklmn"
+  },
+  {
+    "surface": "default",
+    "expression": "S16",
+    "value": "abcdefgh ijklmno"
+  }
+]
+stderr empty

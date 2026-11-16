@@ -1,0 +1,71 @@
+# ties: tie after the best
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list matches Z → <!-- fact: Z --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "Z",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Z -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 4 lines
+X  →  [aa, bb, cc]
+Y  →  [aa, bb, dd]
+Z  →  [bb, aa]
+inventory: 3 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 31 lines
+[
+  {
+    "surface": "default",
+    "expression": "X",
+    "value": "aa,bb,cc",
+    "items": [
+      "aa",
+      "bb",
+      "cc"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Y",
+    "value": "aa,bb,dd",
+    "items": [
+      "aa",
+      "bb",
+      "dd"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Z",
+    "value": "bb,aa",
+    "items": [
+      "bb",
+      "aa"
+    ]
+  }
+]
+stderr empty

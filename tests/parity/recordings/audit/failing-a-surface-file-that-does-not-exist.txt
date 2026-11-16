@@ -1,0 +1,22 @@
+# failing: a surface file that does not exist
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" (fixture) not found
+=== audit --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" (fixture) not found
+=== inventory
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" (fixture) not found
+=== inventory --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" (fixture) not found

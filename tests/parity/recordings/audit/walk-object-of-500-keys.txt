@@ -1,0 +1,28 @@
+# walk: object of 500 keys
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L7 list matches Object.values(BIG) → <!-- fact: Object.values(BIG) --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 7,
+      "target": "list",
+      "expression": "Object.values(BIG)",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Object.values(BIG) -->"
+    }
+  ]
+}
+stderr empty

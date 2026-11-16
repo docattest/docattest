@@ -1,0 +1,130 @@
+# kinds: inline enumerations and scalars
+# recorded from: audit suggests values in sentences: inline enumerations and distinctive scalars
+=== audit
+exit 0
+stdout 5 lines
+docs/p.md
+  ? L3 inline matches LANGUAGES → <!-- fact: LANGUAGES --> at the end of the sentence
+  ? L4 scalar matches CORE_VARIABLE → <!-- fact: CORE_VARIABLE --> after `DOCATTEST_CORE`
+  ? L6 scalar matches DEFAULT_PORT → <!-- fact: DEFAULT_PORT --> after 8080
+audit: 3 suggestions on 1 page, 3 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 39 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 3,
+      "target": "inline",
+      "expression": "LANGUAGES",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: LANGUAGES -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 4,
+      "target": "scalar",
+      "expression": "CORE_VARIABLE",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: CORE_VARIABLE -->",
+      "after": "`DOCATTEST_CORE`"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 6,
+      "target": "scalar",
+      "expression": "DEFAULT_PORT",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: DEFAULT_PORT -->",
+      "after": "8080"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 10 lines
+CONFIG_FILE  →  docattest.config.json
+CORE_VARIABLE  →  DOCATTEST_CORE
+CURRENCY  →  eur-cents
+DEFAULT_PORT  →  8080
+LANGUAGES  →  [python, py, pycon]
+Object.keys(Money)  →  [unit]
+Object.values(Money)  →  [eur-cents]
+Money.unit  →  eur-cents
+RETRIES  →  3
+inventory: 9 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 58 lines
+[
+  {
+    "surface": "default",
+    "expression": "CONFIG_FILE",
+    "value": "docattest.config.json"
+  },
+  {
+    "surface": "default",
+    "expression": "CORE_VARIABLE",
+    "value": "DOCATTEST_CORE"
+  },
+  {
+    "surface": "default",
+    "expression": "CURRENCY",
+    "value": "eur-cents"
+  },
+  {
+    "surface": "default",
+    "expression": "DEFAULT_PORT",
+    "value": "8080"
+  },
+  {
+    "surface": "default",
+    "expression": "LANGUAGES",
+    "value": "python,py,pycon",
+    "items": [
+      "python",
+      "py",
+      "pycon"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Money)",
+    "value": "unit",
+    "items": [
+      "unit"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Money)",
+    "value": "eur-cents",
+    "items": [
+      "eur-cents"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Money.unit",
+    "value": "eur-cents"
+  },
+  {
+    "surface": "default",
+    "expression": "RETRIES",
+    "value": "3"
+  }
+]
+stderr empty

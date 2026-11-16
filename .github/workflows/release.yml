@@ -1,0 +1,268 @@
+# A release, from a version tag (v0.1.0): build the core for every platform and test it,
+# make the five npm packages that carry it, the docattest npm package, the five wheels and
+# the five Go archives, install each into a fresh project on every platform and run it, and
+# keep everything as artifacts of the run. The Go archives are not published by this
+# workflow. Publishing is a separate job that runs only when the repository
+# variable DOCATTEST_PUBLISH is "true" and someone approves the `release` environment; it
+# uses npm's and PyPI's trusted publishing (OIDC), so no token is stored anywhere.
+# CONTRIBUTING.md, "Releasing", has the whole procedure.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  # A dry run from any branch: everything but publishing (the publish job needs a tag).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+      - name: every package carries the version of the tag
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            node scripts/version.ts check --tag "$GITHUB_REF_NAME"
+          else
+            node scripts/version.ts check
+          fi
+
+  # Each core is built and tested on a runner of its own platform, so its tests and the
+  # smoke test run the binary that ships. Linux cores are static (musl), linked by
+  # cargo-zigbuild, which also compiles ring's C for musl; that is how they were built and
+  # inspected on the maintainer's machine. Windows links the C runtime statically, so the
+  # core needs no Visual C++ redistributable.
+  core:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { platform: darwin-arm64, runner: macos-15, target: aarch64-apple-darwin }
+          - { platform: darwin-x64, runner: macos-15-intel, target: x86_64-apple-darwin }
+          - { platform: linux-x64, runner: ubuntu-24.04, target: x86_64-unknown-linux-musl }
+          - { platform: linux-arm64, runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl }
+          - { platform: windows-x64, runner: windows-2025, target: x86_64-pc-windows-msvc }
+    runs-on: ${{ matrix.runner }}
+    env:
+      # The oldest macOS each wheel's tag promises (macosx_11_0_arm64, macosx_10_12_x86_64).
+      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.platform == 'darwin-x64' && '10.12' || '11.0' }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        if: runner.os == 'Linux'
+        with:
+          python-version: '3.12'
+      - name: cargo test
+        working-directory: core
+        run: cargo test
+      - name: build (Linux, static)
+        if: runner.os == 'Linux'
+        run: |
+          python -m pip install ziglang==0.17.1 cargo-zigbuild==0.24.1
+          cargo zigbuild --release --target ${{ matrix.target }} --manifest-path core/Cargo.toml
+      - name: build
+        if: runner.os != 'Linux'
+        env:
+          RUSTFLAGS: ${{ runner.os == 'Windows' && '-C target-feature=+crt-static' || '' }}
+        run: cargo build --release --target ${{ matrix.target }} --manifest-path core/Cargo.toml
+      - name: the binary runs here, and what it is
+        run: |
+          bin=core/target/${{ matrix.target }}/release/docattest
+          [ -f "$bin.exe" ] && bin="$bin.exe"
+          "$bin" --version --json
+          file "$bin" || true
+          ls -l "$bin"
+          mkdir -p out && cp "$bin" out/
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: core-${{ matrix.platform }}
+          path: out/
+          if-no-files-found: error
+
+  # Every package is made on one runner from the five cores, so that each is made the same
+  # way (artifacts lose the executable bit; the scripts set it again).
+  package:
+    needs: core
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.23'
+          cache-dependency-path: adapters/go/go.mod
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: core-*
+          path: cores
+      - run: npm ci && npm run build
+      - name: npm packages
+        run: |
+          for platform in darwin-arm64 darwin-x64 linux-arm64 linux-x64 windows-x64; do
+            core=$(ls cores/core-$platform/docattest*)
+            node scripts/release/npm-platform.ts --platform $platform --core "$core" \
+              --out out/npm/core-$platform --pack out/npm
+          done
+          npm pack --workspace adapters/typescript --pack-destination out/npm
+          rm -r out/npm/core-*/
+          for tarball in out/npm/*.tgz; do echo "== $tarball"; tar -tvzf "$tarball"; done
+      - name: wheels
+        run: |
+          args=()
+          for platform in darwin-arm64 darwin-x64 linux-arm64 linux-x64 windows-x64; do
+            args+=(--core "$platform=$(ls cores/core-$platform/docattest*)")
+          done
+          python adapters/python/build_wheel.py --out out/wheels "${args[@]}"
+          for wheel in out/wheels/*.whl; do echo "== $wheel"; python -m zipfile -l "$wheel"; done
+      - name: Go archives
+        run: |
+          for platform in darwin-arm64 darwin-x64 linux-arm64 linux-x64 windows-x64; do
+            node scripts/release/go-archive.ts --platform $platform \
+              --core "$(ls cores/core-$platform/docattest*)" --out out/go
+          done
+          for archive in out/go/*.tar.gz; do echo "== $archive"; tar -tvzf "$archive"; done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: npm-packages
+          path: out/npm/*.tgz
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: wheels
+          path: out/wheels/*.whl
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: go-archives
+          path: out/go/*.tar.gz
+          if-no-files-found: error
+
+  # A fresh install of every package on each platform, with the oldest Node, Python and Go
+  # the packages support. The smoke test itself is a TypeScript tool, which needs a Node that
+  # runs TypeScript (22.18 or later): it runs on Node 24, and what it installs and runs uses
+  # the oldest supported Node, first on the PATH.
+  smoke:
+    needs: package
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel, ubuntu-24.04, ubuntu-24.04-arm, windows-2025]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+      - id: tools
+        shell: bash
+        run: echo "node=$(node -p process.execPath)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22.12'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.21'
+          cache: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: npm-packages
+          path: npm
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: go-archives
+          path: go
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: wheels
+          path: wheels
+      - name: smoke
+        shell: bash
+        env:
+          TOOLS_NODE: ${{ steps.tools.outputs.node }}
+        run: |
+          node --version
+          "$TOOLS_NODE" tests/smoke/run.ts --npm npm --wheels wheels --go go --work "$RUNNER_TEMP/smoke" --python python
+      - name: the Linux core is static (runs on Alpine, which has no glibc)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir alpine && tar -xzf npm/docattest-core-linux-${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}-*.tgz -C alpine
+          docker run --rm -v "$PWD/alpine/package/bin:/core:ro" alpine:3.22 /core/docattest --version
+
+  publish:
+    needs: [package, smoke]
+    # Twice gated: the variable is unset until the owner sets it, and the environment asks a
+    # reviewer to approve each run.
+    if: github.ref_type == 'tag' && vars.DOCATTEST_PUBLISH == 'true'
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: npm-packages
+          path: npm
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: wheels
+          path: wheels
+      - name: npm, the packages that carry the core first
+        env:
+          # Set only for the first release, before npm lists this workflow as each package's
+          # trusted publisher (CONTRIBUTING.md, "Releasing"); unset, npm authenticates by OIDC.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # A tarball is named with ./ in front: npm reads a bare `npm/x.tgz` as the GitHub
+          # repository npm/x.tgz. A version npm has already is left as it is, so a run that a
+          # later step stopped can be run again. Access is said every time: npm makes no
+          # provenance for a package it does not know yet unless it is told it is public.
+          publish() {
+            spec="$(tar -xOzf "$1" package/package.json | node -p 'const p = JSON.parse(require("fs").readFileSync(0)); `${p.name}@${p.version}`')"
+            if npm view "$spec" version > /dev/null 2>&1; then
+              echo "$spec is on npm already"
+            else
+              npm publish "$1" --access public --provenance
+            fi
+          }
+          for tarball in ./npm/docattest-core-*.tgz; do
+            publish "$tarball"
+          done
+          # A new version may take minutes to be listed: npm stages it before it is final.
+          for attempt in $(seq 1 30); do
+            node scripts/release/check-published.ts && break
+            [ "$attempt" = 30 ] && exit 1
+            sleep 20
+          done
+          version="$(node -p "require('./protocol/core.json').version")"
+          publish "./npm/docattest-$version.tgz"
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
+        with:
+          packages-dir: wheels/

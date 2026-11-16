@@ -1,0 +1,8 @@
+# uncovered
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== uncovered
+exit 0
+stdout 2 lines
+KEYS
+add
+stderr empty

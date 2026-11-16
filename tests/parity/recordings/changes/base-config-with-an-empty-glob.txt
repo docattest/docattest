@@ -1,0 +1,12 @@
+# base config with an empty glob
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== check --base HEAD --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: the base "HEAD" cannot be read: invalid docattest.config.json: "pages" has a glob that cannot be read: Expected pattern to be a non-empty string
+=== check --base HEAD
+exit 1
+stdout empty
+stderr 1 line
+docattest: the base "HEAD" cannot be read: invalid docattest.config.json: "pages" has a glob that cannot be read: Expected pattern to be a non-empty string

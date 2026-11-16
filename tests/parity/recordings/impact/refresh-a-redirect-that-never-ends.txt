@@ -1,0 +1,7 @@
+# refresh a redirect that never ends
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== refresh
+exit 1
+stdout empty
+stderr 1 line
+docattest: refresh l: http://<server>/loop did not answer

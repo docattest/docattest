@@ -1,0 +1,12 @@
+# hooks install --git: where the hook or its directory cannot be written
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== hooks install --git
+exit 1
+stdout empty
+stderr 1 line
+docattest: cannot read <root>/h/pre-commit: Is a directory (os error 21)
+=== hooks install --git
+exit 1
+stdout empty
+stderr 1 line
+docattest: hooks install --git needs a git repository, and <root> is not inside one

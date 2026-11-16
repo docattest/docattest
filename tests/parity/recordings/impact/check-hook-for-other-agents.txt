@@ -1,0 +1,136 @@
+# check --hook for other agents
+# recorded from: check --quiet prints only what needs attention
+=== check --hook --agent gemini
+exit 0
+stdout 1 line
+{"decision":"deny","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent gemini
+exit 0
+stdout empty
+stderr empty
+=== check --hook --agent cursor
+exit 0
+stdout 1 line
+{"followup_message":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent cursor
+exit 0
+stdout empty
+stderr empty
+=== check --hook --agent cursor
+exit 0
+stdout empty
+stderr empty
+=== check --hook --agent cursor
+exit 0
+stdout 1 line
+{"followup_message":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent cursor
+exit 0
+stdout empty
+stderr empty
+=== check --hook --agent cursor
+exit 0
+stdout 1 line
+{"followup_message":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent cursor
+exit 0
+stdout empty
+stderr empty
+=== check --hook --agent cursor
+exit 0
+stdout 1 line
+{"followup_message":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook
+exit 0
+stdout empty
+stderr empty
+=== check --hook
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent claude
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent tools/acme.json
+exit 0
+stdout 1 line
+{"action":"continue","message":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent tools/acme.json
+exit 0
+stdout empty
+stderr empty
+=== check --hook --agent tools/acme.json
+exit 0
+stdout 1 line
+{"action":"continue","message":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent tools/fixed.json
+exit 0
+stdout 1 line
+{"say":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED","z":[1]}
+stderr empty
+=== check --hook --agent tools/check-only.json
+exit 0
+stdout 1 line
+{"say":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== impact --hook --agent tools/check-only.json
+exit 1
+stdout empty
+stderr 1 line
+docattest: agent "check-only" has no hook for impact: its descriptor binds none
+=== check --hook --agent tools/impact-only.json
+exit 1
+stdout empty
+stderr 1 line
+docattest: agent "impact-only" has no hook for check: its descriptor binds none
+=== hooks install --agent tools/check-only.json
+exit 0
+stdout 2 lines
+docattest hooks: added to <root>/c.json
+  end: npx --no docattest check --hook --agent ./tools/check-only.json
+stderr empty
+file c.json 9 lines
+{
+  "h": {
+    "end": [
+      {
+        "c": "npx --no docattest check --hook --agent ./tools/check-only.json"
+      }
+    ]
+  }
+}
+=== hooks install --agent tools/impact-only.json
+exit 0
+stdout 2 lines
+docattest hooks: added to <root>/c.json
+  edit: npx --no docattest impact --hook --agent ./tools/impact-only.json
+stderr empty
+file c.json 18 lines
+{
+  "h": {
+    "end": [
+      {
+        "c": "npx --no docattest check --hook --agent ./tools/check-only.json"
+      }
+    ],
+    "edit": [
+      {
+        "g": [
+          {
+            "c": "npx --no docattest impact --hook --agent ./tools/impact-only.json"
+          }
+        ]
+      }
+    ]
+  }
+}

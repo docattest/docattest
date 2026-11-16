@@ -1,0 +1,12 @@
+# agents install into a second end
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== agents install
+exit 1
+stdout empty
+stderr 1 line
+docattest: <root>/AGENTS.md: the docattest section must be one "<!-- docattest:begin -->" with one "<!-- docattest:end -->" after it; fix the markers and run again
+=== agents install
+exit 1
+stdout empty
+stderr 1 line
+docattest: <root>/AGENTS.md: the docattest section must be one "<!-- docattest:begin -->" with one "<!-- docattest:end -->" after it; fix the markers and run again

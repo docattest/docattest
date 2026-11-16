@@ -1,0 +1,59 @@
+# unit: key that is not an identifier
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list matches Plans['free-tier'] → <!-- fact: Plans['free-tier'] --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "Plans['free-tier']",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Plans['free-tier'] -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 3 lines
+Object.keys(Plans)  →  [free-tier]
+Plans['free-tier']  →  [p1, p2, p3]
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 20 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(Plans)",
+    "value": "free-tier",
+    "items": [
+      "free-tier"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Plans['free-tier']",
+    "value": "p1,p2,p3",
+    "items": [
+      "p1",
+      "p2",
+      "p3"
+    ]
+  }
+]
+stderr empty

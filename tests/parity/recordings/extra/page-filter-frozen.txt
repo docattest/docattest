@@ -1,0 +1,7 @@
+# page filter frozen
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check docs/old/*.md
+exit 1
+stdout empty
+stderr 1 line
+docattest: "docs/old/*.md" matches only frozen pages, which are never checked

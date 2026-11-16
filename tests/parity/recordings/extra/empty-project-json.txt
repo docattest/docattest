@@ -1,0 +1,41 @@
+# empty project json
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --json
+exit 0
+stdout 35 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 0,
+    "covered": 0,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 3,
+      "attested": 0,
+      "unattested": [
+        "KEYS",
+        "N",
+        "add"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0
+}
+stderr empty

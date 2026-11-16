@@ -1,0 +1,187 @@
+# unit: arrays, sets, objects, members, row fields
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 7 lines
+docs/p.md
+  ? L1 list matches ARR → <!-- fact: ARR --> above the list
+  ? L7 list matches SET → <!-- fact: SET --> above the list
+  ? L13 list matches Object.values(OBJ) → <!-- fact: Object.values(OBJ) --> above the list
+  ? L19 list matches CONF.regions → <!-- fact: CONF.regions --> above the list
+  ? L25 list matches ROWS.map((r) => r.id) → <!-- fact: ROWS.map((r) => r.id) --> above the list
+audit: 5 suggestions on 1 page, 5 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 59 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "ARR",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: ARR -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 7,
+      "target": "list",
+      "expression": "SET",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: SET -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 13,
+      "target": "list",
+      "expression": "Object.values(OBJ)",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Object.values(OBJ) -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 19,
+      "target": "list",
+      "expression": "CONF.regions",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: CONF.regions -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 25,
+      "target": "list",
+      "expression": "ROWS.map((r) => r.id)",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: ROWS.map((r) => r.id) -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 12 lines
+ARR  →  [a1, a2, a3]
+Object.keys(CONF)  →  [name, regions]
+CONF.name  →  conf
+CONF.regions  →  [m1, m2, m3]
+Object.keys(OBJ)  →  [k1, k2, k3]
+Object.values(OBJ)  →  [v1, v2, v3]
+OBJ.k1  →  v1
+OBJ.k2  →  v2
+OBJ.k3  →  v3
+ROWS.map((r) => r.id)  →  [r1, r2, r3]
+SET  →  [s1, s2, s3]
+inventory: 11 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 91 lines
+[
+  {
+    "surface": "default",
+    "expression": "ARR",
+    "value": "a1,a2,a3",
+    "items": [
+      "a1",
+      "a2",
+      "a3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(CONF)",
+    "value": "name,regions",
+    "items": [
+      "name",
+      "regions"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "CONF.name",
+    "value": "conf"
+  },
+  {
+    "surface": "default",
+    "expression": "CONF.regions",
+    "value": "m1,m2,m3",
+    "items": [
+      "m1",
+      "m2",
+      "m3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(OBJ)",
+    "value": "k1,k2,k3",
+    "items": [
+      "k1",
+      "k2",
+      "k3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(OBJ)",
+    "value": "v1,v2,v3",
+    "items": [
+      "v1",
+      "v2",
+      "v3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "OBJ.k1",
+    "value": "v1"
+  },
+  {
+    "surface": "default",
+    "expression": "OBJ.k2",
+    "value": "v2"
+  },
+  {
+    "surface": "default",
+    "expression": "OBJ.k3",
+    "value": "v3"
+  },
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.id)",
+    "value": "r1,r2,r3",
+    "items": [
+      "r1",
+      "r2",
+      "r3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "SET",
+    "value": "[object Set]",
+    "items": [
+      "s1",
+      "s2",
+      "s3"
+    ]
+  }
+]
+stderr empty

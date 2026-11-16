@@ -1,0 +1,51 @@
+# guard-05
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD --json
+exit 0
+stdout 45 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 0,
+    "covered": 0,
+    "uncovered": [],
+    "frozen": [
+      "docs/retry.md"
+    ],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 2,
+      "attested": 0,
+      "unattested": [
+        "RETRY_DEFAULTS",
+        "retry"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0,
+  "changes": [
+    {
+      "type": "frozen-page",
+      "page": "docs/retry.md",
+      "line": 1,
+      "severity": "warning",
+      "message": "docs/retry.md is frozen by its frontmatter (docattest: false), so its attestations no longer run"
+    }
+  ]
+}
+stderr empty

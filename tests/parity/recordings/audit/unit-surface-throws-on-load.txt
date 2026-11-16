@@ -1,0 +1,22 @@
+# unit: surface throws on load
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" failed to load: Error: no
+=== audit --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" failed to load: Error: no
+=== inventory
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" failed to load: Error: no
+=== inventory --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" failed to load: Error: no

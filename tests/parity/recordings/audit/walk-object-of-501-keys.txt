@@ -1,0 +1,14 @@
+# walk: object of 501 keys
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty

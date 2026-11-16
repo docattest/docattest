@@ -1,0 +1,7 @@
+# refresh a source that answers 500
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== refresh
+exit 1
+stdout empty
+stderr 1 line
+docattest: refresh b: http://<server>/broken answered 500

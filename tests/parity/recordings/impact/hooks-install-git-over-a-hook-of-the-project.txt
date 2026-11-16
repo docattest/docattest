@@ -1,0 +1,14 @@
+# hooks install --git: over a hook of the project
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install --git
+exit 1
+stdout empty
+stderr 2 lines
+docattest: <root>/my hooks/pre-commit is there already and is left as it is. To check this project before each commit, add this line to it:
+  npx --no docattest check --quiet || exit 1
+=== hooks install --git
+exit 1
+stdout empty
+stderr 2 lines
+docattest: <root>/my hooks/pre-commit is there already and is left as it is. To check this project before each commit, add this line to it:
+  npx --no docattest check --quiet || exit 1

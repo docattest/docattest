@@ -1,0 +1,116 @@
+# threshold: trivial items
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 4 lines
+docs/p.md
+  ? L13 list matches PORTS → <!-- fact: PORTS --> above the list
+  ? L18 list matches MIXED → <!-- fact: MIXED --> above the list
+audit: 2 suggestions on 1 page, 2 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 26 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 13,
+      "target": "list",
+      "expression": "PORTS",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: PORTS -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 18,
+      "target": "list",
+      "expression": "MIXED",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: MIXED -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 7 lines
+DIGITS  →  [1, 2, x]
+MIXED  →  [TRUE, None, real, other]
+NEG  →  [-1, -2, -10, -20]
+ONE  →  [alpha]
+PORTS  →  [80, 443]
+WORDS  →  [yes, no, on]
+inventory: 6 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 61 lines
+[
+  {
+    "surface": "default",
+    "expression": "DIGITS",
+    "value": "1,2,x",
+    "items": [
+      "1",
+      "2",
+      "x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "MIXED",
+    "value": "TRUE,None,real,other",
+    "items": [
+      "TRUE",
+      "None",
+      "real",
+      "other"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "NEG",
+    "value": "-1,-2,-10,-20",
+    "items": [
+      "-1",
+      "-2",
+      "-10",
+      "-20"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ONE",
+    "value": "alpha",
+    "items": [
+      "alpha"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "PORTS",
+    "value": "80,443",
+    "items": [
+      "80",
+      "443"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "WORDS",
+    "value": "yes,no,on",
+    "items": [
+      "yes",
+      "no",
+      "on"
+    ]
+  }
+]
+stderr empty

@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // Tests index into results whose length they have just asserted, and pass optional
+    // fixtures straight through; the stricter flags would only add noise here.
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    // Tests import their helpers by source name; nothing here is emitted.
+    "allowImportingTsExtensions": true
+  },
+  "include": ["."]
+}

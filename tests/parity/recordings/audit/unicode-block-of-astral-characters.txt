@@ -1,0 +1,38 @@
+# unicode: block of astral characters
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L13 block matches NB → <!-- fact: NB --> above the block
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 13,
+      "target": "block",
+      "expression": "NB",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: NB -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout json
+"NB  →  spaced 　out﻿with  odd spaces\nS7  →  🎉🎉🎉🎉🎉🎉🎉\nS8  →  😀😀😀😀😀😀😀😀\ninventory: 3 values\n"
+stderr empty
+=== inventory --json
+exit 0
+stdout json
+"[\n  {\n    \"surface\": \"default\",\n    \"expression\": \"NB\",\n    \"value\": \"spaced 　out﻿with  odd spaces\"\n  },\n  {\n    \"surface\": \"default\",\n    \"expression\": \"S7\",\n    \"value\": \"🎉🎉🎉🎉🎉🎉🎉\"\n  },\n  {\n    \"surface\": \"default\",\n    \"expression\": \"S8\",\n    \"value\": \"😀😀😀😀😀😀😀😀\"\n  }\n]\n"
+stderr empty

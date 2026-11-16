@@ -1,0 +1,83 @@
+# doc-comment example deleted, description reworded lightly
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== check --base HEAD --json
+exit 1
+stdout 63 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 0,
+    "covered": 0,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 4,
+      "attested": 0,
+      "unattested": [
+        "KEYS",
+        "LIMIT",
+        "TEXT",
+        "add"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    },
+    "extra": {
+      "symbols": 2,
+      "attested": 0,
+      "unattested": [
+        "LIMIT",
+        "OTHER"
+      ],
+      "resolution": {
+        "import": "fixture/extra",
+        "entry": "src/extra.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1,
+  "changes": [
+    {
+      "type": "orphaned-claim",
+      "page": "src/double.ts",
+      "line": 1,
+      "severity": "fail",
+      "message": "\"Doubles a number, whatever its sign.\" is still on the page, but the example that proved it (src/double.ts:1 at the base) is gone"
+    }
+  ]
+}
+stderr empty
+=== check --base HEAD
+exit 1
+stdout 10 lines
+results: 0 pass, 0 fail, 0 error, 0 skipped
+coverage: 0 living pages, 0 covered (0 attestations, 0 weak), 0 uncovered, 0 frozen
+surface default: 4 symbols, 0 attested, 4 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+surface extra: 2 symbols, 0 attested, 2 not referenced by any page
+  fixture/extra → src/extra.ts (fixture@1.0.0)
+snapshots: none
+changes since the base: 1 fail, 0 warnings
+  ✗ src/double.ts:1 orphaned-claim: "Doubles a number, whatever its sign." is still on the page, but the example that proved it (src/double.ts:1 at the base) is gone
+FAILED
+stderr empty

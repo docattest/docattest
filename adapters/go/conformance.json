@@ -1,0 +1,115 @@
+{
+  "adapter": "go",
+  "files": {
+    "go.mod": "module example.com/kit\n\ngo 1.21\n",
+    "lib.go": "// Package kit is a small library.\npackage kit\n\n// N is a number.\nconst N = 3\n\n// Keys are three letters.\nvar Keys = []string{\"A\", \"B\", \"C\"}\n\n// Name is what the kit is called.\nconst Name = \"conformance kit\"\n\n// Limits are bounds, by size.\nvar Limits = map[string]int{\"small\": 1}\n\n// Add adds two numbers.\nfunc Add(a, b int) int {\n\treturn a + b\n}\n",
+    "lib_test.go": "package kit\n\nimport (\n\t\"fmt\"\n\t\"testing\"\n)\n\n// Adding two numbers gives their sum.\nfunc ExampleAdd() {\n\tfmt.Println(Add(1, 2))\n\t// Output: 3\n}\n\nfunc TestAdd(t *testing.T) {\n\tif Add(1, 2) != 3 {\n\t\tt.Fatal(\"1 + 2 is not 3\")\n\t}\n}\n\nfunc BenchmarkAdd(b *testing.B) {\n\tfor i := 0; i < b.N; i++ {\n\t\tAdd(1, 2)\n\t}\n}\n",
+    "docs/setup.go": "// Package docs holds the runners of the tables on the pages.\npackage docs\n\nimport (\n\t\"fmt\"\n\t\"strconv\"\n\n\t\"example.com/kit\"\n)\n\n// Cases are the runners of cases tables, by name.\nvar Cases = map[string]func(row map[string]string) error{\n\t\"adds\": adds,\n}\n\nfunc adds(row map[string]string) error {\n\ta, _ := strconv.Atoi(row[\"a\"])\n\tb, _ := strconv.Atoi(row[\"b\"])\n\tif got := strconv.Itoa(kit.Add(a, b)); got != row[\"sum\"] {\n\t\treturn fmt.Errorf(\"expected %s, got %s\", row[\"sum\"], got)\n\t}\n\treturn nil\n}\n"
+  },
+  "surfaces": [
+    {
+      "name": "default",
+      "entry": "."
+    }
+  ],
+  "setup": "docs/setup.go",
+  "notSource": "docs/notes.txt",
+  "docComment": {
+    "page": "lib_test.go",
+    "text": "package kit\n\nimport (\n\t\"fmt\"\n\t\"testing\"\n)\n\n// Adding two numbers gives their sum.\nfunc ExampleAdd() {\n\tfmt.Println(Add(1, 2))\n\t// Output: 3\n}\n\nfunc TestAdd(t *testing.T) {\n\tif Add(1, 2) != 3 {\n\t\tt.Fatal(\"1 + 2 is not 3\")\n\t}\n}\n\nfunc BenchmarkAdd(b *testing.B) {\n\tfor i := 0; i < b.N; i++ {\n\t\tAdd(1, 2)\n\t}\n}\n",
+    "examples": 1,
+    "prose": "Adding two numbers gives their sum."
+  },
+  "examples": {
+    "passes": {
+      "lang": "go",
+      "code": "import (\n\t\"fmt\"\n\n\t\"example.com/kit\"\n)\n\nfmt.Println(kit.Add(1, 2))\n// Output: 3"
+    },
+    "fails": {
+      "lang": "go",
+      "code": "import (\n\t\"fmt\"\n\n\t\"example.com/kit\"\n)\n\nfmt.Println(kit.Add(1, 2))\n// Output: 4"
+    },
+    "broken": {
+      "lang": "go",
+      "code": "import \"example.com/kit\"\n\nvar _ = kit.NoSuchName\n"
+    },
+    "weak": {
+      "lang": "go",
+      "code": "import \"example.com/kit\"\n\n_ = kit.Add(1, 2)"
+    },
+    "prints": {
+      "lang": "go",
+      "code": "import (\n\t\"fmt\"\n\t\"os\"\n)\n\nfmt.Println(\"to stdout\")\nos.Stdout.WriteString(\"to descriptor 1\\n\")\nif false {\n\tpanic(\"never\")\n}"
+    },
+    "slow": {
+      "lang": "go",
+      "code": "import \"time\"\n\ntime.Sleep(500 * time.Millisecond)\nif false {\n\tpanic(\"never\")\n}"
+    }
+  },
+  "facts": {
+    "scalar": {
+      "expression": "N",
+      "text": "3",
+      "symbol": "N"
+    },
+    "list": {
+      "expression": "Keys",
+      "items": ["A", "B", "C"]
+    },
+    "text": {
+      "expression": "Name",
+      "text": "conformance kit"
+    },
+    "invalid": {
+      "expression": "N +"
+    },
+    "manifest": {
+      "expression": "manifest(\"meta.json\")[\"version\"]"
+    }
+  },
+  "exports": ["N", "Keys", "Add"],
+  "expressions": {
+    "one": "Limits[\"small\"]",
+    "renamed": "Bounds[\"small\"]",
+    "other": "Limits[\"small\"] + 1"
+  },
+  "mention": {
+    "span": "Add(1, 2)",
+    "symbol": "Add",
+    "other": "Added"
+  },
+  "inCode": {
+    "present": "Add",
+    "absent": "NoSuchNameAnywhere",
+    "files": ["lib.go"]
+  },
+  "test": {
+    "file": "lib_test.go",
+    "title": "TestAdd",
+    "suite": "BenchmarkAdd"
+  },
+  "cases": {
+    "runner": "adds",
+    "header": ["a", "b", "sum"],
+    "rows": [
+      {
+        "a": "1",
+        "b": "2",
+        "sum": "3"
+      },
+      {
+        "a": "1",
+        "b": "1",
+        "sum": "3"
+      }
+    ],
+    "statuses": ["pass", "fail"]
+  },
+  "affected": {
+    "base": {
+      "lib.go": "// Package kit is a small library.\npackage kit\n\n// N is a number.\nconst N = 3\n\n// Keys are three letters.\nvar Keys = []string{\"A\", \"B\", \"C\"}\n\n// Name is what the kit is called.\nconst Name = \"conformance kit\"\n\n// Limits are bounds, by size.\nvar Limits = map[string]int{\"small\": 1}\n\n// Add adds two numbers.\nfunc Add(a, b int) int {\n\treturn a - b\n}\n"
+    },
+    "changed": ["lib.go"],
+    "names": ["Add"]
+  }
+}

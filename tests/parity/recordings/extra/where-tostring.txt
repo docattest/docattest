@@ -1,0 +1,7 @@
+# where toString
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== where toString
+exit 0
+stdout 1 line
+toString: no page attests it
+stderr empty

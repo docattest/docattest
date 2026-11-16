@@ -1,0 +1,7 @@
+# config reserved tag
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check
+exit 1
+stdout empty
+stderr 1 line
+docattest: invalid docattest.config.json: "ignoreTags" cannot contain check, compile or network

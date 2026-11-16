@@ -1,0 +1,7 @@
+# hooks install: not JSON
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== hooks install
+exit 1
+stdout empty
+stderr 1 line
+docattest: <root>/.claude/settings.json is not valid JSON (key must be a string at line 1 column 3); fix it and run again

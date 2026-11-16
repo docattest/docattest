@@ -1,0 +1,113 @@
+# surfaces: numeric names
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 5 lines
+docs/p.md
+  ? L1 list matches K → <!-- fact: K --> above the list
+  ? L6 list matches T → <!-- fact @1: T --> above the list
+  ? L11 list matches O → <!-- fact @1: O --> above the list
+audit: 3 suggestions on 1 page, 3 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 37 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "K",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 6,
+      "target": "list",
+      "expression": "T",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "1",
+      "directive": "<!-- fact @1: T -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 11,
+      "target": "list",
+      "expression": "O",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "1",
+      "directive": "<!-- fact @1: O -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 6 lines
+K  →  [k1, k2]
+@1 O  →  [o1, o2]
+@1 T  →  [t1, t2]
+@2 T  →  [t1, t2]
+@zeta K  →  [k1, k2]
+inventory: 5 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 47 lines
+[
+  {
+    "surface": "default",
+    "expression": "K",
+    "value": "k1,k2",
+    "items": [
+      "k1",
+      "k2"
+    ]
+  },
+  {
+    "surface": "1",
+    "expression": "O",
+    "value": "o1,o2",
+    "items": [
+      "o1",
+      "o2"
+    ]
+  },
+  {
+    "surface": "1",
+    "expression": "T",
+    "value": "t1,t2",
+    "items": [
+      "t1",
+      "t2"
+    ]
+  },
+  {
+    "surface": "2",
+    "expression": "T",
+    "value": "t1,t2",
+    "items": [
+      "t1",
+      "t2"
+    ]
+  },
+  {
+    "surface": "zeta",
+    "expression": "K",
+    "value": "k1,k2",
+    "items": [
+      "k1",
+      "k2"
+    ]
+  }
+]
+stderr empty

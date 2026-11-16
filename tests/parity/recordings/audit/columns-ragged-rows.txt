@@ -1,0 +1,60 @@
+# columns: ragged rows
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 column matches A → <!-- fact column=Left: A --> above the table
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "column",
+      "expression": "A",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=Left: A -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 3 lines
+A  →  [A1, A2, A3]
+B  →  [B1, B2]
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 21 lines
+[
+  {
+    "surface": "default",
+    "expression": "A",
+    "value": "A1,A2,A3",
+    "items": [
+      "A1",
+      "A2",
+      "A3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "B",
+    "value": "B1,B2",
+    "items": [
+      "B1",
+      "B2"
+    ]
+  }
+]
+stderr empty

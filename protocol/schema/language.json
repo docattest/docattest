@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docattest adapter protocol, version 1: what a language says of itself: its greeting and its answers about text",
+  "description": "Every value the protocol carries. Optional fields are omitted, never null, unless a type says null. Paths are relative to the project root, with / separators.",
+  "$defs": {
+    "Hello": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "const": 1
+        },
+        "adapter": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          },
+          "required": ["name", "version"],
+          "additionalProperties": false
+        },
+        "blockLanguages": {
+          "description": "Info-string languages whose fenced blocks the adapter runs, lower case.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sourceFiles": {
+          "$ref": "#/$defs/SourceFiles"
+        },
+        "ignoredNames": {
+          "description": "Globs, each for the name of one file or directory (never a path), that is never the project's own.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ignoredMarkers": {
+          "description": "Names of files that mark the directory holding them as not the project's own.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "enum": ["tests", "observables", "affected"]
+          }
+        },
+        "infoWords": {
+          "description": "Info-string words of the adapter's own, and attributes as 'key='. The core passes them on in an example's tags.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vocabulary": {
+          "$ref": "#/$defs/Vocabulary"
+        }
+      },
+      "required": [
+        "protocol",
+        "adapter",
+        "blockLanguages",
+        "sourceFiles",
+        "ignoredNames",
+        "capabilities"
+      ],
+      "additionalProperties": false
+    },
+    "SourceFiles": {
+      "type": "object",
+      "description": "Globs for the project-relative paths that are source files of the language.",
+      "properties": {
+        "include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["include", "exclude"],
+      "additionalProperties": false
+    },
+    "Vocabulary": {
+      "type": "object",
+      "description": "The language's words for what the core's sentences name. Every word is optional; a word the core does not know is ignored.",
+      "properties": {
+        "untitled": {
+          "description": "Stands for an enclosing title that cannot be cited, in a test's path. Default: (untitled).",
+          "type": "string"
+        },
+        "noTests": {
+          "description": "What a test file with nothing to cite is said to do. Default: it declares no test.",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "SourceText": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": ["page", "text"],
+      "additionalProperties": false
+    },
+    "DocProse": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": ["text", "start", "end"],
+      "additionalProperties": false
+    },
+    "ExpressionShape": {
+      "type": "object",
+      "properties": {
+        "shape": {
+          "type": "string"
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["shape", "names"],
+      "additionalProperties": false
+    }
+  }
+}

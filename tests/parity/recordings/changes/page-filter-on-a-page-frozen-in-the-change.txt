@@ -1,0 +1,7 @@
+# page filter on a page frozen in the change
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD docs/retry.md
+exit 1
+stdout empty
+stderr 1 line
+docattest: "docs/retry.md" matches only frozen pages, which are never checked

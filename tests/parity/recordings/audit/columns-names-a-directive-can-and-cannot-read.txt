@@ -1,0 +1,167 @@
+# columns: names a directive can and cannot read
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 7 lines
+docs/p.md
+  ? L1 column matches A → <!-- fact column="a:b": A --> above the table
+  ? L8 column matches B → <!-- fact column='say "x"': B --> above the table
+  ? L22 column matches D → <!-- fact column="it's": D --> above the table
+  ? L36 column matches F → <!-- fact column=Dup: F --> above the table
+  ? L50 column matches H → <!-- fact column="`code` head": H --> above the table
+audit: 5 suggestions on 1 page, 5 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 59 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "column",
+      "expression": "A",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=\"a:b\": A -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 8,
+      "target": "column",
+      "expression": "B",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column='say \"x\"': B -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 22,
+      "target": "column",
+      "expression": "D",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=\"it's\": D -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 36,
+      "target": "column",
+      "expression": "F",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=Dup: F -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 50,
+      "target": "column",
+      "expression": "H",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=\"`code` head\": H -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 9 lines
+A  →  [A1, A2]
+B  →  [B1, B2]
+C  →  [C1, C2]
+D  →  [D1, D2]
+E  →  [E1, E2]
+F  →  [F1, F2]
+G  →  [G1, G2]
+H  →  [H1, H2]
+inventory: 8 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 74 lines
+[
+  {
+    "surface": "default",
+    "expression": "A",
+    "value": "A1,A2",
+    "items": [
+      "A1",
+      "A2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "B",
+    "value": "B1,B2",
+    "items": [
+      "B1",
+      "B2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "C",
+    "value": "C1,C2",
+    "items": [
+      "C1",
+      "C2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "D",
+    "value": "D1,D2",
+    "items": [
+      "D1",
+      "D2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "E",
+    "value": "E1,E2",
+    "items": [
+      "E1",
+      "E2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "F",
+    "value": "F1,F2",
+    "items": [
+      "F1",
+      "F2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "G",
+    "value": "G1,G2",
+    "items": [
+      "G1",
+      "G2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "H",
+    "value": "H1,H2",
+    "items": [
+      "H1",
+      "H2"
+    ]
+  }
+]
+stderr empty

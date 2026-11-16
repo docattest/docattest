@@ -1,0 +1,43 @@
+# impact a manifest a fact reads, beside a symbol
+# recorded from: merged second round: skill text from manifest, console and audit; claims fix; plurals
+=== impact
+exit 0
+stdout 6 lines
+docattest impact: changes since HEAD affect 1 exported symbol and 1 manifest
+n
+  docs/install.md:3 proven fact  The version is `1`.
+manifest("engines.json")
+  docs/install.md:1 proven fact  Node 22.12 or later.
+next: re-read docs/install.md and correct any sentence above that the change made untrue; then run docattest check docs/install.md
+stderr empty
+=== impact --json
+exit 0
+stdout 27 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "n"
+  ],
+  "manifests": [
+    "engines.json"
+  ],
+  "references": [
+    {
+      "symbol": "manifest(\"engines.json\")",
+      "page": "docs/install.md",
+      "line": 1,
+      "kind": "fact",
+      "claim": "Node 22.12 or later.",
+      "proven": true
+    },
+    {
+      "symbol": "n",
+      "page": "docs/install.md",
+      "line": 3,
+      "kind": "fact",
+      "claim": "The version is `1`.",
+      "proven": true
+    }
+  ]
+}
+stderr empty

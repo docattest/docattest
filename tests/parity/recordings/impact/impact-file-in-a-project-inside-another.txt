@@ -1,0 +1,73 @@
+# impact --file in a project inside another
+# recorded from: impact --file answers for the edited file's change alone; config key commands
+=== impact --file packages/inner/src/index.ts
+exit 0
+stdout 5 lines
+docattest impact: changes since HEAD affect 1 exported symbol
+inner
+  docs/inner.md:1 proven fact  It is `1`.
+  docs/inner.md:3 mention (unproven)  Use `inner`.
+next: re-read docs/inner.md and correct any sentence above that the change made untrue; then run docattest check docs/inner.md
+stderr empty
+=== impact --file src/parse.ts
+exit 0
+stdout 16 lines
+docattest impact: changes since HEAD affect 2 exported symbols
+Client
+  docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
+  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
+  docs/guide.md:16 mention (unproven)  `Client` and `parse`
+parse
+  docs/guide.md:3 mention (unproven)  Read the input with `parse` before you retry anything.
+  docs/guide.md:5 mention (unproven)  `parse` first
+  docs/guide.md:11 mention (unproven)  `parse`
+  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
+  docs/guide.md:14 mention (unproven)  Erst `parse(a.b)`.
+  docs/guide.md:16 mention (unproven)  `Client` and `parse`
+  docs/guide.md:18 mention (unproven)  Same line `parse` and `parse` twice.
+  docs/guide.md:19 mention (unproven)  Next line `parse` in one paragraph.
+  docs/parse.md:5 proven example  Text becomes a number.
+next: re-read docs/guide.md, docs/parse.md and correct any sentence above that the change made untrue; then run docattest check docs/parse.md
+stderr empty
+=== impact --file ../../src/parse.ts
+exit 0
+stdout 16 lines
+docattest impact: changes since HEAD affect 2 exported symbols
+Client
+  docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
+  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
+  docs/guide.md:16 mention (unproven)  `Client` and `parse`
+parse
+  docs/guide.md:3 mention (unproven)  Read the input with `parse` before you retry anything.
+  docs/guide.md:5 mention (unproven)  `parse` first
+  docs/guide.md:11 mention (unproven)  `parse`
+  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
+  docs/guide.md:14 mention (unproven)  Erst `parse(a.b)`.
+  docs/guide.md:16 mention (unproven)  `Client` and `parse`
+  docs/guide.md:18 mention (unproven)  Same line `parse` and `parse` twice.
+  docs/guide.md:19 mention (unproven)  Next line `parse` in one paragraph.
+  docs/parse.md:5 proven example  Text becomes a number.
+next: re-read docs/guide.md, docs/parse.md and correct any sentence above that the change made untrue; then run docattest check docs/parse.md
+stderr empty
+=== impact --file src/index.ts
+exit 0
+stdout 5 lines
+docattest impact: changes since HEAD affect 1 exported symbol
+inner
+  docs/inner.md:1 proven fact  It is `1`.
+  docs/inner.md:3 mention (unproven)  Use `inner`.
+next: re-read docs/inner.md and correct any sentence above that the change made untrue; then run docattest check docs/inner.md
+stderr empty
+=== impact --file packages/inner/src/index.ts --root .
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 0
+stdout 1 line
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest impact: changes since HEAD affect 1 exported symbol\ninner\n  docs/inner.md:1 proven fact  It is `1`.\n  docs/inner.md:3 mention (unproven)  Use `inner`.\nnext: re-read docs/inner.md and correct any sentence above that the change made untrue; then run docattest check docs/inner.md"}}
+stderr empty
+=== impact --hook --root __ROOT__
+exit 0
+stdout empty
+stderr empty

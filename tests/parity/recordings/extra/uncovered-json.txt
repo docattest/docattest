@@ -1,0 +1,11 @@
+# uncovered json
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== uncovered --json
+exit 0
+stdout 5 lines
+[
+  "KEYS",
+  "N",
+  "add"
+]
+stderr empty

@@ -1,0 +1,91 @@
+# config numeric surface names
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --json
+exit 0
+stdout 85 lines
+{
+  "results": [
+    {
+      "page": "docs/a.md",
+      "line": 1,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "N"
+      ],
+      "message": "N is 3",
+      "expected": "3",
+      "actual": "3"
+    }
+  ],
+  "coverage": {
+    "living": 1,
+    "covered": 1,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 1,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "1": {
+      "symbols": 3,
+      "attested": 0,
+      "unattested": [
+        "KEYS",
+        "N",
+        "add"
+      ],
+      "resolution": {
+        "import": "fixture/1",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    },
+    "2": {
+      "symbols": 3,
+      "attested": 0,
+      "unattested": [
+        "KEYS",
+        "N",
+        "add"
+      ],
+      "resolution": {
+        "import": "fixture/2",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    },
+    "default": {
+      "symbols": 3,
+      "attested": 1,
+      "unattested": [
+        "KEYS",
+        "add"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0
+}
+stderr empty

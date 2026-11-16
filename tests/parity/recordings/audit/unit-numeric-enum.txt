@@ -1,0 +1,86 @@
+# unit: numeric enum
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list matches Object.keys(Color).filter((k) => Number.isNaN(Number(k))) → <!-- fact: Object.keys(Color).filter((k) => Number.isNaN(Number(k))) --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "Object.keys(Color).filter((k) => Number.isNaN(Number(k)))",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Object.keys(Color).filter((k) => Number.isNaN(Number(k))) -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 8 lines
+Object.keys(Color).filter((k) => Number.isNaN(Number(k)))  →  [Red, Green, Blue]
+Color['0']  →  Red
+Color['1']  →  Green
+Color['2']  →  Blue
+Color.Red  →  0
+Color.Green  →  1
+Color.Blue  →  2
+inventory: 7 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 42 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(Color).filter((k) => Number.isNaN(Number(k)))",
+    "value": "Red,Green,Blue",
+    "items": [
+      "Red",
+      "Green",
+      "Blue"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Color['0']",
+    "value": "Red"
+  },
+  {
+    "surface": "default",
+    "expression": "Color['1']",
+    "value": "Green"
+  },
+  {
+    "surface": "default",
+    "expression": "Color['2']",
+    "value": "Blue"
+  },
+  {
+    "surface": "default",
+    "expression": "Color.Red",
+    "value": "0"
+  },
+  {
+    "surface": "default",
+    "expression": "Color.Green",
+    "value": "1"
+  },
+  {
+    "surface": "default",
+    "expression": "Color.Blue",
+    "value": "2"
+  }
+]
+stderr empty

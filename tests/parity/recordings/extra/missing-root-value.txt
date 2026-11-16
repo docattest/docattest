@@ -1,0 +1,7 @@
+# missing root value
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --root
+exit 1
+stdout empty
+stderr 1 line
+docattest: Option '--root <value>' argument missing

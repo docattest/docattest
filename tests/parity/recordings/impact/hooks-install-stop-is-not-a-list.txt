@@ -1,0 +1,7 @@
+# hooks install: Stop is not a list
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install
+exit 1
+stdout empty
+stderr 1 line
+docattest: <root>/.claude/settings.json: "hooks.Stop" is not a list; fix it and run again

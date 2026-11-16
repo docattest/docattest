@@ -1,0 +1,47 @@
+# ties: block drifting from two different strings
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 13 lines
+A  →  name: demo
+region: eu
+port: 8080
+log: info
+tail: one
+
+B  →  name: demo
+region: eu
+port: 8080
+log: info
+tail: two
+
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 12 lines
+[
+  {
+    "surface": "default",
+    "expression": "A",
+    "value": "name: demo\nregion: eu\nport: 8080\nlog: info\ntail: one\n"
+  },
+  {
+    "surface": "default",
+    "expression": "B",
+    "value": "name: demo\nregion: eu\nport: 8080\nlog: info\ntail: two\n"
+  }
+]
+stderr empty

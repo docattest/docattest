@@ -1,0 +1,7 @@
+# adapter not found: refresh
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== refresh
+exit 1
+stdout empty
+stderr 1 line
+docattest: no python adapter: set DOCATTEST_ADAPTER_PYTHON to its command, or put docattest-adapter-python on the PATH

@@ -1,0 +1,17 @@
+# impact outside a repository
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact needs a git repository, and <root> is not inside one
+=== impact --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact needs a git repository, and <root> is not inside one
+=== impact --base main
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact needs a git repository, and <root> is not inside one

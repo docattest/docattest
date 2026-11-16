@@ -1,0 +1,5 @@
+{
+  "pages": ["docs/**/*.md"],
+  "surfaces": { "default": "./src/index.ts" },
+  "adapter": "typescript"
+}

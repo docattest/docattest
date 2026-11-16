@@ -1,0 +1,204 @@
+//! Cargo, as the adapter uses it: what a project is made of, and building the crate the
+//! adapter generates beside it.
+
+use super::{Command, run};
+use serde::Deserialize;
+use std::path::{Path, PathBuf};
+
+/// The cargo to run: `DOCATTEST_CARGO`, else `cargo` on the `PATH`.
+pub fn program() -> PathBuf {
+    std::env::var_os("DOCATTEST_CARGO").map_or_else(|| "cargo".into(), PathBuf::from)
+}
+
+/// `cargo metadata` of a workspace, as far as the adapter reads it.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Metadata {
+    pub packages: Vec<Package>,
+    pub target_directory: PathBuf,
+    pub workspace_root: PathBuf,
+}
+
+/// One package of a workspace.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Package {
+    pub name: String,
+    pub manifest_path: PathBuf,
+    pub edition: String,
+    pub targets: Vec<Target>,
+    pub dependencies: Vec<Dependency>,
+}
+
+/// One target of a package: its library, a program, a test.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Target {
+    pub name: String,
+    pub kind: Vec<String>,
+    pub src_path: PathBuf,
+}
+
+/// One dependency a package declares.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Dependency {
+    pub name: String,
+    pub req: String,
+    pub kind: Option<String>,
+    pub rename: Option<String>,
+    pub optional: bool,
+    pub uses_default_features: bool,
+    pub features: Vec<String>,
+    pub target: Option<String>,
+    pub path: Option<PathBuf>,
+    pub source: Option<String>,
+}
+
+/// Asks cargo what the workspace at or above a directory is made of.
+pub fn metadata(dir: &Path) -> Result<Metadata, String> {
+    let args = ["metadata", "--format-version", "1", "--no-deps"].map(String::from).to_vec();
+    let asked = run(&Command { program: program(), args, dir: dir.to_path_buf(), ..Command::default() });
+    if let Some(error) = asked.error {
+        return Err(not_run(&error));
+    }
+    if asked.code != Some(0) {
+        return Err(last_error(&asked.stderr));
+    }
+    serde_json::from_str(&asked.stdout).map_err(|err| format!("cargo metadata: {err}"))
+}
+
+/// Why cargo did not start, naming the program tried, which may be `DOCATTEST_CARGO`'s.
+fn not_run(error: &str) -> String {
+    format!("{} could not be run: {error}", program().display())
+}
+
+/// The last thing cargo said went wrong, on one line.
+pub(super) fn last_error(stderr: &str) -> String {
+    let lines: Vec<&str> = stderr.lines().filter(|line| !line.trim().is_empty()).collect();
+    let said = lines.iter().rev().find(|line| line.starts_with("error")).or(lines.last());
+    said.map_or_else(|| "cargo failed".to_string(), |line| line.trim().to_string())
+}
+
+/// One complaint of a build.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Problem {
+    /// The program the complaint is about, by its name; empty when it is about none.
+    pub target: String,
+    /// The file of the complaint, as cargo names it; empty for a complaint about no file.
+    pub file: String,
+    pub line: usize,
+    pub message: String,
+}
+
+#[derive(Deserialize)]
+struct Message {
+    reason: String,
+    target: Option<Target>,
+    message: Option<Diagnostic>,
+}
+
+#[derive(Deserialize)]
+struct Diagnostic {
+    level: String,
+    message: String,
+    spans: Vec<Span>,
+}
+
+#[derive(Deserialize)]
+struct Span {
+    file_name: String,
+    line_start: usize,
+    is_primary: bool,
+    /// Where the macro was used, when the span is inside what a macro wrote.
+    expansion: Option<Box<Expansion>>,
+}
+
+#[derive(Deserialize)]
+struct Expansion {
+    span: Span,
+}
+
+impl Span {
+    /// The place in the code as it was written: where the outermost macro was used.
+    fn written(&self) -> &Span {
+        self.expansion.as_ref().map_or(self, |expansion| expansion.span.written())
+    }
+}
+
+/// Builds programs of a crate, by name, into a target directory, and reads what the
+/// compiler complains of. A program that does not compile does not stop the others. The
+/// problems are empty exactly when every program was built.
+pub fn build(krate: &Path, target: &Path, programs: &[String]) -> Vec<Problem> {
+    let mut args: Vec<String> =
+        ["build", "--keep-going", "--message-format=json", "--target-dir"].map(String::from).to_vec();
+    args.push(target.to_string_lossy().into_owned());
+    for name in programs {
+        args.extend(["--bin".to_string(), name.clone()]);
+    }
+    let built = run(&Command { program: program(), args, dir: krate.to_path_buf(), ..Command::default() });
+    if let Some(error) = built.error {
+        return vec![Problem {
+            target: String::new(),
+            file: String::new(),
+            line: 0,
+            message: not_run(&error),
+        }];
+    }
+    let mut problems = errors(&built.stdout);
+    if built.code != Some(0) && problems.is_empty() {
+        problems.push(Problem {
+            target: String::new(),
+            file: String::new(),
+            line: 0,
+            message: last_error(&built.stderr),
+        });
+    }
+    problems
+}
+
+/// The compiler's errors among the messages of a build.
+pub fn errors(messages: &str) -> Vec<Problem> {
+    let mut problems = Vec::new();
+    for line in messages.lines() {
+        let Ok(message) = serde_json::from_str::<Message>(line) else { continue };
+        let Some(diagnostic) =
+            message.message.filter(|d| message.reason == "compiler-message" && d.level == "error")
+        else {
+            continue;
+        };
+        // "aborting due to 2 previous errors" is about the errors, and at no place.
+        let Some(span) = diagnostic.spans.iter().find(|span| span.is_primary).map(Span::written) else {
+            continue;
+        };
+        problems.push(Problem {
+            target: message.target.map(|t| t.name).unwrap_or_default(),
+            file: span.file_name.clone(),
+            line: span.line_start,
+            message: diagnostic.message,
+        });
+    }
+    problems
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn errors_are_read_from_the_compilers_messages() {
+        let messages = concat!(
+            r#"{"reason":"compiler-message","target":{"name":"e2","kind":["bin"],"src_path":"/x/src/bin/e2.rs"},"message":{"level":"error","message":"cannot find value `NO` in this scope","spans":[{"file_name":"src/bin/e2.rs","line_start":3,"is_primary":true}]}}"#,
+            "\n",
+            r#"{"reason":"compiler-message","target":{"name":"e2","kind":["bin"],"src_path":"/x"},"message":{"level":"warning","message":"unused","spans":[]}}"#,
+            "\n",
+            r#"{"reason":"compiler-message","target":{"name":"e2","kind":["bin"],"src_path":"/x"},"message":{"level":"error","message":"aborting due to 1 previous error","spans":[]}}"#,
+            "\nnot json\n",
+            r#"{"reason":"build-finished","success":false}"#,
+        );
+        let want = Problem {
+            target: "e2".into(),
+            file: "src/bin/e2.rs".into(),
+            line: 3,
+            message: "cannot find value `NO` in this scope".into(),
+        };
+        assert_eq!(errors(messages), vec![want]);
+        assert_eq!(last_error("warning: x\nerror: no such package\n\n"), "error: no such package");
+    }
+}

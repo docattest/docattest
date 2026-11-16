@@ -1,0 +1,98 @@
+# hooks install: the command the launcher gives
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/.claude/settings.json
+  PostToolUse (Edit|Write): "$CLAUDE_PROJECT_DIR"/.venv/bin/docattest impact --hook
+  Stop: "$CLAUDE_PROJECT_DIR"/.venv/bin/docattest check --hook
+stderr empty
+directory .claude/
+file .claude/settings.json 25 lines
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.venv/bin/docattest impact --hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.venv/bin/docattest check --hook"
+          }
+        ]
+      }
+    ]
+  }
+}
+=== hooks install --agent cursor
+exit 0
+stdout 2 lines
+docattest hooks: added to <root>/.cursor/hooks.json
+  stop: '/my env/bin/python' -m docattest check --hook --agent cursor
+stderr empty
+directory .cursor/
+file .cursor/hooks.json 10 lines
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "command": "'/my env/bin/python' -m docattest check --hook --agent cursor"
+      }
+    ]
+  }
+}
+=== hooks install --agent gemini
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/.gemini/settings.json
+  AfterTool (write_file|replace): pnpm exec docattest impact --hook --agent gemini
+  AfterAgent: pnpm exec docattest check --hook --agent gemini
+stderr empty
+directory .gemini/
+file .gemini/settings.json 25 lines
+{
+  "hooks": {
+    "AfterTool": [
+      {
+        "matcher": "write_file|replace",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm exec docattest impact --hook --agent gemini"
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm exec docattest check --hook --agent gemini"
+          }
+        ]
+      }
+    ]
+  }
+}
+=== hooks install --agent ./tools/acme.json
+exit 1
+stdout empty
+stderr 1 line
+docattest: DOCATTEST_COMMAND must be one line (got "a\nb \"c\"")
+=== agents install
+exit 1
+stdout empty
+stderr 1 line
+docattest: DOCATTEST_COMMAND must be one line (got "x\ry")

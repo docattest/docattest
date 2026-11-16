@@ -1,0 +1,90 @@
+# inventory --json
+# recorded from: impact --file answers for the edited file's change alone; config key commands
+=== inventory --json
+exit 0
+stdout 84 lines
+[
+  {
+    "surface": "default",
+    "expression": "CHANGE_TYPES",
+    "value": "orphaned-claim,frozen-page,downgrade,weakened",
+    "items": [
+      "orphaned-claim",
+      "frozen-page",
+      "downgrade",
+      "weakened"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "COMMANDS",
+    "value": "check,where,uncovered,index,refresh,skill,audit,inventory,impact,hooks,agents,conformance",
+    "items": [
+      "check",
+      "where",
+      "uncovered",
+      "index",
+      "refresh",
+      "skill",
+      "audit",
+      "inventory",
+      "impact",
+      "hooks",
+      "agents",
+      "conformance"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "CONFIG_KEYS",
+    "value": "$schema,pages,frozen,sources,surfaces,setup,snapshots,adapter,runtime,ignoreTags,members,commands",
+    "items": [
+      "$schema",
+      "pages",
+      "frozen",
+      "sources",
+      "surfaces",
+      "setup",
+      "snapshots",
+      "adapter",
+      "runtime",
+      "ignoreTags",
+      "members",
+      "commands"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "DEFAULT_SNAPSHOT_MAX_AGE_DAYS",
+    "value": "90"
+  },
+  {
+    "surface": "default",
+    "expression": "DEFAULT_TIMEOUT_MS",
+    "value": "10000"
+  },
+  {
+    "surface": "default",
+    "expression": "KINDS",
+    "value": "example,fact,cases,snapshot,test",
+    "items": [
+      "example",
+      "fact",
+      "cases",
+      "snapshot",
+      "test"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "STATUSES",
+    "value": "pass,fail,error,skipped",
+    "items": [
+      "pass",
+      "fail",
+      "error",
+      "skipped"
+    ]
+  }
+]
+stderr empty

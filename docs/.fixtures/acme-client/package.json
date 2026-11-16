@@ -1,0 +1,7 @@
+{
+  "name": "@acme/client",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  }
+}

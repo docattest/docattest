@@ -1,0 +1,37 @@
+# unknown ref
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base v9
+exit 1
+stdout empty
+stderr 1 line
+docattest: unknown git ref "v9": no such commit in <root>
+=== check --base v9 --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: unknown git ref "v9": no such commit in <root>
+=== check --base origin/main --quiet
+exit 1
+stdout empty
+stderr 1 line
+docattest: unknown git ref "origin/main": no such commit in <root>
+=== check --base HEAD~5
+exit 1
+stdout empty
+stderr 1 line
+docattest: unknown git ref "HEAD~5": no such commit in <root>
+=== check --base a b
+exit 1
+stdout empty
+stderr 1 line
+docattest: unknown git ref "a b": no such commit in <root>
+=== check --base "HEAD"
+exit 1
+stdout empty
+stderr 1 line
+docattest: unknown git ref ""HEAD"": no such commit in <root>
+=== check --base réf😀
+exit 1
+stdout empty
+stderr 1 line
+docattest: unknown git ref "réf😀": no such commit in <root>

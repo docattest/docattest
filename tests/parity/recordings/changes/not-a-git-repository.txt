@@ -1,0 +1,22 @@
+# not a git repository
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD
+exit 1
+stdout empty
+stderr 1 line
+docattest: a base ref is read from git, but <root> is not in a git repository
+=== check --base HEAD --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: a base ref is read from git, but <root> is not in a git repository
+=== check --base=-x
+exit 1
+stdout empty
+stderr 1 line
+docattest: a base ref is read from git, but <root> is not in a git repository
+=== check --base HEAD --root __ROOT__/.
+exit 1
+stdout empty
+stderr 1 line
+docattest: a base ref is read from git, but <root> is not in a git repository

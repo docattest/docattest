@@ -1,0 +1,9 @@
+{
+  "pages": ["docs/**/*.md"],
+  "sources": ["src/**/*.py"],
+  "surfaces": { "default": "shoplib", "shipping": "./src/shoplib/shipping.py" },
+  "setup": "docs/docattest_setup.py",
+  "snapshots": { "dir": "docs/.snapshots", "maxAgeDays": 100000 },
+  "adapter": "python",
+  "runtime": { "timeoutMs": 3000 }
+}

@@ -1,0 +1,35 @@
+# agents install into a file that ends with a blank line
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== agents install
+exit 0
+stdout 1 line
+docattest agents: added to <root>/AGENTS.md
+stderr empty
+file AGENTS.md 22 lines
+# Agents
+
+<!-- docattest:begin -->
+## Documentation that is checked (docattest)
+
+The documentation of this project carries its own proof: examples that run, values read
+from the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the
+page and line that is no longer true. Whatever agent you are, do these two things, from the
+directory this file is in:
+
+- **After you edit source code**, run `npx --no docattest impact --file <path>` with the path of
+  the file you edited. It prints the documented exports your change affects and every page
+  and line that describes them, and prints nothing when there are none. Read the lines it
+  lists and bring them up to date with the code.
+- **Before you finish**, run `npx --no docattest check`. If it fails, make the page true again or
+  fix the code. Never delete or weaken a claim to make it pass.
+
+`npx --no docattest where <symbol>` lists the pages that describe an export.
+
+This section is written by `npx --no docattest agents install`, which replaces everything between
+the two markers. Write your own notes outside them.
+<!-- docattest:end -->
+=== agents install
+exit 0
+stdout 1 line
+docattest agents: already up to date in <root>/AGENTS.md
+stderr empty

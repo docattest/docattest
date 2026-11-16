@@ -1,0 +1,12 @@
+# page filter that matches nothing
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD docs/none.md
+exit 1
+stdout empty
+stderr 1 line
+docattest: "docs/none.md" matches no living page (pages come from "pages" in docattest.config.json, minus "frozen")
+=== check --base nope docs/none.md
+exit 1
+stdout empty
+stderr 1 line
+docattest: "docs/none.md" matches no living page (pages come from "pages" in docattest.config.json, minus "frozen")

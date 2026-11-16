@@ -1,0 +1,46 @@
+# audit-r8
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "default" failed to load: Error: Cannot find module 'a-package-that-is-not-installed'
+=== check --json
+exit 0
+stdout 35 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 1,
+    "covered": 0,
+    "uncovered": [
+      "docs/regions.md"
+    ],
+    "frozen": [],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 1,
+      "attested": 0,
+      "unattested": [
+        "REGIONS"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0
+}
+stderr empty

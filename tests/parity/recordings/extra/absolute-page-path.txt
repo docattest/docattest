@@ -1,0 +1,14 @@
+# absolute page path
+# recorded from: an absolute page path is followed through symbolic links, so it names its page on every platform
+=== check __ROOT__/docs/a.md
+exit 0
+stdout 8 lines
+docs/a.md
+  ✓ L1 fact: N is 3
+results: 1 pass, 0 fail, 0 error, 0 skipped
+coverage: 2 living pages, 2 covered (2 attestations, 0 weak), 0 uncovered, 0 frozen
+surface default: 3 symbols, 1 attested, 2 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+snapshots: none
+ok
+stderr empty

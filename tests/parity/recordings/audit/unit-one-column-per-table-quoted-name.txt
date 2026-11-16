@@ -1,0 +1,85 @@
+# unit: one column per table, quoted name
+# recorded from: fixture names made neutral; no behaviour change
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 column drifts from ROUTES.map((r) => r.path) (missing: /x) → <!-- fact column="Request path": ROUTES.map((r) => r.path) --> above the table
+audit: 1 suggestion on 1 page, 0 match, 1 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 17 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "column",
+      "expression": "ROUTES.map((r) => r.path)",
+      "status": "drift",
+      "missing": [
+        "/x"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=\"Request path\": ROUTES.map((r) => r.path) -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 5 lines
+ROUTES.map((r) => r.method)  →  [GET, POST, PUT]
+ROUTES.map((r) => r.path)  →  [/jobs, /projects, /x]
+ROUTES.map((r) => `${r.method} ${r.path}`)  →  [GET /jobs, POST /projects, PUT /x]
+ROUTES.map((r) => `${r.path} ${r.method}`)  →  [/jobs GET, /projects POST, /x PUT]
+inventory: 4 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 42 lines
+[
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.method)",
+    "value": "GET,POST,PUT",
+    "items": [
+      "GET",
+      "POST",
+      "PUT"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.path)",
+    "value": "/jobs,/projects,/x",
+    "items": [
+      "/jobs",
+      "/projects",
+      "/x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.method} ${r.path}`)",
+    "value": "GET /jobs,POST /projects,PUT /x",
+    "items": [
+      "GET /jobs",
+      "POST /projects",
+      "PUT /x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.path} ${r.method}`)",
+    "value": "/jobs GET,/projects POST,/x PUT",
+    "items": [
+      "/jobs GET",
+      "/projects POST",
+      "/x PUT"
+    ]
+  }
+]
+stderr empty

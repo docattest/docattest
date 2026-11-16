@@ -1,0 +1,57 @@
+# threshold: overlap exactly one half
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list drifts from K (missing: a4, a5, a6) → <!-- fact: K --> above the list
+audit: 1 suggestion on 1 page, 0 match, 1 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 19 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "K",
+      "status": "drift",
+      "missing": [
+        "a4",
+        "a5",
+        "a6"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 2 lines
+K  →  [a1, a2, a3, a4, a5, a6]
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 15 lines
+[
+  {
+    "surface": "default",
+    "expression": "K",
+    "value": "a1,a2,a3,a4,a5,a6",
+    "items": [
+      "a1",
+      "a2",
+      "a3",
+      "a4",
+      "a5",
+      "a6"
+    ]
+  }
+]
+stderr empty

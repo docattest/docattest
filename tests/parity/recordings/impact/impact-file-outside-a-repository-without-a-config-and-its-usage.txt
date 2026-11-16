@@ -1,0 +1,26 @@
+# impact --file outside a repository, without a config, and its usage
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --file src/parse.ts
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact needs a git repository, and <root> is not inside one
+=== impact --file docs/guide.md
+exit 0
+stdout empty
+stderr empty
+=== impact --file
+exit 1
+stdout empty
+stderr 1 line
+docattest: Option '--file <value>' argument missing
+=== impact --file a.ts b.ts
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest impact [--base <ref>] [--file <path>] [--json]
+=== impact --file ../a.ts
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact needs a git repository, and <root> is not inside one

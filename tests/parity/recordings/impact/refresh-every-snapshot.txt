@@ -1,0 +1,67 @@
+# refresh every snapshot
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== refresh
+exit 1
+stdout empty
+stderr 1 line
+docattest: refresh surrogate: http://<server>/surrogate did not answer JSON (unexpected end of hex escape at line 1 column 9)
+file docs/.snapshots/agent.json 8 lines
+{
+  "source": "http://<server>/agent",
+  "fetchedAt": "2026-11-14",
+  "data": {
+    "agent": "docattest",
+    "accept": "*/*"
+  }
+}
+file docs/.snapshots/bom.json 7 lines
+{
+  "source": "http://<server>/bom",
+  "fetchedAt": "2026-11-14",
+  "data": {
+    "bom": true
+  }
+}
+file docs/.snapshots/moved.json 11 lines
+{
+  "source": "http://<server>/moved",
+  "fetchedAt": "2026-11-14",
+  "data": {
+    "regions": [
+      "eu",
+      "us"
+    ],
+    "count": 2
+  }
+}
+file docs/.snapshots/order.json json
+"{\n  \"source\": \"http://<server>/order\",\n  \"fetchedAt\": \"2026-11-14\",\n  \"data\": {\n    \"b\": 1.0,\n    \"10\": \"x\",\n    \"2\": [\n      1e+21,\n      -0.0,\n      1.5,\n      {}\n    ],\n    \"a\": {\n      \"Ã©\": \"Ã©\\n\",\n      \"ð\": null\n    },\n    \"deep\": [\n      [\n        []\n      ]\n    ]\n  }\n}\n"
+file docs/.snapshots/regions.json 11 lines
+{
+  "source": "http://<server>/regions",
+  "fetchedAt": "2026-11-14",
+  "data": {
+    "regions": [
+      "eu",
+      "us"
+    ],
+    "count": 2
+  }
+}
+file docs/.snapshots/scalar.json 5 lines
+{
+  "source": "http://<server>/scalar",
+  "fetchedAt": "2026-11-14",
+  "data": 42
+}
+=== check
+exit 0
+stdout 7 lines
+results: 0 pass, 0 fail, 0 error, 0 skipped
+coverage: 1 living page, 0 covered (0 attestations, 0 weak), 1 uncovered, 0 frozen
+  uncovered: docs/a.md
+surface default: 1 symbol, 0 attested, 1 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+snapshots: agent (0 days), bom (0 days), moved (0 days), order (0 days), regions (0 days), scalar (0 days), surrogate (2509 days, stale), zip (2509 days, stale)
+ok
+stderr empty

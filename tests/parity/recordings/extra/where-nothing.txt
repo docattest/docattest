@@ -1,0 +1,7 @@
+# where nothing
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== where nope
+exit 0
+stdout 1 line
+nope: no page attests it
+stderr empty

@@ -1,0 +1,110 @@
+# walk: maps, sets, dates, symbols and nulls
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 4 lines
+docs/p.md
+  ? L11 list matches SET → <!-- fact: SET --> above the list
+  ? L27 list matches $dollar → <!-- fact: $dollar --> above the list
+audit: 2 suggestions on 1 page, 2 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 26 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 11,
+      "target": "list",
+      "expression": "SET",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: SET -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 27,
+      "target": "list",
+      "expression": "$dollar",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: $dollar -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 9 lines
+$dollar  →  [dl1, dl2]
+BIG  →  12345678901234567890
+EMPTY  →  []
+Object.keys(EMPTY_OBJ)  →  []
+Object.values(EMPTY_OBJ)  →  []
+NEG0  →  0
+NUM  →  1e+21
+SET  →  [s1, s2]
+inventory: 8 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 53 lines
+[
+  {
+    "surface": "default",
+    "expression": "$dollar",
+    "value": "dl1,dl2",
+    "items": [
+      "dl1",
+      "dl2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "BIG",
+    "value": "12345678901234567890"
+  },
+  {
+    "surface": "default",
+    "expression": "EMPTY",
+    "value": "",
+    "items": []
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(EMPTY_OBJ)",
+    "value": "",
+    "items": []
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(EMPTY_OBJ)",
+    "value": "",
+    "items": []
+  },
+  {
+    "surface": "default",
+    "expression": "NEG0",
+    "value": "0"
+  },
+  {
+    "surface": "default",
+    "expression": "NUM",
+    "value": "1e+21"
+  },
+  {
+    "surface": "default",
+    "expression": "SET",
+    "value": "[object Set]",
+    "items": [
+      "s1",
+      "s2"
+    ]
+  }
+]
+stderr empty

@@ -1,0 +1,7 @@
+# impact --hook with text that needs escaping
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --hook
+exit 0
+stdout 1 line
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest impact: changes since HEAD affect 1 exported symbol\nn\n  docs/n.md:1 mention (unproven)  Say \"hi\" \\ to `n` and <b>é😀</b> there.\nnext: re-read docs/n.md and correct any sentence above that the change made untrue"}}
+stderr empty

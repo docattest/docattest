@@ -1,0 +1,12 @@
+# an installed adapter other than typescript: check
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== check
+exit 0
+stdout 6 lines
+results: 0 pass, 0 fail, 0 error, 0 skipped
+coverage: 1 living page, 0 covered (0 attestations, 0 weak), 1 uncovered, 0 frozen
+  uncovered: docs/a.md
+surface default: 0 symbols, 0 attested, 0 not referenced by any page
+snapshots: none
+ok
+stderr empty

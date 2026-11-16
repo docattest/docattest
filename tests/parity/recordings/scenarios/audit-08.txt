@@ -1,0 +1,62 @@
+# audit-08
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit --json
+exit 0
+stdout 17 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/scopes.md",
+      "line": 5,
+      "target": "list",
+      "expression": "SCOPES",
+      "status": "drift",
+      "missing": [],
+      "unexpected": [
+        "billing"
+      ],
+      "surface": "default",
+      "directive": "<!-- fact: SCOPES -->"
+    }
+  ]
+}
+stderr empty
+=== check --json
+exit 0
+stdout 35 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 1,
+    "covered": 0,
+    "uncovered": [
+      "docs/scopes.md"
+    ],
+    "frozen": [],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 1,
+      "attested": 0,
+      "unattested": [
+        "SCOPES"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0
+}
+stderr empty

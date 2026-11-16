@@ -1,0 +1,81 @@
+# impact-n4
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --json
+exit 0
+stdout 5 lines
+{
+  "base": "HEAD",
+  "symbols": [],
+  "references": []
+}
+stderr empty
+=== check --json
+exit 0
+stdout 66 lines
+{
+  "results": [
+    {
+      "page": "docs/parse.md",
+      "line": 5,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "parse"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/retry.md",
+      "line": 3,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "RETRY_DEFAULTS"
+      ],
+      "message": "RETRY_DEFAULTS.maxAttempts is 3",
+      "expected": "3",
+      "actual": "3"
+    },
+    {
+      "page": "docs/retry.md",
+      "line": 7,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "retry"
+      ],
+      "message": "all assertions held"
+    }
+  ],
+  "coverage": {
+    "living": 3,
+    "covered": 2,
+    "uncovered": [
+      "docs/guide.md"
+    ],
+    "frozen": [],
+    "attestations": 3,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 3,
+      "attested": 3,
+      "unattested": [],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0
+}
+stderr empty

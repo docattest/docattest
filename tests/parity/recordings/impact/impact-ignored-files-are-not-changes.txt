@@ -1,0 +1,111 @@
+# impact ignored files are not changes
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --json
+exit 0
+stdout 105 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "Client",
+    "parse"
+  ],
+  "references": [
+    {
+      "symbol": "Client",
+      "page": "docs/guide.md",
+      "line": 6,
+      "kind": "mention",
+      "claim": "then `new Client()` reads; `new Client-x` does not",
+      "proven": false
+    },
+    {
+      "symbol": "Client",
+      "page": "docs/guide.md",
+      "line": 12,
+      "kind": "mention",
+      "claim": "see `Client.read` or `await parse(x)`?",
+      "proven": false
+    },
+    {
+      "symbol": "Client",
+      "page": "docs/guide.md",
+      "line": 16,
+      "kind": "mention",
+      "claim": "`Client` and `parse`",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/guide.md",
+      "line": 3,
+      "kind": "mention",
+      "claim": "Read the input with `parse` before you retry anything.",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/guide.md",
+      "line": 5,
+      "kind": "mention",
+      "claim": "`parse` first",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/guide.md",
+      "line": 11,
+      "kind": "mention",
+      "claim": "`parse`",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/guide.md",
+      "line": 12,
+      "kind": "mention",
+      "claim": "see `Client.read` or `await parse(x)`?",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/guide.md",
+      "line": 14,
+      "kind": "mention",
+      "claim": "Erst `parse(a.b)`.",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/guide.md",
+      "line": 16,
+      "kind": "mention",
+      "claim": "`Client` and `parse`",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/guide.md",
+      "line": 18,
+      "kind": "mention",
+      "claim": "Same line `parse` and `parse` twice.",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/guide.md",
+      "line": 19,
+      "kind": "mention",
+      "claim": "Next line `parse` in one paragraph.",
+      "proven": false
+    },
+    {
+      "symbol": "parse",
+      "page": "docs/parse.md",
+      "line": 5,
+      "kind": "example",
+      "claim": "Text becomes a number.",
+      "proven": true
+    }
+  ]
+}
+stderr empty

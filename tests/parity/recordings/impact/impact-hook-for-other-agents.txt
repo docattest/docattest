@@ -1,0 +1,52 @@
+# impact --hook for other agents
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --hook --agent gemini
+exit 0
+stdout 1 line
+{"hookSpecificOutput":{"additionalContext":"docattest impact: changes since HEAD affect 2 exported symbols\nClient\n  docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\nparse\n  docs/guide.md:3 mention (unproven)  Read the input with `parse` before you retry anything.\n  docs/guide.md:5 mention (unproven)  `parse` first\n  docs/guide.md:11 mention (unproven)  `parse`\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:14 mention (unproven)  Erst `parse(a.b)`.\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\n  docs/guide.md:18 mention (unproven)  Same line `parse` and `parse` twice.\n  docs/guide.md:19 mention (unproven)  Next line `parse` in one paragraph.\n  docs/parse.md:5 proven example  Text becomes a number.\nnext: re-read docs/guide.md, docs/parse.md and correct any sentence above that the change made untrue; then run docattest check docs/parse.md"}}
+stderr empty
+=== impact --hook --agent gemini
+exit 0
+stdout 1 line
+{"hookSpecificOutput":{"additionalContext":"docattest impact: changes since HEAD affect 2 exported symbols\nClient\n  docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\nparse\n  docs/guide.md:3 mention (unproven)  Read the input with `parse` before you retry anything.\n  docs/guide.md:5 mention (unproven)  `parse` first\n  docs/guide.md:11 mention (unproven)  `parse`\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:14 mention (unproven)  Erst `parse(a.b)`.\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\n  docs/guide.md:18 mention (unproven)  Same line `parse` and `parse` twice.\n  docs/guide.md:19 mention (unproven)  Next line `parse` in one paragraph.\n  docs/parse.md:5 proven example  Text becomes a number.\nnext: re-read docs/guide.md, docs/parse.md and correct any sentence above that the change made untrue; then run docattest check docs/parse.md"}}
+stderr empty
+=== impact --hook --agent gemini
+exit 0
+stdout empty
+stderr empty
+=== impact --hook --agent gemini
+exit 0
+stdout empty
+stderr empty
+=== impact --hook --agent cursor
+exit 1
+stdout empty
+stderr 1 line
+docattest: agent "cursor" has no hook for impact: its descriptor binds none
+=== impact --hook --agent tools/acme.json
+exit 0
+stdout 1 line
+{"ok":true,"notes":{"level":"info","body":"docattest impact: changes since HEAD affect 2 exported symbols\nClient\n  docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\nparse\n  docs/guide.md:3 mention (unproven)  Read the input with `parse` before you retry anything.\n  docs/guide.md:5 mention (unproven)  `parse` first\n  docs/guide.md:11 mention (unproven)  `parse`\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:14 mention (unproven)  Erst `parse(a.b)`.\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\n  docs/guide.md:18 mention (unproven)  Same line `parse` and `parse` twice.\n  docs/guide.md:19 mention (unproven)  Next line `parse` in one paragraph.\n  docs/parse.md:5 proven example  Text becomes a number.\nnext: re-read docs/guide.md, docs/parse.md and correct any sentence above that the change made untrue; then run docattest check docs/parse.md"}}
+stderr empty
+=== impact --hook --agent ../tools/acme.json
+exit 0
+stdout 1 line
+{"ok":true,"notes":{"level":"info","body":"docattest impact: changes since HEAD affect 2 exported symbols\nClient\n  docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\nparse\n  docs/guide.md:3 mention (unproven)  Read the input with `parse` before you retry anything.\n  docs/guide.md:5 mention (unproven)  `parse` first\n  docs/guide.md:11 mention (unproven)  `parse`\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:14 mention (unproven)  Erst `parse(a.b)`.\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\n  docs/guide.md:18 mention (unproven)  Same line `parse` and `parse` twice.\n  docs/guide.md:19 mention (unproven)  Next line `parse` in one paragraph.\n  docs/parse.md:5 proven example  Text becomes a number.\nnext: re-read docs/guide.md, docs/parse.md and correct any sentence above that the change made untrue; then run docattest check docs/parse.md"}}
+stderr empty
+=== impact --hook --agent tools/acme.json
+exit 0
+stdout empty
+stderr empty
+=== impact --hook --agent tools/acme.json
+exit 0
+stdout empty
+stderr empty
+=== impact --hook --agent tools/acme.json
+exit 0
+stdout empty
+stderr empty
+=== impact --hook --agent tools/fixed.json
+exit 0
+stdout 1 line
+{"2":2,"10":1,"a":{"b":{"c":"docattest impact: changes since HEAD affect 2 exported symbols\nClient\n  docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\nparse\n  docs/guide.md:3 mention (unproven)  Read the input with `parse` before you retry anything.\n  docs/guide.md:5 mention (unproven)  `parse` first\n  docs/guide.md:11 mention (unproven)  `parse`\n  docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?\n  docs/guide.md:14 mention (unproven)  Erst `parse(a.b)`.\n  docs/guide.md:16 mention (unproven)  `Client` and `parse`\n  docs/guide.md:18 mention (unproven)  Same line `parse` and `parse` twice.\n  docs/guide.md:19 mention (unproven)  Next line `parse` in one paragraph.\n  docs/parse.md:5 proven example  Text becomes a number.\nnext: re-read docs/guide.md, docs/parse.md and correct any sentence above that the change made untrue; then run docattest check docs/parse.md"}},"b":{"c":1}}
+stderr empty

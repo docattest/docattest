@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docattest agent descriptor: what one coding agent's hooks look like, as data",
+  "$defs": {
+    "Agent": {
+      "type": "object",
+      "description": "One coding agent. `hooks install --agent`, `impact --hook`, `check --hook` and `skill install` apply it; nothing in docattest knows an agent otherwise.",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "name": {
+          "description": "The agent's name: lower-case letters, digits, `-` and `_`, starting with a letter. A shipped descriptor is `protocol/agents/<name>.json`.",
+          "type": "string",
+          "minLength": 1
+        },
+        "docs": {
+          "description": "Where the agent documents its hooks: the page this descriptor was checked against.",
+          "type": "string",
+          "minLength": 1
+        },
+        "projectRoot": {
+          "description": "How a hook command of this agent writes the project root, as shell text: it replaces `{root}` in the command that runs docattest. Left out when the agent runs hooks in the project root, where `.` will do.",
+          "type": "string",
+          "minLength": 1
+        },
+        "skill": {
+          "description": "Where the agent looks for the docattest skill: a path relative to the project root, and to the home directory for `skill install --global`. Left out when the agent has no such place.",
+          "type": "string",
+          "minLength": 1
+        },
+        "settings": {
+          "$ref": "#/$defs/Settings"
+        },
+        "hooks": {
+          "type": "object",
+          "description": "Which event runs which docattest action. An action the agent has no event for is left out.",
+          "properties": {
+            "impact": {
+              "$ref": "#/$defs/ImpactHook"
+            },
+            "check": {
+              "$ref": "#/$defs/CheckHook"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["name", "settings", "hooks"],
+      "additionalProperties": false
+    },
+    "Settings": {
+      "type": "object",
+      "description": "The JSON file the agent reads its hooks from, and where a hook goes in it.",
+      "properties": {
+        "file": {
+          "description": "The settings file, relative to the project root.",
+          "type": "string",
+          "minLength": 1
+        },
+        "hooks": {
+          "description": "The key of the file's top-level object that maps an event name to a list of entries.",
+          "type": "string",
+          "minLength": 1
+        },
+        "group": {
+          "description": "When an entry is a group of handlers: the key of the group that holds the list of handlers. Left out when an entry is itself a handler.",
+          "type": "string",
+          "minLength": 1
+        },
+        "handler": {
+          "type": "object",
+          "description": "Fields every handler carries besides its command, written before it."
+        },
+        "command": {
+          "description": "The key of a handler that holds the shell command.",
+          "type": "string",
+          "minLength": 1
+        },
+        "defaults": {
+          "type": "object",
+          "description": "Top-level keys the file must have, added with these values where they are missing."
+        }
+      },
+      "required": ["file", "hooks", "command"],
+      "additionalProperties": false
+    },
+    "ImpactHook": {
+      "type": "object",
+      "description": "The event after the agent edited a file, bound to `impact --hook`.",
+      "properties": {
+        "event": {
+          "type": "string",
+          "minLength": 1
+        },
+        "matcher": {
+          "description": "The entry's `matcher`, where the event needs one to select the tools that edit files.",
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "description": "Where the edited file's path is in the event the agent writes to standard input.",
+          "$ref": "#/$defs/Path"
+        },
+        "reply": {
+          "description": "The answer that puts text into the agent's context.",
+          "$ref": "#/$defs/Reply"
+        }
+      },
+      "required": ["event", "file", "reply"],
+      "additionalProperties": false
+    },
+    "CheckHook": {
+      "type": "object",
+      "description": "The event before the agent stops, bound to `check --hook`.",
+      "properties": {
+        "event": {
+          "type": "string",
+          "minLength": 1
+        },
+        "matcher": {
+          "type": "string",
+          "minLength": 1
+        },
+        "continuing": {
+          "description": "Where the event says the agent is already continuing because a hook sent it back: `true`, or a count above 0. The hook then stays silent, so a failure the agent cannot fix never loops.",
+          "$ref": "#/$defs/Path"
+        },
+        "reply": {
+          "description": "The answer that keeps the agent working, with the text as the reason.",
+          "$ref": "#/$defs/Reply"
+        }
+      },
+      "required": ["event", "reply"],
+      "additionalProperties": false
+    },
+    "Reply": {
+      "type": "object",
+      "description": "The one JSON object a hook prints: `fixed`, with the text put at `text`.",
+      "properties": {
+        "fixed": {
+          "type": "object",
+          "description": "What the answer holds whatever the text is."
+        },
+        "text": {
+          "description": "Where the text goes in the answer.",
+          "$ref": "#/$defs/Path"
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "Path": {
+      "description": "Keys from the top of a JSON object down to one value.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

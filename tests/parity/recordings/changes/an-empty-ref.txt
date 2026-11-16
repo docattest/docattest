@@ -1,0 +1,29 @@
+# an empty ref
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base=
+exit 1
+stdout empty
+stderr 1 line
+docattest: "" is not a git ref
+=== check --base 
+exit 1
+stdout empty
+stderr 1 line
+docattest: "" is not a git ref
+=== check --base   
+exit 1
+stdout empty
+stderr 1 line
+docattest: "  " is not a git ref
+=== check --base
+exit 1
+stdout empty
+stderr 1 line
+docattest: Option '--base <value>' argument missing
+=== check --base --json
+exit 1
+stdout empty
+stderr 3 lines
+docattest: Option '--base' argument is ambiguous.
+Did you forget to specify the option argument for '--base'?
+To specify an option argument starting with a dash use '--base=-XYZ'.

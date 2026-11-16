@@ -1,0 +1,12 @@
+{
+  "pages": ["README.md", "CONTRIBUTING.md"],
+  "surfaces": {
+    "default": "./internal/language",
+    "launcher": "./internal/launcher",
+    "protocoldata": "./internal/protocoldata"
+  },
+  "setup": "./internal/guide",
+  "commands": { "docattest": ["cmd/**/*.go", "internal/**/*.go"] },
+  "adapter": "go",
+  "runtime": { "timeoutMs": 60000 }
+}

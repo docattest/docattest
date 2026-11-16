@@ -1,0 +1,7 @@
+# hooks install: .claude is a file
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== hooks install
+exit 1
+stdout empty
+stderr 1 line
+docattest: cannot create <root>/.claude: File exists (os error 17)

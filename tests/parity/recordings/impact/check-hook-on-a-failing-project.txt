@@ -1,0 +1,51 @@
+# check --hook on a failing project
+# recorded from: check --quiet prints only what needs attention
+=== check --hook
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook
+exit 0
+stdout empty
+stderr empty
+=== check --hook
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --json --quiet
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook docs/nope.md
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --base nope
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty

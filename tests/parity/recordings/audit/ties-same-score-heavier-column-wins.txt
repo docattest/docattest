@@ -1,0 +1,59 @@
+# ties: same score, heavier column wins
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 column matches NAMES → <!-- fact column=Name: NAMES --> above the table
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "column",
+      "expression": "NAMES",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=Name: NAMES -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 3 lines
+IDS  →  [i1, i2]
+NAMES  →  [alphabet, betatron]
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 20 lines
+[
+  {
+    "surface": "default",
+    "expression": "IDS",
+    "value": "i1,i2",
+    "items": [
+      "i1",
+      "i2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "NAMES",
+    "value": "alphabet,betatron",
+    "items": [
+      "alphabet",
+      "betatron"
+    ]
+  }
+]
+stderr empty

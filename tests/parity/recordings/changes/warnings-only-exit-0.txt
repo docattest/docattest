@@ -1,0 +1,9 @@
+# warnings only, exit 0
+# recorded from: check --quiet prints only what needs attention
+=== check --base HEAD --quiet
+exit 0
+stdout 3 lines
+changes since the base: 0 fail, 1 warning
+  ⚠ docs/retry.md:7 downgrade: the example became `compile`: it no longer runs
+ok
+stderr empty

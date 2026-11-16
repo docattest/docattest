@@ -1,0 +1,63 @@
+# ties: equal and agreeing
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list drifts from X (missing: cc) → <!-- fact: X --> above the list
+audit: 1 suggestion on 1 page, 0 match, 1 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 17 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "X",
+      "status": "drift",
+      "missing": [
+        "cc"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: X -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 3 lines
+X  →  [aa, bb, cc]
+Y  →  [cc, bb, aa]
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 22 lines
+[
+  {
+    "surface": "default",
+    "expression": "X",
+    "value": "aa,bb,cc",
+    "items": [
+      "aa",
+      "bb",
+      "cc"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Y",
+    "value": "cc,bb,aa",
+    "items": [
+      "cc",
+      "bb",
+      "aa"
+    ]
+  }
+]
+stderr empty

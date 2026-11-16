@@ -1,0 +1,53 @@
+# threshold: block lines of three characters
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 block drifts from T (missing: last line here) → <!-- fact: T --> above the block
+audit: 1 suggestion on 1 page, 0 match, 1 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 17 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "block",
+      "expression": "T",
+      "status": "drift",
+      "missing": [
+        "last line here"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: T -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 8 lines
+T  →  abc
+de
+---
+x y
+longer line
+last line here
+
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 7 lines
+[
+  {
+    "surface": "default",
+    "expression": "T",
+    "value": "abc\nde\n---\nx y\nlonger line\nlast line here\n"
+  }
+]
+stderr empty

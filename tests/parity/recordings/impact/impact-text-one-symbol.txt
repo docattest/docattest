@@ -1,0 +1,57 @@
+# impact text, one symbol
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 0
+stdout 7 lines
+docattest impact: changes since HEAD affect 1 exported symbol
+retry
+  docs/guide.md:7 mention (unproven)  **`retry`** wraps
+  docs/retry.md:1 mention (unproven)  Retry with `retry`
+  docs/retry.md:7 proven example  A successful call through `retry` returns its value unchanged.
+  docs/retry.md:12 mention (unproven)  Wrap it: `await retry(fn)`.
+next: re-read docs/guide.md, docs/retry.md and correct any sentence above that the change made untrue; then run docattest check docs/retry.md
+stderr empty
+=== impact --json
+exit 0
+stdout 40 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "retry"
+  ],
+  "references": [
+    {
+      "symbol": "retry",
+      "page": "docs/guide.md",
+      "line": 7,
+      "kind": "mention",
+      "claim": "**`retry`** wraps",
+      "proven": false
+    },
+    {
+      "symbol": "retry",
+      "page": "docs/retry.md",
+      "line": 1,
+      "kind": "mention",
+      "claim": "Retry with `retry`",
+      "proven": false
+    },
+    {
+      "symbol": "retry",
+      "page": "docs/retry.md",
+      "line": 7,
+      "kind": "example",
+      "claim": "A successful call through `retry` returns its value unchanged.",
+      "proven": true
+    },
+    {
+      "symbol": "retry",
+      "page": "docs/retry.md",
+      "line": 12,
+      "kind": "mention",
+      "claim": "Wrap it: `await retry(fn)`.",
+      "proven": false
+    }
+  ]
+}
+stderr empty

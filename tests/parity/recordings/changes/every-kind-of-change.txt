@@ -1,0 +1,138 @@
+# every kind of change
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== check --base HEAD --json
+exit 1
+stdout 110 lines
+{
+  "results": [
+    {
+      "page": "docs/retry.md",
+      "line": 3,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "LIMIT"
+      ],
+      "message": "Math.min(LIMIT, 3) is 3",
+      "expected": "3",
+      "actual": "3"
+    },
+    {
+      "page": "docs/retry.md",
+      "line": 7,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "LIMIT"
+      ],
+      "message": "compiles"
+    }
+  ],
+  "coverage": {
+    "living": 2,
+    "covered": 1,
+    "uncovered": [
+      "docs/k.md"
+    ],
+    "frozen": [
+      "docs/z.md"
+    ],
+    "attestations": 2,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 4,
+      "attested": 1,
+      "unattested": [
+        "KEYS",
+        "TEXT",
+        "add"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    },
+    "extra": {
+      "symbols": 2,
+      "attested": 0,
+      "unattested": [
+        "LIMIT",
+        "OTHER"
+      ],
+      "resolution": {
+        "import": "fixture/extra",
+        "entry": "src/extra.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1,
+  "changes": [
+    {
+      "type": "orphaned-claim",
+      "page": "docs/k.md",
+      "line": 3,
+      "severity": "fail",
+      "message": "\"The keys are:\" is still on the page, but the fact that proved it (docs/k.md:3 at the base) is gone"
+    },
+    {
+      "type": "weakened",
+      "page": "docs/retry.md",
+      "line": 3,
+      "severity": "warning",
+      "message": "the fact's expression changed from `LIMIT` to `Math.min(LIMIT, 3)`; the literal it defends did not"
+    },
+    {
+      "type": "downgrade",
+      "page": "docs/retry.md",
+      "line": 7,
+      "severity": "warning",
+      "message": "the example became `compile`: it no longer runs"
+    },
+    {
+      "type": "frozen-page",
+      "page": "docs/z.md",
+      "line": 1,
+      "severity": "warning",
+      "message": "docs/z.md is frozen by its frontmatter (docattest: false), so its attestations no longer run"
+    }
+  ]
+}
+stderr empty
+=== check --base HEAD
+exit 1
+stdout 18 lines
+docs/retry.md
+  ✓ L3 fact: Math.min(LIMIT, 3) is 3
+  ✓ L7 example: compiles
+results: 2 pass, 0 fail, 0 error, 0 skipped
+coverage: 2 living pages, 1 covered (2 attestations, 0 weak), 1 uncovered, 1 frozen
+  uncovered: docs/k.md
+  frozen: docs/z.md
+surface default: 4 symbols, 1 attested, 3 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+surface extra: 2 symbols, 0 attested, 2 not referenced by any page
+  fixture/extra → src/extra.ts (fixture@1.0.0)
+snapshots: none
+changes since the base: 1 fail, 3 warnings
+  ✗ docs/k.md:3 orphaned-claim: "The keys are:" is still on the page, but the fact that proved it (docs/k.md:3 at the base) is gone
+  ⚠ docs/retry.md:3 weakened: the fact's expression changed from `LIMIT` to `Math.min(LIMIT, 3)`; the literal it defends did not
+  ⚠ docs/retry.md:7 downgrade: the example became `compile`: it no longer runs
+  ⚠ docs/z.md:1 frozen-page: docs/z.md is frozen by its frontmatter (docattest: false), so its attestations no longer run
+FAILED
+stderr empty

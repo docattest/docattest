@@ -1,0 +1,19 @@
+# hooks install --git: a project below the top
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install --git --root packages/b
+exit 0
+stdout 2 lines
+docattest hooks: added <root>/.git/hooks/pre-commit
+  pre-commit: (cd packages/b && npx --no docattest check --quiet) || exit 1
+stderr empty
+file .git/hooks/pre-commit 4 lines
+755 #!/bin/sh
+# docattest: the documentation is checked against the code before each commit.
+# Written by `docattest hooks install --git`; delete this file to undo it.
+(cd packages/b && npx --no docattest check --quiet) || exit 1
+=== hooks install --git
+exit 1
+stdout empty
+stderr 2 lines
+docattest: <root>/.git/hooks/pre-commit is there already and is left as it is. To check this project before each commit, add this line to it:
+  npx --no docattest check --quiet || exit 1

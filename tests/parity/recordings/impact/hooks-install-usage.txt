@@ -1,0 +1,51 @@
+# hooks install: usage
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest hooks install [--agent <name or file>] [--git]
+=== hooks uninstall
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest hooks install [--agent <name or file>] [--git]
+=== hooks install x
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest hooks install [--agent <name or file>] [--git]
+=== hooks install --json --quiet
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/.claude/settings.json
+  PostToolUse (Edit|Write): npx --no docattest impact --hook
+  Stop: npx --no docattest check --hook
+stderr empty
+directory .claude/
+file .claude/settings.json 25 lines
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest impact --hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest check --hook"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "pages": ["docs/**/*.md"],
+  "sources": ["src/**/*.rs"],
+  "surfaces": { "default": "shop", "shipping": "shop::shipping" },
+  "setup": "docs/docattest_setup.rs",
+  "snapshots": { "dir": "docs/.snapshots", "maxAgeDays": 100000 },
+  "adapter": "rust",
+  "runtime": { "timeoutMs": 3000 }
+}

@@ -1,0 +1,11 @@
+{
+  "pages": ["README.md", "CONTRIBUTING.md"],
+  "surfaces": {
+    "default": "docattest_python.language",
+    "launcher": "docattest.launcher",
+    "shop": { "import": "shoplib", "path": "./tests/fixture/src/shoplib/__init__.py" }
+  },
+  "setup": "docattest_setup.py",
+  "commands": { "docattest": ["docattest/**/*.py", "docattest_python/**/*.py", "bin/*"] },
+  "adapter": "python"
+}

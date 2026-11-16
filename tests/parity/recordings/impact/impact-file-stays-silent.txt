@@ -1,0 +1,47 @@
+# impact --file stays silent
+# recorded from: impact --file fails on a path that names no file of the project
+=== impact --file docs/guide.md
+exit 0
+stdout empty
+stderr empty
+=== impact --file docs/guide.md --json
+exit 0
+stdout empty
+stderr empty
+=== impact --file package.json
+exit 0
+stdout empty
+stderr empty
+=== impact --file node_modules/x/index.ts
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact --file node_modules/x/index.ts: there is no file <root>/node_modules/x/index.ts, and the change since HEAD does not touch it (a relative path is read from the working directory)
+=== impact --file src/types.d.ts
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact --file src/types.d.ts: there is no file <root>/src/types.d.ts, and the change since HEAD does not touch it (a relative path is read from the working directory)
+=== impact --file /elsewhere/a.ts
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact --file /elsewhere/a.ts: the path is outside the project at <root> (a relative path is read from the working directory)
+=== impact --file ../elsewhere/a.ts
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact --file ../elsewhere/a.ts: the path is outside the project at <root> (a relative path is read from the working directory)
+=== impact --file 
+exit 1
+stdout empty
+stderr 1 line
+docattest: impact --file needs the path of the file that was edited
+=== impact --file .
+exit 0
+stdout empty
+stderr empty
+=== impact --file docs/guide.md --base nope
+exit 0
+stdout empty
+stderr empty

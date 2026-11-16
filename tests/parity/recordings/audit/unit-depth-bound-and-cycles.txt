@@ -1,0 +1,122 @@
+# unit: depth bound and cycles
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L6 list matches LOOP.items → <!-- fact: LOOP.items --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 6,
+      "target": "list",
+      "expression": "LOOP.items",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: LOOP.items -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 10 lines
+Object.keys(DEEP)  →  [a]
+Object.keys(DEEP.a)  →  [b]
+Object.keys(DEEP.a.b)  →  [c]
+Object.keys(DEEP.a.b.c)  →  [d]
+Object.keys(DEEP.a.b.c.d)  →  [e]
+Object.keys(DEEP.a.b.c.d.e)  →  [f]
+Object.keys(DEEP.a.b.c.d.e.f)  →  [g]
+Object.keys(LOOP)  →  [items, self]
+LOOP.items  →  [y1, y2]
+inventory: 9 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 76 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP)",
+    "value": "a",
+    "items": [
+      "a"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.a)",
+    "value": "b",
+    "items": [
+      "b"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.a.b)",
+    "value": "c",
+    "items": [
+      "c"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.a.b.c)",
+    "value": "d",
+    "items": [
+      "d"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.a.b.c.d)",
+    "value": "e",
+    "items": [
+      "e"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.a.b.c.d.e)",
+    "value": "f",
+    "items": [
+      "f"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.a.b.c.d.e.f)",
+    "value": "g",
+    "items": [
+      "g"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(LOOP)",
+    "value": "items,self",
+    "items": [
+      "items",
+      "self"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "LOOP.items",
+    "value": "y1,y2",
+    "items": [
+      "y1",
+      "y2"
+    ]
+  }
+]
+stderr empty

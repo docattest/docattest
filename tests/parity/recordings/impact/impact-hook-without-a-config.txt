@@ -1,0 +1,21 @@
+# impact --hook without a config
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact --hook
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>
+=== impact --hook
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>
+=== impact --hook
+exit 0
+stdout empty
+stderr empty
+=== impact --hook
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>

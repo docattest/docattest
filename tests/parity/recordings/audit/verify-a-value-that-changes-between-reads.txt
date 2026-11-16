@@ -1,0 +1,100 @@
+# verify: a value that changes between reads
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 4 lines
+docs/p.md
+  ? L1 list matches FLIP.items → <!-- fact: FLIP.items --> above the list
+  ? L22 list matches STABLE → <!-- fact: STABLE --> above the list
+audit: 2 suggestions on 1 page, 2 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 26 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "FLIP.items",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: FLIP.items -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 22,
+      "target": "list",
+      "expression": "STABLE",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: STABLE -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 6 lines
+Object.keys(FLIP)  →  [items]
+FLIP.items  →  [a1, a2]
+Object.keys(GROW)  →  [items]
+GROW.items  →  [g1, g2, g3]
+STABLE  →  [s1, s2]
+inventory: 5 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 46 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(FLIP)",
+    "value": "items",
+    "items": [
+      "items"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "FLIP.items",
+    "value": "a1,a2",
+    "items": [
+      "a1",
+      "a2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(GROW)",
+    "value": "items",
+    "items": [
+      "items"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "GROW.items",
+    "value": "g1,g2,g3",
+    "items": [
+      "g1",
+      "g2",
+      "g3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "STABLE",
+    "value": "s1,s2",
+    "items": [
+      "s1",
+      "s2"
+    ]
+  }
+]
+stderr empty

@@ -1,0 +1,56 @@
+# unicode: unexpected items sorted by UTF-16 unit
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list drifts from K (unexpected: Zz, éa, 😀smile, ！wide) → <!-- fact: K --> above the list
+audit: 1 suggestion on 1 page, 0 match, 1 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 20 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "K",
+      "status": "drift",
+      "missing": [],
+      "unexpected": [
+        "Zz",
+        "éa",
+        "😀smile",
+        "！wide"
+      ],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 2 lines
+K  →  [aa, bb, cc, dd]
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 13 lines
+[
+  {
+    "surface": "default",
+    "expression": "K",
+    "value": "aa,bb,cc,dd",
+    "items": [
+      "aa",
+      "bb",
+      "cc",
+      "dd"
+    ]
+  }
+]
+stderr empty

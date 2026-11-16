@@ -1,0 +1,150 @@
+# crlf: every kind
+# recorded from: fixture names made neutral; no behaviour change
+=== audit
+exit 0
+stdout 6 lines
+docs/p.md
+  ? L3 list matches SCOPES → <!-- fact: SCOPES --> above the list
+  ? L7 column drifts from ROUTES.map((r) => r.path) (missing: /x) → <!-- fact column="Request path": ROUTES.map((r) => r.path) --> above the table
+  ? L12 block matches TEMPLATE → <!-- fact: TEMPLATE --> above the block
+  ? L19 block drifts from TEMPLATE (missing: log: info) → <!-- fact: TEMPLATE --> above the block
+audit: 4 suggestions on 1 page, 2 match, 2 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 52 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 3,
+      "target": "list",
+      "expression": "SCOPES",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: SCOPES -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 7,
+      "target": "column",
+      "expression": "ROUTES.map((r) => r.path)",
+      "status": "drift",
+      "missing": [
+        "/x"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=\"Request path\": ROUTES.map((r) => r.path) -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 12,
+      "target": "block",
+      "expression": "TEMPLATE",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: TEMPLATE -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 19,
+      "target": "block",
+      "expression": "TEMPLATE",
+      "status": "drift",
+      "missing": [
+        "log: info"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: TEMPLATE -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 12 lines
+BANNER  →  docattest keeps documentation honest
+ROUTES.map((r) => r.method)  →  [GET, POST, PUT]
+ROUTES.map((r) => r.path)  →  [/jobs, /projects, /x]
+ROUTES.map((r) => `${r.method} ${r.path}`)  →  [GET /jobs, POST /projects, PUT /x]
+ROUTES.map((r) => `${r.path} ${r.method}`)  →  [/jobs GET, /projects POST, /x PUT]
+SCOPES  →  [read, write, admin]
+TEMPLATE  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 7 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 62 lines
+[
+  {
+    "surface": "default",
+    "expression": "BANNER",
+    "value": "docattest keeps documentation honest"
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.method)",
+    "value": "GET,POST,PUT",
+    "items": [
+      "GET",
+      "POST",
+      "PUT"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.path)",
+    "value": "/jobs,/projects,/x",
+    "items": [
+      "/jobs",
+      "/projects",
+      "/x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.method} ${r.path}`)",
+    "value": "GET /jobs,POST /projects,PUT /x",
+    "items": [
+      "GET /jobs",
+      "POST /projects",
+      "PUT /x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.path} ${r.method}`)",
+    "value": "/jobs GET,/projects POST,/x PUT",
+    "items": [
+      "/jobs GET",
+      "/projects POST",
+      "/x PUT"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "SCOPES",
+    "value": "read,write,admin",
+    "items": [
+      "read",
+      "write",
+      "admin"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "TEMPLATE",
+    "value": "name: demo\nregion: eu\nport: 8080\nlog: info\n"
+  }
+]
+stderr empty

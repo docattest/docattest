@@ -1,0 +1,15 @@
+# network tag
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== check
+exit 1
+stdout 9 lines
+docs/a.md
+  - L1 example: network example skipped: the network is off (set DOCATTEST_NETWORK=1 to run it)
+  ! L5 example: example at L5: network applies to check blocks only
+results: 0 pass, 0 fail, 1 error, 1 skipped
+coverage: 1 living page, 1 covered (2 attestations, 0 weak), 0 uncovered, 0 frozen
+surface default: 3 symbols, 0 attested, 3 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+snapshots: none
+FAILED
+stderr empty

@@ -1,0 +1,46 @@
+# bound: malformed, unclosed and ordinary comments
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 3 lines
+KEYS  →  [A, B, C]
+P  →  [/a, /b]
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 21 lines
+[
+  {
+    "surface": "default",
+    "expression": "KEYS",
+    "value": "A,B,C",
+    "items": [
+      "A",
+      "B",
+      "C"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "P",
+    "value": "/a,/b",
+    "items": [
+      "/a",
+      "/b"
+    ]
+  }
+]
+stderr empty

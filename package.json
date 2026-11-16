@@ -1,0 +1,33 @@
+{
+  "name": "docattest-repository",
+  "private": true,
+  "description": "The docattest repository: repo-wide scripts and tools. The npm package is adapters/typescript.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "adapters/typescript"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "build:core": "cargo build --release --manifest-path core/Cargo.toml",
+    "build": "npm run build --workspace adapters/typescript",
+    "typecheck": "npm run typecheck --workspace adapters/typescript && tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm test --workspace adapters/typescript",
+    "test:docs": "node scripts/with-core.ts node adapters/typescript/dist/launcher/main.js check",
+    "bench": "node scripts/with-core.ts node tests/bench/run.ts",
+    "versions": "node scripts/version.ts check",
+    "links": "node scripts/links.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}

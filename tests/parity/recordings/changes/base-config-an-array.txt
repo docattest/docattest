@@ -1,0 +1,12 @@
+# base config an array
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: the base "HEAD" cannot be read: docattest.config.json must contain a JSON object
+=== check --base HEAD
+exit 1
+stdout empty
+stderr 1 line
+docattest: the base "HEAD" cannot be read: docattest.config.json must contain a JSON object

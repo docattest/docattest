@@ -1,0 +1,22 @@
+# failing: no surfaces configured
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 1
+stdout empty
+stderr 1 line
+docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
+=== audit --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
+=== inventory
+exit 1
+stdout empty
+stderr 1 line
+docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
+=== inventory --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: invalid docattest.config.json: "surfaces" must name a "default" surface

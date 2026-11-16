@@ -1,0 +1,7 @@
+# adapter not found: audit
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 1
+stdout empty
+stderr 1 line
+docattest: no rust_2024 adapter: set DOCATTEST_ADAPTER_RUST_2024 to its command, or put docattest-adapter-rust_2024 on the PATH

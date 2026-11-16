@@ -1,0 +1,42 @@
+# uncovered --json
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited; the root config lists its members, which check checks too
+=== uncovered --json
+exit 0
+stdout 36 lines
+[
+  "Attestation",
+  "AuditReport",
+  "AuditStatus",
+  "AuditTarget",
+  "CasesAttestation",
+  "CasesRow",
+  "Change",
+  "ChangeType",
+  "CheckOptions",
+  "Config",
+  "Coverage",
+  "ExampleAttestation",
+  "FactAttestation",
+  "FactTarget",
+  "Impact",
+  "ImpactOptions",
+  "ImpactReference",
+  "InternalError",
+  "InventoryEntry",
+  "Kind",
+  "Member",
+  "MemberReport",
+  "Project",
+  "ProjectInput",
+  "Reference",
+  "Result",
+  "SnapshotStatus",
+  "Status",
+  "Suggestion",
+  "SurfaceCoverage",
+  "SurfaceEntry",
+  "SurfaceResolution",
+  "TestAttestation",
+  "UserError"
+]
+stderr empty

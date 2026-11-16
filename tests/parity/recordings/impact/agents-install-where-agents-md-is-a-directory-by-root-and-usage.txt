@@ -1,0 +1,58 @@
+# agents install where AGENTS.md is a directory, by --root, and usage
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== agents install
+exit 1
+stdout empty
+stderr 1 line
+docattest: cannot read <root>/AGENTS.md: Is a directory (os error 21)
+=== agents install --root sub
+exit 0
+stdout 1 line
+docattest agents: added to <root>/sub/AGENTS.md
+stderr empty
+file sub/AGENTS.md 20 lines
+<!-- docattest:begin -->
+## Documentation that is checked (docattest)
+
+The documentation of this project carries its own proof: examples that run, values read
+from the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the
+page and line that is no longer true. Whatever agent you are, do these two things, from the
+directory this file is in:
+
+- **After you edit source code**, run `npx --no docattest impact --file <path>` with the path of
+  the file you edited. It prints the documented exports your change affects and every page
+  and line that describes them, and prints nothing when there are none. Read the lines it
+  lists and bring them up to date with the code.
+- **Before you finish**, run `npx --no docattest check`. If it fails, make the page true again or
+  fix the code. Never delete or weaken a claim to make it pass.
+
+`npx --no docattest where <symbol>` lists the pages that describe an export.
+
+This section is written by `npx --no docattest agents install`, which replaces everything between
+the two markers. Write your own notes outside them.
+<!-- docattest:end -->
+=== agents install --root gone
+exit 1
+stdout empty
+stderr 1 line
+docattest: cannot write <root>/gone/AGENTS.md: No such file or directory (os error 2)
+=== agents
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest agents install
+=== agents remove
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest agents install
+=== agents install x
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest agents install
+=== agents install --agent nobody --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: cannot read <root>/AGENTS.md: Is a directory (os error 21)

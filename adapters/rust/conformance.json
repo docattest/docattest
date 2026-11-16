@@ -1,0 +1,114 @@
+{
+  "adapter": "rust",
+  "files": {
+    "Cargo.toml": "[package]\nname = \"kit\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    "src/lib.rs": "//! A small library.\n\n/// A number.\npub const N: u32 = 3;\n\n/// Three letters.\npub const KEYS: [&str; 3] = [\"A\", \"B\", \"C\"];\n\n/// What the kit is called.\npub const NAME: &str = \"conformance kit\";\n\n/// Bounds, by size.\npub const LIMITS: [(&str, u32); 1] = [(\"small\", 1)];\n\n/// Adds two numbers.\n///\n/// ```\n/// assert_eq!(kit::add(1, 2), 3);\n/// ```\npub fn add(a: i64, b: i64) -> i64 {\n    a + b\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn adds() {\n        assert_eq!(add(1, 2), 3);\n    }\n}\n",
+    "docs/setup.rs": "//! The runners of the tables on the pages.\n\nuse std::collections::HashMap;\n\n/// The runners of cases tables, by name.\npub const CASES: &[(&str, fn(&HashMap<String, String>) -> Result<(), String>)] = &[(\"adds\", adds)];\n\nfn adds(row: &HashMap<String, String>) -> Result<(), String> {\n    let number = |column: &str| row[column].parse::<i64>().unwrap_or(0);\n    let got = kit::add(number(\"a\"), number(\"b\")).to_string();\n    if got == row[\"sum\"] { Ok(()) } else { Err(format!(\"expected {}, got {got}\", row[\"sum\"])) }\n}\n"
+  },
+  "surfaces": [
+    {
+      "name": "default",
+      "entry": "kit"
+    }
+  ],
+  "setup": "docs/setup.rs",
+  "notSource": "docs/notes.txt",
+  "docComment": {
+    "page": "src/lib.rs",
+    "text": "//! A small library.\n\n/// A number.\npub const N: u32 = 3;\n\n/// Three letters.\npub const KEYS: [&str; 3] = [\"A\", \"B\", \"C\"];\n\n/// What the kit is called.\npub const NAME: &str = \"conformance kit\";\n\n/// Bounds, by size.\npub const LIMITS: [(&str, u32); 1] = [(\"small\", 1)];\n\n/// Adds two numbers.\n///\n/// ```\n/// assert_eq!(kit::add(1, 2), 3);\n/// ```\npub fn add(a: i64, b: i64) -> i64 {\n    a + b\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn adds() {\n        assert_eq!(add(1, 2), 3);\n    }\n}\n",
+    "examples": 1,
+    "prose": "Adds two numbers."
+  },
+  "examples": {
+    "passes": {
+      "lang": "rust",
+      "code": "use kit::add;\n\nassert_eq!(add(1, 2), 3);"
+    },
+    "fails": {
+      "lang": "rust",
+      "code": "use kit::add;\n\nassert_eq!(add(1, 2), 4);"
+    },
+    "broken": {
+      "lang": "rust",
+      "code": "use kit::no_such_name;\n"
+    },
+    "weak": {
+      "lang": "rust",
+      "code": "use kit::add;\n\nadd(1, 2);"
+    },
+    "prints": {
+      "lang": "rust",
+      "code": "use std::io::Write;\n\nprintln!(\"to stdout\");\nstd::io::stdout().write_all(b\"to descriptor 1\\n\").unwrap();"
+    },
+    "slow": {
+      "lang": "rust",
+      "code": "std::thread::sleep(std::time::Duration::from_millis(500));\nassert!(true);"
+    }
+  },
+  "facts": {
+    "scalar": {
+      "expression": "N",
+      "text": "3",
+      "symbol": "N"
+    },
+    "list": {
+      "expression": "KEYS",
+      "items": ["A", "B", "C"]
+    },
+    "text": {
+      "expression": "NAME",
+      "text": "conformance kit"
+    },
+    "invalid": {
+      "expression": "N +"
+    },
+    "manifest": {
+      "expression": "manifest(\"meta.json\")[\"version\"]"
+    }
+  },
+  "exports": ["N", "KEYS", "add"],
+  "expressions": {
+    "one": "LIMITS[0].1",
+    "renamed": "BOUNDS[0].1",
+    "other": "LIMITS[0].1 + 1"
+  },
+  "mention": {
+    "span": "add(1, 2)",
+    "symbol": "add",
+    "other": "added"
+  },
+  "inCode": {
+    "present": "add",
+    "absent": "no_such_name_anywhere",
+    "files": ["src/lib.rs"]
+  },
+  "test": {
+    "file": "src/lib.rs",
+    "title": "adds",
+    "suite": "tests"
+  },
+  "cases": {
+    "runner": "adds",
+    "header": ["a", "b", "sum"],
+    "rows": [
+      {
+        "a": "1",
+        "b": "2",
+        "sum": "3"
+      },
+      {
+        "a": "1",
+        "b": "1",
+        "sum": "3"
+      }
+    ],
+    "statuses": ["pass", "fail"]
+  },
+  "affected": {
+    "base": {
+      "src/lib.rs": "//! A small library.\n\n/// A number.\npub const N: u32 = 3;\n\n/// Three letters.\npub const KEYS: [&str; 3] = [\"A\", \"B\", \"C\"];\n\n/// What the kit is called.\npub const NAME: &str = \"conformance kit\";\n\n/// Bounds, by size.\npub const LIMITS: [(&str, u32); 1] = [(\"small\", 1)];\n\n/// Adds two numbers.\n///\n/// ```\n/// assert_eq!(kit::add(1, 2), 3);\n/// ```\npub fn add(a: i64, b: i64) -> i64 {\n    a - b\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn adds() {\n        assert_eq!(add(1, 2), 3);\n    }\n}\n"
+    },
+    "changed": ["src/lib.rs"],
+    "names": ["add"]
+  }
+}

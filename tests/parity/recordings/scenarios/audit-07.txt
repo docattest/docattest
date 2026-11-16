@@ -1,0 +1,62 @@
+# audit-07
+# recorded from: audit suggests values in sentences (inline, scalar); inventory offers setup named facts
+=== audit --json
+exit 0
+stdout 16 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/queues.md",
+      "line": 3,
+      "target": "scalar",
+      "expression": "DEFAULT_QUEUE",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: DEFAULT_QUEUE -->",
+      "after": "`batch-large`"
+    }
+  ]
+}
+stderr empty
+=== check --json
+exit 0
+stdout 36 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 1,
+    "covered": 0,
+    "uncovered": [
+      "docs/queues.md"
+    ],
+    "frozen": [],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 2,
+      "attested": 0,
+      "unattested": [
+        "DEFAULT_QUEUE",
+        "OTHER"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0
+}
+stderr empty

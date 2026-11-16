@@ -1,0 +1,11 @@
+{
+  "pages": ["README.md", "CONTRIBUTING.md"],
+  "sources": ["src/**/*.rs"],
+  "surfaces": {
+    "default": "docattest_rust::language",
+    "launcher": "docattest_rust::launcher",
+    "protocol": "docattest_rust::protocol"
+  },
+  "commands": { "docattest": ["src/**/*.rs"] },
+  "adapter": "rust"
+}

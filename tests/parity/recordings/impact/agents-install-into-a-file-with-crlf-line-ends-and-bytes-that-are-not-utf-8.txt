@@ -1,0 +1,14 @@
+# agents install into a file with CRLF line ends and bytes that are not UTF-8
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== agents install
+exit 0
+stdout 1 line
+docattest agents: added to <root>/AGENTS.md
+stderr empty
+file AGENTS.md json
+"# Agents\r\n\r\nUse ÿþ tabs. é\r\n\n<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that is no longer true. Whatever agent you are, do these two things, from the\ndirectory this file is in:\n\n- **After you edit source code**, run `npx --no docattest impact --file <path>` with the path of\n  the file you edited. It prints the documented exports your change affects and every page\n  and line that describes them, and prints nothing when there are none. Read the lines it\n  lists and bring them up to date with the code.\n- **Before you finish**, run `npx --no docattest check`. If it fails, make the page true again or\n  fix the code. Never delete or weaken a claim to make it pass.\n\n`npx --no docattest where <symbol>` lists the pages that describe an export.\n\nThis section is written by `npx --no docattest agents install`, which replaces everything between\nthe two markers. Write your own notes outside them.\n<!-- docattest:end -->\n"
+=== agents install
+exit 0
+stdout 1 line
+docattest agents: already up to date in <root>/AGENTS.md
+stderr empty

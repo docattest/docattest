@@ -1,0 +1,75 @@
+# impact mentions: CRLF, a byte order mark, frozen pages and sources
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 0
+stdout 9 lines
+docattest impact: changes since HEAD affect 1 exported symbol
+n
+  docs/bom.md:1 mention (unproven)  Use `n` here.
+  docs/crlf.md:1 mention (unproven)  `n`
+  docs/crlf.md:3 mention (unproven)  Use `n` here.
+  docs/crlf.md:4 mention (unproven)  And `n` there!
+  docs/title.md:4 mention (unproven)  Living `n`?
+  src/index.ts:1 proven example  Adds.
+next: re-read docs/bom.md, docs/crlf.md, docs/title.md, src/index.ts and correct any sentence above that the change made untrue; then run docattest check src/index.ts
+stderr empty
+=== impact --json
+exit 0
+stdout 56 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "n"
+  ],
+  "references": [
+    {
+      "symbol": "n",
+      "page": "docs/bom.md",
+      "line": 1,
+      "kind": "mention",
+      "claim": "Use `n` here.",
+      "proven": false
+    },
+    {
+      "symbol": "n",
+      "page": "docs/crlf.md",
+      "line": 1,
+      "kind": "mention",
+      "claim": "`n`",
+      "proven": false
+    },
+    {
+      "symbol": "n",
+      "page": "docs/crlf.md",
+      "line": 3,
+      "kind": "mention",
+      "claim": "Use `n` here.",
+      "proven": false
+    },
+    {
+      "symbol": "n",
+      "page": "docs/crlf.md",
+      "line": 4,
+      "kind": "mention",
+      "claim": "And `n` there!",
+      "proven": false
+    },
+    {
+      "symbol": "n",
+      "page": "docs/title.md",
+      "line": 4,
+      "kind": "mention",
+      "claim": "Living `n`?",
+      "proven": false
+    },
+    {
+      "symbol": "n",
+      "page": "src/index.ts",
+      "line": 1,
+      "kind": "example",
+      "claim": "Adds.",
+      "proven": true
+    }
+  ]
+}
+stderr empty

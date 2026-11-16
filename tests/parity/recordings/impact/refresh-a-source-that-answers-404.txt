@@ -1,0 +1,26 @@
+# refresh a source that answers 404
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== refresh
+exit 1
+stdout empty
+stderr 1 line
+docattest: refresh b: http://<server>/missing answered 404
+file docs/.snapshots/a.json 11 lines
+{
+  "source": "http://<server>/regions",
+  "fetchedAt": "2026-11-14",
+  "data": {
+    "regions": [
+      "eu",
+      "us"
+    ],
+    "count": 2
+  }
+}
+=== refresh c
+exit 0
+stdout 1 line
+wrote docs/.snapshots/c.json
+stderr empty
+file docs/.snapshots/c.json json
+"{\n  \"source\": \"http://<server>/order\",\n  \"fetchedAt\": \"2026-11-14\",\n  \"data\": {\n    \"b\": 1.0,\n    \"10\": \"x\",\n    \"2\": [\n      1e+21,\n      -0.0,\n      1.5,\n      {}\n    ],\n    \"a\": {\n      \"Ã©\": \"Ã©\\n\",\n      \"ð\": null\n    },\n    \"deep\": [\n      [\n        []\n      ]\n    ]\n  }\n}\n"

@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docattest adapter protocol, version 1: the attestations the core sends",
+  "description": "Every value the protocol carries. Optional fields are omitted, never null, unless a type says null. Paths are relative to the project root, with / separators.",
+  "$defs": {
+    "Attestation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExampleAttestation"
+        },
+        {
+          "$ref": "#/$defs/FactAttestation"
+        },
+        {
+          "$ref": "#/$defs/CasesAttestation"
+        },
+        {
+          "$ref": "#/$defs/TestAttestation"
+        }
+      ]
+    },
+    "ExampleAttestation": {
+      "type": "object",
+      "description": "A fenced block, or an example in a doc comment.",
+      "properties": {
+        "id": {
+          "description": "Unique within one invocation.",
+          "type": "string"
+        },
+        "page": {
+          "description": "Project-relative path of the page (or source file) the attestation is on.",
+          "type": "string"
+        },
+        "line": {
+          "description": "Line on the page, counted from 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "claim": {
+          "description": "The sentence the proof defends.",
+          "type": "string"
+        },
+        "kind": {
+          "const": "example"
+        },
+        "lang": {
+          "description": "The block's info-string language, as written.",
+          "type": "string"
+        },
+        "mode": {
+          "description": "check runs the example; compile only checks it as far as the language can without running it.",
+          "enum": ["check", "compile"]
+        },
+        "network": {
+          "description": "Whether the block is tagged network.",
+          "type": "boolean"
+        },
+        "code": {
+          "type": "string"
+        },
+        "weak": {
+          "description": "A check block that asserts nothing.",
+          "type": "boolean"
+        },
+        "owner": {
+          "description": "The documented declaration, for a doc-comment example.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "The adapter's own info-string words on the block (hello.infoWords), in the order written; an attribute as key=value, its quotes removed. Omitted when there are none.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "error": {
+          "description": "A problem found while planning; such an attestation is never sent to be compiled, evaluated or run.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "page",
+        "line",
+        "claim",
+        "kind",
+        "lang",
+        "mode",
+        "network",
+        "code",
+        "weak"
+      ],
+      "additionalProperties": false
+    },
+    "FactAttestation": {
+      "type": "object",
+      "description": "A literal on the page checked against an expression over a surface.",
+      "properties": {
+        "id": {
+          "description": "Unique within one invocation.",
+          "type": "string"
+        },
+        "page": {
+          "description": "Project-relative path of the page (or source file) the attestation is on.",
+          "type": "string"
+        },
+        "line": {
+          "description": "Line on the page, counted from 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "claim": {
+          "description": "The sentence the proof defends.",
+          "type": "string"
+        },
+        "kind": {
+          "const": "fact"
+        },
+        "expression": {
+          "type": "string"
+        },
+        "surface": {
+          "description": "Surface name.",
+          "type": "string"
+        },
+        "ordered": {
+          "type": "boolean"
+        },
+        "column": {
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/FactTarget"
+        },
+        "error": {
+          "description": "A problem found while planning; such an attestation is never sent to be compiled, evaluated or run.",
+          "type": "string"
+        }
+      },
+      "required": ["id", "page", "line", "claim", "kind", "expression", "surface", "ordered"],
+      "additionalProperties": false
+    },
+    "FactTarget": {
+      "description": "What a fact compares its value with.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "scalar"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": ["kind", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "set"
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "from": {
+              "enum": ["list", "table", "sentence"]
+            }
+          },
+          "required": ["kind", "items", "from"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "text"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": ["kind", "text"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CasesAttestation": {
+      "type": "object",
+      "description": "A table run row by row by a runner of the setup module.",
+      "properties": {
+        "id": {
+          "description": "Unique within one invocation.",
+          "type": "string"
+        },
+        "page": {
+          "description": "Project-relative path of the page (or source file) the attestation is on.",
+          "type": "string"
+        },
+        "line": {
+          "description": "Line on the page, counted from 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "claim": {
+          "description": "The sentence the proof defends.",
+          "type": "string"
+        },
+        "kind": {
+          "const": "cases"
+        },
+        "runner": {
+          "type": "string"
+        },
+        "header": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CasesRow"
+          }
+        },
+        "error": {
+          "description": "A problem found while planning; such an attestation is never sent to be compiled, evaluated or run.",
+          "type": "string"
+        }
+      },
+      "required": ["id", "page", "line", "claim", "kind", "runner", "header", "rows"],
+      "additionalProperties": false
+    },
+    "CasesRow": {
+      "type": "object",
+      "properties": {
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["line", "name", "values"],
+      "additionalProperties": false
+    },
+    "TestAttestation": {
+      "type": "object",
+      "description": "A sentence tied to a test that already exists; it is never run.",
+      "properties": {
+        "id": {
+          "description": "Unique within one invocation.",
+          "type": "string"
+        },
+        "page": {
+          "description": "Project-relative path of the page (or source file) the attestation is on.",
+          "type": "string"
+        },
+        "line": {
+          "description": "Line on the page, counted from 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "claim": {
+          "description": "The sentence the proof defends.",
+          "type": "string"
+        },
+        "kind": {
+          "const": "test"
+        },
+        "file": {
+          "description": "The cited test file.",
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "describes": {
+          "description": "Titles that enclose the test, outermost first; empty matches any.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "error": {
+          "description": "A problem found while planning; such an attestation is never sent to be compiled, evaluated or run.",
+          "type": "string"
+        }
+      },
+      "required": ["id", "page", "line", "claim", "kind", "file", "title", "describes"],
+      "additionalProperties": false
+    }
+  }
+}

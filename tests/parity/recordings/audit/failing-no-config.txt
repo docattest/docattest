@@ -1,0 +1,22 @@
+# failing: no config
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>
+=== audit --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>
+=== inventory
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>
+=== inventory --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>

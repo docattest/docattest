@@ -1,0 +1,16 @@
+# text and column facts
+# recorded from: round-2 fixes: a fact binds the code spans of a sentence wrapped over lines (hint says so); claims are the directive's own sentence; members' adapters reach console and sample checks; count agreement
+=== check
+exit 1
+stdout 10 lines
+docs/a.md
+  ✓ L1 fact: KEYS.join("\n") matches the block
+  ✗ L7 fact: expected 2 rows in column k from the page, got 2 from KEYS; missing: b; unexpected: c
+  ! L14 fact: fact at L14 has no target: put it after a code span or number on the same line, at the end of a sentence with code spans, or on the line before a list, table or fenced block
+results: 1 pass, 1 fail, 1 error, 0 skipped
+coverage: 1 living page, 1 covered (3 attestations, 0 weak), 0 uncovered, 0 frozen
+surface default: 3 symbols, 1 attested, 2 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+snapshots: none
+FAILED
+stderr empty

@@ -1,0 +1,59 @@
+# guard-01
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD --json
+exit 1
+stdout 53 lines
+{
+  "results": [
+    {
+      "page": "docs/retry.md",
+      "line": 7,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "retry"
+      ],
+      "message": "all assertions held"
+    }
+  ],
+  "coverage": {
+    "living": 1,
+    "covered": 1,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 1,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 2,
+      "attested": 1,
+      "unattested": [
+        "RETRY_DEFAULTS"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1,
+  "changes": [
+    {
+      "type": "orphaned-claim",
+      "page": "docs/retry.md",
+      "line": 3,
+      "severity": "fail",
+      "message": "\"A call is tried at most `3` times.\" is still on the page, but the fact that proved it (docs/retry.md:3 at the base) is gone"
+    }
+  ]
+}
+stderr empty

@@ -1,0 +1,159 @@
+# unit: rows of an object and pairs of fields
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 4 lines
+docs/p.md
+  ? L1 column matches ROUTES.map((r) => `${r.method} ${r.path}`) → <!-- fact column=Endpoint: ROUTES.map((r) => `${r.method} ${r.path}`) --> above the table
+  ? L8 list matches Object.values(ERRORS).map((r) => r.status) → <!-- fact: Object.values(ERRORS).map((r) => r.status) --> above the list
+audit: 2 suggestions on 1 page, 2 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 26 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "column",
+      "expression": "ROUTES.map((r) => `${r.method} ${r.path}`)",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=Endpoint: ROUTES.map((r) => `${r.method} ${r.path}`) -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 8,
+      "target": "list",
+      "expression": "Object.values(ERRORS).map((r) => r.status)",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Object.values(ERRORS).map((r) => r.status) -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 13 lines
+Object.keys(ERRORS)  →  [NOT_FOUND, DENIED]
+Object.values(ERRORS).map((r) => r.status)  →  [404, 403]
+Object.keys(ERRORS.NOT_FOUND)  →  [status]
+Object.values(ERRORS.NOT_FOUND)  →  [404]
+Object.keys(ERRORS.DENIED)  →  [status]
+Object.values(ERRORS.DENIED)  →  [403]
+ERRORS.NOT_FOUND.status  →  404
+ERRORS.DENIED.status  →  403
+ROUTES.map((r) => r.method)  →  [GET, POST]
+ROUTES.map((r) => r.path)  →  [/a, /b]
+ROUTES.map((r) => `${r.method} ${r.path}`)  →  [GET /a, POST /b]
+ROUTES.map((r) => `${r.path} ${r.method}`)  →  [/a GET, /b POST]
+inventory: 12 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 98 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(ERRORS)",
+    "value": "NOT_FOUND,DENIED",
+    "items": [
+      "NOT_FOUND",
+      "DENIED"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(ERRORS).map((r) => r.status)",
+    "value": "404,403",
+    "items": [
+      "404",
+      "403"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(ERRORS.NOT_FOUND)",
+    "value": "status",
+    "items": [
+      "status"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(ERRORS.NOT_FOUND)",
+    "value": "404",
+    "items": [
+      "404"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(ERRORS.DENIED)",
+    "value": "status",
+    "items": [
+      "status"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(ERRORS.DENIED)",
+    "value": "403",
+    "items": [
+      "403"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ERRORS.NOT_FOUND.status",
+    "value": "404"
+  },
+  {
+    "surface": "default",
+    "expression": "ERRORS.DENIED.status",
+    "value": "403"
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.method)",
+    "value": "GET,POST",
+    "items": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.path)",
+    "value": "/a,/b",
+    "items": [
+      "/a",
+      "/b"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.method} ${r.path}`)",
+    "value": "GET /a,POST /b",
+    "items": [
+      "GET /a",
+      "POST /b"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.path} ${r.method}`)",
+    "value": "/a GET,/b POST",
+    "items": [
+      "/a GET",
+      "/b POST"
+    ]
+  }
+]
+stderr empty

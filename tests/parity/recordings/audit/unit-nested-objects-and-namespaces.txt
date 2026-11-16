@@ -1,0 +1,429 @@
+# unit: nested objects and namespaces
+# recorded from: fixture names made neutral; no behaviour change
+=== audit
+exit 0
+stdout 6 lines
+docs/p.md
+  ? L1 list drifts from Object.keys(Jobs.CLOSE.fields) (missing: approver) → <!-- fact: Object.keys(Jobs.CLOSE.fields) --> above the list
+  ? L7 list drifts from Object.keys(schemas.components.S3.properties) (missing: allow-write) → <!-- fact: Object.keys(schemas.components.S3.properties) --> above the list
+  ? L12 list matches Object.values(Strategy) → <!-- fact: Object.values(Strategy) --> above the list
+  ? L17 list matches Deep.NESTED.DEEP → <!-- fact: Deep.NESTED.DEEP --> above the list
+audit: 4 suggestions on 1 page, 2 match, 2 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 52 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "Object.keys(Jobs.CLOSE.fields)",
+      "status": "drift",
+      "missing": [
+        "approver"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Object.keys(Jobs.CLOSE.fields) -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 7,
+      "target": "list",
+      "expression": "Object.keys(schemas.components.S3.properties)",
+      "status": "drift",
+      "missing": [
+        "allow-write"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Object.keys(schemas.components.S3.properties) -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 12,
+      "target": "list",
+      "expression": "Object.values(Strategy)",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Object.values(Strategy) -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 17,
+      "target": "list",
+      "expression": "Deep.NESTED.DEEP",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Deep.NESTED.DEEP -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 42 lines
+Object.keys(Deep)  →  [NESTED]
+Object.keys(Deep.NESTED)  →  [DEEP]
+Deep.NESTED.DEEP  →  [d1, d2]
+Object.keys(Jobs)  →  [CLOSE]
+Object.keys(Jobs.CLOSE)  →  [fields]
+Object.values(Jobs.CLOSE).map((r) => r.job)  →  [0]
+Object.values(Jobs.CLOSE).map((r) => r.project)  →  [1]
+Object.values(Jobs.CLOSE).map((r) => r.owner)  →  [2]
+Object.values(Jobs.CLOSE).map((r) => r.approver)  →  [3]
+Object.values(Jobs.CLOSE).map((r) => `${r.job} ${r.project}`)  →  [0 1]
+Object.values(Jobs.CLOSE).map((r) => `${r.job} ${r.owner}`)  →  [0 2]
+Object.values(Jobs.CLOSE).map((r) => `${r.job} ${r.approver}`)  →  [0 3]
+Object.values(Jobs.CLOSE).map((r) => `${r.project} ${r.job}`)  →  [1 0]
+Object.values(Jobs.CLOSE).map((r) => `${r.project} ${r.owner}`)  →  [1 2]
+Object.values(Jobs.CLOSE).map((r) => `${r.project} ${r.approver}`)  →  [1 3]
+Object.values(Jobs.CLOSE).map((r) => `${r.owner} ${r.job}`)  →  [2 0]
+Object.values(Jobs.CLOSE).map((r) => `${r.owner} ${r.project}`)  →  [2 1]
+Object.values(Jobs.CLOSE).map((r) => `${r.owner} ${r.approver}`)  →  [2 3]
+Object.values(Jobs.CLOSE).map((r) => `${r.approver} ${r.job}`)  →  [3 0]
+Object.values(Jobs.CLOSE).map((r) => `${r.approver} ${r.project}`)  →  [3 1]
+Object.values(Jobs.CLOSE).map((r) => `${r.approver} ${r.owner}`)  →  [3 2]
+Object.keys(Jobs.CLOSE.fields)  →  [job, project, owner, approver]
+Object.values(Jobs.CLOSE.fields)  →  [0, 1, 2, 3]
+Jobs.CLOSE.fields.job  →  0
+Jobs.CLOSE.fields.project  →  1
+Jobs.CLOSE.fields.owner  →  2
+Jobs.CLOSE.fields.approver  →  3
+Object.keys(Strategy)  →  [BASIC, BASIC-EXTEND]
+Object.values(Strategy)  →  [s1, s2]
+Strategy.BASIC  →  s1
+Strategy['BASIC-EXTEND']  →  s2
+Object.keys(schemas)  →  [components]
+Object.keys(schemas.components)  →  [S3]
+Object.keys(schemas.components.S3)  →  [properties]
+Object.keys(schemas.components.S3.properties)  →  [url, bucket, allow-write]
+Object.keys(schemas.components.S3.properties.url)  →  []
+Object.values(schemas.components.S3.properties.url)  →  []
+Object.keys(schemas.components.S3.properties.bucket)  →  []
+Object.values(schemas.components.S3.properties.bucket)  →  []
+Object.keys(schemas.components.S3.properties['allow-write'])  →  []
+Object.values(schemas.components.S3.properties['allow-write'])  →  []
+inventory: 41 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 311 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(Deep)",
+    "value": "NESTED",
+    "items": [
+      "NESTED"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Deep.NESTED)",
+    "value": "DEEP",
+    "items": [
+      "DEEP"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Deep.NESTED.DEEP",
+    "value": "d1,d2",
+    "items": [
+      "d1",
+      "d2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Jobs)",
+    "value": "CLOSE",
+    "items": [
+      "CLOSE"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Jobs.CLOSE)",
+    "value": "fields",
+    "items": [
+      "fields"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => r.job)",
+    "value": "0",
+    "items": [
+      "0"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => r.project)",
+    "value": "1",
+    "items": [
+      "1"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => r.owner)",
+    "value": "2",
+    "items": [
+      "2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => r.approver)",
+    "value": "3",
+    "items": [
+      "3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.job} ${r.project}`)",
+    "value": "0 1",
+    "items": [
+      "0 1"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.job} ${r.owner}`)",
+    "value": "0 2",
+    "items": [
+      "0 2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.job} ${r.approver}`)",
+    "value": "0 3",
+    "items": [
+      "0 3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.project} ${r.job}`)",
+    "value": "1 0",
+    "items": [
+      "1 0"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.project} ${r.owner}`)",
+    "value": "1 2",
+    "items": [
+      "1 2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.project} ${r.approver}`)",
+    "value": "1 3",
+    "items": [
+      "1 3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.owner} ${r.job}`)",
+    "value": "2 0",
+    "items": [
+      "2 0"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.owner} ${r.project}`)",
+    "value": "2 1",
+    "items": [
+      "2 1"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.owner} ${r.approver}`)",
+    "value": "2 3",
+    "items": [
+      "2 3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.approver} ${r.job}`)",
+    "value": "3 0",
+    "items": [
+      "3 0"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.approver} ${r.project}`)",
+    "value": "3 1",
+    "items": [
+      "3 1"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => `${r.approver} ${r.owner}`)",
+    "value": "3 2",
+    "items": [
+      "3 2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Jobs.CLOSE.fields)",
+    "value": "job,project,owner,approver",
+    "items": [
+      "job",
+      "project",
+      "owner",
+      "approver"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE.fields)",
+    "value": "0,1,2,3",
+    "items": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Jobs.CLOSE.fields.job",
+    "value": "0"
+  },
+  {
+    "surface": "default",
+    "expression": "Jobs.CLOSE.fields.project",
+    "value": "1"
+  },
+  {
+    "surface": "default",
+    "expression": "Jobs.CLOSE.fields.owner",
+    "value": "2"
+  },
+  {
+    "surface": "default",
+    "expression": "Jobs.CLOSE.fields.approver",
+    "value": "3"
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Strategy)",
+    "value": "BASIC,BASIC-EXTEND",
+    "items": [
+      "BASIC",
+      "BASIC-EXTEND"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Strategy)",
+    "value": "s1,s2",
+    "items": [
+      "s1",
+      "s2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Strategy.BASIC",
+    "value": "s1"
+  },
+  {
+    "surface": "default",
+    "expression": "Strategy['BASIC-EXTEND']",
+    "value": "s2"
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(schemas)",
+    "value": "components",
+    "items": [
+      "components"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(schemas.components)",
+    "value": "S3",
+    "items": [
+      "S3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(schemas.components.S3)",
+    "value": "properties",
+    "items": [
+      "properties"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(schemas.components.S3.properties)",
+    "value": "url,bucket,allow-write",
+    "items": [
+      "url",
+      "bucket",
+      "allow-write"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(schemas.components.S3.properties.url)",
+    "value": "",
+    "items": []
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(schemas.components.S3.properties.url)",
+    "value": "",
+    "items": []
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(schemas.components.S3.properties.bucket)",
+    "value": "",
+    "items": []
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(schemas.components.S3.properties.bucket)",
+    "value": "",
+    "items": []
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(schemas.components.S3.properties['allow-write'])",
+    "value": "",
+    "items": []
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(schemas.components.S3.properties['allow-write'])",
+    "value": "",
+    "items": []
+  }
+]
+stderr empty

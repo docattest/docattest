@@ -1,0 +1,7 @@
+# Children are started by `process::spawn` only: it holds the lock that keeps one
+# child from inheriting the pipes of another that is being started on a different thread.
+disallowed-methods = [
+    { path = "std::process::Command::spawn", reason = "start children with crate::process::spawn, which holds the spawn lock" },
+    { path = "std::process::Command::output", reason = "start children with crate::process::spawn, which holds the spawn lock" },
+    { path = "std::process::Command::status", reason = "start children with crate::process::spawn, which holds the spawn lock" },
+]

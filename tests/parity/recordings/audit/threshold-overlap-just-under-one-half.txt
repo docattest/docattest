@@ -1,0 +1,40 @@
+# threshold: overlap just under one half
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 2 lines
+K  →  [a1, a2, a3, a4, a5, a6, a7]
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 16 lines
+[
+  {
+    "surface": "default",
+    "expression": "K",
+    "value": "a1,a2,a3,a4,a5,a6,a7",
+    "items": [
+      "a1",
+      "a2",
+      "a3",
+      "a4",
+      "a5",
+      "a6",
+      "a7"
+    ]
+  }
+]
+stderr empty

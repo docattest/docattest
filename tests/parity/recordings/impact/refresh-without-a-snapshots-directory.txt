@@ -1,0 +1,12 @@
+# refresh without a snapshots directory
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== refresh
+exit 0
+stdout 1 line
+no snapshots to refresh
+stderr empty
+=== refresh x
+exit 1
+stdout empty
+stderr 1 line
+docattest: no snapshot named "x" in (no snapshots dir configured)

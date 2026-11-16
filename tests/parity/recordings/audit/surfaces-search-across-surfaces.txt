@@ -1,0 +1,38 @@
+# surfaces: search across surfaces
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== inventory S
+exit 0
+stdout 5 lines
+SHARED  →  [s1, s2, s3]
+@server MOTD  →  welcome to the server, friend
+@server PORTS  →  [8080, 9090]
+@server SHARED  →  [s1, s2, s3]
+inventory: 4 values
+stderr empty
+=== inventory ports --json
+exit 0
+stdout 11 lines
+[
+  {
+    "surface": "server",
+    "expression": "PORTS",
+    "value": "8080,9090",
+    "items": [
+      "8080",
+      "9090"
+    ]
+  }
+]
+stderr empty
+=== inventory WELCOME
+exit 0
+stdout 2 lines
+@server MOTD  →  welcome to the server, friend
+inventory: 1 value
+stderr empty
+=== inventory server
+exit 0
+stdout 2 lines
+@server MOTD  →  welcome to the server, friend
+inventory: 1 value
+stderr empty

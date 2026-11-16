@@ -1,0 +1,69 @@
+# guard-07
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD --json
+exit 0
+stdout 63 lines
+{
+  "results": [
+    {
+      "page": "docs/retry.md",
+      "line": 3,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "RETRY_DEFAULTS"
+      ],
+      "message": "RETRY_DEFAULTS.maxAttempts is 3",
+      "expected": "3",
+      "actual": "3"
+    },
+    {
+      "page": "docs/retry.md",
+      "line": 7,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "retry"
+      ],
+      "message": "ran without throwing, but asserts nothing (weak)"
+    }
+  ],
+  "coverage": {
+    "living": 1,
+    "covered": 1,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 2,
+    "weak": 1,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 2,
+      "attested": 2,
+      "unattested": [],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0,
+  "changes": [
+    {
+      "type": "downgrade",
+      "page": "docs/retry.md",
+      "line": 7,
+      "severity": "warning",
+      "message": "the example lost every assertion: it runs, proving nothing"
+    }
+  ]
+}
+stderr empty

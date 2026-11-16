@@ -1,0 +1,12 @@
+# impact without a config
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>
+=== impact --base nope
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>

@@ -1,0 +1,33 @@
+# threshold: block with two lines each side
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 4 lines
+T  →  first line here
+second line here
+
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 7 lines
+[
+  {
+    "surface": "default",
+    "expression": "T",
+    "value": "first line here\nsecond line here\n"
+  }
+]
+stderr empty

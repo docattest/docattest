@@ -1,0 +1,62 @@
+# threshold: duplicates and empty items
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 4 lines
+docs/p.md
+  ? L1 list matches K → <!-- fact: K --> above the list
+  ? L6 column matches K → <!-- fact column=R: K --> above the table
+audit: 2 suggestions on 1 page, 2 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 26 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "K",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: K -->"
+    },
+    {
+      "page": "docs/p.md",
+      "line": 6,
+      "target": "column",
+      "expression": "K",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=R: K -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 2 lines
+K  →  [eu, us, eu]
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 12 lines
+[
+  {
+    "surface": "default",
+    "expression": "K",
+    "value": "eu,us,eu",
+    "items": [
+      "eu",
+      "us",
+      "eu"
+    ]
+  }
+]
+stderr empty

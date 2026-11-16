@@ -1,0 +1,11 @@
+# index
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== index
+exit 0
+stdout 5 lines
+N
+  docs/a.md:3 fact  At most `3` tries.
+  docs/a.md:5 example  At most `3` tries.
+add
+  docs/a.md:5 example  At most `3` tries.
+stderr empty

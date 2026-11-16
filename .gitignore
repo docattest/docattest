@@ -1,0 +1,14 @@
+# Installed packages and build output
+node_modules/
+dist/
+core/target/
+adapters/rust/target/
+adapters/rust/tests/fixture/target/
+adapters/go/bin/
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+.ruff_cache/
+# What `npm run bench` writes (tests/bench/run.ts --label <name>)
+tests/bench/results/

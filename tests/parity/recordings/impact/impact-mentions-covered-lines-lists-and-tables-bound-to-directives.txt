@@ -1,0 +1,140 @@
+# impact mentions: covered lines, lists and tables bound to directives
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 0
+stdout 17 lines
+docattest impact: changes since HEAD affect 2 exported symbols
+KEYS
+  docs/a.md:3 proven fact  The `KEYS` are these:
+  docs/a.md:7 mention (unproven)  Later `KEYS` again, and `add`.
+  docs/a.md:19 proven fact  
+  docs/a.md:21 mention (unproven)  `KEYS`
+  docs/a.md:28 mention (unproven)  [link `add`](x) and *emphasis `KEYS`* and ~~gone `add`~~.
+  docs/a.md:38 mention (unproven)  Double ``add`` and `` add `` and ` KEYS.x ` and `add()`; `add`.
+add
+  docs/a.md:7 mention (unproven)  Later `KEYS` again, and `add`.
+  docs/a.md:11 proven cases  Adding with `add` works.
+  docs/a.md:17 mention (unproven)  `add` in a list after the table
+  docs/a.md:25 mention (unproven)  Setext `add`
+  docs/a.md:28 mention (unproven)  [link `add`](x) and *emphasis `KEYS`* and ~~gone `add`~~.
+  docs/a.md:38 mention (unproven)  Double ``add`` and `` add `` and ` KEYS.x ` and `add()`; `add`.
+  docs/a.md:40 mention (unproven)  Footnote `add` here.
+next: re-read docs/a.md and correct any sentence above that the change made untrue; then run docattest check docs/a.md
+stderr empty
+=== impact --json
+exit 0
+stdout 113 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "KEYS",
+    "add"
+  ],
+  "references": [
+    {
+      "symbol": "KEYS",
+      "page": "docs/a.md",
+      "line": 3,
+      "kind": "fact",
+      "claim": "The `KEYS` are these:",
+      "proven": true
+    },
+    {
+      "symbol": "KEYS",
+      "page": "docs/a.md",
+      "line": 7,
+      "kind": "mention",
+      "claim": "Later `KEYS` again, and `add`.",
+      "proven": false
+    },
+    {
+      "symbol": "KEYS",
+      "page": "docs/a.md",
+      "line": 19,
+      "kind": "fact",
+      "claim": "",
+      "proven": true
+    },
+    {
+      "symbol": "KEYS",
+      "page": "docs/a.md",
+      "line": 21,
+      "kind": "mention",
+      "claim": "`KEYS`",
+      "proven": false
+    },
+    {
+      "symbol": "KEYS",
+      "page": "docs/a.md",
+      "line": 28,
+      "kind": "mention",
+      "claim": "[link `add`](x) and *emphasis `KEYS`* and ~~gone `add`~~.",
+      "proven": false
+    },
+    {
+      "symbol": "KEYS",
+      "page": "docs/a.md",
+      "line": 38,
+      "kind": "mention",
+      "claim": "Double ``add`` and `` add `` and ` KEYS.x ` and `add()`; `add`.",
+      "proven": false
+    },
+    {
+      "symbol": "add",
+      "page": "docs/a.md",
+      "line": 7,
+      "kind": "mention",
+      "claim": "Later `KEYS` again, and `add`.",
+      "proven": false
+    },
+    {
+      "symbol": "add",
+      "page": "docs/a.md",
+      "line": 11,
+      "kind": "cases",
+      "claim": "Adding with `add` works.",
+      "proven": true
+    },
+    {
+      "symbol": "add",
+      "page": "docs/a.md",
+      "line": 17,
+      "kind": "mention",
+      "claim": "`add` in a list after the table",
+      "proven": false
+    },
+    {
+      "symbol": "add",
+      "page": "docs/a.md",
+      "line": 25,
+      "kind": "mention",
+      "claim": "Setext `add`",
+      "proven": false
+    },
+    {
+      "symbol": "add",
+      "page": "docs/a.md",
+      "line": 28,
+      "kind": "mention",
+      "claim": "[link `add`](x) and *emphasis `KEYS`* and ~~gone `add`~~.",
+      "proven": false
+    },
+    {
+      "symbol": "add",
+      "page": "docs/a.md",
+      "line": 38,
+      "kind": "mention",
+      "claim": "Double ``add`` and `` add `` and ` KEYS.x ` and `add()`; `add`.",
+      "proven": false
+    },
+    {
+      "symbol": "add",
+      "page": "docs/a.md",
+      "line": 40,
+      "kind": "mention",
+      "claim": "Footnote `add` here.",
+      "proven": false
+    }
+  ]
+}
+stderr empty

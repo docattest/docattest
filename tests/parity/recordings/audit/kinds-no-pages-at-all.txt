@@ -1,0 +1,96 @@
+# kinds: no pages at all
+# recorded from: fixture names made neutral; no behaviour change
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 12 lines
+BANNER  →  docattest keeps documentation honest
+ROUTES.map((r) => r.method)  →  [GET, POST, PUT]
+ROUTES.map((r) => r.path)  →  [/jobs, /projects, /x]
+ROUTES.map((r) => `${r.method} ${r.path}`)  →  [GET /jobs, POST /projects, PUT /x]
+ROUTES.map((r) => `${r.path} ${r.method}`)  →  [/jobs GET, /projects POST, /x PUT]
+SCOPES  →  [read, write, admin]
+TEMPLATE  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 7 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 62 lines
+[
+  {
+    "surface": "default",
+    "expression": "BANNER",
+    "value": "docattest keeps documentation honest"
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.method)",
+    "value": "GET,POST,PUT",
+    "items": [
+      "GET",
+      "POST",
+      "PUT"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => r.path)",
+    "value": "/jobs,/projects,/x",
+    "items": [
+      "/jobs",
+      "/projects",
+      "/x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.method} ${r.path}`)",
+    "value": "GET /jobs,POST /projects,PUT /x",
+    "items": [
+      "GET /jobs",
+      "POST /projects",
+      "PUT /x"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROUTES.map((r) => `${r.path} ${r.method}`)",
+    "value": "/jobs GET,/projects POST,/x PUT",
+    "items": [
+      "/jobs GET",
+      "/projects POST",
+      "/x PUT"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "SCOPES",
+    "value": "read,write,admin",
+    "items": [
+      "read",
+      "write",
+      "admin"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "TEMPLATE",
+    "value": "name: demo\nregion: eu\nport: 8080\nlog: info\n"
+  }
+]
+stderr empty

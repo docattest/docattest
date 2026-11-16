@@ -1,0 +1,10 @@
+# check --hook on a passing project
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --hook
+exit 0
+stdout empty
+stderr empty
+=== check --hook
+exit 0
+stdout empty
+stderr empty

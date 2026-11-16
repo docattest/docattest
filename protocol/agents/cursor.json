@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/agent.json#/$defs/Agent",
+  "name": "cursor",
+  "docs": "https://cursor.com/docs/agent/hooks",
+  "skill": ".cursor/skills/docattest/SKILL.md",
+  "settings": {
+    "file": ".cursor/hooks.json",
+    "hooks": "hooks",
+    "command": "command",
+    "defaults": { "version": 1 }
+  },
+  "hooks": {
+    "check": {
+      "event": "stop",
+      "continuing": ["loop_count"],
+      "reply": { "text": ["followup_message"] }
+    }
+  }
+}

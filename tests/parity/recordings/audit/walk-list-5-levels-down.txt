@@ -1,0 +1,95 @@
+# walk: list 5 levels down
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list matches DEEP.l0.l1.l2.l3.l4 → <!-- fact: DEEP.l0.l1.l2.l3.l4 --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "DEEP.l0.l1.l2.l3.l4",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: DEEP.l0.l1.l2.l3.l4 -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 7 lines
+Object.keys(DEEP)  →  [l0]
+Object.keys(DEEP.l0)  →  [l1]
+Object.keys(DEEP.l0.l1)  →  [l2]
+Object.keys(DEEP.l0.l1.l2)  →  [l3]
+Object.keys(DEEP.l0.l1.l2.l3)  →  [l4]
+DEEP.l0.l1.l2.l3.l4  →  [z1, z2, z3]
+inventory: 6 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 52 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP)",
+    "value": "l0",
+    "items": [
+      "l0"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0)",
+    "value": "l1",
+    "items": [
+      "l1"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0.l1)",
+    "value": "l2",
+    "items": [
+      "l2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0.l1.l2)",
+    "value": "l3",
+    "items": [
+      "l3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(DEEP.l0.l1.l2.l3)",
+    "value": "l4",
+    "items": [
+      "l4"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "DEEP.l0.l1.l2.l3.l4",
+    "value": "z1,z2,z3",
+    "items": [
+      "z1",
+      "z2",
+      "z3"
+    ]
+  }
+]
+stderr empty

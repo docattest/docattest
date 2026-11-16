@@ -1,0 +1,46 @@
+[package]
+name = "docattest-rust"
+version = "0.1.0"
+edition = "2024"
+description = "docattest for Rust projects: the Rust adapter and the docattest command."
+license = "MIT"
+publish = false
+
+[lib]
+name = "docattest_rust"
+
+# The command a Rust user runs: the docattest core, told how to start the Rust adapter.
+[[bin]]
+name = "docattest"
+path = "src/bin/docattest.rs"
+
+# The adapter the core starts. Nobody runs it by hand.
+[[bin]]
+name = "docattest-adapter-rust"
+path = "src/bin/adapter.rs"
+
+[dependencies]
+docattest = { path = "../../core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+# Reading Rust from syntax: exports, doc comments, tests, what a change affects.
+syn = { version = "2", features = ["full", "visit"] }
+proc-macro2 = { version = "1", features = ["span-locations"] }
+quote = "1"
+# A project's own [patch] tables, which its generated programs must be built with too.
+toml = "0.8"
+
+# Ending a block that overruns with everything it started: there is no std way to
+# signal a process group.
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "unwind"
+
+# The core's own patch: a patch applies only from the package being built.
+[patch.crates-io]
+markdown = { path = "../../core/vendor/markdown" }

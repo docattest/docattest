@@ -1,0 +1,27 @@
+{
+  "$schema": "../schema/agent.json#/$defs/Agent",
+  "name": "gemini",
+  "docs": "https://geminicli.com/docs/hooks/reference/",
+  "projectRoot": "\"$GEMINI_PROJECT_DIR\"",
+  "skill": ".gemini/skills/docattest/SKILL.md",
+  "settings": {
+    "file": ".gemini/settings.json",
+    "hooks": "hooks",
+    "group": "hooks",
+    "handler": { "type": "command" },
+    "command": "command"
+  },
+  "hooks": {
+    "impact": {
+      "event": "AfterTool",
+      "matcher": "write_file|replace",
+      "file": ["tool_input", "file_path"],
+      "reply": { "text": ["hookSpecificOutput", "additionalContext"] }
+    },
+    "check": {
+      "event": "AfterAgent",
+      "continuing": ["stop_hook_active"],
+      "reply": { "fixed": { "decision": "deny" }, "text": ["reason"] }
+    }
+  }
+}

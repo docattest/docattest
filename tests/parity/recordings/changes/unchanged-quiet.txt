@@ -1,0 +1,7 @@
+# unchanged quiet
+# recorded from: check --quiet prints only what needs attention
+=== check --base HEAD --quiet
+exit 0
+stdout 1 line
+ok
+stderr empty

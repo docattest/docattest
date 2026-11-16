@@ -1,0 +1,17 @@
+# no config at the head
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --base HEAD
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>
+=== check --base nope
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>
+=== check --base HEAD --root nowhere
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>/nowhere

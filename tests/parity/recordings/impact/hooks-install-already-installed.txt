@@ -1,0 +1,7 @@
+# hooks install: already installed
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install
+exit 0
+stdout 1 line
+docattest hooks: already installed in <root>/.claude/settings.json
+stderr empty

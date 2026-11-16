@@ -1,0 +1,16 @@
+# index json
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== index --json
+exit 0
+stdout 10 lines
+{
+  "N": [
+    {
+      "page": "docs/a.md",
+      "line": 1,
+      "kind": "fact",
+      "claim": "At most `3` tries."
+    }
+  ]
+}
+stderr empty

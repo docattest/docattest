@@ -1,0 +1,4 @@
+# Every text file is checked out with LF line endings, on Windows too: the core embeds
+# files (the agent skill, the protocol's schemas) and the tests compare text byte for byte,
+# so a release built on Windows must read what one built anywhere else reads.
+* text=auto eol=lf

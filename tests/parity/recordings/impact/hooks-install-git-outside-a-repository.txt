@@ -1,0 +1,12 @@
+# hooks install --git: outside a repository
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install --git
+exit 1
+stdout empty
+stderr 1 line
+docattest: hooks install --git needs a git repository, and <root> is not inside one
+=== hooks install --git --root gone
+exit 1
+stdout empty
+stderr 1 line
+docattest: hooks install --git needs git, and git was not found on PATH

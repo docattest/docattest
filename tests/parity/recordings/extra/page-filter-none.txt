@@ -1,0 +1,7 @@
+# page filter none
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check docs/zz.md
+exit 1
+stdout empty
+stderr 1 line
+docattest: "docs/zz.md" matches no living page (pages come from "pages" in docattest.config.json, minus "frozen")

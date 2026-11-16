@@ -1,0 +1,59 @@
+# ties: blocks that equal two strings
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 block matches A → <!-- fact: A --> above the block
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "block",
+      "expression": "A",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: A -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 11 lines
+A  →  name: demo
+region: eu
+port: 8080
+log: info
+
+B  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 12 lines
+[
+  {
+    "surface": "default",
+    "expression": "A",
+    "value": "name: demo\nregion: eu\nport: 8080\nlog: info\n"
+  },
+  {
+    "surface": "default",
+    "expression": "B",
+    "value": "name: demo\nregion: eu\nport: 8080\nlog: info\n"
+  }
+]
+stderr empty

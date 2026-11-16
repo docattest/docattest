@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docattest adapter protocol, version 1: the lines on the pipes",
+  "$defs": {
+    "Request": {
+      "type": "object",
+      "description": "One line on the adapter's standard input.",
+      "properties": {
+        "id": {
+          "description": "Chosen by the core, unique within the process.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "method": {
+          "type": "string"
+        },
+        "params": {
+          "type": "object"
+        }
+      },
+      "required": ["id", "method"],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "user: a mistake in the project, printed as given. internal: a bug in the adapter.",
+          "enum": ["user", "internal"]
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": ["kind", "message"],
+      "additionalProperties": false
+    },
+    "Response": {
+      "description": "One line on the adapter's standard output. id is null when the request's own id could not be read.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": ["integer", "null"]
+            },
+            "result": {}
+          },
+          "required": ["id", "result"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": ["integer", "null"]
+            },
+            "error": {
+              "$ref": "#/$defs/Error"
+            }
+          },
+          "required": ["id", "error"],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# uncovered unknown surface
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== uncovered --surface nope
+exit 1
+stdout empty
+stderr 1 line
+docattest: unknown surface "nope" (configured: default)

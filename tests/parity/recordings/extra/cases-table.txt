@@ -1,0 +1,69 @@
+# cases table
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== check --json
+exit 1
+stdout 63 lines
+{
+  "results": [
+    {
+      "page": "docs/a.md",
+      "line": 6,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "add"
+      ],
+      "message": "docs/a.md:6 small"
+    },
+    {
+      "page": "docs/a.md",
+      "line": 7,
+      "kind": "cases",
+      "status": "fail",
+      "symbols": [
+        "add"
+      ],
+      "message": "docs/a.md:7 wrong: AssertionError: 2 == 3 (assert.ok)"
+    },
+    {
+      "page": "docs/a.md",
+      "line": 9,
+      "kind": "cases",
+      "status": "error",
+      "symbols": [],
+      "message": "cases runner \"nope\" at L9 is not exported by docs/docattest.setup.ts (known: adds)"
+    }
+  ],
+  "coverage": {
+    "living": 1,
+    "covered": 1,
+    "uncovered": [],
+    "frozen": [],
+    "attestations": 3,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 3,
+      "attested": 1,
+      "unattested": [
+        "KEYS",
+        "N"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1
+}
+stderr empty

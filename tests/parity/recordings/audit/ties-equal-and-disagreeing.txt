@@ -1,0 +1,47 @@
+# ties: equal and disagreeing
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 3 lines
+X  →  [aa, bb, cc]
+Y  →  [aa, bb, dd]
+inventory: 2 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 22 lines
+[
+  {
+    "surface": "default",
+    "expression": "X",
+    "value": "aa,bb,cc",
+    "items": [
+      "aa",
+      "bb",
+      "cc"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Y",
+    "value": "aa,bb,dd",
+    "items": [
+      "aa",
+      "bb",
+      "dd"
+    ]
+  }
+]
+stderr empty

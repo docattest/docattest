@@ -1,0 +1,36 @@
+# threshold: two shared, two differences
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 2 lines
+K  →  [read, write, admin]
+inventory: 1 value
+stderr empty
+=== inventory --json
+exit 0
+stdout 12 lines
+[
+  {
+    "surface": "default",
+    "expression": "K",
+    "value": "read,write,admin",
+    "items": [
+      "read",
+      "write",
+      "admin"
+    ]
+  }
+]
+stderr empty

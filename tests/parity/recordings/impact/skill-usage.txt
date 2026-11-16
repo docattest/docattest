@@ -1,0 +1,22 @@
+# skill usage
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== skill
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest skill install [--agent <name or file>] [--global] [--force]
+=== skill remove
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest skill install [--agent <name or file>] [--global] [--force]
+=== skill install x
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest skill install [--agent <name or file>] [--global] [--force]
+=== skill --global
+exit 1
+stdout empty
+stderr 1 line
+docattest: usage: docattest skill install [--agent <name or file>] [--global] [--force]

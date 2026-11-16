@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docattest adapter protocol, version 1: the project as open describes it, its surfaces, snapshots and manifests",
+  "description": "Every value the protocol carries. Optional fields are omitted, never null, unless a type says null. Paths are relative to the project root, with / separators.",
+  "$defs": {
+    "ConfiguredSurface": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "entry": {
+          "$ref": "#/$defs/SurfaceEntry"
+        }
+      },
+      "required": ["name", "entry"],
+      "additionalProperties": false
+    },
+    "SurfaceEntry": {
+      "description": "A surface as the config wrote it. What it means is the adapter's to say.",
+      "anyOf": [
+        {
+          "description": "A string.",
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "properties": {
+            "import": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": ["import", "path"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SurfaceResolution": {
+      "type": "object",
+      "description": "Where a surface resolved. Printed by the report, and passed on as it is in --json.",
+      "properties": {
+        "import": {
+          "description": "What examples and facts import.",
+          "type": "string"
+        },
+        "entry": {
+          "description": "The file it is read from, relative to the project root when inside it.",
+          "type": "string"
+        },
+        "package": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "display": {
+              "description": "The package and its version as the language writes them ('name@1.2.0', 'name 1.2.0'); the text report prints it.",
+              "type": "string"
+            }
+          },
+          "required": ["name", "display"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["import", "entry"],
+      "additionalProperties": false
+    },
+    "SurfaceDescription": {
+      "type": "object",
+      "properties": {
+        "resolution": {
+          "$ref": "#/$defs/SurfaceResolution"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["warnings"],
+      "additionalProperties": false
+    },
+    "Snapshots": {
+      "description": "The snapshots of the project: the directory they are read from, and their data by name.",
+      "type": "object",
+      "properties": {
+        "dir": {
+          "type": "string"
+        },
+        "data": {
+          "type": "object"
+        }
+      },
+      "required": ["data"],
+      "additionalProperties": false
+    },
+    "Manifests": {
+      "description": "The manifests fact expressions name in manifest(\"<path>\"): the data of each that could be read, by the path as the expression writes it. Each is an object.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      }
+    }
+  }
+}

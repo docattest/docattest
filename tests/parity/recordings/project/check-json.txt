@@ -1,0 +1,3749 @@
+# check --json
+# recorded from: the Rust adapter's commands never colour their output
+=== check --json
+exit 0
+stdout 3743 lines
+{
+  "results": [
+    {
+      "page": "README.md",
+      "line": 16,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.1.0",
+      "expected": "0.1.0",
+      "actual": "0.1.0"
+    },
+    {
+      "page": "README.md",
+      "line": 24,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every command printed what the block shows"
+    },
+    {
+      "page": "README.md",
+      "line": 35,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every command printed what the block shows"
+    },
+    {
+      "page": "README.md",
+      "line": 67,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "manifest(\"adapters/typescript/package.json\").engines.node.replace(\">=\", \"\") is 22.12",
+      "expected": "22.12",
+      "actual": "22.12"
+    },
+    {
+      "page": "README.md",
+      "line": 68,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "2 code spans match manifest(\"adapters/typescript/package.json\").peerDependencies.typescript.match(/[\\d.]+/g)",
+      "expected": "[5.4, 7]",
+      "actual": "[5.4, 7]"
+    },
+    {
+      "page": "README.md",
+      "line": 77,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "manifest(\"adapters/python/pyproject.toml\").project[\"requires-python\"].replace(\">=\", \"\") is 3.10",
+      "expected": "3.10",
+      "actual": "3.10"
+    },
+    {
+      "page": "README.md",
+      "line": 99,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "5 code spans match Object.keys(manifest(\"protocol/platforms.json\").platforms)",
+      "expected": "[darwin-arm64, darwin-x64, linux-arm64, linux-x64, windows-x64]",
+      "actual": "[darwin-arm64, darwin-x64, linux-arm64, linux-x64, windows-x64]"
+    },
+    {
+      "page": "README.md",
+      "line": 121,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every proof on the sample page held in a copy of docs/.fixtures/acme-client"
+    },
+    {
+      "page": "README.md",
+      "line": 154,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every proof on the sample page held in a copy of adapters/python/tests/fixture"
+    },
+    {
+      "page": "README.md",
+      "line": 189,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every proof on the sample page held in a copy of adapters/go/testdata/fixture"
+    },
+    {
+      "page": "README.md",
+      "line": 231,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every proof on the sample page held in a copy of adapters/rust/tests/fixture"
+    },
+    {
+      "page": "README.md",
+      "line": 255,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "KINDS"
+      ],
+      "message": "5 rows in column Reported match KINDS",
+      "expected": "[example, fact, cases, test, snapshot]",
+      "actual": "[example, fact, cases, snapshot, test]"
+    },
+    {
+      "page": "README.md",
+      "line": 277,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "COMMANDS"
+      ],
+      "message": "12 distinct values in column Command match COMMANDS",
+      "expected": "[check, check, where, uncovered, index, audit, inventory, impact, impact, refresh, hooks, agents, skill, conformance]",
+      "actual": "[check, where, uncovered, index, refresh, skill, audit, inventory, impact, hooks, agents, conformance]"
+    },
+    {
+      "page": "README.md",
+      "line": 407,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every proof on the sample page held in a copy of docs/.fixtures/acme-client"
+    },
+    {
+      "page": "README.md",
+      "line": 421,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "compiles"
+    },
+    {
+      "page": "README.md",
+      "line": 435,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "CONFIG_KEYS"
+      ],
+      "message": "12 rows in column Key match CONFIG_KEYS",
+      "expected": "[pages, adapter, surfaces, sources, frozen, setup, snapshots, runtime, ignoreTags, members, commands, $schema]",
+      "actual": "[$schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands]"
+    },
+    {
+      "page": "README.md",
+      "line": 444,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "DEFAULT_SNAPSHOT_MAX_AGE_DAYS"
+      ],
+      "message": "DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90",
+      "expected": "90",
+      "actual": "90"
+    },
+    {
+      "page": "README.md",
+      "line": 445,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "DEFAULT_TIMEOUT_MS"
+      ],
+      "message": "DEFAULT_TIMEOUT_MS is 10000",
+      "expected": "10000",
+      "actual": "10000"
+    },
+    {
+      "page": "README.md",
+      "line": 526,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "manifest(\"package.json\").engines.node.replace(\">=\", \"\") is 22.18",
+      "expected": "22.18",
+      "actual": "22.18"
+    },
+    {
+      "page": "README.md",
+      "line": 528,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "manifest(\"adapters/python/pyproject.toml\").project[\"requires-python\"].replace(\">=\", \"\") is 3.10",
+      "expected": "3.10",
+      "actual": "3.10"
+    },
+    {
+      "page": "README.md",
+      "line": 529,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "manifest(\"adapters/go/go.mod\").go is 1.23",
+      "expected": "1.23",
+      "actual": "1.23"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 11,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every command printed what the block shows"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 34,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "manifest(\"adapters/typescript/package.json\").engines.node.replace(\">=\", \"\") is 22.12",
+      "expected": "22.12",
+      "actual": "22.12"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 35,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "2 code spans match manifest(\"adapters/typescript/package.json\").peerDependencies.typescript.match(/[\\d.]+/g)",
+      "expected": "[5.4, 7]",
+      "actual": "[5.4, 7]"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 39,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "5 items match Object.keys(manifest(\"adapters/typescript/package.json\").optionalDependencies)",
+      "expected": "[@docattest/core-darwin-arm64, @docattest/core-darwin-x64, @docattest/core-linux-arm64, @docattest/core-linux-x64, @docattest/core-windows-x64]",
+      "actual": "[@docattest/core-darwin-arm64, @docattest/core-darwin-x64, @docattest/core-linux-arm64, @docattest/core-linux-x64, @docattest/core-windows-x64]"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 67,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every proof on the sample page held in a copy of docs/.fixtures/acme-client"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 108,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "compiles"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 120,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "2 items match Object.keys(manifest(\"adapters/typescript/package.json\").bin)",
+      "expected": "[docattest, docattest-adapter-typescript]",
+      "actual": "[docattest, docattest-adapter-typescript]"
+    },
+    {
+      "page": "docs/adapters.md",
+      "line": 14,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "COMMANDS"
+      ],
+      "message": "12 items match COMMANDS",
+      "expected": "[check, where, uncovered, index, refresh, skill, audit, inventory, impact, hooks, agents, conformance]",
+      "actual": "[check, where, uncovered, index, refresh, skill, audit, inventory, impact, hooks, agents, conformance]"
+    },
+    {
+      "page": "docs/agents.md",
+      "line": 27,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/agents.md",
+      "line": 70,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/agents.md",
+      "line": 122,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/agents.md",
+      "line": 173,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/agents.md",
+      "line": 238,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/agents.md",
+      "line": 268,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/agents.md",
+      "line": 315,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/audit.md",
+      "line": 28,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/audit.md",
+      "line": 51,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/audit.md",
+      "line": 85,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/audit.md",
+      "line": 134,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/audit.md",
+      "line": 201,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/audit.md",
+      "line": 266,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/audit.md",
+      "line": 313,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/audit.md",
+      "line": 340,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cases.md",
+      "line": 30,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cases.md",
+      "line": 68,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cases.md",
+      "line": 88,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cases.md",
+      "line": 110,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cases.md",
+      "line": 148,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 23,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 52,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 78,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 103,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 124,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 145,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 169,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 183,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "CHANGE_TYPES"
+      ],
+      "message": "4 items match CHANGE_TYPES",
+      "expected": "[orphaned-claim, frozen-page, downgrade, weakened]",
+      "actual": "[orphaned-claim, frozen-page, downgrade, weakened]"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 197,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 244,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 32,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 52,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 87,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 112,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 144,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 176,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 210,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 238,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 265,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 285,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/core-binary/locate.test.ts:37 declares \"the core lookup\" > \"names platforms the same in every package\" (not run by docattest)"
+    },
+    {
+      "page": "docs/cli.md",
+      "line": 17,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cli.md",
+      "line": 56,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cli.md",
+      "line": 89,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cli.md",
+      "line": 134,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cli.md",
+      "line": 186,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cli.md",
+      "line": 234,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/console.md",
+      "line": 28,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/console.md",
+      "line": 56,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/console.md",
+      "line": 80,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/console.md",
+      "line": 109,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/console.md",
+      "line": 136,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "DEFAULT_TIMEOUT_MS"
+      ],
+      "message": "DEFAULT_TIMEOUT_MS is 10000",
+      "expected": "10000",
+      "actual": "10000"
+    },
+    {
+      "page": "docs/console.md",
+      "line": 139,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/console.md",
+      "line": 181,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/console.md",
+      "line": 245,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/duality.md",
+      "line": 19,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/duality.md",
+      "line": 58,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/duality.md",
+      "line": 94,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/duality.md",
+      "line": 123,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/duality.md",
+      "line": 143,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 21,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 50,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 67,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 88,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 108,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 127,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 160,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 183,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "DEFAULT_TIMEOUT_MS"
+      ],
+      "message": "DEFAULT_TIMEOUT_MS is 10000",
+      "expected": "10000",
+      "actual": "10000"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 186,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 207,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 248,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/examples.md",
+      "line": 282,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 45,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:45 scalar, code span on the same line"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 46,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:46 scalar, bare number on the same line"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 47,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:47 scalar mismatch"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 48,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:48 scalar, bare version"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 49,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:49 scalar, version mismatch"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 50,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:50 sentence of code spans, any order"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 51,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:51 sentence missing a code span"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 52,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:52 sentence with an extra code span"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 53,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:53 ordered sentence, wrong order"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 54,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:54 sentence starts after the previous one"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 55,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:55 single value after several code spans"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 56,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:56 sentence wrapped over lines"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 57,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:57 wrapped sentence missing a code span"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 58,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:58 wrapped sentence of one code span"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 59,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:59 list, any order"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 60,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:60 list missing an item"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 61,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:61 list with an extra item"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 62,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:62 list of bold lead terms"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 63,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:63 ordered list, wrong order"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 64,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:64 table column"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 65,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:65 table column after a blank line"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 66,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:66 lead-in code span cannot steal a table"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 67,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:67 empty cell in the column"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 68,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:68 repeated values count once"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 69,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:69 column= with no table below"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 70,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:70 fenced block, whitespace ignored"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 71,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:71 fenced block differing on one line"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 72,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:72 no target"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 73,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:73 expression throws"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 74,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:74 unknown surface"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 75,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:75 directive spanning two lines"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 76,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:76 scalar inside a table cell"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 77,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/facts.md:77 unclosed directive"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 83,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 111,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 130,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 150,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 175,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 26,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 54,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 80,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 103,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 128,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 155,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 183,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 242,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/impact.md",
+      "line": 303,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/index.md",
+      "line": 21,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/index.md",
+      "line": 42,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "KINDS"
+      ],
+      "message": "5 items match KINDS",
+      "expected": "[example, fact, cases, snapshot, test]",
+      "actual": "[example, fact, cases, snapshot, test]"
+    },
+    {
+      "page": "docs/index.md",
+      "line": 49,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "STATUSES"
+      ],
+      "message": "4 items match STATUSES",
+      "expected": "[pass, fail, error, skipped]",
+      "actual": "[pass, fail, error, skipped]"
+    },
+    {
+      "page": "docs/inventory.md",
+      "line": 12,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/inventory.md",
+      "line": 43,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 18,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 44,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 74,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 108,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 132,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 14,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 36,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 57,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 79,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 106,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 128,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/protocol.md",
+      "line": 34,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/protocol.md",
+      "line": 83,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/protocol.md",
+      "line": 125,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/protocol.md",
+      "line": 170,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/protocol.md",
+      "line": 207,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/protocol.md",
+      "line": 253,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/report.md",
+      "line": 15,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/report.md",
+      "line": 41,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/report.md",
+      "line": 58,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/report.md",
+      "line": 75,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/report.md",
+      "line": 93,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/report.md",
+      "line": 119,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every command printed what the block shows"
+    },
+    {
+      "page": "docs/snapshots.md",
+      "line": 14,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/snapshots.md",
+      "line": 36,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/snapshots.md",
+      "line": 53,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [
+        "DEFAULT_SNAPSHOT_MAX_AGE_DAYS"
+      ],
+      "message": "DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90",
+      "expected": "90",
+      "actual": "90"
+    },
+    {
+      "page": "docs/snapshots.md",
+      "line": 55,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/snapshots.md",
+      "line": 79,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/surfaces.md",
+      "line": 18,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/surfaces.md",
+      "line": 52,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/surfaces.md",
+      "line": 87,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/surfaces.md",
+      "line": 124,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    }
+  ],
+  "coverage": {
+    "living": 23,
+    "covered": 22,
+    "uncovered": [
+      "docs/why.md"
+    ],
+    "frozen": [
+      "docs/README.md",
+      "docs/design/ACCEPTANCE.md",
+      "docs/design/CORPUS.md",
+      "docs/design/PATTERN.md",
+      "docs/design/SPEC.md"
+    ],
+    "attestations": 184,
+    "weak": 0,
+    "cited": 1
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 43,
+      "attested": 9,
+      "unattested": [
+        "Attestation",
+        "AuditReport",
+        "AuditStatus",
+        "AuditTarget",
+        "CasesAttestation",
+        "CasesRow",
+        "Change",
+        "ChangeType",
+        "CheckOptions",
+        "Config",
+        "Coverage",
+        "ExampleAttestation",
+        "FactAttestation",
+        "FactTarget",
+        "Impact",
+        "ImpactOptions",
+        "ImpactReference",
+        "InternalError",
+        "InventoryEntry",
+        "Kind",
+        "Member",
+        "MemberReport",
+        "Project",
+        "ProjectInput",
+        "Reference",
+        "Result",
+        "SnapshotStatus",
+        "Status",
+        "Suggestion",
+        "SurfaceCoverage",
+        "SurfaceEntry",
+        "SurfaceResolution",
+        "TestAttestation",
+        "UserError"
+      ],
+      "resolution": {
+        "import": "docattest",
+        "entry": "adapters/typescript/dist/index.js",
+        "package": {
+          "name": "docattest",
+          "version": "0.1.0",
+          "display": "docattest@0.1.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 0,
+  "members": [
+    {
+      "path": "core",
+      "adapter": "rust",
+      "report": {
+        "results": [
+          {
+            "page": "README.md",
+            "line": 26,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "PROTOCOL"
+            ],
+            "message": "PROTOCOL is 1",
+            "expected": "1",
+            "actual": "1"
+          },
+          {
+            "page": "README.md",
+            "line": 27,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CONFIG_FILE"
+            ],
+            "message": "CONFIG_FILE is docattest.config.json",
+            "expected": "docattest.config.json",
+            "actual": "docattest.config.json"
+          },
+          {
+            "page": "README.md",
+            "line": 28,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "DEFAULT_TIMEOUT_MS"
+            ],
+            "message": "DEFAULT_TIMEOUT_MS is 10000",
+            "expected": "10000",
+            "actual": "10000"
+          },
+          {
+            "page": "README.md",
+            "line": 29,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "DEFAULT_SNAPSHOT_MAX_AGE_DAYS"
+            ],
+            "message": "DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90",
+            "expected": "90",
+            "actual": "90"
+          },
+          {
+            "page": "README.md",
+            "line": 31,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "ACTIONS"
+            ],
+            "message": "2 items match ACTIONS",
+            "expected": "[impact, check]",
+            "actual": "[impact, check]"
+          },
+          {
+            "page": "README.md",
+            "line": 37,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "parse_config",
+              "SurfaceEntry"
+            ],
+            "message": "src/config/mod.rs:341 declares \"tests\" > \"valid_config_gets_defaults\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 39,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [
+              "parse_config",
+              "DEFAULT_TIMEOUT_MS"
+            ],
+            "message": "all assertions held"
+          },
+          {
+            "page": "README.md",
+            "line": 53,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [
+              "compare_utf16"
+            ],
+            "message": "all assertions held"
+          },
+          {
+            "page": "README.md",
+            "line": 119,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "COMMAND_VARIABLE"
+            ],
+            "message": "COMMAND_VARIABLE is DOCATTEST_COMMAND",
+            "expected": "DOCATTEST_COMMAND",
+            "actual": "DOCATTEST_COMMAND"
+          },
+          {
+            "page": "README.md",
+            "line": 120,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "ROOT"
+            ],
+            "message": "ROOT is {root}",
+            "expected": "{root}",
+            "actual": "{root}"
+          },
+          {
+            "page": "src/text.rs",
+            "line": 68,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [
+              "compare_utf16"
+            ],
+            "message": "all assertions held"
+          }
+        ],
+        "coverage": {
+          "living": 2,
+          "covered": 2,
+          "uncovered": [],
+          "frozen": [],
+          "attestations": 11,
+          "weak": 0,
+          "cited": 1
+        },
+        "surfaces": {
+          "default": {
+            "symbols": 9,
+            "attested": 5,
+            "unattested": [
+              "Command",
+              "Member",
+              "DEFAULT_SURFACE",
+              "ProjectConfig"
+            ],
+            "resolution": {
+              "import": "docattest::config",
+              "entry": "src/config/mod.rs",
+              "package": {
+                "name": "docattest",
+                "display": "docattest"
+              }
+            },
+            "warnings": []
+          },
+          "adapter": {
+            "symbols": 1,
+            "attested": 1,
+            "unattested": [],
+            "resolution": {
+              "import": "docattest::adapter",
+              "entry": "src/adapter/mod.rs",
+              "package": {
+                "name": "docattest",
+                "display": "docattest"
+              }
+            },
+            "warnings": []
+          },
+          "agents": {
+            "symbols": 3,
+            "attested": 1,
+            "unattested": [
+              "SHIPPED",
+              "DEFAULT"
+            ],
+            "resolution": {
+              "import": "docattest::agents",
+              "entry": "src/agents/mod.rs",
+              "package": {
+                "name": "docattest",
+                "display": "docattest"
+              }
+            },
+            "warnings": []
+          },
+          "command": {
+            "symbols": 6,
+            "attested": 2,
+            "unattested": [
+              "docattest_command",
+              "command_from",
+              "find_root",
+              "is_ours"
+            ],
+            "resolution": {
+              "import": "docattest::cli::command",
+              "entry": "src/cli/command.rs",
+              "package": {
+                "name": "docattest",
+                "display": "docattest"
+              }
+            },
+            "warnings": []
+          },
+          "text": {
+            "symbols": 9,
+            "attested": 1,
+            "unattested": [
+              "is_js_space",
+              "is_word",
+              "trim",
+              "collapse_spaces",
+              "words",
+              "lines",
+              "first_line",
+              "prefix"
+            ],
+            "resolution": {
+              "import": "docattest::text",
+              "entry": "src/text.rs",
+              "package": {
+                "name": "docattest",
+                "display": "docattest"
+              }
+            },
+            "warnings": []
+          }
+        },
+        "snapshots": [],
+        "exitCode": 0
+      }
+    },
+    {
+      "path": "adapters/rust",
+      "adapter": "rust",
+      "report": {
+        "results": [
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 33,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 63,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/endtoend.rs:18 declares \"the_adapter_conforms_to_the_protocol\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 15,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "VERSION"
+            ],
+            "message": "VERSION is 1",
+            "expected": "1",
+            "actual": "1"
+          },
+          {
+            "page": "README.md",
+            "line": 31,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CORE_VARIABLE"
+            ],
+            "message": "CORE_VARIABLE is DOCATTEST_CORE",
+            "expected": "DOCATTEST_CORE",
+            "actual": "DOCATTEST_CORE"
+          },
+          {
+            "page": "README.md",
+            "line": 33,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "checked"
+            ],
+            "message": "src/launcher.rs:117 declares \"tests\" > \"a_core_someone_names_is_asked_what_it_speaks\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 35,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "ADAPTER_VARIABLE"
+            ],
+            "message": "ADAPTER_VARIABLE is DOCATTEST_ADAPTER_RUST",
+            "expected": "DOCATTEST_ADAPTER_RUST",
+            "actual": "DOCATTEST_ADAPTER_RUST"
+          },
+          {
+            "page": "README.md",
+            "line": 41,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 49,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "hand_over",
+              "ADAPTER_VARIABLE",
+              "COMMAND_VARIABLE"
+            ],
+            "message": "src/launcher.rs:134 declares \"tests\" > \"the_hand_over_adds_only_what_is_not_set\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 50,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "COMMAND_VARIABLE"
+            ],
+            "message": "COMMAND_VARIABLE is DOCATTEST_COMMAND",
+            "expected": "DOCATTEST_COMMAND",
+            "actual": "DOCATTEST_COMMAND"
+          },
+          {
+            "page": "README.md",
+            "line": 73,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/modules.rs:346 declares \"tests\" > \"exports_are_public_items_and_what_is_reexported\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 82,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every proof on the sample page held in a copy of tests/fixture"
+          },
+          {
+            "page": "README.md",
+            "line": 122,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 150,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "hello"
+            ],
+            "message": "2 code spans match hello().block_languages",
+            "expected": "[rust, rs]",
+            "actual": "[rust, rs]"
+          },
+          {
+            "page": "README.md",
+            "line": 153,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/session.rs:78 declares \"blocks_compile_and_run_each_as_a_program_of_its_own\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 157,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/language/blocks.rs:58 declares \"tests\" > \"a_snippet_is_the_body_of_main\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 158,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/language/blocks.rs:72 declares \"tests\" > \"hidden_lines_are_part_of_the_program_and_keep_their_place\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 162,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/language/text.rs:156 declares \"tests\" > \"a_block_asserts_when_something_in_it_can_end_the_program\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 166,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/toolchain/cargo.rs:185 declares \"tests\" > \"errors_are_read_from_the_compilers_messages\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 176,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 188,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "all assertions held"
+          },
+          {
+            "page": "README.md",
+            "line": 193,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/toolchain/mod.rs:138 declares \"tests\" > \"a_program_that_overruns_is_ended_with_what_it_started\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 199,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 214,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 219,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "ASSERTING_MACROS"
+            ],
+            "message": "9 items match ASSERTING_MACROS.map(|name| format!(\"{name}!\"))",
+            "expected": "[assert!, assert_eq!, assert_ne!, assert_matches!, debug_assert!, debug_assert_eq!, debug_assert_ne!, panic!, unreachable!]",
+            "actual": "[assert!, assert_eq!, assert_ne!, assert_matches!, debug_assert!, debug_assert_eq!, debug_assert_ne!, panic!, unreachable!]"
+          },
+          {
+            "page": "README.md",
+            "line": 230,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "ASSERTING_METHODS"
+            ],
+            "message": "4 items match ASSERTING_METHODS",
+            "expected": "[unwrap, expect, unwrap_err, expect_err]",
+            "actual": "[unwrap, expect, unwrap_err, expect_err]"
+          },
+          {
+            "page": "README.md",
+            "line": 239,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "RUST_WORDS"
+            ],
+            "message": "7 items match RUST_WORDS",
+            "expected": "[rust, no_run, should_panic, edition2015, edition2018, edition2021, edition2024]",
+            "actual": "[rust, no_run, should_panic, edition2015, edition2018, edition2021, edition2024]"
+          },
+          {
+            "page": "README.md",
+            "line": 251,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/language/doc.rs:251 declares \"tests\" > \"examples_are_the_rust_blocks_of_doc_comments\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 267,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 290,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/session.rs:168 declares \"a_fact_without_a_value_says_why_and_costs_the_others_nothing\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 300,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/harness/observe.rs:234 declares \"tests\" > \"maps_and_lists_of_pairs_show_their_keys\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 308,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/session.rs:131 declares \"facts_show_values_as_rust_prints_them\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 338,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 352,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/statics.rs:87 declares \"tests_are_listed_with_the_modules_around_them\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 357,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "hello"
+            ],
+            "message": "hello().ignored_names.join(\", \") is target",
+            "expected": "target",
+            "actual": "target"
+          },
+          {
+            "page": "README.md",
+            "line": 397,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          }
+        ],
+        "coverage": {
+          "living": 2,
+          "covered": 2,
+          "uncovered": [],
+          "frozen": [],
+          "attestations": 35,
+          "weak": 0,
+          "cited": 15
+        },
+        "surfaces": {
+          "default": {
+            "symbols": 5,
+            "attested": 4,
+            "unattested": [
+              "answer"
+            ],
+            "resolution": {
+              "import": "docattest_rust::language",
+              "entry": "src/language/mod.rs",
+              "package": {
+                "name": "docattest-rust",
+                "display": "docattest-rust"
+              }
+            },
+            "warnings": []
+          },
+          "launcher": {
+            "symbols": 6,
+            "attested": 5,
+            "unattested": [
+              "ask"
+            ],
+            "resolution": {
+              "import": "docattest_rust::launcher",
+              "entry": "src/launcher.rs",
+              "package": {
+                "name": "docattest-rust",
+                "display": "docattest-rust"
+              }
+            },
+            "warnings": []
+          },
+          "protocol": {
+            "symbols": 29,
+            "attested": 1,
+            "unattested": [
+              "Adapter",
+              "Answer",
+              "Error",
+              "Session",
+              "decode",
+              "serve",
+              "Hello",
+              "AdapterName",
+              "SourceFiles",
+              "Capability",
+              "Vocabulary",
+              "Example",
+              "Fact",
+              "CasesRow",
+              "Cases",
+              "Attestation",
+              "Diagnostic",
+              "Observation",
+              "Evaluation",
+              "SymbolRef",
+              "Kind",
+              "Status",
+              "Verdict",
+              "Declared",
+              "Observable",
+              "SourceText",
+              "DocProse",
+              "ExpressionShape"
+            ],
+            "resolution": {
+              "import": "docattest_rust::protocol",
+              "entry": "src/protocol/mod.rs",
+              "package": {
+                "name": "docattest-rust",
+                "display": "docattest-rust"
+              }
+            },
+            "warnings": []
+          }
+        },
+        "snapshots": [],
+        "exitCode": 0
+      }
+    },
+    {
+      "path": "adapters/python",
+      "adapter": "python",
+      "report": {
+        "results": [
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 5,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "4 items match [p.split(\".\")[1] + \"/\" for p in manifest(\"pyproject.toml\")[\"tool\"][\"setuptools\"][\"packages\"] if p.count(\".\") == 1]",
+            "expected": "[server/, session/, analysis/, workers/]",
+            "actual": "[analysis/, server/, session/, workers/]"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 46,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CORE_VARIABLE"
+            ],
+            "message": "CORE_VARIABLE is DOCATTEST_CORE",
+            "expected": "DOCATTEST_CORE",
+            "actual": "DOCATTEST_CORE"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 82,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "manifest(\"pyproject.toml\")[\"tool\"][\"pyright\"][\"pythonVersion\"] is 3.10",
+            "expected": "3.10",
+            "actual": "3.10"
+          },
+          {
+            "page": "README.md",
+            "line": 7,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "2 items match list(manifest(\"pyproject.toml\")[\"project\"][\"scripts\"])",
+            "expected": "[docattest, docattest-adapter-python]",
+            "actual": "[docattest, docattest-adapter-python]"
+          },
+          {
+            "page": "README.md",
+            "line": 12,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "PROTOCOL_VERSION"
+            ],
+            "message": "PROTOCOL_VERSION is 1",
+            "expected": "1",
+            "actual": "1"
+          },
+          {
+            "page": "README.md",
+            "line": 15,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "manifest(\"pyproject.toml\")[\"project\"][\"name\"] is docattest",
+            "expected": "docattest",
+            "actual": "docattest"
+          },
+          {
+            "page": "README.md",
+            "line": 16,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "2 code spans match [p for p in manifest(\"pyproject.toml\")[\"tool\"][\"setuptools\"][\"packages\"] if \".\" not in p]",
+            "expected": "[docattest, docattest_python]",
+            "actual": "[docattest, docattest_python]"
+          },
+          {
+            "page": "README.md",
+            "line": 18,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "manifest(\"pyproject.toml\")[\"project\"][\"requires-python\"].removeprefix(\">=\") is 3.10",
+            "expected": "3.10",
+            "actual": "3.10"
+          },
+          {
+            "page": "README.md",
+            "line": 26,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "len(platforms()) is 5",
+            "expected": "5",
+            "actual": "5"
+          },
+          {
+            "page": "README.md",
+            "line": 34,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:34 macOS 11+ on Apple silicon"
+          },
+          {
+            "page": "README.md",
+            "line": 35,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:35 macOS 10.12+ on Intel"
+          },
+          {
+            "page": "README.md",
+            "line": 36,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:36 Linux x86-64, glibc or musl"
+          },
+          {
+            "page": "README.md",
+            "line": 37,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:37 Linux arm64, glibc or musl"
+          },
+          {
+            "page": "README.md",
+            "line": 38,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:38 Windows x64"
+          },
+          {
+            "page": "README.md",
+            "line": 57,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_launcher.py:70 declares \"Lookup\" > \"test_the_core_is_the_one_given_then_the_bundled_one_then_the_cached_one\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 59,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CORE_VARIABLE"
+            ],
+            "message": "CORE_VARIABLE is DOCATTEST_CORE",
+            "expected": "DOCATTEST_CORE",
+            "actual": "DOCATTEST_CORE"
+          },
+          {
+            "page": "README.md",
+            "line": 61,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_launcher.py:98 declares \"Lookup\" > \"test_a_core_that_speaks_another_protocol_is_refused\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 63,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 77,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:77 any system"
+          },
+          {
+            "page": "README.md",
+            "line": 78,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:78 macOS"
+          },
+          {
+            "page": "README.md",
+            "line": 79,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:79 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 80,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:80 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 81,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:81 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 82,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:82 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 83,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:83 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 88,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_launcher.py:206 declares \"Launch\" > \"test_a_trace_names_the_core_it_runs\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 103,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_launcher.py:271 declares \"Launch\" > \"test_every_command_that_writes_the_command_down_is_told_it\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 108,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_launcher.py:242 declares \"Launch\" > \"test_hooks_are_told_a_command_that_runs_docattest_without_node\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 109,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "COMMAND_VARIABLE"
+            ],
+            "message": "COMMAND_VARIABLE is DOCATTEST_COMMAND",
+            "expected": "DOCATTEST_COMMAND",
+            "actual": "DOCATTEST_COMMAND"
+          },
+          {
+            "page": "README.md",
+            "line": 111,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_launcher.py:234 declares \"Launch\" > \"test_what_is_already_set_stands\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 119,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "ADAPTER_VARIABLE"
+            ],
+            "message": "ADAPTER_VARIABLE is DOCATTEST_ADAPTER_PYTHON",
+            "expected": "DOCATTEST_ADAPTER_PYTHON",
+            "actual": "DOCATTEST_ADAPTER_PYTHON"
+          },
+          {
+            "page": "README.md",
+            "line": 125,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CONFIG_FILE"
+            ],
+            "message": "CONFIG_FILE is docattest.config.json",
+            "expected": "docattest.config.json",
+            "actual": "docattest.config.json"
+          },
+          {
+            "page": "README.md",
+            "line": 158,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every proof on the sample page held in a copy of tests/fixture"
+          },
+          {
+            "page": "README.md",
+            "line": 204,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 229,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "BLOCK_LANGUAGES"
+            ],
+            "message": "5 code spans match BLOCK_LANGUAGES",
+            "expected": "[python, py, python3, py3, pycon]",
+            "actual": "[python, py, python3, py3, pycon]"
+          },
+          {
+            "page": "README.md",
+            "line": 238,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "all assertions held"
+          },
+          {
+            "page": "README.md",
+            "line": 245,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_protocol.py:116 declares \"Text\" > \"test_assertions\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 246,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "SESSION_LANGUAGES"
+            ],
+            "message": "\", \".join(SESSION_LANGUAGES) is pycon",
+            "expected": "pycon",
+            "actual": "pycon"
+          },
+          {
+            "page": "README.md",
+            "line": 247,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_running.py:62 declares \"Running\" > \"test_sessions_run_as_doctest_runs_them\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 257,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_static.py:108 declares \"Static\" > \"test_compile_is_what_can_be_said_without_running\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 262,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_running.py:139 declares \"Running\" > \"test_blocks_are_isolated_from_each_other\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 263,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CONTINUE"
+            ],
+            "message": "CONTINUE is continue",
+            "expected": "continue",
+            "actual": "continue"
+          },
+          {
+            "page": "README.md",
+            "line": 267,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_running.py:73 declares \"Running\" > \"test_a_block_tagged_continue_goes_on_from_the_blocks_before_it\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 270,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [
+              "Money"
+            ],
+            "message": "all assertions held"
+          },
+          {
+            "page": "README.md",
+            "line": 277,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [
+              "Money"
+            ],
+            "message": "all assertions held"
+          },
+          {
+            "page": "README.md",
+            "line": 281,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "all assertions held"
+          },
+          {
+            "page": "README.md",
+            "line": 294,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_running.py:158 declares \"Running\" > \"test_a_stuck_block_is_stopped_and_the_next_one_runs\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 297,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_running.py:233 declares \"Running\" > \"test_stdout_carries_nothing_but_responses\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 299,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_running.py:176 declares \"Running\" > \"test_network_is_off_unless_a_block_asks\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 309,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_running.py:125 declares \"Running\" > \"test_a_docstring_session_starts_with_its_module\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 351,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [
+              "ERROR_CODES",
+              "Money",
+              "apply_discount"
+            ],
+            "message": "compiles"
+          },
+          {
+            "page": "README.md",
+            "line": 375,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_static.py:184 declares \"Static\" > \"test_tests_are_listed_from_syntax\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 388,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 397,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:397 set"
+          },
+          {
+            "page": "README.md",
+            "line": 398,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:398 not set"
+          },
+          {
+            "page": "README.md",
+            "line": 399,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:399 not set"
+          },
+          {
+            "page": "README.md",
+            "line": 400,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:400 not set"
+          },
+          {
+            "page": "README.md",
+            "line": 406,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "IGNORED_NAMES"
+            ],
+            "message": "5 code spans match IGNORED_NAMES",
+            "expected": "[__pycache__, site-packages, node_modules, *.egg-info, *.dist-info]",
+            "actual": "[__pycache__, site-packages, node_modules, *.egg-info, *.dist-info]"
+          },
+          {
+            "page": "README.md",
+            "line": 407,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "IGNORED_MARKERS"
+            ],
+            "message": "\", \".join(IGNORED_MARKERS) is pyvenv.cfg",
+            "expected": "pyvenv.cfg",
+            "actual": "pyvenv.cfg"
+          },
+          {
+            "page": "README.md",
+            "line": 418,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_running.py:276 declares \"Running\" > \"test_without_fork_every_job_gets_its_own_process\" (not run by docattest)"
+          }
+        ],
+        "coverage": {
+          "living": 2,
+          "covered": 2,
+          "uncovered": [],
+          "frozen": [],
+          "attestations": 60,
+          "weak": 0,
+          "cited": 17
+        },
+        "surfaces": {
+          "default": {
+            "symbols": 28,
+            "attested": 6,
+            "unattested": [
+              "CAPABILITIES",
+              "Docstring",
+              "INFO_WORDS",
+              "SOURCE_FILES",
+              "Snippet",
+              "SourceText",
+              "assertions",
+              "asserts",
+              "description_of",
+              "doc_comments",
+              "doc_prose",
+              "docstrings",
+              "expression_shape",
+              "expressions",
+              "hello",
+              "is_session",
+              "is_source",
+              "mentioned",
+              "mentions",
+              "prose",
+              "session_examples",
+              "session_source"
+            ],
+            "resolution": {
+              "import": "docattest_python.language",
+              "entry": "docattest_python/language.py",
+              "package": {
+                "name": "docattest",
+                "version": "0.1.0",
+                "display": "docattest 0.1.0"
+              }
+            },
+            "warnings": []
+          },
+          "launcher": {
+            "symbols": 25,
+            "attested": 5,
+            "unattested": [
+              "Advice",
+              "AskCore",
+              "Environment",
+              "Machine",
+              "Pin",
+              "Platform",
+              "Platforms",
+              "ROOT",
+              "TRACE_VARIABLE",
+              "WRITERS",
+              "adapter_command",
+              "ask_core",
+              "cached_core",
+              "docattest_command",
+              "environment",
+              "find_core",
+              "main",
+              "pinned",
+              "platform_name",
+              "remedy"
+            ],
+            "resolution": {
+              "import": "docattest.launcher",
+              "entry": "docattest/launcher.py",
+              "package": {
+                "name": "docattest",
+                "version": "0.1.0",
+                "display": "docattest 0.1.0"
+              }
+            },
+            "warnings": []
+          },
+          "shop": {
+            "symbols": 13,
+            "attested": 3,
+            "unattested": [
+              "CARRIERS",
+              "Carrier",
+              "DEFAULT_CURRENCY",
+              "MAX_DISCOUNT",
+              "ROUTES",
+              "ShopError",
+              "TAX_RATES",
+              "fetch_rates",
+              "quote",
+              "total"
+            ],
+            "resolution": {
+              "import": "shoplib",
+              "entry": "tests/fixture/src/shoplib/__init__.py",
+              "package": {
+                "name": "shoplib",
+                "version": "1.2.3",
+                "display": "shoplib 1.2.3"
+              }
+            },
+            "warnings": []
+          }
+        },
+        "snapshots": [],
+        "exitCode": 0
+      }
+    },
+    {
+      "path": "adapters/go",
+      "adapter": "go",
+      "report": {
+        "results": [
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 6,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "13 items match Packages()",
+            "expected": "[launcher, bundled, coremodule, platform, protocol, protocoldata, language, session, analysis, running, toolchain, harness, guide]",
+            "actual": "[analysis, bundled, coremodule, guide, harness, language, launcher, platform, protocol, protocoldata, running, session, toolchain]"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 45,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/guide_test.go:9 declares \"TestTheGuideHolds\" (not run by docattest)"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 59,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CoreVariable"
+            ],
+            "message": "CoreVariable is DOCATTEST_CORE",
+            "expected": "DOCATTEST_CORE",
+            "actual": "DOCATTEST_CORE"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 60,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/carried_test.go:33 declares \"TestALauncherBuiltWithItsCoreNeedsNothingElse\" (not run by docattest)"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 62,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "Files"
+            ],
+            "message": "internal/protocoldata/protocoldata_test.go:14 declares \"TestTheCopyIsTheSource\" (not run by docattest)"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 63,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "Platforms"
+            ],
+            "message": "internal/platform/platform_test.go:11 declares \"TestThePlatformsOfTheCore\" (not run by docattest)"
+          },
+          {
+            "page": "CONTRIBUTING.md",
+            "line": 73,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 14,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "Hello"
+            ],
+            "message": "Hello().Protocol is 1",
+            "expected": "1",
+            "actual": "1"
+          },
+          {
+            "page": "README.md",
+            "line": 29,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "Platforms"
+            ],
+            "message": "5 rows in column archive match Platforms()",
+            "expected": "[darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x64]",
+            "actual": "[darwin-arm64, darwin-x64, linux-arm64, linux-x64, windows-x64]"
+          },
+          {
+            "page": "README.md",
+            "line": 41,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "manifest(\"go.mod\")[\"go\"] is 1.23",
+            "expected": "1.23",
+            "actual": "1.23"
+          },
+          {
+            "page": "README.md",
+            "line": 59,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "FindCore",
+              "CoreVariable"
+            ],
+            "message": "internal/launcher/launcher_test.go:58 declares \"TestFindCoreInOrder\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 61,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CoreVariable"
+            ],
+            "message": "CoreVariable is DOCATTEST_CORE",
+            "expected": "DOCATTEST_CORE",
+            "actual": "DOCATTEST_CORE"
+          },
+          {
+            "page": "README.md",
+            "line": 63,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "CoreVariable",
+              "FindCore"
+            ],
+            "message": "internal/launcher/launcher_test.go:80 declares \"TestACoreSomeonePointsAtIsAsked\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 76,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:76 any"
+          },
+          {
+            "page": "README.md",
+            "line": 77,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:77 macOS"
+          },
+          {
+            "page": "README.md",
+            "line": 78,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:78 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 79,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:79 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 80,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:80 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 81,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:81 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 82,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:82 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 85,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "TraceVariable"
+            ],
+            "message": "TraceVariable is DOCATTEST_TRACE",
+            "expected": "DOCATTEST_TRACE",
+            "actual": "DOCATTEST_TRACE"
+          },
+          {
+            "page": "README.md",
+            "line": 98,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "CommandVariable"
+            ],
+            "message": "CommandVariable is DOCATTEST_COMMAND",
+            "expected": "DOCATTEST_COMMAND",
+            "actual": "DOCATTEST_COMMAND"
+          },
+          {
+            "page": "README.md",
+            "line": 101,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "AdapterVariable"
+            ],
+            "message": "AdapterVariable is DOCATTEST_ADAPTER_GO",
+            "expected": "DOCATTEST_ADAPTER_GO",
+            "actual": "DOCATTEST_ADAPTER_GO"
+          },
+          {
+            "page": "README.md",
+            "line": 107,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 149,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every proof on the sample page held in a copy of testdata/fixture"
+          },
+          {
+            "page": "README.md",
+            "line": 204,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 235,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "Hello"
+            ],
+            "message": "2 code spans match Hello().BlockLanguages",
+            "expected": "[go, golang]",
+            "actual": "[go, golang]"
+          },
+          {
+            "page": "README.md",
+            "line": 251,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/running_test.go:93 declares \"TestBlocksCompileAndRun\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 274,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Asserts"
+            ],
+            "message": "README.md:274 `fmt.Println(1)`"
+          },
+          {
+            "page": "README.md",
+            "line": 275,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Asserts"
+            ],
+            "message": "README.md:275 `panic(\"no\")`"
+          },
+          {
+            "page": "README.md",
+            "line": 276,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Asserts"
+            ],
+            "message": "README.md:276 `log.Fatalf(\"no\")`"
+          },
+          {
+            "page": "README.md",
+            "line": 277,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Asserts"
+            ],
+            "message": "README.md:277 `log.Panicln(\"no\")`"
+          },
+          {
+            "page": "README.md",
+            "line": 278,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Asserts"
+            ],
+            "message": "README.md:278 `os.Exit(1)`"
+          },
+          {
+            "page": "README.md",
+            "line": 284,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/running_test.go:136 declares \"TestDocExamplesRunAsGoTestRunsThem\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 300,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "README.md",
+            "line": 323,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/running_test.go:205 declares \"TestEvaluateSaysWhyAFactHasNoValue\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 327,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "4 code spans match []any{true, nil, 1.5, []string{\"a\", \"b\"}}",
+            "expected": "[true, <nil>, 1.5, [a b]]",
+            "actual": "[true, <nil>, 1.5, [a b]]"
+          },
+          {
+            "page": "README.md",
+            "line": 330,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/running_test.go:184 declares \"TestEvaluateShowsValuesAsGoPrintsThem\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 336,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/running_test.go:184 declares \"TestEvaluateShowsValuesAsGoPrintsThem\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 371,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/analysis_test.go:132 declares \"TestSubtestsWithComputedNames\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 377,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [
+              "Hello"
+            ],
+            "message": "3 code spans match Hello().IgnoredNames",
+            "expected": "[vendor, testdata, node_modules]",
+            "actual": "[vendor, testdata, node_modules]"
+          }
+        ],
+        "coverage": {
+          "living": 2,
+          "covered": 2,
+          "uncovered": [],
+          "frozen": [],
+          "attestations": 41,
+          "weak": 0,
+          "cited": 12
+        },
+        "surfaces": {
+          "default": {
+            "symbols": 15,
+            "attested": 2,
+            "unattested": [
+              "IsSource",
+              "IsTestFile",
+              "ParseSource",
+              "IsExample",
+              "HasTestPrefix",
+              "ExampleOwner",
+              "Form",
+              "Program",
+              "Output",
+              "Methods",
+              "Names",
+              "Qualifiers",
+              "Spellings"
+            ],
+            "resolution": {
+              "import": "github.com/docattest/docattest/adapters/go/internal/language",
+              "entry": "internal/language",
+              "package": {
+                "name": "github.com/docattest/docattest/adapters/go",
+                "display": "github.com/docattest/docattest/adapters/go"
+              }
+            },
+            "warnings": []
+          },
+          "launcher": {
+            "symbols": 10,
+            "attested": 6,
+            "unattested": [
+              "Become",
+              "Traced",
+              "AskCore",
+              "Environment"
+            ],
+            "resolution": {
+              "import": "github.com/docattest/docattest/adapters/go/internal/launcher",
+              "entry": "internal/launcher",
+              "package": {
+                "name": "github.com/docattest/docattest/adapters/go",
+                "display": "github.com/docattest/docattest/adapters/go"
+              }
+            },
+            "warnings": []
+          },
+          "protocoldata": {
+            "symbols": 5,
+            "attested": 3,
+            "unattested": [
+              "Pin",
+              "Platform"
+            ],
+            "resolution": {
+              "import": "github.com/docattest/docattest/adapters/go/internal/protocoldata",
+              "entry": "internal/protocoldata",
+              "package": {
+                "name": "github.com/docattest/docattest/adapters/go",
+                "display": "github.com/docattest/docattest/adapters/go"
+              }
+            },
+            "warnings": []
+          }
+        },
+        "snapshots": [],
+        "exitCode": 0
+      }
+    }
+  ]
+}
+stderr empty

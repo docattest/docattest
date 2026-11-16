@@ -1,0 +1,19 @@
+# refresh keeps a query and a fragment in the source
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== refresh
+exit 0
+stdout 1 line
+wrote docs/.snapshots/q.json
+stderr empty
+file docs/.snapshots/q.json 11 lines
+{
+  "source": "http://<server>/regions?a=1&b=%20x#frag",
+  "fetchedAt": "2026-11-14",
+  "data": {
+    "regions": [
+      "eu",
+      "us"
+    ],
+    "count": 2
+  }
+}

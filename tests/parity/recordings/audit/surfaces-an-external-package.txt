@@ -1,0 +1,22 @@
+# surfaces: an external package
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "os" failed to load: Error: Cannot find module node:os
+=== audit --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "os" failed to load: Error: Cannot find module node:os
+=== inventory EOL
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "os" failed to load: Error: Cannot find module node:os
+=== inventory signals --json
+exit 1
+stdout empty
+stderr 1 line
+docattest: audit: surface "os" failed to load: Error: Cannot find module node:os

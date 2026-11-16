@@ -1,0 +1,39 @@
+# hooks install: --agent into settings of another shape
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install --agent cursor
+exit 0
+stdout 2 lines
+docattest hooks: added to <root>/.cursor/hooks.json
+  stop: npx --no docattest check --hook --agent cursor
+stderr empty
+file .cursor/hooks.json 20 lines
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "docattest check --hook"
+          }
+        ]
+      },
+      "docattest check",
+      null,
+      {
+        "command": "npx --no docattest check --hook --agent cursor"
+      }
+    ]
+  }
+}
+=== hooks install --agent ./tools/acme.json
+exit 1
+stdout empty
+stderr 1 line
+docattest: <root>/acme/config.json: "automation" is not an object
+=== hooks install --agent gemini
+exit 1
+stdout empty
+stderr 1 line
+docattest: <root>/.gemini/settings.json: "hooks.AfterAgent" is not a list; fix it and run again

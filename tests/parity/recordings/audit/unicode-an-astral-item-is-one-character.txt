@@ -1,0 +1,69 @@
+# unicode: an astral item is one character
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L11 list matches TWO → <!-- fact: TWO --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 11,
+      "target": "list",
+      "expression": "TWO",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: TWO -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 4 lines
+E  →  [😀, 🎉]
+ONE  →  [é, ü]
+TWO  →  [éé, üü]
+inventory: 3 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 29 lines
+[
+  {
+    "surface": "default",
+    "expression": "E",
+    "value": "😀,🎉",
+    "items": [
+      "😀",
+      "🎉"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ONE",
+    "value": "é,ü",
+    "items": [
+      "é",
+      "ü"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "TWO",
+    "value": "éé,üü",
+    "items": [
+      "éé",
+      "üü"
+    ]
+  }
+]
+stderr empty

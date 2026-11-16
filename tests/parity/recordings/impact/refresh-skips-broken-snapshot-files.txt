@@ -1,0 +1,24 @@
+# refresh skips broken snapshot files
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== refresh
+exit 0
+stdout 1 line
+wrote docs/.snapshots/ok.json
+stderr empty
+file docs/.snapshots/ok.json 11 lines
+{
+  "source": "http://<server>/regions",
+  "fetchedAt": "2026-11-14",
+  "data": {
+    "regions": [
+      "eu",
+      "us"
+    ],
+    "count": 2
+  }
+}
+=== refresh bad
+exit 1
+stdout empty
+stderr 1 line
+docattest: no snapshot named "bad" in docs/.snapshots

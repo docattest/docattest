@@ -1,0 +1,57 @@
+# hooks install --git: a new hook
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install --git
+exit 0
+stdout 2 lines
+docattest hooks: added <root>/.git/hooks/pre-commit
+  pre-commit: npx --no docattest check --quiet || exit 1
+stderr empty
+file .git/hooks/pre-commit 4 lines
+755 #!/bin/sh
+# docattest: the documentation is checked against the code before each commit.
+# Written by `docattest hooks install --git`; delete this file to undo it.
+npx --no docattest check --quiet || exit 1
+=== hooks install --git
+exit 0
+stdout 1 line
+docattest hooks: already installed in <root>/.git/hooks/pre-commit
+stderr empty
+=== hooks install --git --agent cursor
+exit 0
+stdout 1 line
+docattest hooks: already installed in <root>/.git/hooks/pre-commit
+stderr empty
+=== hooks install
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/.claude/settings.json
+  PostToolUse (Edit|Write): npx --no docattest impact --hook
+  Stop: npx --no docattest check --hook
+stderr empty
+directory .claude/
+file .claude/settings.json 25 lines
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest impact --hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest check --hook"
+          }
+        ]
+      }
+    ]
+  }
+}

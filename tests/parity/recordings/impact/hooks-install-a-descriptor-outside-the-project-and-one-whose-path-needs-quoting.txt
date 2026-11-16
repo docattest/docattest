@@ -1,0 +1,93 @@
+# hooks install: a descriptor outside the project, and one whose path needs quoting
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== hooks install --agent __HOME__/acme.json
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/acme/config.json
+  file.saved (**/*): npx --no docattest impact --hook --agent <home>/acme.json
+  turn.ending: npx --no docattest check --hook --agent <home>/acme.json
+stderr empty
+directory acme/
+file acme/config.json 21 lines
+{
+  "schema": 3,
+  "enabled": true,
+  "automation": {
+    "file.saved": [
+      {
+        "matcher": "**/*",
+        "shell": "sh",
+        "timeoutMs": 60000,
+        "exec": "npx --no docattest impact --hook --agent <home>/acme.json"
+      }
+    ],
+    "turn.ending": [
+      {
+        "shell": "sh",
+        "timeoutMs": 60000,
+        "exec": "npx --no docattest check --hook --agent <home>/acme.json"
+      }
+    ]
+  }
+}
+=== hooks install --agent ../home/acme.json --root tools
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/tools/acme/config.json
+  file.saved (**/*): npx --no docattest impact --hook --agent <home>/acme.json
+  turn.ending: npx --no docattest check --hook --agent <home>/acme.json
+stderr empty
+directory tools/acme/
+file tools/acme/config.json 21 lines
+{
+  "schema": 3,
+  "enabled": true,
+  "automation": {
+    "file.saved": [
+      {
+        "matcher": "**/*",
+        "shell": "sh",
+        "timeoutMs": 60000,
+        "exec": "npx --no docattest impact --hook --agent <home>/acme.json"
+      }
+    ],
+    "turn.ending": [
+      {
+        "shell": "sh",
+        "timeoutMs": 60000,
+        "exec": "npx --no docattest check --hook --agent <home>/acme.json"
+      }
+    ]
+  }
+}
+=== hooks install --agent my tools/it's acme.json --root docs
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/docs/acme/config.json
+  file.saved (**/*): npx --no docattest impact --hook --agent '<root>/my tools/it'\''s acme.json'
+  turn.ending: npx --no docattest check --hook --agent '<root>/my tools/it'\''s acme.json'
+stderr empty
+directory docs/
+directory docs/acme/
+file docs/acme/config.json 21 lines
+{
+  "schema": 3,
+  "enabled": true,
+  "automation": {
+    "file.saved": [
+      {
+        "matcher": "**/*",
+        "shell": "sh",
+        "timeoutMs": 60000,
+        "exec": "npx --no docattest impact --hook --agent '<root>/my tools/it'\\''s acme.json'"
+      }
+    ],
+    "turn.ending": [
+      {
+        "shell": "sh",
+        "timeoutMs": 60000,
+        "exec": "npx --no docattest check --hook --agent '<root>/my tools/it'\\''s acme.json'"
+      }
+    ]
+  }
+}

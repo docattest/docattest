@@ -1,0 +1,21 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{rs,py}]
+indent_size = 4
+
+# Markdown: a trailing double space is a line break. Recordings and the core's fixtures are
+# bytes that a harness compares: an editor must not touch their whitespace or final newline.
+[*.md]
+trim_trailing_whitespace = false
+
+[{tests/parity/recordings/**,core/tests/fixtures/*.json,core/vendor/**}]
+trim_trailing_whitespace = false
+insert_final_newline = unset

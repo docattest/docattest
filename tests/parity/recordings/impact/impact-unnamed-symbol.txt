@@ -1,0 +1,21 @@
+# impact unnamed symbol
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 0
+stdout 4 lines
+docattest impact: changes since HEAD affect 1 exported symbol
+hidden
+  no page names it
+next: no living page names these symbols; nothing to re-read
+stderr empty
+=== impact --json
+exit 0
+stdout 7 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "hidden"
+  ],
+  "references": []
+}
+stderr empty

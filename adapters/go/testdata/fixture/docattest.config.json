@@ -1,0 +1,9 @@
+{
+  "pages": ["docs/**/*.md"],
+  "sources": ["**/*.go"],
+  "surfaces": { "default": ".", "shipping": "./shipping" },
+  "setup": "docs/docattest_setup.go",
+  "snapshots": { "dir": "docs/.snapshots", "maxAgeDays": 100000 },
+  "adapter": "go",
+  "runtime": { "timeoutMs": 3000 }
+}

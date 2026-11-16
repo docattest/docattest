@@ -1,0 +1,183 @@
+# unit: deeper set that fits better
+# recorded from: fixture names made neutral; no behaviour change
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 column drifts from Object.keys(Jobs.CLOSE.fields) (missing: archive) → <!-- fact column=Name: Object.keys(Jobs.CLOSE.fields) --> above the table
+audit: 1 suggestion on 1 page, 0 match, 1 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 17 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "column",
+      "expression": "Object.keys(Jobs.CLOSE.fields)",
+      "status": "drift",
+      "missing": [
+        "archive"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=Name: Object.keys(Jobs.CLOSE.fields) -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 18 lines
+Object.keys(EventType)  →  [A, B, C]
+Object.values(EventType)  →  [job, project, run]
+EventType.A  →  job
+EventType.B  →  project
+EventType.C  →  run
+Object.keys(Jobs)  →  [CLOSE]
+Object.keys(Jobs.CLOSE)  →  [fields]
+Object.values(Jobs.CLOSE).map((r) => r.job)  →  [0]
+Object.values(Jobs.CLOSE).map((r) => r.project)  →  [1]
+Object.values(Jobs.CLOSE).map((r) => r.owner)  →  [2]
+Object.values(Jobs.CLOSE).map((r) => r.archive)  →  [3]
+Object.keys(Jobs.CLOSE.fields)  →  [job, project, owner, archive]
+Object.values(Jobs.CLOSE.fields)  →  [0, 1, 2, 3]
+Jobs.CLOSE.fields.job  →  0
+Jobs.CLOSE.fields.project  →  1
+Jobs.CLOSE.fields.owner  →  2
+Jobs.CLOSE.fields.archive  →  3
+inventory: 17 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 127 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(EventType)",
+    "value": "A,B,C",
+    "items": [
+      "A",
+      "B",
+      "C"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(EventType)",
+    "value": "job,project,run",
+    "items": [
+      "job",
+      "project",
+      "run"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "EventType.A",
+    "value": "job"
+  },
+  {
+    "surface": "default",
+    "expression": "EventType.B",
+    "value": "project"
+  },
+  {
+    "surface": "default",
+    "expression": "EventType.C",
+    "value": "run"
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Jobs)",
+    "value": "CLOSE",
+    "items": [
+      "CLOSE"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Jobs.CLOSE)",
+    "value": "fields",
+    "items": [
+      "fields"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => r.job)",
+    "value": "0",
+    "items": [
+      "0"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => r.project)",
+    "value": "1",
+    "items": [
+      "1"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => r.owner)",
+    "value": "2",
+    "items": [
+      "2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE).map((r) => r.archive)",
+    "value": "3",
+    "items": [
+      "3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.keys(Jobs.CLOSE.fields)",
+    "value": "job,project,owner,archive",
+    "items": [
+      "job",
+      "project",
+      "owner",
+      "archive"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(Jobs.CLOSE.fields)",
+    "value": "0,1,2,3",
+    "items": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Jobs.CLOSE.fields.job",
+    "value": "0"
+  },
+  {
+    "surface": "default",
+    "expression": "Jobs.CLOSE.fields.project",
+    "value": "1"
+  },
+  {
+    "surface": "default",
+    "expression": "Jobs.CLOSE.fields.owner",
+    "value": "2"
+  },
+  {
+    "surface": "default",
+    "expression": "Jobs.CLOSE.fields.archive",
+    "value": "3"
+  }
+]
+stderr empty

@@ -1,0 +1,16 @@
+# impact only prose changed
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 0
+stdout 1 line
+docattest impact: no exported symbol is affected by changes since HEAD
+stderr empty
+=== impact --json
+exit 0
+stdout 5 lines
+{
+  "base": "HEAD",
+  "symbols": [],
+  "references": []
+}
+stderr empty

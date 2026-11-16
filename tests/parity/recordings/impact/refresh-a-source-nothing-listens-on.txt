@@ -1,0 +1,7 @@
+# refresh a source nothing listens on
+# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+=== refresh
+exit 1
+stdout empty
+stderr 1 line
+docattest: refresh d: http://<dead>/x did not answer

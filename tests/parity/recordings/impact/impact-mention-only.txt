@@ -1,0 +1,30 @@
+# impact mention only
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== impact
+exit 0
+stdout 4 lines
+docattest impact: changes since HEAD affect 1 exported symbol
+n
+  docs/n.md:1 mention (unproven)  Use `n`.
+next: re-read docs/n.md and correct any sentence above that the change made untrue
+stderr empty
+=== impact --json
+exit 0
+stdout 16 lines
+{
+  "base": "HEAD",
+  "symbols": [
+    "n"
+  ],
+  "references": [
+    {
+      "symbol": "n",
+      "page": "docs/n.md",
+      "line": 1,
+      "kind": "mention",
+      "claim": "Use `n`.",
+      "proven": false
+    }
+  ]
+}
+stderr empty

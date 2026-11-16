@@ -1,0 +1,33 @@
+{
+  // Type-checks the repository's own tools, written in TypeScript and run by Node as they are
+  // (type stripping: Node 22.18 or later): tests/, scripts/, protocol/, the core's fixture
+  // generators, and the ESLint config. Emits nothing. The npm package has its own
+  // (adapters/typescript/tsconfig.json), and these flags are its flags.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2024"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    // What Node runs without a build: imports name the `.ts` file, and only syntax that
+    // stripping the types leaves as plain JavaScript (no enums, namespaces or parameter
+    // properties).
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "resolveJsonModule": true,
+    // eslint.config.js stays JavaScript (ESLint loads a TypeScript config only through an
+    // extra dependency or an unstable flag); it is type-checked all the same (`// @ts-check`).
+    "allowJs": true
+  },
+  "include": ["tests", "scripts", "protocol", "core/tests/fixtures", "eslint.config.js"],
+  "exclude": ["tests/parity/recordings", "tests/bench/results"]
+}

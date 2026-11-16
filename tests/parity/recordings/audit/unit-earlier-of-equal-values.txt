@@ -1,0 +1,71 @@
+# unit: earlier of equal values
+# recorded from: fixture names made neutral; no behaviour change
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list matches Object.keys(ErrorCodes) → <!-- fact: Object.keys(ErrorCodes) --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "Object.keys(ErrorCodes)",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: Object.keys(ErrorCodes) -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 5 lines
+Object.keys(ErrorCodes)  →  [RPC, SESSION]
+Object.values(ErrorCodes)  →  [RPC, SESSION]
+ErrorCodes.RPC  →  RPC
+ErrorCodes.SESSION  →  SESSION
+inventory: 4 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 30 lines
+[
+  {
+    "surface": "default",
+    "expression": "Object.keys(ErrorCodes)",
+    "value": "RPC,SESSION",
+    "items": [
+      "RPC",
+      "SESSION"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "Object.values(ErrorCodes)",
+    "value": "RPC,SESSION",
+    "items": [
+      "RPC",
+      "SESSION"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ErrorCodes.RPC",
+    "value": "RPC"
+  },
+  {
+    "surface": "default",
+    "expression": "ErrorCodes.SESSION",
+    "value": "SESSION"
+  }
+]
+stderr empty

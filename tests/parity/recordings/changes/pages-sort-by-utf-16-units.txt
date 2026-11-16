@@ -1,0 +1,104 @@
+# pages sort by UTF-16 units
+# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+=== check --base HEAD --json
+exit 1
+stdout 81 lines
+{
+  "results": [],
+  "coverage": {
+    "living": 3,
+    "covered": 0,
+    "uncovered": [
+      "docs/a.md",
+      "docs/😀.md",
+      "docs/！.md"
+    ],
+    "frozen": [],
+    "attestations": 0,
+    "weak": 0,
+    "cited": 0
+  },
+  "surfaces": {
+    "default": {
+      "symbols": 4,
+      "attested": 0,
+      "unattested": [
+        "KEYS",
+        "LIMIT",
+        "TEXT",
+        "add"
+      ],
+      "resolution": {
+        "import": "fixture",
+        "entry": "src/index.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    },
+    "extra": {
+      "symbols": 2,
+      "attested": 0,
+      "unattested": [
+        "LIMIT",
+        "OTHER"
+      ],
+      "resolution": {
+        "import": "fixture/extra",
+        "entry": "src/extra.ts",
+        "package": {
+          "name": "fixture",
+          "version": "1.0.0",
+          "display": "fixture@1.0.0"
+        }
+      },
+      "warnings": []
+    }
+  },
+  "snapshots": [],
+  "exitCode": 1,
+  "changes": [
+    {
+      "type": "orphaned-claim",
+      "page": "docs/a.md",
+      "line": 3,
+      "severity": "fail",
+      "message": "\"A call is tried at most `3` times.\" is still on the page, but the fact that proved it (docs/a.md:3 at the base) is gone"
+    },
+    {
+      "type": "orphaned-claim",
+      "page": "docs/😀.md",
+      "line": 3,
+      "severity": "fail",
+      "message": "\"A call is tried at most `3` times.\" is still on the page, but the fact that proved it (docs/😀.md:3 at the base) is gone"
+    },
+    {
+      "type": "orphaned-claim",
+      "page": "docs/！.md",
+      "line": 3,
+      "severity": "fail",
+      "message": "\"A call is tried at most `3` times.\" is still on the page, but the fact that proved it (docs/！.md:3 at the base) is gone"
+    }
+  ]
+}
+stderr empty
+=== check --base HEAD
+exit 1
+stdout 13 lines
+results: 0 pass, 0 fail, 0 error, 0 skipped
+coverage: 3 living pages, 0 covered (0 attestations, 0 weak), 3 uncovered, 0 frozen
+  uncovered: docs/a.md, docs/😀.md, docs/！.md
+surface default: 4 symbols, 0 attested, 4 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+surface extra: 2 symbols, 0 attested, 2 not referenced by any page
+  fixture/extra → src/extra.ts (fixture@1.0.0)
+snapshots: none
+changes since the base: 3 fail, 0 warnings
+  ✗ docs/a.md:3 orphaned-claim: "A call is tried at most `3` times." is still on the page, but the fact that proved it (docs/a.md:3 at the base) is gone
+  ✗ docs/😀.md:3 orphaned-claim: "A call is tried at most `3` times." is still on the page, but the fact that proved it (docs/😀.md:3 at the base) is gone
+  ✗ docs/！.md:3 orphaned-claim: "A call is tried at most `3` times." is still on the page, but the fact that proved it (docs/！.md:3 at the base) is gone
+FAILED
+stderr empty

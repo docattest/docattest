@@ -1,0 +1,161 @@
+# root found above the working directory
+# recorded from: check --quiet prints only what needs attention
+=== check
+exit 1
+stdout 9 lines
+docs/a.md
+  ✗ L1 fact: expected 4, got 3 from N
+  ✓ L3 fact: N is 3
+results: 1 pass, 1 fail, 0 error, 0 skipped
+coverage: 1 living page, 1 covered (2 attestations, 0 weak), 0 uncovered, 0 frozen
+surface default: 1 symbol, 1 attested, 0 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+snapshots: none
+FAILED
+stderr empty
+=== check docs/a.md --quiet
+exit 1
+stdout 3 lines
+docs/a.md
+  ✗ L1 fact: expected 4, got 3 from N
+FAILED
+stderr empty
+=== where N
+exit 0
+stdout 2 lines
+docs/a.md:1 fact  At most `4` tries.
+docs/a.md:3 fact  And `3`.
+stderr empty
+=== index
+exit 0
+stdout 3 lines
+N
+  docs/a.md:1 fact  At most `4` tries.
+  docs/a.md:3 fact  And `3`.
+stderr empty
+=== check --root .
+exit 1
+stdout empty
+stderr 1 line
+docattest: no docattest.config.json in <root>/docs
+=== check --root ..
+exit 1
+stdout 9 lines
+docs/a.md
+  ✗ L1 fact: expected 4, got 3 from N
+  ✓ L3 fact: N is 3
+results: 1 pass, 1 fail, 0 error, 0 skipped
+coverage: 1 living page, 1 covered (2 attestations, 0 weak), 0 uncovered, 0 frozen
+surface default: 1 symbol, 1 attested, 0 not referenced by any page
+  fixture → src/index.ts (fixture@1.0.0)
+snapshots: none
+FAILED
+stderr empty
+=== check --hook
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== hooks install
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/.claude/settings.json
+  PostToolUse (Edit|Write): npx --no docattest impact --hook
+  Stop: npx --no docattest check --hook
+stderr empty
+directory .claude/
+file .claude/settings.json 25 lines
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest impact --hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest check --hook"
+          }
+        ]
+      }
+    ]
+  }
+}
+=== skill install
+exit 0
+stdout 1 line
+docattest skill installed <root>/.claude/skills/docattest/SKILL.md
+stderr empty
+directory .claude/skills/
+directory .claude/skills/docattest/
+file .claude/skills/docattest/SKILL.md json
+"---\nname: docattest\ndescription: Use when writing or editing documentation, or when changing, renaming or removing an exported symbol, in a repository that has a docattest.config.json. docattest makes pages carry their own proof (examples that run, facts checked against the code, tables whose rows run) and maps every symbol back to the pages that describe it.\n---\n\n# docattest: attested documentation\n\nIn this repository the docs are tests. A page states behaviour and proves it in the same\nsection; `docattest check` runs the proofs and fails at the page and line where the\nprose stopped being true. Follow this skill whenever you touch a page or an exported symbol.\n\nRun `docattest` the way this project runs its tools: `npx docattest` where it was installed\nfrom npm, `docattest` from the project's virtualenv where it was installed with pip; when\nthe project's `AGENTS.md` has a docattest section, it gives the exact command. The commands\nbelow are written bare, and work from any directory inside the project.\n\nTwo commands matter whatever else you do: after editing source code, run\n`docattest impact --file <the file you edited>` and read every line it prints (it prints\nnothing when your change touches no documented export); before you finish, run\n`docattest check`.\n\n## The one rule\n\nFollow every sentence that states behaviour with its proof, in the same section, within a\nfew lines. Never write a number, name, list or shape that comes from the code as plain\ntext: write it as a fact.\n\n## Choose the proof\n\n| The sentence saysâ¦                              | Writeâ¦                                            |\n|-------------------------------------------------|---------------------------------------------------|\n| \"Calling X with Y does Z\"                       | a fenced block tagged `check` that asserts Z      |\n| \"X is 3\", \"defaults to `eu`\", \"exports A, B, C\" | a fact bound to the literal or list               |\n| \"Rule 1â¦ Rule 2â¦ Rule 3â¦\" over one operation    | a `<!-- cases: runner -->` table, one row per rule|\n| \"The service accepts these regions\"             | a fact over `snapshot('name')`                    |\n| \"Needs Node 22.12 or later\" (a manifest says so) | a fact over `manifest('package.json')`           |\n| \"Running `tool x` printsâ¦\" (a command's output) | a `console check` block: `$ tool x`, then its output |\n| a sample page the docs show a user writing      | an `md check fixture=<dir>` block                 |\n| a behaviour an existing test already proves     | `<!-- test: file > \"title\" -->` after the sentence |\n| \"We chose this becauseâ¦\"                        | prose under `## Why`, no proof                    |\n\nDirectives and commands are the same in every language. What is written in the project's\nlanguage is the code: examples, fact expressions and the setup module. `\"adapter\"` in\n`docattest.config.json` names the language.\n\n| | `\"adapter\": \"typescript\"` | `\"adapter\": \"python\"` | `\"adapter\": \"go\"` | `\"adapter\": \"rust\"` |\n|---|---|---|---|---|\n| a block that runs | ```` ```ts check ```` | ```` ```python check ````, or ```` ```pycon check ```` for a `>>>` session | ```` ```go check ````: statements, declarations, or a whole `package main` | ```` ```rust check ````: the body of `main`, or a whole program with `fn main` |\n| a block that is only checked, not run | ```` ```ts compile ```` (type-checked) | ```` ```python compile ```` (syntax, imports, names) | ```` ```go compile ```` (compiled) | ```` ```rust compile ```` (compiled) |\n| an assertion | `assert.equal(a, b)`; `assert` is in scope | `assert a == b`; in a session, the output shown | a last comment `// Output: â¦` that what it prints must match, or `if a != b { panic(â¦) }` | `assert_eq!(a, b)`, `assert!(â¦)`, or an `unwrap()` |\n| a fact expression | `RETRY.max`, `errors.map((e) => e.field)` | `RETRY[\"max\"]`, `[e.field for e in errors]` | `Retry.Max`, `len(Regions)`: the surface's exports by their own names | `RETRY.max`, `REGIONS.len()`: the exports of the surface's module by their own names |\n| how a value is written on the page | as JavaScript prints it: `true`, `3` | as Python prints it: `True`, `3` | as `fmt.Sprint` prints it: `true`, `3`, `[a b]` | as `Display` prints it, else `Debug`: `true`, `3`, `Some(3)` |\n| setup above the reader's view | lines above `// ---cut---` | none: put it in an earlier block and tag the next `continue` | none: a block is a whole program | lines that begin `# `, as in a doc test |\n| examples in source files | `@example` in a doc comment | `>>>` prompts in a docstring | `Exampleâ¦` functions in a `_test.go` file | fenced blocks in `///` doc comments |\n| a test to cite | `it(\"title\")`, inside `describe` blocks | a `test_â¦` function, inside classes | a `Testâ¦` function, or a `t.Run(\"title\", â¦)` inside one | a `#[test]` function, inside its `mod tests` |\n| the setup module | `export const cases`, `export const facts` | `cases = {â¦}`, `facts = {â¦}` | a package with `var Cases = map[string]func(map[string]string) error{â¦}`; facts use its exports | a file with `pub const CASES: &[(&str, fn(&HashMap<String, String>) -> Result<(), String>)]`; facts use its `pub` items |\n\nSyntax:\n\n- Example: a fenced block in the project's language tagged `check` (it runs) or `compile`\n  (it is checked without running). Import what a user would import. One behaviour per\n  block, at least one assertion. Setup the reader need not see must never perform the\n  behaviour the section describes.\n- Scalar fact: put the comment right after the literal: ``At most `3` tries. <!-- fact: RETRY.max -->``\n  It binds the nearest code span or bare number before it on its own source line, not in\n  its sentence. A comment alone on a line, or pushed onto the next line when the paragraph\n  is wrapped, fails with \"has no target\": keep the literal and the comment on one line.\n- List fact: end the line before the list with the comment: `The server reads: <!-- fact: ENV_KEYS -->`\n- Table column: `<!-- fact column=Field: <expression giving the column> -->` before the table.\n- Fenced block: the comment ends the line before the block; whitespace is ignored.\n- Named facts: when an expression is awkward inline, add a helper to the setup module's\n  `facts` and call it by bare name. The helper reads the surface; the expectation stays on\n  the page.\n- Commands: a block tagged `console check` holds lines `$ command`, each followed by what it\n  prints (stdout, then stderr). `...` on a line matches any lines; a last line `[exit N]`\n  says the command fails with `N`. Commands run with `sh -c` in the project root, or in\n  `cwd=<dir>`; `docattest` in one is the docattest checking the page.\n- Sample pages: a block tagged `md check fixture=<dir>` is checked as a page (at\n  `docs/sample.md`, or `as=<path>`) in a copy of the project at `<dir>`; every proof on it\n  must pass.\n- Cases: `<!-- cases: runnerName -->` before a table. The first column names the case; the\n  other columns are what the runner needs. Rows hold the expectations, never the runner.\n\n## Workflow when you change code\n\n1. Before changing an exported symbol, find the prose it affects and read those pages:\n\n   ```sh\n   docattest where <symbol>\n   ```\n\n2. Make the change.\n3. Check each page `where` listed, then everything:\n\n   ```sh\n   docattest check docs/the-page.md\n   docattest check --json\n   ```\n\n4. Every failure is a sentence that is now false, with expected versus actual. Fix the\n   prose where the behaviour changed on purpose; fix the code where it did not.\n5. If you added a public symbol, `docattest uncovered --surface` lists it. Document it\n   with a proof, or say in the PR why it stays undocumented.\n6. After any source edit, including to internals, `docattest impact --file <file>` lists\n   the prose your diff touches (`docattest impact` does so without asking about one file).\n   Entries marked as mentions are unproven: read them, they go stale first.\n\n## Workflow when you write or edit a page\n\n1. Write the claim sentence, then its proof right after it.\n2. Run `docattest check <page>` and read every `fail` and `error`.\n3. Fix the prose or the proof until the page passes, then run `docattest check`.\n4. `docattest audit` reports lists, tables, blocks and values in sentences on the pages that\n   look copied from the code and carry no fact. Add the suggested directive; where it reports drift, fix the page.\n\n## Never make the build green this way\n\nThese three make the build pass while making the docs wrong:\n\n- weakening an assertion or a fact expression so it asserts less than the prose says;\n- deleting an attestation;\n- freezing a page (config `frozen` or frontmatter `docattest: false`).\n\nCI may run `docattest check --base <ref>`, which fails when a claim is kept and its proof\nremoved, and reports the other two.\n\n## Checklist before a page is done (run it literally)\n\n1. `docattest check <page> --json` reports no `fail` and no `error`.\n2. Every section after the orientation paragraph has at least one attestation, or is `## Why`.\n3. No bare number, name, list or type from the code appears without a fact.\n4. Every `check` example contains at least one assertion.\n5. No hidden setup (above a `// ---cut---`, or in an earlier block of a session) performs\n   the behaviour the section describes.\n6. External facts reference a snapshot, and the prose says it is a snapshot and when it was taken.\n7. The page's coverage is not worse than before the edit.\n"
+=== agents install
+exit 0
+stdout 1 line
+docattest agents: added to <root>/AGENTS.md
+stderr empty
+file AGENTS.md 20 lines
+<!-- docattest:begin -->
+## Documentation that is checked (docattest)
+
+The documentation of this project carries its own proof: examples that run, values read
+from the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the
+page and line that is no longer true. Whatever agent you are, do these two things, from the
+directory this file is in:
+
+- **After you edit source code**, run `npx --no docattest impact --file <path>` with the path of
+  the file you edited. It prints the documented exports your change affects and every page
+  and line that describes them, and prints nothing when there are none. Read the lines it
+  lists and bring them up to date with the code.
+- **Before you finish**, run `npx --no docattest check`. If it fails, make the page true again or
+  fix the code. Never delete or weaken a claim to make it pass.
+
+`npx --no docattest where <symbol>` lists the pages that describe an export.
+
+This section is written by `npx --no docattest agents install`, which replaces everything between
+the two markers. Write your own notes outside them.
+<!-- docattest:end -->
+=== hooks install --root .
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/src/.claude/settings.json
+  PostToolUse (Edit|Write): npx --no docattest impact --hook
+  Stop: npx --no docattest check --hook
+stderr empty
+directory src/.claude/
+file src/.claude/settings.json 25 lines
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest impact --hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest check --hook"
+          }
+        ]
+      }
+    ]
+  }
+}

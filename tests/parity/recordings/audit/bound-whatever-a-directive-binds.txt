@@ -1,0 +1,61 @@
+# bound: whatever a directive binds
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 9 lines
+KEYS  →  [A, B]
+N  →  3
+P  →  [/a, /b]
+SHAPE  →  name: demo
+region: eu
+port: 8080
+log: info
+
+inventory: 4 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 30 lines
+[
+  {
+    "surface": "default",
+    "expression": "KEYS",
+    "value": "A,B",
+    "items": [
+      "A",
+      "B"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "N",
+    "value": "3"
+  },
+  {
+    "surface": "default",
+    "expression": "P",
+    "value": "/a,/b",
+    "items": [
+      "/a",
+      "/b"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "SHAPE",
+    "value": "name: demo\nregion: eu\nport: 8080\nlog: info\n"
+  }
+]
+stderr empty

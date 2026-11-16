@@ -1,0 +1,48 @@
+# unit: blocks never match short strings, numbers or lists
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
+=== audit --json
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== inventory
+exit 0
+stdout 4 lines
+ABC  →  [a, b, c]
+BIG  →  1234567890123456
+SHORT  →  hello world
+inventory: 3 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 22 lines
+[
+  {
+    "surface": "default",
+    "expression": "ABC",
+    "value": "a,b,c",
+    "items": [
+      "a",
+      "b",
+      "c"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "BIG",
+    "value": "1234567890123456"
+  },
+  {
+    "surface": "default",
+    "expression": "SHORT",
+    "value": "hello world"
+  }
+]
+stderr empty

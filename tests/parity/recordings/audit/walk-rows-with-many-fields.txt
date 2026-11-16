@@ -1,0 +1,127 @@
+# walk: rows with many fields
+# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+=== audit
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 column matches ROWS.map((r) => r.f7) → <!-- fact column=B: ROWS.map((r) => r.f7) --> above the table
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
+=== audit --json
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "column",
+      "expression": "ROWS.map((r) => r.f7)",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact column=B: ROWS.map((r) => r.f7) -->"
+    }
+  ]
+}
+stderr empty
+=== inventory
+exit 0
+stdout 9 lines
+ROWS.map((r) => r.f0)  →  [r0f0, r1f0, r2f0]
+ROWS.map((r) => r.f1)  →  [r0f1, r1f1, r2f1]
+ROWS.map((r) => r.f2)  →  [r0f2, r1f2, r2f2]
+ROWS.map((r) => r.f3)  →  [r0f3, r1f3, r2f3]
+ROWS.map((r) => r.f4)  →  [r0f4, r1f4, r2f4]
+ROWS.map((r) => r.f5)  →  [r0f5, r1f5, r2f5]
+ROWS.map((r) => r.f6)  →  [r0f6, r1f6, r2f6]
+ROWS.map((r) => r.f7)  →  [r0f7, r1f7, r2f7]
+inventory: 8 values
+stderr empty
+=== inventory --json
+exit 0
+stdout 82 lines
+[
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.f0)",
+    "value": "r0f0,r1f0,r2f0",
+    "items": [
+      "r0f0",
+      "r1f0",
+      "r2f0"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.f1)",
+    "value": "r0f1,r1f1,r2f1",
+    "items": [
+      "r0f1",
+      "r1f1",
+      "r2f1"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.f2)",
+    "value": "r0f2,r1f2,r2f2",
+    "items": [
+      "r0f2",
+      "r1f2",
+      "r2f2"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.f3)",
+    "value": "r0f3,r1f3,r2f3",
+    "items": [
+      "r0f3",
+      "r1f3",
+      "r2f3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.f4)",
+    "value": "r0f4,r1f4,r2f4",
+    "items": [
+      "r0f4",
+      "r1f4",
+      "r2f4"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.f5)",
+    "value": "r0f5,r1f5,r2f5",
+    "items": [
+      "r0f5",
+      "r1f5",
+      "r2f5"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.f6)",
+    "value": "r0f6,r1f6,r2f6",
+    "items": [
+      "r0f6",
+      "r1f6",
+      "r2f6"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "ROWS.map((r) => r.f7)",
+    "value": "r0f7,r1f7,r2f7",
+    "items": [
+      "r0f7",
+      "r1f7",
+      "r2f7"
+    ]
+  }
+]
+stderr empty
