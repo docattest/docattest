@@ -1,0 +1,10 @@
+github.com/docattest/docattest/go-core/core-darwin-arm64 v0.1.3 h1:v/gGU9GPMqkRgzh/C9Cs+QMH+jnGCErFQJXgrz789nE=
+github.com/docattest/docattest/go-core/core-darwin-arm64 v0.1.3/go.mod h1:7X8qgMPiuSk92drR4xXlHK67IvDtSbd/UXEoZNXcrJs=
+github.com/docattest/docattest/go-core/core-darwin-x64 v0.1.3 h1:NX0Iq4OXMVdKmxUXJUvAbY18VLEWETDa6huTSp79OM4=
+github.com/docattest/docattest/go-core/core-darwin-x64 v0.1.3/go.mod h1:k6JNhRhk9cG3/9WoctHzFz7Ipci9yvGRD60Ys/J40vo=
+github.com/docattest/docattest/go-core/core-linux-arm64 v0.1.3 h1:Gx4HX4q6cYJhi2H4iof8EmwVMeMnQaHlyyJtZACT1Nc=
+github.com/docattest/docattest/go-core/core-linux-arm64 v0.1.3/go.mod h1:aAvvmT26EC8DlJJGzmHDsiHF8hKjVEF852mNpX7sl8A=
+github.com/docattest/docattest/go-core/core-linux-x64 v0.1.3 h1:oTir/SYjWRGUm3+mVnyRfFSbLAXgUA4nYo2MKhPzWok=
+github.com/docattest/docattest/go-core/core-linux-x64 v0.1.3/go.mod h1:zQ4Pp2aY9kKG7bC4bT8QzxDgvlDY4/ob8PdhJeRVZco=
+github.com/docattest/docattest/go-core/core-windows-x64 v0.1.3 h1:W3cULuw4WUS9pOl+QleLUyghQEj+Pq98tEOeah09oh8=
+github.com/docattest/docattest/go-core/core-windows-x64 v0.1.3/go.mod h1:VuvP1+cYtKOyV+5H7hsSSqlens+0+3AWuVjdnyi2S3w=
