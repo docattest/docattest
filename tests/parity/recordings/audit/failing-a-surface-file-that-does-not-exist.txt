@@ -1,5 +1,5 @@
 # failing: a surface file that does not exist
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === audit
 exit 1
 stdout empty
@@ -14,9 +14,9 @@ docattest: audit: surface "default" (fixture) not found
 exit 1
 stdout empty
 stderr 1 line
-docattest: audit: surface "default" (fixture) not found
+docattest: inventory: surface "default" (fixture) not found
 === inventory --json
 exit 1
 stdout empty
 stderr 1 line
-docattest: audit: surface "default" (fixture) not found
+docattest: inventory: surface "default" (fixture) not found

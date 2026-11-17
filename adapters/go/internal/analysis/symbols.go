@@ -177,16 +177,24 @@ func (p *Project) citationSymbols(found *refs, a protocol.Attestation) error {
 	return nil
 }
 
+// casesVariable is the setup package's variable that gives the runner of each cases table.
+const casesVariable = "Cases"
+
 // runnerSymbols adds what the runner of a cases table names: the function the setup
-// package's Cases gives for it.
+// package's Cases gives for it, and the setup package's own functions, variables and
+// constants that it names, at any depth, each as its own file's imports reach the surfaces.
 func (p *Project) runnerSymbols(found *refs, runner string) {
 	setup := p.setupPackage()
 	if setup == nil {
 		return
 	}
 	for _, file := range sorted(setup.Files) {
-		if body := runnerBody(setup, file, runner); body != nil {
-			found.collect(body, p.scopeOf(file, setup.Dir))
+		body := runnerBody(setup, file, runner)
+		if body == nil {
+			continue
+		}
+		for _, part := range setup.reached(code{node: body, file: file}, casesVariable) {
+			found.collect(part.node, p.scopeOf(part.file, setup.Dir))
 		}
 	}
 }
@@ -196,7 +204,7 @@ func runnerBody(setup *goPackage, file *ast.File, runner string) ast.Node {
 	var body ast.Node
 	ast.Inspect(file, func(n ast.Node) bool {
 		spec, ok := n.(*ast.ValueSpec)
-		if !ok || len(spec.Names) != 1 || spec.Names[0].Name != "Cases" || len(spec.Values) != 1 {
+		if !ok || len(spec.Names) != 1 || spec.Names[0].Name != casesVariable || len(spec.Values) != 1 {
 			return body == nil
 		}
 		literal, ok := spec.Values[0].(*ast.CompositeLit)
@@ -221,12 +229,8 @@ func (pkg *goPackage) function(value ast.Expr) ast.Node {
 	if !ok {
 		return value
 	}
-	for _, file := range pkg.Files {
-		for _, decl := range file.Decls {
-			if fn, isFunc := decl.(*ast.FuncDecl); isFunc && fn.Recv == nil && fn.Name.Name == name.Name {
-				return fn
-			}
-		}
+	if fn, isFunc := pkg.topLevel[name.Name].node.(*ast.FuncDecl); isFunc {
+		return fn
 	}
 	return value
 }

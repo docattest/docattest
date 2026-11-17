@@ -4,7 +4,7 @@
 //! order the docs list the keys, and unknown keys are errors.
 
 use crate::api::errors::{Error, Result};
-use crate::files::glob::GlobMatcher;
+use crate::files::glob::{GlobMatcher, is_negation};
 use crate::files::project_files::ProjectFiles;
 use crate::files::source::DiskFiles;
 use crate::json::parse_json;
@@ -153,6 +153,12 @@ impl Fields<'_> {
         if let Err(why) = GlobMatcher::new(&globs) {
             self.problems.push(format!("\"{}{key}\" has a glob that cannot be read: {why}", self.prefix));
             return Vec::new();
+        }
+        for negated in globs.iter().filter(|glob| is_negation(glob)) {
+            self.problems.push(format!(
+                "\"{}{key}\" has {negated:?}: a glob starting with \"!\" matches every file but the ones it names, so it cannot leave files out; \"frozen\" leaves pages out of the check",
+                self.prefix
+            ));
         }
         globs
     }
@@ -349,11 +355,14 @@ mod tests {
     }
 
     #[test]
-    fn a_glob_that_cannot_be_read_is_refused_with_the_rest() {
-        let said =
-            problem(r#"{"pages":["docs/*.md",""],"frozen":["./"],"surfaces":{"default":"x"},"adapter":"x"}"#);
+    fn a_glob_that_cannot_be_read_or_that_negates_is_refused_with_the_rest() {
+        let said = problem(
+            r#"{"pages":["docs/*.md",""],"frozen":["./"],"sources":["a/*","!a/b.ts","!(c)"],"surfaces":{"default":"x"},"adapter":"x"}"#,
+        );
         assert!(said.contains("\"pages\" has a glob that cannot be read: "), "{said}");
         assert!(said.contains("\"frozen\" has a glob that cannot be read: "), "{said}");
+        let negated = "\"sources\" has \"!a/b.ts\": a glob starting with \"!\" matches every file but the ones it names, so it cannot leave files out; \"frozen\" leaves pages out of the check";
+        assert!(said.ends_with(negated), "{said}");
     }
 
     #[test]

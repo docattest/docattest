@@ -63,7 +63,7 @@ class Hello(unittest.TestCase):
             talk.error(6),
             {
                 "kind": "user",
-                "message": 'docattest: audit: surface "default" failed to load: RuntimeError: boom',
+                "message": 'docattest: surface "default" failed to load: RuntimeError: boom',
             },
         )
         self.assertEqual(talk.error(7)["kind"], "internal")

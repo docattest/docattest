@@ -21,23 +21,33 @@ export const VERSION = '1.2.3-rc.1';
 
 ## How a fact finds its target
 
-Binding is positional and strict. A fact that ends its line binds the list, table or
-fenced block on the next line. An item or cell compares as its first code span, else a bold
-term that opens it (`**A**: first` is `A`), else its text. Otherwise it compares the code
-span, bare number or bare version (`1.2.3-rc.1`) before it on the same line. A fact that
-ends a sentence of two or more code spans compares them as a set when its value is a list,
-in order with `fact ordered:`, and the last of them when its value is a single value; the
-sentence starts after the previous sentence end or comment in the same paragraph, list item
-or cell. When nothing on its own line can be compared, as at the end of a sentence wrapped
-over lines, a fact binds the code spans of the sentence it ends: a set for two or more, the
-one span for one. A fact with `column=` names a table column, so it binds the next table even across
-blank lines. A directive may span lines; it binds from the line where it ends. Inside a
-table cell it binds the same way, within that cell. Anything else is an error, not a silent
-skip.
+Binding is positional and strict. A fact that ends its line binds the list, table or fenced
+block on the next line. An item compares as its first code span, else a bold term that opens
+it (`**A**: first` is `A`), else its text; a table cell compares as every code span in it,
+as a cell may group several (`` `A`, `B` ``), else as an item does. Otherwise it compares
+the code span, bare number or bare version (`1.2.3-rc.1`) before it on the same line. A
+number or version may be written with a leading `v`, on the page or in the value: `v1.2.3`
+compares as `1.2.3`. A fact that ends a sentence of two or more code spans compares them as
+a set when its value is a list, in order with `fact ordered:`, and the last of them when its
+value is a single value; the sentence starts after the previous sentence end or comment in
+the same paragraph, list item or cell. When nothing on its own line can be compared, as at
+the end of a sentence wrapped over lines, a fact binds the code spans of the sentence it
+ends: a set for two or more, the one span for one. When its sentence has nothing to compare
+either, a fact that ends its paragraph binds the list or fenced block right after that
+paragraph, across blank lines, as after a lead-in like `The keys are:`. A fact with
+`column=` names a table column, so it binds the next table even across blank lines and the
+other directives stacked above it, one fact per column; a column
+name with spaces is quoted, as in `column="route path"` or `column='route path'`. A
+directive may span lines; it binds from the line where it ends. Inside a table cell it binds
+the same way, within that cell. Anything else is an error, not a silent skip.
 
-A set failure names the missing and unexpected values, an empty one as `""`, and counts
-distinct values when a column repeats one. A block failure names the first line of the
-block that differs.
+A set failure leads with what differs: `missing:` the values the expression has and the
+page does not, `unexpected:` those the page has and the expression does not, an empty one as
+`""`. It gives the counts only when they differ, counting distinct values when a column
+repeats one. A block compares token by token, a token being a run of letters, digits, `_`
+and `$` or any other single character, so whitespace counts only where it parts two runs:
+`[1,2]` matches `[1, 2]`, and `letx` does not match `let x`. A block failure names the first
+line of the block that differs.
 
 <!-- cases: factBinding -->
 | case                                   | page                                                                    | result                        |
@@ -47,6 +57,8 @@ block that differs.
 | scalar mismatch                        | At most `4` tries. <!-- fact: N -->                                     | fail: expected 4, got 3       |
 | scalar, bare version                   | Released as 1.2.3-rc.1. <!-- fact: VERSION -->                          | pass                          |
 | scalar, version mismatch               | Released as 1.2.4. <!-- fact: VERSION -->                               | fail: expected 1.2.4          |
+| scalar, version with a leading v       | Released as v1.2.3-rc.1. <!-- fact: VERSION -->                         | pass                          |
+| code span, version with a leading v    | Released as `v1.2.3-rc.1`. <!-- fact: VERSION -->                       | pass                          |
 | sentence of code spans, any order      | Keys are `C`, `A` and `B`. <!-- fact: KEYS -->                          | pass                          |
 | sentence missing a code span           | Keys are `A` and `B`. <!-- fact: KEYS -->                               | fail: missing: C              |
 | sentence with an extra code span       | Keys are `A`, `B`, `C` and `D`. <!-- fact: KEYS -->                     | fail: unexpected: D           |
@@ -59,15 +71,23 @@ block that differs.
 | list, any order                        | <!-- fact: KEYS -->¶- `C`¶- `A`¶- `B`                                   | pass                          |
 | list missing an item                   | <!-- fact: KEYS -->¶- `A`¶- `B`                                         | fail: missing: C              |
 | list with an extra item                | <!-- fact: KEYS -->¶- `A`¶- `B`¶- `C`¶- `D`                             | fail: unexpected: D           |
+| list with as many items, one differing | <!-- fact: KEYS -->¶- `A`¶- `B`¶- `D`                                   | fail: missing: C; unexpected: D (comparing the list on the page with KEYS) |
+| list after a lead-in and a blank line  | The keys are: <!-- fact: KEYS -->¶¶- `C`¶- `A`¶- `B`                    | pass                          |
+| a value on the line keeps it a scalar  | At most `3` tries. <!-- fact: N -->¶¶- `A`¶- `B`                        | pass                          |
 | list of bold lead terms                | <!-- fact: KEYS -->¶- **A**: first¶- **B**: second¶- **C**: third       | pass                          |
 | ordered list, wrong order              | <!-- fact ordered: KEYS -->¶- `C`¶- `A`¶- `B`                           | fail: order                   |
 | table column                           | <!-- fact column=path: ROUTES.map(r => r.path) -->¶\| method \| path \|¶\|---\|---\|¶\| GET \| `/a` \|¶\| POST \| `/b` \| | pass |
 | table column after a blank line        | <!-- fact column=path: ROUTES.map(r => r.path) -->¶¶\| method \| path \|¶\|---\|---\|¶\| GET \| `/a` \|¶\| POST \| `/b` \| | pass |
 | lead-in code span cannot steal a table | `ROUTES` lists: <!-- fact column=path: ROUTES.map(r => r.path) -->¶¶\| method \| path \|¶\|---\|---\|¶\| GET \| `/a` \|¶\| POST \| `/b` \| | pass |
+| column name with spaces, quoted       | <!-- fact column="route path": ROUTES.map(r => r.path) -->¶\| method \| route path \|¶\|---\|---\|¶\| GET \| `/a` \|¶\| POST \| `/b` \| | pass |
+| column name with spaces, unquoted     | <!-- fact column=route path: ROUTES.map(r => r.path) -->¶\| method \| route path \|¶\|---\|---\|¶\| GET \| `/a` \|¶\| POST \| `/b` \| | error: unknown modifier "path"; a column name with spaces is quoted: column="route path" |
+| cell with several code spans           | <!-- fact column=path: ROUTES.map(r => r.path) -->¶\| path \|¶\|---\|¶\| `/a`, `/b` \| | pass |
 | empty cell in the column               | <!-- fact column=path: ROUTES.map(r => r.path) -->¶\| method \| path \|¶\|---\|---\|¶\| GET \| `/a` \|¶\| POST \|  \| | fail: unexpected: "" |
-| repeated values count once             | <!-- fact column=method: ROUTES.map(r => r.method) -->¶\| method \|¶\|---\|¶\| GET \|¶\| GET \|¶\| PUT \| | fail: expected 2 distinct values in column method from the page, got 2 |
+| repeated values count once             | <!-- fact column=method: ROUTES.map(r => r.method) -->¶\| method \|¶\|---\|¶\| GET \|¶\| GET \| | fail: missing: POST (1 distinct value in column method on the page, 2 in |
 | column= with no table below            | <!-- fact column=path: ROUTES.map(r => r.path) -->¶¶Just a paragraph. | error: no table |
 | fenced block, whitespace ignored       | <!-- fact: SHAPE -->¶```ts¶export interface Point {¶  x: number;¶  y: number¶}¶```  | pass                          |
+| fenced block, spaced differently       | <!-- fact: SHAPE -->¶```ts¶export interface Point{x:number;¶y : number }¶```  | pass                          |
+| fenced block, words run together       | <!-- fact: SHAPE -->¶```ts¶exportinterface Point { x: number; y: number }¶```  | fail: at line 1 (whitespace ignored): expected "exportinterface Point { x: number; y: number }" |
 | fenced block differing on one line     | <!-- fact: SHAPE -->¶```ts¶export interface Point {¶  x: number;¶  z: number¶}¶```  | fail: at line 3 (whitespace ignored): expected "z: number", got "y: number }" |
 | no target                              | <!-- fact: N -->¶¶Just a paragraph.                                     | error: no target              |
 | expression throws                      | At most `3` tries. <!-- fact: N.missing.deeper -->                      | error: Cannot read            |

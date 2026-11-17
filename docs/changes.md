@@ -68,6 +68,43 @@ assert.equal(change.line, 5);
 assert.match(change.message, /"The value comes back unchanged\." is still on the page, but the example that proved it/);
 ```
 
+## Each proof is judged on its own
+
+A paragraph or list item can hold several claims, each with its own proof. Deleting one of
+those proofs orphans its claim even when the others stay: another fact on a different
+sentence, a block after the paragraph, a `test:` citation on the same item. The message
+quotes the sentence that lost its proof, read as a reader sees it, without the directive.
+A proof that takes the sentence over in the same change, such as a new example, or another
+fact on the same literal, keeps it proven.
+
+```ts check
+import { createProject } from 'docattest';
+
+const files = {
+  'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+  'src/index.ts': "export const CLIENT = 'acme';\nexport const RETRY = 3;",
+};
+const block = "```ts check\nimport { RETRY } from 'docattest-fixture';\nassert.ok(RETRY > 0);\n```\n";
+const changesFor = async (before: string, after: string) =>
+  (await createProject({ files: { ...files, 'docs/c.md': after } }).check({ base: { files: { ...files, 'docs/c.md': before } } })).changes ?? [];
+
+const two = await changesFor(
+  'The client is `acme` <!-- fact: CLIENT -->, always. A call is tried `3` times. <!-- fact: RETRY -->\n',
+  'The client is `acme`, always. A call is tried `3` times. <!-- fact: RETRY -->\n',
+);
+assert.deepEqual(two.map((c) => [c.type, c.line]), [['orphaned-claim', 1]]);
+assert.match(two[0].message, /^"The client is `acme`, always\." is still on the page/);
+
+const underBlock = await changesFor(`At most \`3\` <!-- fact: RETRY --> tries.\n\n${block}`, `At most \`3\` tries.\n\n${block}`);
+assert.deepEqual(underBlock.map((c) => c.type), ['orphaned-claim']);
+
+const takenOver = await changesFor(
+  'A call is tried `3` times. <!-- fact: RETRY -->\n',
+  "A call is tried `3` times.\n\n```ts check\nimport { RETRY } from 'docattest-fixture';\nassert.equal(RETRY, 3);\n```\n",
+);
+assert.deepEqual(takenOver, []);
+```
+
 ## Ordinary edits are not changes
 
 Deleting a sentence together with its proof, moving a section, adding prose above it,

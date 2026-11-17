@@ -1,8 +1,8 @@
 # a quotation cut inside an astral character
-# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --base HEAD --json
 exit 1
-stdout 73 lines
+stdout 76 lines
 {
   "results": [],
   "coverage": {
@@ -59,6 +59,9 @@ stdout 73 lines
   },
   "snapshots": [],
   "exitCode": 1,
+  "warnings": [
+    "\"setup\" is \"docs/docattest.setup.ts\", which nothing reads: no living page has a cases table or a fact"
+  ],
   "changes": [
     {
       "type": "orphaned-claim",
@@ -79,13 +82,14 @@ stdout 73 lines
 stderr empty
 === check --base HEAD
 exit 1
-stdout 12 lines
+stdout 13 lines
 results: 0 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 0 covered (0 attestations, 0 weak), 2 uncovered, 0 frozen
   uncovered: docs/q.md, docs/r.md
-surface default: 4 symbols, 0 attested, 4 not referenced by any page
+warning: "setup" is "docs/docattest.setup.ts", which nothing reads: no living page has a cases table or a fact
+surface default: 4 symbols, 0 attested, 4 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
-surface extra: 2 symbols, 0 attested, 2 not referenced by any page
+surface extra: 2 symbols, 0 attested, 2 not attested by any page
   fixture/extra → src/extra.ts (fixture@1.0.0)
 snapshots: none
 changes since the base: 2 fail, 0 warnings

@@ -257,7 +257,7 @@ class Running:
                 else f'unknown surface "{name}"'
             )
             failed: Future[list[Observable]] = Future()
-            failed.set_exception(UserError(f"audit: {what}"))
+            failed.set_exception(UserError(what))
             return failed
         # The setup module's named facts are read with the default surface, as a fact
         # without `@` reads them.
@@ -273,7 +273,7 @@ def _observables(name: str, result: JobResult) -> list[Observable]:
         message = result.failure.message
         if result.failure.timed_out:
             message = f'surface "{name}" failed to load: {message}'
-        raise UserError(f"audit: {message}")
+        raise UserError(message)
     item = result.items[0] if result.items else None
     if isinstance(item, dict) and item["t"] == "observables":
         return item["observables"]
@@ -281,7 +281,7 @@ def _observables(name: str, result: JobResult) -> list[Observable]:
         why = "timed out"
     else:
         why = item.message if isinstance(item, Lost) else "no answer"
-    raise UserError(f'audit: surface "{name}" could not be read: {why}')
+    raise UserError(f'surface "{name}" could not be read: {why}')
 
 
 def _result(

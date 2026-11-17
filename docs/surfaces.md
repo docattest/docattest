@@ -116,6 +116,54 @@ assert.equal(linked.results[0].status, 'fail');
 assert.deepEqual(linked.surfaces.default.warnings, []);
 ```
 
+## A workspace package with a missing or stale build is a warning
+
+A surface's code may import another package of the same workspace, which the package manager
+links into `node_modules`. The runtime then loads that package's build, not its sources: a
+member added to its sources is not there until it is rebuilt, and before its first build the
+package does not load at all. So the imports are followed from each surface's entry through
+the project's files and into every linked workspace package, and the surface gets a warning
+for each one whose build is missing, or older than one of its TypeScript files (any outside
+its build directory and `node_modules`). The warning names the package to build.
+
+```ts check
+import { createProject } from 'docattest';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+const root = mkdtempSync(join(tmpdir(), 'docattest-builds-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+const age = (rel: string, seconds: number) => utimesSync(join(root, rel), seconds, seconds);
+put('package.json', JSON.stringify({ name: 'repo', private: true, workspaces: ['packages/*'] }));
+put('packages/types/package.json', JSON.stringify({ name: '@acme/types', type: 'module', main: 'dist/index.js' }));
+put('packages/types/src/index.ts', 'export const LEVELS = { low: 1, high: 3 };');
+put('packages/kit/package.json', JSON.stringify({ name: '@acme/kit', type: 'module' }));
+put('packages/kit/src/index.ts', "export { LEVELS } from '@acme/types';");
+mkdirSync(join(root, 'node_modules/@acme'), { recursive: true });
+symlinkSync(join(root, 'packages/types'), join(root, 'node_modules/@acme/types'), 'junction');
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: { import: '@acme/kit', path: 'packages/kit/src/index.ts' } }, adapter: 'typescript' }));
+put('docs/kit.md', 'The levels are `low, high`. <!-- fact: Object.keys(LEVELS).join(", ") -->');
+// ---cut---
+const unbuilt = await createProject({ root }).check();
+assert.equal(unbuilt.results[0].status, 'error');
+assert.match(unbuilt.surfaces.default.warnings[0], /@acme\/types \(packages\/types\) has no build/);
+
+put('packages/types/dist/index.js', 'export const LEVELS = { low: 1, high: 3 };');
+put('packages/types/src/index.ts', 'export const LEVELS = { low: 1, mid: 2, high: 3 };');
+age('packages/types/dist/index.js', 1_700_000_000);
+const stale = await createProject({ root }).check();
+assert.equal(stale.results[0].status, 'pass');
+assert.equal(stale.exitCode, 0);
+assert.match(stale.surfaces.default.warnings[0], /loaded from its build packages\/types\/dist, which is older than packages\/types\/src\/index\.ts: rebuild @acme\/types/);
+
+put('packages/types/dist/index.js', 'export const LEVELS = { low: 1, mid: 2, high: 3 };');
+const rebuilt = await createProject({ root }).check();
+assert.equal(rebuilt.results[0].status, 'fail');
+assert.deepEqual(rebuilt.surfaces.default.warnings, []);
+rmSync(root, { recursive: true });
+```
+
 ## Coverage is counted per surface
 
 Two surfaces may export the same name. A page that attests it on one surface says nothing

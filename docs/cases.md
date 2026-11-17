@@ -142,8 +142,8 @@ assert.match(missing.results[0].message, /cases at L1 has no table/);
 
 A runner gets each cell's text as the page writes it, code spans included: a cell
 `` `3` `` reaches the runner as `` `3` ``, backticks and all, and only the `\|` escape is
-undone. That is not what a fact compares: a fact over a table column takes a cell's first
-code span, `3`. A runner whose cells hold code strips the backticks itself.
+undone. That is not what a fact compares: a fact over a table column takes the code spans
+in a cell, `3`. A runner whose cells hold code strips the backticks itself.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -164,4 +164,31 @@ const report = await createProject({
 }).check();
 
 assert.deepEqual(report.results.map((r) => r.status), ['pass']);
+```
+
+## A comment in a cell is row data, never a directive
+
+A cell of a cases table is data for the runner, and a comment in it is part of that data:
+the runner receives it as written, and a directive there is not checked. That is what lets a
+runner take a whole page as a cell, as the binding table in [facts](facts.md) does. To pin
+a value that a table uses, put the fact in the prose around the table, not in a cell.
+
+```ts check
+import { createProject } from 'docattest';
+
+const report = await createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, setup: 'docs/docattest.setup.ts', adapter: 'typescript' }),
+    'src/index.ts': 'export const RETRY = 3;',
+    'docs/docattest.setup.ts': [
+      "import assert from 'node:assert/strict';",
+      'export const cases = { echo: (row: Record<string, string>) => {',
+      "  assert.equal(row.tries, '`2` <!-- fact: RETRY -->');",
+      '} };',
+    ].join('\n'),
+    'docs/t.md': '<!-- cases: echo -->\n| case | tries |\n|---|---|\n| default | `2` <!-- fact: RETRY --> |\n',
+  },
+}).check();
+
+assert.deepEqual(report.results.map((r) => [r.kind, r.line, r.status]), [['cases', 4, 'pass']]);
 ```

@@ -40,6 +40,11 @@ const EXTENSIONS: Record<string, ts.Extension> = {
   '.json': ts.Extension.Json,
 };
 
+/** Whether a file is TypeScript source: a `.ts`-family module, not a declaration file. */
+export function isTypeScriptSource(file: string): boolean {
+  return /\.[mc]?tsx?$/.test(file) && !/\.d\.[mc]?ts$/.test(file);
+}
+
 /** The TypeScript extension kind of a file name. */
 export function extensionOf(file: string): ts.Extension {
   if (file.endsWith('.d.mts')) return ts.Extension.Dmts;

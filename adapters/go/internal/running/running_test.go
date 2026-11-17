@@ -311,7 +311,7 @@ func TestObservables(t *testing.T) {
 			t.Errorf("a setup helper is offered on a surface other than the default: %+v", o)
 		}
 	}
-	if _, err := r.Observables("gone"); err == nil || !strings.HasPrefix(err.Error(), `docattest: audit: surface "gone"`) {
+	if _, err := r.Observables("gone"); err == nil || !strings.HasPrefix(err.Error(), `docattest: surface "gone"`) {
 		t.Fatalf("got %v", err)
 	}
 	if _, isUser := err.(protocol.UserError); err != nil && !isUser {

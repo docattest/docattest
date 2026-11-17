@@ -6,7 +6,9 @@ title: The report
 
 `check()` returns one object: results in page-then-line order, page coverage, surface
 coverage, snapshot ages and an exit code. The CLI prints it as text or, with `--json`,
-exactly this object. Nothing is written to the project by a check.
+exactly this object; with `--report`, it also writes it to a file in a format another CI
+service reads ([the command line](cli.md#reports-for-other-ci-services)). Nothing else is
+written to the project by a check.
 
 ## Exit code is 1 only for `fail` or `error`
 
@@ -105,14 +107,44 @@ assert.deepEqual(parallel, serial);
 assert.deepEqual(serial.results.map((r) => `${r.page}:${r.line}`), ['docs/a.md:1', 'docs/a.md:6', 'docs/b.md:1', 'docs/b.md:5']);
 ```
 
+## What the config names to no effect is a warning
+
+A glob of `pages` or `sources` that matches no file, and a `setup` module that is not there,
+or that nothing reads because no living page has a cases table or a fact, each do nothing,
+and a typo there would check less than was meant without a word. Each is a warning under
+`warnings` in the report, a key there only when there is one, and a `warning:` line in the
+text after the coverage, even with `--quiet`. Like every warning, it leaves the exit code
+as it is.
+
+```ts check
+import { createProject } from 'docattest';
+
+const report = await createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md', 'guide/*.md'], setup: 'docs/docattest.setup.ts', surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': `export const N = 3;`,
+    'docs/a.md': 'N is `3`. <!-- fact: N -->',
+  },
+}).check();
+
+assert.deepEqual(report.warnings, [
+  '"pages" has "guide/*.md", which matches no file',
+  '"setup" is "docs/docattest.setup.ts", which is not there',
+]);
+assert.equal(report.exitCode, 0);
+```
+
 ## The text report
 
 `docattest check` without `--json` prints the report as text: failures by page and line,
 then one summary line each for results, page coverage, surfaces and snapshots. A surface
-symbol that no page attests is listed as not referenced by any page, which is normal for
+symbol that no page attests is counted as not attested by any page, which is normal for
 helpers and types; it is a backlog, not a failure. A count is followed by its noun in the
 singular for one and the plural otherwise (`1 living page`, `2 symbols`). The text is the
-command line's; the programmatic API returns the report object it is printed from. Here it
+command line's; the programmatic API returns the report object it is printed from. The
+coverage line counts the frozen pages and names the uncovered ones, as many to a line as fit
+in 100 columns; after a check of named pages it names none, since the rest of the project
+is not what was asked about. The report object lists both, always. Here it
 is for a small project, [docs/.fixtures/text-report](.fixtures/text-report), whose one page
 says `N` is 4 where the code says 3:
 
@@ -122,7 +154,7 @@ docs/a.md
   ✗ L3 fact: expected 4, got 3 from N
 results: 0 pass, 1 fail, 0 error, 0 skipped
 coverage: 1 living page, 1 covered (1 attestation, 0 weak), 0 uncovered, 0 frozen
-surface default: 2 symbols, 1 attested, 1 not referenced by any page
+surface default: 2 symbols, 1 attested, 1 not attested by any page
   shop → src/index.ts (shop)
 snapshots: none
 FAILED

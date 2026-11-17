@@ -177,7 +177,18 @@ impl Runner {
             return vec![Problem { target: String::new(), file: String::new(), line: 0, message }];
         }
         let names: Vec<String> = programs.iter().map(|(name, _)| name.clone()).collect();
-        cargo::build(&self.crate_dir(), &self.analysis.project.work.join("target"), &names)
+        let problems = cargo::build(&self.crate_dir(), &self.analysis.project.work.join("target"), &names);
+        problems.into_iter().map(|problem| self.located(problem)).collect()
+    }
+
+    /// A problem with its file named from the project's root, where a reader finds it:
+    /// cargo names the generated crate's own files from that crate's directory.
+    fn located(&self, problem: Problem) -> Problem {
+        if problem.file.is_empty() {
+            return problem;
+        }
+        let file = self.analysis.rel(&self.crate_dir().join(&problem.file));
+        Problem { file, ..problem }
     }
 
     /// Where a program of the generated crate is, once built.

@@ -2,7 +2,7 @@
 
 use markdown::mdast::Node;
 
-use crate::text::{collapse_spaces, trim};
+use crate::text::{collapse_spaces, is_js_space, trim};
 
 /// Every non-overlapping `<!--…-->` in `text` (lazy body), as byte ranges of the whole
 /// comment, in order: `/<!--([\s\S]*?)-->/g`.
@@ -21,17 +21,34 @@ pub fn comment_ranges(text: &str) -> Vec<(usize, usize)> {
     out
 }
 
-/// Prose for claims: HTML comments removed, whitespace collapsed. Markup is kept.
+/// Prose for claims: HTML comments removed ([`without_comments`]), whitespace collapsed.
+/// Markup is kept.
 pub fn prose(source: &str) -> String {
-    let mut without = String::with_capacity(source.len());
+    trim(&collapse_spaces(&without_comments(source))).to_string()
+}
+
+/// `source` without its HTML comments, as a reader sees it: a comment and the whitespace
+/// around it become one space between words, and nothing at either end or before closing
+/// punctuation, so a directive between a word and its comma leaves the two together.
+fn without_comments(source: &str) -> String {
+    let mut out = String::with_capacity(source.len());
     let mut at = 0;
     for (start, end) in comment_ranges(source) {
-        without.push_str(&source[at..start]);
-        without.push(' ');
-        at = end;
+        out.push_str(&source[at..start]);
+        out.truncate(out.trim_end_matches(is_js_space).len());
+        let rest = source[end..].trim_start_matches(is_js_space);
+        at = source.len() - rest.len();
+        if !out.is_empty() && rest.chars().next().is_some_and(|c| !closes(c)) {
+            out.push(' ');
+        }
     }
-    without.push_str(&source[at..]);
-    trim(&collapse_spaces(&without)).to_string()
+    out.push_str(&source[at..]);
+    out
+}
+
+/// Punctuation that closes what comes before it, so no space goes in front of it.
+fn closes(c: char) -> bool {
+    matches!(c, '.' | ',' | ';' | ':' | '!' | '?' | ')' | ']' | '}')
 }
 
 /// The text a reader sees in a node: text and code values, without HTML.
@@ -49,14 +66,6 @@ fn plain_text(node: &Node, out: &mut String) {
     }
 }
 
-/// The first inline code span inside a node, depth-first.
-fn first_code(node: &Node) -> Option<&str> {
-    if let Node::InlineCode(c) = node {
-        return Some(&c.value);
-    }
-    node.children()?.iter().find_map(first_code)
-}
-
 fn bold_lead(node: &Node) -> Option<String> {
     let first = node.children()?.first()?;
     if let Node::Strong(_) = first {
@@ -68,10 +77,28 @@ fn bold_lead(node: &Node) -> Option<String> {
     }
 }
 
+/// The values of a table cell as a column fact compares them: every code span in it, as a
+/// cell may group several (`` `A`, `B` ``); else its [`item_value`].
+pub fn cell_values(node: &Node) -> Vec<String> {
+    let spans = code_spans(node);
+    if spans.is_empty() {
+        return vec![item_value(node)];
+    }
+    spans.into_iter().map(|span| trim(span).to_string()).collect()
+}
+
+/// Every inline code span inside a node, depth-first.
+fn code_spans(node: &Node) -> Vec<&str> {
+    match node {
+        Node::InlineCode(c) => vec![c.value.as_str()],
+        _ => node.children().map_or_else(Vec::new, |children| children.iter().flat_map(code_spans).collect()),
+    }
+}
+
 /// A value as docattest compares it: the first code span; else a bold lead term, as in
 /// `**SIMPLE**: runs once`; else the visible text.
 pub fn item_value(node: &Node) -> String {
-    if let Some(code) = first_code(node) {
+    if let Some(code) = code_spans(node).first() {
         return trim(code).to_string();
     }
     if let Some(bold) = bold_lead(node) {
@@ -133,5 +160,16 @@ mod tests {
         assert_eq!(prose("a <!-- x"), "a <!-- x");
         assert_eq!(prose("<!-- a --><!-- b -->x"), "x");
         assert_eq!(prose("<!-->x-->y"), "y");
+    }
+
+    #[test]
+    fn a_removed_comment_leaves_one_space_between_words_and_none_before_punctuation() {
+        assert_eq!(without_comments("is `acme` <!-- fact: USER -->, always."), "is `acme`, always.");
+        assert_eq!(without_comments("`2` <!-- fact: N -->"), "`2`");
+        assert_eq!(without_comments("x <!-- a --> <!-- b -->. y"), "x. y");
+        assert_eq!(without_comments("a  <!-- a -->\n b (c)"), "a b (c)");
+        assert_eq!(without_comments("a <!-- a --> (c)"), "a (c)");
+        assert_eq!(without_comments("  <!-- a -->  a  "), "a  ");
+        assert_eq!(prose("is `acme` <!-- fact: USER --> , always."), "is `acme`, always.");
     }
 }

@@ -1,5 +1,6 @@
 //! Fenced blocks as examples.
 
+use super::tags::{TAGS, UnknownWord, unknown_to_report};
 use crate::api::attestation::{Attestation, Body, Example, Mode};
 use crate::text::{is_js_space, is_word};
 
@@ -58,8 +59,6 @@ pub(super) fn pieces(info: &str) -> Vec<Piece<'_>> {
     }
 }
 
-const TAGS: [&str; 3] = ["check", "compile", "network"];
-
 /// The planned examples whose weakness is still to be decided: every `check` block, as its
 /// block language and code. What an assertion looks like is the language's to say
 /// (`assertions`), so they are asked about together; [`mark_weak`] takes the answers.
@@ -105,9 +104,9 @@ pub(super) fn without_titles(info: &str) -> String {
 }
 
 /// The example a fenced block declares, or None for documentation-only blocks; with the
-/// planning error, if any. Untagged blocks are documentation, unless an unknown tag sits on a
-/// block in a language the adapter runs: that is a typo of check or compile until proven
-/// otherwise, so it fails closed. `weak` is left for [`mark_weak`].
+/// planning error, if any. Untagged blocks are documentation, renderer words and all, unless
+/// a misspelling of a tag sits on a block in a language the adapter runs: then it fails
+/// closed. `weak` is left for [`mark_weak`].
 pub fn plan_example(
     line: usize,
     info: &str,
@@ -117,7 +116,8 @@ pub fn plan_example(
     let cleaned = without_titles(info);
     let read = InfoString::read(&cleaned, options);
     let mode = read.mode();
-    if mode.is_none() && !(read.runnable && !read.unknown.is_empty()) {
+    let misspelled = read.unknown.as_ref().is_some_and(|unknown| unknown.meant.is_some());
+    if mode.is_none() && !(read.runnable && misspelled) {
         return None;
     }
     let error = read.error(line);
@@ -142,7 +142,8 @@ struct InfoString<'a> {
     passed: Vec<String>,
     /// Every tag the info string may hold.
     known: Vec<&'a str>,
-    unknown: Vec<&'a str>,
+    /// The word that is not `known` which the error names, if any.
+    unknown: Option<UnknownWord<'a>>,
     /// The adapter runs blocks in the language.
     runnable: bool,
 }
@@ -161,7 +162,7 @@ impl<'a> InfoString<'a> {
         let own = options.info_words.iter().map(String::as_str).filter(|w| !w.ends_with('='));
         let known: Vec<&str> =
             TAGS.iter().copied().chain(options.ignore_tags.iter().map(String::as_str)).chain(own).collect();
-        let unknown: Vec<&str> = tags.iter().copied().filter(|t| !known.contains(t)).collect();
+        let unknown = unknown_to_report(tags.iter().copied().filter(|t| !known.contains(t)));
         let runnable = options.languages.iter().any(|l| *l == lang.to_lowercase());
         InfoString { lang, tags, passed, known, unknown, runnable }
     }
@@ -184,8 +185,8 @@ impl<'a> InfoString<'a> {
         let at = format!("example at L{line}");
         if self.has("check") && self.has("compile") {
             Some(format!("{at} is tagged both check and compile"))
-        } else if let Some(first) = self.unknown.first() {
-            Some(unknown_tag(&at, first, &self.known))
+        } else if let Some(unknown) = &self.unknown {
+            Some(unknown_tag(&at, unknown, &self.known))
         } else if !self.runnable {
             let shown = if self.lang.is_empty() { "(no language)" } else { self.lang };
             Some(format!("{at}: no adapter runs \"{shown}\" blocks"))
@@ -208,11 +209,15 @@ pub(super) fn tag_words<'a>(after: &[Piece<'a>]) -> Vec<&'a str> {
         .collect()
 }
 
-/// The error of a tag that is not `known`: a typo of `check` until proven otherwise, or a
+/// The error of a tag that is not `known`: a misspelling of one of docattest's, or a
 /// renderer's word that the config should name.
-pub(super) fn unknown_tag(at: &str, unknown: &str, known: &[&str]) -> String {
+pub(super) fn unknown_tag(at: &str, unknown: &UnknownWord, known: &[&str]) -> String {
+    let word = unknown.word;
+    if let Some(meant) = unknown.meant {
+        return format!("{at}: unknown tag \"{word}\"; did you mean \"{meant}\"?");
+    }
     let known = format!("known: {}; add renderer tags to \"ignoreTags\"", known.join(", "));
-    format!("{at}: unknown tag \"{unknown}\" ({known})")
+    format!("{at}: unknown tag \"{word}\" ({known})")
 }
 
 /// The pieces the adapter declares (`infoWords`), as it is given them.
@@ -258,7 +263,18 @@ mod tests {
         let (e, err) = plan_example(1, "ts twoslash compile [Tab (A)]", "x", &options).unwrap();
         assert_eq!((e.mode, err), (Mode::Compile, None));
         let (_, err) = plan_example(3, "ts chekc", "x", &options).unwrap();
-        assert!(err.unwrap().contains("unknown tag \"chekc\""));
+        assert_eq!(err.unwrap(), "example at L3: unknown tag \"chekc\"; did you mean \"check\"?");
+    }
+
+    #[test]
+    fn a_renderer_word_on_an_untagged_block_leaves_it_documentation() {
+        let languages = vec!["ts".to_string()];
+        let options = ExampleOptions { languages: &languages, ignore_tags: &[], info_words: &[] };
+        assert!(plan_example(1, "ts twoslash", "x", &options).is_none());
+        let (_, err) = plan_example(1, "ts twoslash Complie", "x", &options).unwrap();
+        assert!(err.unwrap().contains("unknown tag \"Complie\"; did you mean \"compile\"?"));
+        let (_, err) = plan_example(1, "ts twoslash check", "x", &options).unwrap();
+        assert!(err.unwrap().contains("unknown tag \"twoslash\" (known: check, compile, network;"));
     }
 
     #[test]
@@ -295,10 +311,11 @@ mod tests {
         assert_eq!((err, e.tags), (None, vec!["session=a b".to_string(), "continue".to_string()]));
         // A word of the adapter's is no mode: without check or compile the block is prose.
         assert!(plan_example(1, "python continue", "x", &options).is_none());
-        let (_, err) = plan_example(1, "python continue chekc", "x", &options).unwrap();
+        let (_, err) = plan_example(1, "python check continue twoslash", "x", &options).unwrap();
         assert!(err.unwrap().contains("known: check, compile, network, continue;"));
         // Nothing is the adapter's unless it says so.
         let plain = ExampleOptions { languages: &languages, ignore_tags: &[], info_words: &[] };
-        assert!(plan_example(1, "python continue", "x", &plain).unwrap().1.unwrap().contains("unknown tag"));
+        let (_, err) = plan_example(1, "python check continue", "x", &plain).unwrap();
+        assert!(err.unwrap().contains("unknown tag \"continue\""));
     }
 }

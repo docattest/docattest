@@ -19,6 +19,9 @@ type goPackage struct {
 	Fset *token.FileSet
 	// Files are its files that are not tests, by name; Tests are the others.
 	Files, Tests map[string]*ast.File
+	// topLevel is each top-level function, variable and constant of Files by name;
+	// methods belong to their type and are not among them.
+	topLevel map[string]code
 }
 
 // packages reads each directory once.
@@ -75,6 +78,7 @@ func (p *packages) readPackage(dir string) *goPackage {
 	if len(pkg.Files) == 0 {
 		return nil
 	}
+	pkg.topLevel = topLevel(pkg.Files)
 	return pkg
 }
 
@@ -107,11 +111,19 @@ func sorted(files map[string]*ast.File) []*ast.File {
 	return out
 }
 
+// code is a piece of a package and the file it is in, whose imports it sees.
+type code struct {
+	node ast.Node
+	file *ast.File
+}
+
 // declared is one name a package declares at its top level.
 type declared struct {
 	Name string
 	// Value says that the name is a constant or a variable.
 	Value bool
+	// code is what declares it: the function, or the spec that names it.
+	code code
 }
 
 // declarations are the names a file declares at its top level, in order; a method is
@@ -122,11 +134,14 @@ func declarations(file *ast.File) []declared {
 		switch d := decl.(type) {
 		case *ast.FuncDecl:
 			if d.Recv == nil {
-				out = append(out, declared{Name: d.Name.Name})
+				out = append(out, declared{Name: d.Name.Name, code: code{node: d, file: file}})
 			}
 		case *ast.GenDecl:
 			for _, spec := range d.Specs {
-				out = append(out, specNames(spec)...)
+				for _, name := range specNames(spec) {
+					name.code = code{node: spec, file: file}
+					out = append(out, name)
+				}
 			}
 		}
 	}
@@ -147,6 +162,18 @@ func specNames(spec ast.Spec) []declared {
 		return out
 	}
 	return nil
+}
+
+func topLevel(files map[string]*ast.File) map[string]code {
+	out := map[string]code{}
+	for _, file := range files {
+		for _, d := range declarations(file) {
+			if _, isType := d.code.node.(*ast.TypeSpec); !isType && d.Name != "_" {
+				out[d.Name] = d.code
+			}
+		}
+	}
+	return out
 }
 
 // exported are the exported names a package declares, in the order of its files.

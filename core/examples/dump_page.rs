@@ -42,7 +42,7 @@ fn dump(page: &Page) -> Value {
             "header": t.header,
             "rows": t.rows.iter().map(|r| json!({
                 "line": r.line,
-                "cells": r.cells.iter().map(|c| json!({"raw": c.raw, "value": c.value})).collect::<Vec<_>>(),
+                "cells": r.cells.iter().map(|c| json!({"raw": c.raw, "values": c.values})).collect::<Vec<_>>(),
             })).collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
         "code": page.code.iter().map(|c| json!({"block": c.block})).collect::<Vec<_>>(),

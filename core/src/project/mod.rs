@@ -5,6 +5,7 @@
 //! `inventory` and `check --base` here.
 
 pub mod check;
+pub mod config_warnings;
 pub mod launches;
 pub mod plan;
 pub mod state;

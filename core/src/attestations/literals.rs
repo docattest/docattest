@@ -2,18 +2,22 @@
 
 use crate::text::is_word;
 
+/// The letter that may lead a number or version, as in `v1.2.3`; it is not part of the value.
+const VERSION_MARK: char = 'v';
+
 /// Every bare number (`3`, `-4`, `2.5`) and version (`0.1.0`, `1.2.3-rc.1`) in `text`, in
-/// order. A number is a match of `/(?<![\w.$-])(-?\d+(?:\.\d+)?)(?![\w$]|\.\d)/g`, as the
-/// recordings hold; a version is three dot-separated numbers with an optional pre-release
-/// (`-rc.1`) and build (`+abc`), under the same boundaries.
+/// order, each without the `v` that may lead it (`v1.2.3` is `1.2.3`). A number is a match of
+/// `/(?<![\w.$-])v?(-?\d+(?:\.\d+)?)(?![\w$]|\.\d)/g`; a version is three dot-separated
+/// numbers with an optional pre-release (`-rc.1`) and build (`+abc`), under the same
+/// boundaries.
 pub fn literals(text: &str) -> Vec<String> {
     let chars: Vec<char> = text.chars().collect();
     let mut out = Vec::new();
     let mut at = 0;
     while at < chars.len() {
-        match version_at(&chars, at).or_else(|| number_at(&chars, at)) {
-            Some(end) => {
-                out.push(chars[at..end].iter().collect());
+        match literal_at(&chars, at) {
+            Some((start, end)) => {
+                out.push(chars[start..end].iter().collect());
                 at = end;
             }
             None => at += 1,
@@ -22,10 +26,26 @@ pub fn literals(text: &str) -> Vec<String> {
     out
 }
 
-fn number_at(chars: &[char], at: usize) -> Option<usize> {
+/// `text` as a number or version compares: without the `v` that leads `v1.2.3` or `v2`; any
+/// other text as it is.
+pub fn without_version_mark(text: &str) -> &str {
+    match text.strip_prefix(VERSION_MARK) {
+        Some(rest) if rest.starts_with(|c: char| c.is_ascii_digit()) && literals(text) == [rest] => rest,
+        _ => text,
+    }
+}
+
+/// Where the value of the literal at `at` starts, past a leading `v`, and where it ends.
+fn literal_at(chars: &[char], at: usize) -> Option<(usize, usize)> {
     if !may_start(chars, at) {
         return None;
     }
+    let start = if chars.get(at) == Some(&VERSION_MARK) && is_digit_at(chars, at + 1) { at + 1 } else { at };
+    let end = version_at(chars, start).or_else(|| number_at(chars, start))?;
+    Some((start, end))
+}
+
+fn number_at(chars: &[char], at: usize) -> Option<usize> {
     let start = if chars.get(at) == Some(&'-') { at + 1 } else { at };
     let int_end = digits_end(chars, start);
     // Greedy with backtracking: the longest integer part first, and for each, the longest
@@ -43,9 +63,6 @@ fn number_at(chars: &[char], at: usize) -> Option<usize> {
 
 /// `\d+\.\d+\.\d+`, then `-` and dot-separated identifiers, then `+` and the same.
 fn version_at(chars: &[char], at: usize) -> Option<usize> {
-    if !may_start(chars, at) {
-        return None;
-    }
     let mut end = at;
     for part in 0..3 {
         if part > 0 {
@@ -122,7 +139,7 @@ mod tests {
     #[test]
     fn numbers_are_found_as_the_recordings_hold() {
         assert_eq!(literals("At most 3 tries."), vec!["3"]);
-        assert_eq!(literals("Version v2.1 or -4."), vec!["-4"]);
+        assert_eq!(literals("Version v2.1 or -4."), vec!["2.1", "-4"]);
         assert_eq!(literals("12a 7$ 8"), vec!["8"]);
         assert_eq!(literals("a-4 x"), Vec::<String>::new());
         assert_eq!(literals("3. next"), vec!["3"]);
@@ -135,6 +152,17 @@ mod tests {
         assert_eq!(literals("Released as 0.1.0."), vec!["0.1.0"]);
         assert_eq!(literals("Try 1.2.3-rc.1, then 1.2.3+build.7."), vec!["1.2.3-rc.1", "1.2.3+build.7"]);
         assert_eq!(literals("1.2.3- next"), vec!["1.2.3"]);
-        assert_eq!(literals("v1.2.3 or 1.2.3.4 or 1.2.3x"), Vec::<String>::new());
+        assert_eq!(literals("1.2.3.4 or 1.2.3x"), Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_leading_v_is_not_part_of_the_value() {
+        assert_eq!(literals("Rust v1.89.0 and v2, not dev3, v-4 or vv1.0.0"), vec!["1.89.0", "2"]);
+        assert_eq!(without_version_mark("v1.89.0"), "1.89.0");
+        assert_eq!(without_version_mark("v2"), "2");
+        assert_eq!(without_version_mark("1.89.0"), "1.89.0");
+        assert_eq!(without_version_mark("v8 engine"), "v8 engine");
+        assert_eq!(without_version_mark("version"), "version");
+        assert_eq!(without_version_mark("v1.2.3.4"), "v1.2.3.4");
     }
 }

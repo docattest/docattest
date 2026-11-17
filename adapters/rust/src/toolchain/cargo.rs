@@ -10,6 +10,11 @@ pub fn program() -> PathBuf {
     std::env::var_os("DOCATTEST_CARGO").map_or_else(|| "cargo".into(), PathBuf::from)
 }
 
+/// The variable that names the features the generated crate is built with, as cargo's
+/// `--features` takes them (`shop/eu shop/tax`). A crate's features are cargo's to choose,
+/// and the protocol carries nothing of a language's own settings.
+const FEATURES_VARIABLE: &str = "DOCATTEST_CARGO_FEATURES";
+
 /// `cargo metadata` of a workspace, as far as the adapter reads it.
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct Metadata {
@@ -129,6 +134,9 @@ pub fn build(krate: &Path, target: &Path, programs: &[String]) -> Vec<Problem> {
     let mut args: Vec<String> =
         ["build", "--keep-going", "--message-format=json", "--target-dir"].map(String::from).to_vec();
     args.push(target.to_string_lossy().into_owned());
+    if let Some(features) = std::env::var(FEATURES_VARIABLE).ok().filter(|features| !features.is_empty()) {
+        args.extend(["--features".to_string(), features]);
+    }
     for name in programs {
         args.extend(["--bin".to_string(), name.clone()]);
     }

@@ -18,7 +18,7 @@ const defaultSurface = "default"
 // helpers return. A surface that cannot be read is the project's mistake.
 func (r *Runner) Observables(name string) ([]protocol.Observable, error) {
 	if missing := r.project.NotFound(name); missing != "" {
-		return nil, protocol.UserError("docattest: audit: " + missing)
+		return nil, protocol.UserError("docattest: " + missing)
 	}
 	of := r.project.SurfaceNamed(name)
 	roots := r.roots(of)
@@ -35,12 +35,12 @@ func (r *Runner) Observables(name string) ([]protocol.Observable, error) {
 		if program.failure == "" {
 			return out, nil
 		}
-		message := "docattest: audit: surface %q failed to load: %s"
+		message := "docattest: surface %q failed to load: %s"
 		return nil, protocol.UserError(fmt.Sprintf(message, name, program.failure))
 	}
 	answers, failed := r.serve(program.binary, nil, 1)
 	if why := unread(answers, failed, r.timeoutText()); why != "" {
-		return nil, protocol.UserError(fmt.Sprintf("docattest: audit: surface %q could not be read: %s", name, why))
+		return nil, protocol.UserError(fmt.Sprintf("docattest: surface %q could not be read: %s", name, why))
 	}
 	if err := json.Unmarshal(answers[0].Value, &out); err != nil {
 		return nil, fmt.Errorf("surface %q: what its program read is not a list of observables: %w", name, err)

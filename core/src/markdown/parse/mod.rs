@@ -14,7 +14,8 @@ use super::autolink::transform_fires;
 use super::comments::{CommentContext, flow_comments, phrasing_comments};
 use super::frontmatter::freezes;
 use super::model::{Block, BlockKind, CodeRef, ListItem, Page, Table, TableCell, TableRow};
-use super::text::{content_range, item_value, prose, slice};
+use super::text::{cell_values, content_range, item_value, prose, slice};
+use crate::api::errors::Error;
 use crate::text::trim;
 
 /// The tree holds nodes without positions (see [`super::autolink`]): no line can be given
@@ -25,6 +26,13 @@ use crate::text::trim;
 pub enum Positionless {
     Text,
     Panicked,
+}
+
+impl Positionless {
+    /// The internal error this is on `page`: whoever reports it needs to know which page.
+    pub fn on(&self, page: &str) -> Error {
+        Error::internal(format!("{page}: {self}"))
+    }
 }
 
 impl std::fmt::Display for Positionless {
@@ -356,7 +364,7 @@ fn table_of(table: &MdTable, source: &str) -> Table {
                 .map(|cells| {
                     cells
                         .iter()
-                        .map(|cell| TableCell { raw: cell_raw(cell, source), value: item_value(cell) })
+                        .map(|cell| TableCell { raw: cell_raw(cell, source), values: cell_values(cell) })
                         .collect()
                 })
                 .unwrap_or_default(),

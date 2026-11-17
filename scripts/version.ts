@@ -79,6 +79,9 @@ const PLACES: readonly Place[] = [
     'adapters/rust/Cargo.lock',
     /^\[\[package\]\]\nname = "docattest-core"\nversion = "([^"]+)"/m,
   ),
+  // The Rust guide's CI steps install one release and cache it under its version.
+  text('adapters/rust/README.md', /key: "docattest-(\S+?)-\$\{\{ runner/),
+  text('adapters/rust/README.md', /cargo install docattest --version (\S+)/),
   text('adapters/python/pyproject.toml', /^\[project\]\nname = "docattest"\nversion = "([^"]+)"/m),
   text('adapters/python/docattest_python/__init__.py', /^__version__ = "([^"]+)"/m),
   pin('protocol/core.json'),

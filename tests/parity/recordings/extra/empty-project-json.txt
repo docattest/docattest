@@ -1,8 +1,8 @@
 # empty project json
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --json
 exit 0
-stdout 35 lines
+stdout 38 lines
 {
   "results": [],
   "coverage": {
@@ -36,6 +36,9 @@ stdout 35 lines
     }
   },
   "snapshots": [],
-  "exitCode": 0
+  "exitCode": 0,
+  "warnings": [
+    "\"pages\" has \"docs/**/*.md\", which matches no file"
+  ]
 }
 stderr empty

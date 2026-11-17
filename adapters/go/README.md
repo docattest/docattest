@@ -31,8 +31,16 @@ go install github.com/docattest/docattest/adapters/go/cmd/...@latest
 ```
 
 It needs Go 1.23 or later. <!-- fact: manifest("go.mod")["go"] -->
-That one command brings the launcher (`docattest`), the Go adapter (`docattest-adapter-go`)
-and the core for your platform:
+`go install` puts the commands in `$(go env GOBIN)`, or in `$(go env GOPATH)/bin` when
+`GOBIN` is not set, and that directory must be on your `PATH` for a shell to find
+`docattest`:
+
+```sh
+export PATH="$(go env GOPATH)/bin:$PATH"
+```
+
+That one `go install` brings the launcher (`docattest`), the Go adapter
+(`docattest-adapter-go`) and the core for your platform:
 
 <!-- fact column=platform @protocoldata: Platforms() -->
 | system | platform |
@@ -79,7 +87,12 @@ the home directory; `XDG_CACHE_HOME` counts only when it is an absolute path):
 | Windows |                      | ~/AppData/Local/docattest    |
 
 The launcher says which core it runs when the core's trace is asked for, by setting
-`DOCATTEST_TRACE` to anything but nothing. <!-- fact @launcher: TraceVariable -->
+`DOCATTEST_TRACE` to anything but nothing: <!-- fact @launcher: TraceVariable -->
+`[trace launcher] core <path>`, the path of the core it found: the shared cache's, once
+the launcher has written its core there. The npm, PyPI and Rust packages install a command named `docattest` too, and a shell
+runs the first one on the `PATH`. The Rust one has the core built into it: when the trace
+says `core (built in)`, that is the `docattest` that ran, and it writes nothing to the
+cache.
 
 From a checkout of the repository, without installing anything:
 
@@ -207,7 +220,7 @@ docs/broken.md
   ✗ L31 example: timed out after 3000 ms
 ...
   ✗ L48 fact: expected 60, got 50 from MaxDiscount
-  ✗ L50 fact: expected 2 items from the page, got 3 from TaxRates; missing: DE, FR; unexpected: BE
+  ✗ L50 fact: missing: DE, FR; unexpected: BE (2 items on the page, 3 in TaxRates)
   ! L54 fact: fact `round(50)`: round is not exported by surface "default" (undefined: round)
   ✗ L59 cases: docs/broken.md:59 wrong on purpose: expected 800, got 750
   ✗ L60 cases: docs/broken.md:60 too much: The discount is outside the allowed range
@@ -319,6 +332,30 @@ behind a helper in the setup package. A name the surface does not export is an e
 (`round is not exported by surface "default"`), which is what keeps a page honest about
 what a user can see. <!-- test: internal/running/running_test.go > "TestEvaluateSaysWhyAFactHasNoValue" -->
 
+A fact runs in a program that imports the surface, so it cannot read a `package main`
+(`import "example.com/svc" is a program, not an importable package`) or a value that is
+not exported. A service's most documented values, its default timeout or port, often live
+in exactly those places. Move such a value to a package of the module, export it, and have
+`main` use it from there; the package is then a surface:
+
+```go
+// internal/defaults/defaults.go
+package defaults
+
+import "time"
+
+// RequestTimeout is how long a request may take before it is cancelled.
+const RequestTimeout = 30 * time.Second
+```
+
+```markdown
+Requests time out after `30s`. <!-- fact @defaults: RequestTimeout -->
+```
+
+with `"defaults": "./internal/defaults"` among the `surfaces`. A value that should stay
+unexported is attested by a test of its own package instead, which can read it, cited
+from the page (`<!-- test: main_test.go > "TestDefaults" -->`, see [Citations](#citations)).
+
 The page's literal is compared with `fmt.Sprint(value)`: a value is displayed as its
 language displays it. So write values the way Go prints them: `true`, `<nil>`, `1.5`,
 `[a b]`. <!-- fact: []any{true, nil, 1.5, []string{"a", "b"}} -->
@@ -355,9 +392,28 @@ var Columns = map[string][]string{
 func ErrorMessages() []string { … }
 ```
 
+A runner gets each cell's text as the page writes it, code spans included: a cell
+`` `fmt.Println(1)` `` reaches it with its backticks, and a runner whose cells hold code
+strips them itself, as this guide's `weak` runner does
+([docs/cases.md](../../docs/cases.md#a-runner-receives-each-cell-as-written)):
+
+```go
+block := strings.Trim(row["block"], "`")
+```
+
+A row is named by the page, its line and its first cell. A runner that panics fails its
+row, and the next row still runs. A table attests the exports its runner names (what
+`where` and `uncovered` count): in the runner's own code, and in the setup package's
+functions, variables and constants it reaches by name, at any depth. <!-- test: internal/analysis/analysis_test.go > "TestARunnerNamesWhatItsHelpersUse" -->
+
 The setup package is an ordinary package of your module: `go build ./...` and
-`go vet ./...` see it too. A row is named by the page, its line and its first cell. A
-runner that panics fails its row, and the next row still runs.
+`go vet ./...` see it too, and a build constraint cannot hide it, since the adapter reads
+the package as the go command builds it by default (a file behind a tag such as
+`//go:build docattest` is left out, and a setup package with no other file is not found). <!-- test: internal/analysis/analysis_test.go > "TestASetupFileBehindABuildTagIsLeftOut" -->
+No program of yours links it unless one imports it, so it changes no binary. A CI rule
+that rebuilds on any change to `**/*.go` still fires on a change made for the pages only:
+keep the setup package beside the pages (`docs/`) and leave that directory out of such
+rules (`paths-ignore: ["docs/**"]` in a GitHub Actions workflow).
 
 ### Citations
 

@@ -10,6 +10,9 @@ pub const USAGE: &str = r#"usage: docattest <command> [options]
                                   --base <ref>: also judge what the change since the
                                   git ref did to the attestations (deleted, frozen,
                                   downgraded, weakened); exit 1 on an orphaned claim
+                                  --report <format>=<path>: also write the report to a
+                                  file for a CI service, junit or codequality (GitLab);
+                                  once for each file
   where <symbol>                  pages, lines and claims that attest a symbol. --json
   uncovered [--surface <name>]    public symbols of a surface no page attests. --json
   index                           the whole symbol → references map (parsing only). --json

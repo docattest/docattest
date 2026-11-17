@@ -199,7 +199,8 @@ assert.equal(run.of(3)?.result[0].status, 'pass');
 ## Project mistakes are `user` errors; protocol mistakes are `internal`
 
 A surface that cannot be loaded is a mistake in the project, so `observables` answers it
-with a `user` error, whose message the core prints as it is. A line that is not JSON, an
+with a `user` error. The adapter does not know which command asked, so the core prints the
+message after the command's name: `docattest: inventory: surface "default" failed to load`. A line that is not JSON, an
 unknown method, a session method before `open` and a second `open` are mistakes in the
 core: each gets an `internal` error, with a `null` id when the line had no readable one,
 and the server goes on answering.
@@ -235,7 +236,7 @@ assert.deepEqual(run.of(4)?.result, {});
 assert.equal(run.of(5)?.error.kind, 'internal');
 assert.deepEqual(run.of(6)?.error, {
   kind: 'user',
-  message: 'docattest: audit: surface "default" failed to load: Error: boom',
+  message: 'docattest: surface "default" failed to load: Error: boom',
 });
 assert.equal(run.status, 0);
 ```

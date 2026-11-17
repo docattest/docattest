@@ -1,13 +1,13 @@
 # index --json
-# recorded from: docattest 0.1.3: the GitHub Action in the README
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === index --json
 exit 0
-stdout 650 lines
+stdout 680 lines
 {
   "CHANGE_TYPES": [
     {
       "page": "docs/changes.md",
-      "line": 183,
+      "line": 220,
       "kind": "fact",
       "claim": "The kinds of change are:"
     }
@@ -15,7 +15,7 @@ stdout 650 lines
   "COMMANDS": [
     {
       "page": "README.md",
-      "line": 285,
+      "line": 293,
       "kind": "fact",
       "claim": "Commands"
     },
@@ -29,7 +29,7 @@ stdout 650 lines
   "CONFIG_KEYS": [
     {
       "page": "README.md",
-      "line": 455,
+      "line": 494,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     }
@@ -37,7 +37,7 @@ stdout 650 lines
   "DEFAULT_SNAPSHOT_MAX_AGE_DAYS": [
     {
       "page": "README.md",
-      "line": 464,
+      "line": 503,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -51,7 +51,7 @@ stdout 650 lines
   "DEFAULT_TIMEOUT_MS": [
     {
       "page": "README.md",
-      "line": 465,
+      "line": 504,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -71,7 +71,7 @@ stdout 650 lines
   "KINDS": [
     {
       "page": "README.md",
-      "line": 263,
+      "line": 271,
       "kind": "fact",
       "claim": "Kinds of proof"
     },
@@ -85,9 +85,9 @@ stdout 650 lines
   "Report": [
     {
       "page": "docs/facts.md",
-      "line": 42,
+      "line": 52,
       "kind": "cases",
-      "claim": "A set failure names the missing and unexpected values, an empty one as `\"\"`, and counts distinct values when a column repeats one. A block failure names the first line of the block that differs."
+      "claim": "A set failure leads with what differs: `missing:` the values the expression has and the page does not, `unexpected:` those the page has and the expression does not, an empty one as `\"\"`. It gives the counts only when they differ, counting distinct values when a column repeats one. A block compares token by token, a token being a run of letters, digits, `_` and `$` or any other single character, so whitespace counts only where it parts two runs: `[1,2]` matches `[1, 2]`, and `letx` does not match `let x`. A block failure names the first line of the block that differs."
     }
   ],
   "STATUSES": [
@@ -101,7 +101,7 @@ stdout 650 lines
   "createProject": [
     {
       "page": "README.md",
-      "line": 441,
+      "line": 480,
       "kind": "example",
       "claim": "Use it from code"
     },
@@ -181,7 +181,13 @@ stdout 650 lines
       "page": "docs/cases.md",
       "line": 148,
       "kind": "example",
-      "claim": "A runner gets each cell's text as the page writes it, code spans included: a cell `` `3` `` reaches the runner as `` `3` ``, backticks and all, and only the `\\|` escape is undone. That is not what a fact compares: a fact over a table column takes a cell's first code span, `3`. A runner whose cells hold code strips the backticks itself."
+      "claim": "A runner gets each cell's text as the page writes it, code spans included: a cell `` `3` `` reaches the runner as `` `3` ``, backticks and all, and only the `\\|` escape is undone. That is not what a fact compares: a fact over a table column takes the code spans in a cell, `3`. A runner whose cells hold code strips the backticks itself."
+    },
+    {
+      "page": "docs/cases.md",
+      "line": 176,
+      "kind": "example",
+      "claim": "A cell of a cases table is data for the runner, and a comment in it is part of that data: the runner receives it as written, and a directive there is not checked. That is what lets a runner take a whole page as a cell, as the binding table in [facts](facts.md) does. To pin a value that a table uses, put the fact in the prose around the table, not in a cell."
     },
     {
       "page": "docs/changes.md",
@@ -197,37 +203,43 @@ stdout 650 lines
     },
     {
       "page": "docs/changes.md",
-      "line": 78,
+      "line": 80,
+      "kind": "example",
+      "claim": "A paragraph or list item can hold several claims, each with its own proof. Deleting one of those proofs orphans its claim even when the others stay: another fact on a different sentence, a block after the paragraph, a `test:` citation on the same item. The message quotes the sentence that lost its proof, read as a reader sees it, without the directive. A proof that takes the sentence over in the same change, such as a new example, or another fact on the same literal, keeps it proven."
+    },
+    {
+      "page": "docs/changes.md",
+      "line": 115,
       "kind": "example",
       "claim": "Deleting a sentence together with its proof, moving a section, adding prose above it, lightly rewording an attested sentence while keeping its proof, renaming a page with its attestations, deleting a page and adding attestations all leave `changes` empty. Attestations are matched by what they are and what they defend, never by line number."
     },
     {
       "page": "docs/changes.md",
-      "line": 103,
+      "line": 140,
       "kind": "example",
       "claim": "A false alarm costs more than a miss: a guard that fires on an honest edit gets switched off. A sentence counts as surviving when it is still there word for word, or lightly reworded with the same literals and exactly one candidate. A sentence rewritten substantially in the same change that removed its proof is not reported."
     },
     {
       "page": "docs/changes.md",
-      "line": 124,
+      "line": 161,
       "kind": "example",
       "claim": "A page that carried attestations at the base and is no longer living, whether through `frozen` in the config, frontmatter `docattest: false`, no longer matching `pages`, or a move to somewhere unchecked, is a `frozen-page` change with severity `warning` and line 1. Warnings never change the exit code."
     },
     {
       "page": "docs/changes.md",
-      "line": 145,
+      "line": 182,
       "kind": "example",
       "claim": "A `check` block that became `compile`, or lost every assertion, is a `downgrade` at the block's line now."
     },
     {
       "page": "docs/changes.md",
-      "line": 169,
+      "line": 206,
       "kind": "example",
       "claim": "The literal on the page is what the reader trusts; an expression rewritten around an unchanged literal may now assert less. It is a `weakened` change at the fact's line, a warning. An expression that changed only because the code it named was renamed is not."
     },
     {
       "page": "docs/changes.md",
-      "line": 244,
+      "line": 281,
       "kind": "example",
       "claim": "`check({ base: { files } })` compares with a base given as files, which is how every example on this page works: the base is committed with git in the project's temporary directory, so git must be installed. A git ref needs a project on disk, and a project on disk takes only a git ref. A base without a `docattest.config.json` had nothing to protect, so there are no changes."
     },
@@ -307,7 +319,7 @@ stdout 650 lines
       "page": "docs/console.md",
       "line": 139,
       "kind": "example",
-      "claim": "Each command is run by `sh -c` in the project root, or in the directory a `cwd=<dir>` attribute names, relative to the root. Each command has a shell of its own, so a `cd` or a variable does not carry over to the next one; files written do. stdin is empty, and the environment is docattest's own. A command may run for `runtime.timeoutMs` (by default `10000` ms ); then it is stopped with everything it started, and the block fails."
+      "claim": "Each command is run by `sh -c` in the project root, or in the directory a `cwd=<dir>` attribute names, relative to the root. Each command has a shell of its own, so a `cd` or a variable does not carry over to the next one; files written do. stdin is empty, and the environment is docattest's own. A command may run for `runtime.timeoutMs` (by default `10000` ms); then it is stopped with everything it started, and the block fails."
     },
     {
       "page": "docs/console.md",
@@ -407,49 +419,49 @@ stdout 650 lines
     },
     {
       "page": "docs/examples.md",
-      "line": 248,
+      "line": 253,
       "kind": "example",
-      "claim": "Documentation sites add their own words to an info string, such as `twoslash` for type hovers. An unknown tag is an error, so a typo like `chekc` can never pass silently. Tags listed in `ignoreTags` are accepted and otherwise ignored. A bracketed title such as `[TypeScript SDK]`, which code-group renderers use as a tab label, is always ignored."
+      "claim": "Documentation sites add their own words to an info string, such as `twoslash` for type hovers. On a block tagged `check` or `compile`, a word docattest does not know is an error unless it is listed in `ignoreTags`, which accepts it and otherwise ignores it. On a block with no tag of docattest's, a renderer's word leaves it documentation, counted toward nothing; but a word that is likely a misspelling of `check`, `compile` or `network` (within a third of the tag's length in edits, at least one, ignoring case) is an error that names the tag it resembles, so a typo like `chekc` can never pass silently as prose. A bracketed title such as `[TypeScript SDK]`, which code-group renderers use as a tab label, is always ignored."
     },
     {
       "page": "docs/examples.md",
-      "line": 282,
+      "line": 291,
       "kind": "example",
       "claim": "Many packages declare only an `import` condition in their exports map. Examples and facts can still use a surface that depends on one; docattest resolves through the `import` condition when the `require` path is not exported."
     },
     {
       "page": "docs/facts.md",
-      "line": 42,
+      "line": 52,
       "kind": "cases",
-      "claim": "A set failure names the missing and unexpected values, an empty one as `\"\"`, and counts distinct values when a column repeats one. A block failure names the first line of the block that differs."
+      "claim": "A set failure leads with what differs: `missing:` the values the expression has and the page does not, `unexpected:` those the page has and the expression does not, an empty one as `\"\"`. It gives the counts only when they differ, counting distinct values when a column repeats one. A block compares token by token, a token being a run of letters, digits, `_` and `$` or any other single character, so whitespace counts only where it parts two runs: `[1,2]` matches `[1, 2]`, and `letx` does not match `let x`. A block failure names the first line of the block that differs."
     },
     {
       "page": "docs/facts.md",
-      "line": 83,
+      "line": 103,
       "kind": "example",
       "claim": "A failure names both sides and the line"
     },
     {
       "page": "docs/facts.md",
-      "line": 111,
+      "line": 131,
       "kind": "example",
       "claim": "An expression may only use what the surface exports. A fact over an unexported name is an error, which is how a page is kept honest about what a user can observe. What a package declares rather than exports, such as the Node it needs, is read from its manifest with `manifest(\"package.json\")` ([manifests](manifests.md))."
     },
     {
       "page": "docs/facts.md",
-      "line": 130,
+      "line": 150,
       "kind": "example",
       "claim": "A surface whose values are asynchronous is still observable."
     },
     {
       "page": "docs/facts.md",
-      "line": 150,
+      "line": 170,
       "kind": "example",
       "claim": "Some values are awkward to write inline. The setup module may export `facts`, an object of named helpers, and a fact expression calls them by bare name. The helper is glue: it reads the surface and returns a value; the expectation is still the literal on the page."
     },
     {
       "page": "docs/facts.md",
-      "line": 175,
+      "line": 195,
       "kind": "example",
       "claim": "A helper may not share a name with a surface export: the expression would be ambiguous, so it is an error rather than a guess."
     },
@@ -515,25 +527,25 @@ stdout 650 lines
     },
     {
       "page": "docs/manifests.md",
-      "line": 44,
+      "line": 46,
       "kind": "example",
-      "claim": "The file's name says its format: `.json` is JSON, `.toml` is TOML, and a file named `go.mod` is read for its `module`, `go` and `toolchain` directives, each the string it was given (the other directives are not read). Every manifest is an object at the top, so a fact reads a field of any of them the same way; a JSON file that holds anything else is an error. Keys keep the order the file writes them in."
+      "claim": "The file's name says its format: `.json` is JSON, `.toml` is TOML, `.yaml` and `.yml` are YAML, and a file named `go.mod` is read for its `module`, `go` and `toolchain` directives, each the string it was given (the other directives are not read). Every manifest is an object at the top, so a fact reads a field of any of them the same way; a JSON or YAML file that holds anything else is an error. Keys keep the order the file writes them in. YAML is read as YAML 1.2: an alias is the node its anchor names, a key is its text, and a file of several documents is an error."
     },
     {
       "page": "docs/manifests.md",
-      "line": 74,
+      "line": 81,
       "kind": "example",
       "claim": "A missing file, a file that is not valid in its format, and a path that leaves the project are each an `error` at the fact, saying which file and why. The fact does not run."
     },
     {
       "page": "docs/manifests.md",
-      "line": 108,
+      "line": 117,
       "kind": "example",
-      "claim": "The core reads and parses the manifests before anything runs, and gives them to the adapter with the session, as it gives it the snapshots: it never evaluates an expression, and an adapter cannot ask it for a file halfway through one. So it reads exactly the files that facts name as a string literal, in any quotes, and a path built at run time was never read. Reading only those keeps a check from reading, or failing on, files no page is about."
+      "claim": "The core reads and parses the manifests before anything runs, and gives them to the adapter with the session, as it gives it the snapshots: it never evaluates an expression, and an adapter cannot ask it for a file halfway through one. So it reads exactly the files that facts name as a string literal, in any quotes, and a path built at run time was never read. Reading only those keeps a check from reading, or failing on, files no page is about. A call is the one docattest gives unless it is a member of something else, so a spread before it, `[...manifest(\"tsconfig.json\").references]`, still names its file."
     },
     {
       "page": "docs/manifests.md",
-      "line": 132,
+      "line": 151,
       "kind": "example",
       "claim": "`impact` lists the facts that read a manifest the change touched, under the manifest's call, beside the exports the change affects; its answer then has `manifests`, the changed files that facts read. `impact --file` and an agent's hook answer only for an edit to a source file, so an edit to a manifest shows in `impact` and `impact --base`, not after each edit. `check --base` needs nothing more: every fact is evaluated against the manifest as it is."
     },
@@ -551,57 +563,69 @@ stdout 650 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 57,
+      "line": 59,
+      "kind": "example",
+      "claim": "Every list of globs in the config adds files: a file is a page when any glob of `pages` matches it. A glob that starts with `!` would match every file it does not name, so the config refuses one and says to list the pages to leave out in `frozen`."
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 111,
       "kind": "example",
       "claim": "`docattest: false` in the frontmatter freezes one page without touching the config."
     },
     {
       "page": "docs/pages.md",
-      "line": 79,
+      "line": 133,
       "kind": "example",
       "claim": "`check({ pages })`, and `docattest check <page or glob>...` on the command line, runs only the attestations on the matching pages. Patterns are paths or globs relative to the project root. Coverage still describes every living page, so checking one page never makes the rest look uncovered."
     },
     {
       "page": "docs/pages.md",
-      "line": 106,
+      "line": 160,
       "kind": "example",
       "claim": "A pattern that matches no living page is an error, so a typo cannot pass as an empty check."
     },
     {
       "page": "docs/pages.md",
-      "line": 128,
+      "line": 182,
       "kind": "example",
       "claim": "An `@example` in a doc comment on a source file matched by `sources` is an `example` when its first line is `// check` or `// compile`. The result's page is the source file and its symbol is the documented export."
     },
     {
       "page": "docs/report.md",
-      "line": 15,
+      "line": 17,
       "kind": "example",
       "claim": "`skipped` results, uncovered pages and snapshot warnings leave it at 0."
     },
     {
       "page": "docs/report.md",
-      "line": 41,
+      "line": 43,
       "kind": "example",
       "claim": "Results are ordered by page, then line"
     },
     {
       "page": "docs/report.md",
-      "line": 58,
+      "line": 60,
       "kind": "example",
       "claim": "A check writes nothing"
     },
     {
       "page": "docs/report.md",
-      "line": 75,
+      "line": 77,
       "kind": "example",
       "claim": "The same inputs give the same report"
     },
     {
       "page": "docs/report.md",
-      "line": 93,
+      "line": 95,
       "kind": "example",
       "claim": "The number of workers never changes the report, because results are collected and then ordered by page and line, not by when they finish."
+    },
+    {
+      "page": "docs/report.md",
+      "line": 119,
+      "kind": "example",
+      "claim": "A glob of `pages` or `sources` that matches no file, and a `setup` module that is not there, or that nothing reads because no living page has a cases table or a fact, each do nothing, and a typo there would check less than was meant without a word. Each is a warning under `warnings` in the report, a key there only when there is one, and a `warning:` line in the text after the coverage, even with `--quiet`. Like every warning, it leaves the exit code as it is."
     },
     {
       "page": "docs/snapshots.md",
@@ -647,7 +671,13 @@ stdout 650 lines
     },
     {
       "page": "docs/surfaces.md",
-      "line": 124,
+      "line": 129,
+      "kind": "example",
+      "claim": "A surface's code may import another package of the same workspace, which the package manager links into `node_modules`. The runtime then loads that package's build, not its sources: a member added to its sources is not there until it is rebuilt, and before its first build the package does not load at all. So the imports are followed from each surface's entry through the project's files and into every linked workspace package, and the surface gets a warning for each one whose build is missing, or older than one of its TypeScript files (any outside its build directory and `node_modules`). The warning names the package to build."
+    },
+    {
+      "page": "docs/surfaces.md",
+      "line": 172,
       "kind": "example",
       "claim": "Two surfaces may export the same name. A page that attests it on one surface says nothing about the other, so each surface's coverage counts only the attestations made against it."
     }

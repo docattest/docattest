@@ -21,7 +21,7 @@ struct Spec {
 }
 
 /// Options by long name.
-const OPTIONS: [Spec; 13] = [
+const OPTIONS: [Spec; 14] = [
     Spec { name: "root", kind: Type::String, short: None, set: |o, v| o.root = v },
     Spec { name: "json", kind: Type::Boolean, short: None, set: |o, _| o.json = true },
     Spec { name: "quiet", kind: Type::Boolean, short: None, set: |o, _| o.quiet = true },
@@ -29,6 +29,7 @@ const OPTIONS: [Spec; 13] = [
     Spec { name: "global", kind: Type::Boolean, short: None, set: |o, _| o.global = true },
     Spec { name: "force", kind: Type::Boolean, short: None, set: |o, _| o.force = true },
     Spec { name: "base", kind: Type::String, short: None, set: |o, v| o.base = v },
+    Spec { name: "report", kind: Type::String, short: None, set: |o, v| o.reports.extend(v) },
     Spec { name: "hook", kind: Type::Boolean, short: None, set: |o, _| o.hook = true },
     Spec { name: "file", kind: Type::String, short: None, set: |o, v| o.file = v },
     Spec { name: "agent", kind: Type::String, short: None, set: |o, v| o.agent = v },
@@ -48,6 +49,8 @@ pub struct Options {
     pub global: bool,
     pub force: bool,
     pub base: Option<String>,
+    /// `check --report <format>=<path>`, once for each file, in the order given.
+    pub reports: Vec<String>,
     pub hook: bool,
     /// `impact --file`: the file that was edited.
     pub file: Option<String>,
@@ -310,5 +313,7 @@ mod tests {
         let l = line(&["--", "-h"]);
         assert_eq!(l.command.as_deref(), Some("-h"));
         assert!(line(&["-hh"]).options.help);
+        let l = line(&["check", "--report", "junit=a.xml", "--report=codequality=b.json"]);
+        assert_eq!(l.options.reports, vec!["junit=a.xml", "codequality=b.json"]);
     }
 }

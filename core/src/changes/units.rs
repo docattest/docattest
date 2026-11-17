@@ -5,7 +5,8 @@
 use crate::adapter::DocProse;
 use crate::api::attestation::Attestation;
 use crate::markdown::model::{BlockKind, Page, TableRow};
-use crate::markdown::text::prose;
+use crate::markdown::text::{prose, sentence_ends};
+use crate::text::trim;
 
 /// A run of prose and the lines it spans.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -68,6 +69,36 @@ pub fn claim_unit(a: &Attestation, units: &[Unit]) -> Option<Located> {
     Some(Located { unit: named, offset: 0 })
 }
 
+/// The part of its unit an attestation defends: the sentence that starts with its claim (a
+/// directive in running prose claims its sentence up to the directive), else the whole unit
+/// (a block defends the paragraph before it).
+pub fn claim_piece<'u>(a: &Attestation, unit: &'u Unit) -> &'u str {
+    if a.claim.is_empty() {
+        return &unit.text;
+    }
+    sentences(&unit.text).find(|s| s.starts_with(a.claim.as_str())).unwrap_or(&unit.text)
+}
+
+/// Every part of a unit a claim can be: each of its sentences, and the whole unit when it has
+/// more than one.
+pub fn pieces(unit: &Unit) -> Vec<&str> {
+    let mut out: Vec<&str> = sentences(&unit.text).collect();
+    if out.len() > 1 {
+        out.push(&unit.text);
+    }
+    out
+}
+
+/// The sentences of a text, trimmed, in order; what follows the last sentence end is one too.
+fn sentences(text: &str) -> impl Iterator<Item = &str> {
+    let mut start = 0;
+    sentence_ends(text).chain(std::iter::once(text.len())).filter_map(move |end| {
+        let sentence = trim(&text[start..end]);
+        start = end;
+        (!sentence.is_empty()).then_some(sentence)
+    })
+}
+
 /// The line of a located claim inside another unit with the same text.
 pub fn line_in(unit: &Unit, offset: usize) -> usize {
     (unit.start + offset).min(unit.end)
@@ -76,10 +107,28 @@ pub fn line_in(unit: &Unit, offset: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::api::attestation::{Body, Test};
     use crate::markdown::parse::parse_page;
 
     fn unit(text: &str, start: usize, end: usize) -> Unit {
         Unit { text: text.to_string(), start, end }
+    }
+
+    fn attestation(claim: &str) -> Attestation {
+        let body = Body::Test(Test { file: "t.ts".into(), title: String::new(), describes: Vec::new() });
+        let (id, page) = ("x".to_string(), "p.md".to_string());
+        Attestation { id, page, line: 1, claim: claim.to_string(), error: None, body }
+    }
+
+    #[test]
+    fn a_claim_is_the_sentence_it_starts_else_the_whole_unit() {
+        let both = unit("The user is `acme`. A call is tried `3` times.", 1, 1);
+        assert_eq!(claim_piece(&attestation("A call is tried `3`"), &both), "A call is tried `3` times.");
+        assert_eq!(claim_piece(&attestation("The user is `acme`."), &both), "The user is `acme`.");
+        assert_eq!(claim_piece(&attestation("Elsewhere."), &both), both.text);
+        assert_eq!(claim_piece(&attestation(""), &both), both.text);
+        assert_eq!(pieces(&both), ["The user is `acme`.", "A call is tried `3` times.", both.text.as_str()]);
+        assert_eq!(pieces(&unit("One `1` and no end", 1, 1)), ["One `1` and no end"]);
     }
 
     #[test]

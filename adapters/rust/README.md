@@ -30,6 +30,16 @@ That builds both commands, the core among them (the crate `docattest-core`), and
 side by side in cargo's bin directory. Nothing is downloaded when docattest runs. From a
 checkout of the repository, `cargo install --path adapters/rust` does the same.
 
+Building takes a minute or two (no prebuilt binary is published for `cargo binstall`). In
+CI, cache a directory of its own to install into: cargo then finds that version there.
+
+```yaml
+- uses: actions/cache@v4
+  with: { path: ~/.docattest, key: "docattest-0.1.4-${{ runner.os }}-${{ runner.arch }}" }
+- run: cargo install docattest --version 0.1.4 --locked --root ~/.docattest
+- run: echo "$HOME/.docattest/bin" >> "$GITHUB_PATH"
+```
+
 Another core runs in place of the one built in when `DOCATTEST_CORE` names it. <!-- fact @launcher: CORE_VARIABLE -->
 That core is asked for its version (`--version --json`) and refused when it speaks another
 protocol than this package. <!-- test: src/launcher.rs > "tests" > "a_core_someone_names_is_asked_what_it_speaks" -->
@@ -45,6 +55,10 @@ $ DOCATTEST_CARGO=/no/such/cargo docattest check docs/pricing.md | head -2
 docs/pricing.md
   ✗ L5 example: cargo could not read the project: /no/such/cargo could not be run: No such file or directory (os error 2) (block line 1)
 ```
+
+`DOCATTEST_CARGO_FEATURES` names the features your crates are built with for examples,
+facts and tables, as cargo's `--features` takes them (`shop/eu`); else each has its default
+features. <!-- test: tests/workspace.rs > "the_generated_crate_is_built_with_the_features_it_is_given" -->
 
 `docattest hooks install`, `hooks install --git` and `agents install` write down a command
 that runs docattest: `docattest` when that is what a shell finds on the `PATH`, else this
@@ -66,7 +80,9 @@ To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher:
 ```
 
 - **`surfaces`** name what pages are allowed to observe. A surface is one module of a
-  library of your cargo workspace. An entry is
+  library of your cargo workspace that its users can import: a module declared without
+  `pub`, or one below it, is refused, with a warning that names it. <!-- test: tests/workspace.rs > "a_private_module_is_no_surface_and_says_why" -->
+  An entry is
   - a module path, `"shop"` or `"shop::shipping"`: the crate's root, or a module below it;
   - a path, `"."` (the package there, by its root module) or `"./src/shipping.rs"` (the
     module that file is);
@@ -129,9 +145,9 @@ docs/broken.md
   ✗ L15 example: panicked: called `Result::unwrap()` on an `Err` value: "no carrier serves \"XX\"" (block line 1)
   ✗ L19 example: timed out after 3000 ms
   ✗ L23 example: ran to its end, and says it panics
-  ! L27 example: example at L27: unknown tag "chekc" (known: check, compile, network, should_panic; add renderer tags to "ignoreTags")
+  ! L27 example: example at L27: unknown tag "chekc"; did you mean "check"?
   ✗ L31 fact: expected 60, got 50 from MAX_DISCOUNT
-  ✗ L33 fact: expected 2 items from the page, got 3 from TAX_RATES; missing: DE, FR; unexpected: BE
+  ✗ L33 fact: missing: DE, FR; unexpected: BE (2 items on the page, 3 in TAX_RATES)
   ! L37 fact: fact `round(50)`: round is not exported by surface "default" (cannot find function `round` in this scope)
   ✗ L42 cases: docs/broken.md:42 wrong on purpose: expected 800, got 750
   ✗ L43 cases: docs/broken.md:43 overflows: panicked: attempt to multiply with overflow
@@ -286,10 +302,13 @@ The carriers: <!-- fact @shipping: CARRIERS -->
 ```
 
 It may use the surface's exports, the `pub` items of the setup file, `snapshot("name")`,
-`manifest("path")`, and anything of `std` by its path. A name the surface does not export is an error
+`manifest("path")`, and by its path anything of `std`, of your crates or of what they
+depend on (`shop::shipping::CARRIERS`). A bare name the surface does not export is an error
 (`round is not exported by surface "default"`), which is what keeps a page honest about
 what a user can see.
 <!-- test: tests/session.rs > "a_fact_without_a_value_says_why_and_costs_the_others_nothing" -->
+A path through a surface's module names that surface's export, as it does in an example,
+so `where`, `uncovered` and `impact` find the fact. <!-- test: tests/workspace.rs > "a_fact_names_the_surface_exports_its_crate_paths_reach" -->
 
 The page's literal is compared with the value as Rust displays it: `Display` when the type
 has it, else `Debug`. So `true`, `3`, `7.50 EUR` for a type that prints itself so, and
@@ -305,7 +324,7 @@ written: `<!-- fact: TAX_RATES -->` above a list checks the keys of
 position, iterate an array, and `to_string()` a member:
 `snapshot("regions").iter().map(|r| r["code"].to_string()).collect::<Vec<_>>()`.
 `manifest("Cargo.toml")` is the data of a project file, read and parsed by the core (JSON,
-TOML and `go.mod`; see [manifests](../../docs/manifests.md)), as the same JSON value:
+TOML, YAML and `go.mod`; see [manifests](../../docs/manifests.md)), as the same JSON value:
 `manifest("Cargo.toml")["package"]["rust-version"]`, whose strings are text, as a `String`
 is. <!-- test: tests/session.rs > "facts_show_values_as_rust_prints_them" --> The path is
 relative to the project root and written out in the fact: a path built at run time is
@@ -387,10 +406,8 @@ a warning and the surface keeps the exports its source declares.
 - What a macro writes has no declaration to compare, so a change to a macro call written
   where a module's items are affects everything that module declares. An export a macro
   wrote that a change removes is not named: the earlier revision is not compiled.
-- A `pub` item of a private module counts as an export of that module, whether or not
-  anything outside can reach it. What a glob re-export of another crate brings is not
-  listed.
-- A surface is a module of a crate of your workspace, not of a dependency.
+- What a glob re-export of another crate brings is not listed. A surface is a module of
+  a crate of your workspace, not of a dependency.
 - `audit` and `inventory` see a surface's exports that are values, and not what lies
   below them (the fields of a struct, the values of a map), and on the default surface
   what the setup module's `pub` functions that take no arguments return. In the fixture,

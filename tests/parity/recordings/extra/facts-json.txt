@@ -1,5 +1,5 @@
 # facts json
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --json
 exit 1
 stdout 58 lines
@@ -25,7 +25,7 @@ stdout 58 lines
       "symbols": [
         "KEYS"
       ],
-      "message": "expected 2 items in this order from the page, got 2 from KEYS; order differs: the code has [a, b]",
+      "message": "order differs: the code has [a, b] (comparing the list on the page with KEYS)",
       "expected": "[b, a]",
       "actual": "[a, b]"
     }

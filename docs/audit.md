@@ -335,7 +335,8 @@ assert.deepEqual(await audit({ 'src/index.ts': source, 'docs/p.md': fenced }), [
 `docattest audit` prints each page, then one `?` line per suggestion with the directive and
 where it goes, then a summary. `--json` prints `{ suggestions }`. The exit code is `0`
 whatever it finds, and nothing is written. A surface that cannot be loaded is an error in
-both modes: exit code `1`, and the cause on standard error.
+both modes: exit code `1`, and the cause on standard error after the name of the command,
+which is `inventory` for an inventory.
 
 ```ts check
 import { spawnSync } from 'node:child_process';
@@ -369,10 +370,10 @@ assert.deepEqual(JSON.parse(json.stdout).suggestions.map((s: { line: number }) =
 assert.deepEqual(readdirSync(join(root, 'docs')), ['scopes.md']);
 
 put('src/index.ts', `import 'a-package-that-is-not-installed';\nexport const SCOPES = ['read'];`);
-for (const args of [['audit'], ['audit', '--json']]) {
+for (const args of [['audit'], ['audit', '--json'], ['inventory']]) {
   const broken = docattest(...args);
   assert.equal(broken.status, 1);
   assert.equal(broken.stdout, '');
-  assert.match(broken.stderr, /surface "default" failed to load: .*a-package-that-is-not-installed/);
+  assert.match(broken.stderr, new RegExp(`^docattest: ${args[0]}: surface "default" failed to load: .*a-package-that-is-not-installed`));
 }
 ```

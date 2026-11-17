@@ -24,14 +24,45 @@ pub(crate) struct Surface {
     pub(crate) name: String,
     /// The path examples import it by (`shop::shipping`); empty when it cannot be told.
     pub(crate) import: String,
-    /// The package whose library holds it; none when the surface did not resolve.
-    pub(crate) package: Option<Package>,
-    /// The module's path below its crate's root.
-    pub(crate) module: Vec<String>,
-    /// The module's file; none when the surface did not resolve.
-    pub(crate) file: Option<PathBuf>,
     /// The path the config gave, when it gave one.
     pub(crate) written: Option<String>,
+    pub(crate) resolution: Resolution,
+}
+
+/// What a surface's entry resolved to.
+pub(crate) enum Resolution {
+    /// A module examples can import.
+    Located(Located),
+    /// A module nothing outside its crate can import, because one on its import path is
+    /// private: why.
+    Private(String),
+    /// Nothing.
+    Unresolved,
+}
+
+/// Where a resolved surface's module is.
+pub(crate) struct Located {
+    /// The package whose library holds it.
+    pub(crate) package: Package,
+    /// The module's path below its crate's root.
+    pub(crate) module: Vec<String>,
+    /// The module's file.
+    pub(crate) file: PathBuf,
+}
+
+impl Surface {
+    /// Where its module is; none when the surface did not resolve.
+    pub(crate) fn located(&self) -> Option<&Located> {
+        match &self.resolution {
+            Resolution::Located(located) => Some(located),
+            Resolution::Private(_) | Resolution::Unresolved => None,
+        }
+    }
+
+    /// Its module's file; none when the surface did not resolve.
+    pub(crate) fn file(&self) -> Option<&Path> {
+        self.located().map(|located| located.file.as_path())
+    }
 }
 
 /// The path of the project an entry names, when it names one and not a module path.
@@ -62,65 +93,82 @@ fn is_path(written: &str) -> bool {
     written == "." || written.contains('/') || written.ends_with(".rs")
 }
 
-/// The module path an entry names, when it names one.
+/// The module path an entry names, when it names one. A path written from the root
+/// (`::shop`) is the same path: the programs that import it name it from the root.
 fn written_import(entry: &Value) -> Option<String> {
     let import = entry
         .get("import")
         .and_then(Value::as_str)
         .or_else(|| entry.as_str().filter(|text| !is_path(text)))?;
-    Some(import.to_string())
+    Some(import.trim_start_matches("::").to_string())
 }
 
 impl Analysis {
     pub(super) fn resolve(&self, configured: &Configured) -> Surface {
         let (written, import) = (written_path(&configured.entry), written_import(&configured.entry));
-        let mut surface = Surface {
-            name: configured.name.clone(),
-            import: import.clone().unwrap_or_default(),
-            package: None,
-            module: Vec::new(),
-            file: None,
-            written: written.clone(),
-        };
         let found = match (&written, &import) {
             (Some(path), _) => self.module_at(path),
             (None, Some(import)) => self.module_named(import),
             (None, None) => None,
         };
-        if let Some((package, module, file)) = found {
-            if surface.import.is_empty() {
-                surface.import = std::iter::once(package.lib.clone())
-                    .chain(module.iter().cloned())
-                    .collect::<Vec<_>>()
-                    .join("::");
-            }
-            (surface.package, surface.module, surface.file) = (Some(package), module, Some(file));
-        }
-        surface
+        let import = match (import.filter(|import| !import.is_empty()), &found) {
+            (Some(import), _) => import,
+            (None, Some(located)) => import_of(located),
+            (None, None) => String::new(),
+        };
+        let resolution = match found {
+            None => Resolution::Unresolved,
+            Some(located) => match self.private_on(&import) {
+                Some(why) => Resolution::Private(why),
+                None => Resolution::Located(located),
+            },
+        };
+        Surface { name: configured.name.clone(), import, written, resolution }
+    }
+
+    /// Why an import path cannot be imported from outside its crate, when a module it goes
+    /// through is declared without `pub`. A path that is not made of the crate's module
+    /// declarations (a `pub use` gives a module another name) is not judged.
+    fn private_on(&self, import: &str) -> Option<String> {
+        let mut segments = import.split("::");
+        let package = self.project.by_lib(segments.next()?)?;
+        let path: Vec<String> = segments.map(str::to_string).collect();
+        let krate = self.krate(package);
+        let private = krate.private_on(&path)?;
+        let declared_in = krate.file_of(&private[..private.len() - 1]).map(|file| self.rel(file));
+        Some(format!(
+            "\"{import}\" cannot be imported from outside its crate: module `{}` is private (declared without `pub` in {}); name a public module, or the one that re-exports what it declares",
+            private.join("::"),
+            declared_in.unwrap_or_default()
+        ))
     }
 
     /// The module at a path of the project: a package's root for its directory, else the
     /// module a file is.
-    fn module_at(&self, path: &str) -> Option<(Package, Vec<String>, PathBuf)> {
+    fn module_at(&self, path: &str) -> Option<Located> {
         let place = self.abs(path).canonicalize().ok()?;
         for package in &self.project.packages {
             if place == package.dir {
-                return Some((package.clone(), Vec::new(), package.root.clone()));
+                return Some(Located {
+                    package: package.clone(),
+                    module: Vec::new(),
+                    file: package.root.clone(),
+                });
             }
             if let Some(module) = self.krate(package).module_of(&place) {
-                return Some((package.clone(), module.to_vec(), place));
+                return Some(Located { package: package.clone(), module: module.to_vec(), file: place });
             }
         }
         None
     }
 
     /// The module a module path names, in a crate of the project.
-    fn module_named(&self, import: &str) -> Option<(Package, Vec<String>, PathBuf)> {
+    fn module_named(&self, import: &str) -> Option<Located> {
         let mut segments = import.split("::").map(str::to_string);
         let package = self.project.by_lib(&segments.next()?)?;
-        let path: Vec<String> = segments.collect();
-        let file = self.krate(package).file_of(&path)?.to_path_buf();
-        Some((package.clone(), path, file))
+        let module: Vec<String> = segments.collect();
+        let file = self.krate(package).file_of(&module)?.to_path_buf();
+        Some(Located { package: package.clone(), module, file })
     }
 
     /// A configured surface by name.
@@ -137,12 +185,12 @@ impl Analysis {
     /// What a surface exports: read from its source, or listed by the compiler when its
     /// source does not declare all of it and the compiler can.
     pub(crate) fn exports(&self, surface: &Surface) -> Option<Vec<Export>> {
-        let package = surface.package.as_ref()?;
-        let compiled = match self.listing(package, &surface.module) {
-            Listing::Compiled(documented) => documented.exports(&surface.module),
+        let Located { package, module, .. } = surface.located()?;
+        let compiled = match self.listing(package, module) {
+            Listing::Compiled(documented) => documented.exports(module),
             Listing::Read | Listing::Refused(_) => None,
         };
-        Some(compiled.unwrap_or_else(|| self.krate(package).exports(&surface.module).to_vec()))
+        Some(compiled.unwrap_or_else(|| self.krate(package).exports(module).to_vec()))
     }
 
     /// Whether a surface exports a name.
@@ -157,10 +205,14 @@ impl Analysis {
     }
 
     fn describe(&self, surface: &Surface) -> Value {
-        let (Some(package), Some(file)) = (&surface.package, &surface.file) else {
-            return json!({ "warnings": [self.unresolved(surface)] });
+        let Located { package, module, file } = match &surface.resolution {
+            Resolution::Located(located) => located,
+            Resolution::Private(why) => {
+                return json!({ "warnings": [format!("{why}; examples and facts that use it fail")] });
+            }
+            Resolution::Unresolved => return json!({ "warnings": [self.unresolved(surface)] }),
         };
-        let warnings: Vec<String> = match self.listing(package, &surface.module) {
+        let warnings: Vec<String> = match self.listing(package, module) {
             Listing::Refused(why) => vec![unlisted(surface, &why)],
             Listing::Read | Listing::Compiled(_) => Vec::new(),
         };
@@ -174,7 +226,7 @@ impl Analysis {
         })
     }
 
-    /// Why a surface has no module.
+    /// Why a surface's entry resolved to nothing.
     fn unresolved(&self, surface: &Surface) -> String {
         let (what, why) = match (&surface.written, &self.project.error) {
             (_, Some(error)) => {
@@ -202,8 +254,20 @@ impl Analysis {
         } else {
             surface.import.clone()
         };
-        surface.package.is_none().then(|| format!("surface \"{name}\" ({shown}) not found"))
+        match &surface.resolution {
+            Resolution::Located(_) => None,
+            Resolution::Private(why) => Some(format!("surface \"{name}\": {why}")),
+            Resolution::Unresolved => Some(format!("surface \"{name}\" ({shown}) not found")),
+        }
     }
+}
+
+/// The path examples import a located module by.
+fn import_of(located: &Located) -> String {
+    std::iter::once(located.package.lib.clone())
+        .chain(located.module.iter().cloned())
+        .collect::<Vec<_>>()
+        .join("::")
 }
 
 /// What is said of a surface whose exports the compiler was asked for and could not list.

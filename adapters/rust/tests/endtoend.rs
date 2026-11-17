@@ -2,6 +2,9 @@
 //! conformance suite and the docattest core (which the `docattest` command is built
 //! with, and which carries the suite) on the sample project in `tests/fixture`.
 
+mod project;
+
+use project::docattest;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -37,25 +40,6 @@ fn a_trace_variable_set_to_nothing_asks_for_no_trace() {
     assert!(traced("1").starts_with("[trace launcher] core (built in)\n"), "{}", traced("1"));
 }
 
-/// Runs the `docattest` command in a project, as a Rust user runs it. Nothing says where
-/// the adapter is: the command finds it beside itself.
-fn docattest(root: &Path, args: &[&str]) -> (String, i32) {
-    let ran = Command::new(DOCATTEST)
-        .args(args)
-        .arg("--root")
-        .arg(root)
-        .env_remove("DOCATTEST_CORE")
-        .env_remove("DOCATTEST_ADAPTER_RUST")
-        .env_remove("DOCATTEST_NETWORK")
-        .env("GIT_CONFIG_GLOBAL", "/dev/null")
-        .env("GIT_CONFIG_SYSTEM", "/dev/null")
-        .output()
-        .unwrap();
-    let code = ran.status.code().unwrap_or(-1);
-    assert_ne!(code, 2, "docattest {args:?}: an internal error\n{}", String::from_utf8_lossy(&ran.stderr));
-    (String::from_utf8_lossy(&ran.stdout).into_owned(), code)
-}
-
 /// What `check` says of each attestation of a page of the fixture: line, kind, status.
 fn statuses(report: &Value, page: &str) -> Vec<(u64, String, String)> {
     let results = report["results"].as_array().unwrap().iter().filter(|result| result["page"] == page);
@@ -76,7 +60,7 @@ fn expected(lines: &[(u64, &str, &str)]) -> Vec<(u64, String, String)> {
 
 #[test]
 fn check_judges_every_attestation_of_the_fixture() {
-    let (out, code) = docattest(&fixture(), &["check", "--json"]);
+    let (out, code) = docattest(&fixture(), &["check", "--json"], &[]);
     let report: Value = serde_json::from_str(&out).unwrap_or_else(|_| panic!("not JSON: {out}"));
     assert_eq!(code, 1);
     let broken = [
@@ -134,13 +118,15 @@ fn check_judges_every_attestation_of_the_fixture() {
 #[test]
 fn the_index_and_the_audit_read_the_fixture() {
     let root = fixture();
-    assert_eq!(docattest(&root, &["uncovered"]).0.trim(), "ERROR_CODES");
-    assert!(docattest(&root, &["where", "quote"]).0.contains("docs/shipping.md:10 example"));
-    let audit = docattest(&root, &["audit"]).0;
+    assert_eq!(docattest(&root, &["uncovered"], &[]).0.trim(), "ERROR_CODES");
+    assert!(docattest(&root, &["where", "quote"], &[]).0.contains("docs/shipping.md:10 example"));
+    let audit = docattest(&root, &["audit"], &[]).0;
     for want in ["L5 list matches CARRIERS", "L11 column drifts from ERROR_CODES (missing: no_carrier)"] {
         assert!(audit.contains(want), "no {want:?} in {audit}");
     }
-    assert!(docattest(&root, &["inventory"]).0.contains("@shipping CARRIERS  →  [post, courier, drone]"));
+    assert!(
+        docattest(&root, &["inventory"], &[]).0.contains("@shipping CARRIERS  →  [post, courier, drone]")
+    );
 }
 
 /// Copies a directory, without what cargo built in it.
@@ -176,7 +162,7 @@ fn impact_names_the_prose_a_change_touches() {
     let shipping = root.join("src/shipping.rs");
     let text = std::fs::read_to_string(&shipping).unwrap();
     std::fs::write(&shipping, text.replacen("(\"DE\", 2)", "(\"DE\", 3)", 1)).unwrap();
-    let said = docattest(&root, &["impact"]).0;
+    let said = docattest(&root, &["impact"], &[]).0;
     for want in ["affect 1 exported symbol", "quote", "docs/shipping.md:10 proven example"] {
         assert!(said.contains(want), "no {want:?} in {said}");
     }

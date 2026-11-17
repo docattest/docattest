@@ -1,6 +1,7 @@
 //! Everything parsing a project yields, before anything runs.
 
 use std::collections::HashSet;
+use std::thread::{self, JoinHandle};
 
 use crate::adapter::{Adapter, Launch, Start, Starting};
 use crate::api::attestation::Attestation;
@@ -8,6 +9,7 @@ use crate::api::errors::{Error, Result};
 use crate::config::{ProjectConfig, load_config};
 use crate::files::glob::{GlobMatcher, is_glob};
 use crate::files::source::{DiskFiles, normalise};
+use crate::git::ignored::ignored_by_git;
 use crate::manifests::{Manifests, load_manifests};
 use crate::project::launches::Launches;
 use crate::project::plan::{Plan, plan_project};
@@ -23,6 +25,8 @@ pub struct State {
     pub frozen: Vec<String>,
     /// Every attestation on every living page.
     pub attestations: Vec<Attestation>,
+    /// What the config names that does nothing in the project.
+    pub warnings: Vec<String>,
     pub snapshots: LoadedSnapshots,
     /// The manifests the facts name.
     pub manifests: Manifests,
@@ -50,6 +54,8 @@ pub struct Greeted {
     pub config: ProjectConfig,
     pub adapter: Adapter,
     pub launch: Launch,
+    /// What git ignores, as [`ignored_by_git`] lists it: git was asked while the adapter booted.
+    ignored_by_git: JoinHandle<HashSet<String>>,
 }
 
 /// Read the config and start the adapter. A project without a valid config, or without an
@@ -86,10 +92,13 @@ fn started(files: DiskFiles, config: ProjectConfig, launch: Launch, start: Start
 impl Started {
     /// Wait for the adapter's greeting. Which names are never the project's own is the
     /// adapter's to say, so the greeting comes before the project is listed. It greets
-    /// without loading its compiler, and loads that while the pages are read and parsed.
+    /// without loading its compiler, and loads that while the pages are read and parsed; git
+    /// lists what it ignores while the greeting is awaited.
     pub fn greet(self) -> Result<Greeted> {
         let Started { files, config, adapter, launch } = self;
-        Ok(Greeted { files, config, adapter: adapter.greeted()?, launch })
+        let root = files.root().to_path_buf();
+        let ignored_by_git = thread::spawn(move || ignored_by_git(&root));
+        Ok(Greeted { files, config, adapter: adapter.greeted()?, launch, ignored_by_git })
     }
 
     /// Greet, then find every page and plan every attestation.
@@ -101,9 +110,12 @@ impl Started {
 impl Greeted {
     /// Find every page and plan every attestation.
     pub fn load(self, now: f64) -> Result<State> {
-        let Greeted { mut files, config, adapter, launch } = self;
+        let Greeted { mut files, config, adapter, launch, ignored_by_git } = self;
         files.ignore(&adapter.ignored);
-        let Plan { living, frozen, mut attestations } = plan_project(&files, &config, &adapter)?;
+        let ignored_by_git =
+            ignored_by_git.join().map_err(|_| Error::internal("listing what git ignores failed"))?;
+        files.ignore_what_git_ignores(ignored_by_git);
+        let Plan { living, frozen, mut attestations, warnings } = plan_project(&files, &config, &adapter)?;
         let snapshots = load_snapshots(&files, config.snapshots_dir.as_deref(), now, config.max_age_days);
         let manifests = load_manifests(&files, &attestations);
         manifests.refuse_unreadable(&mut attestations);
@@ -115,6 +127,7 @@ impl Greeted {
             living,
             frozen,
             attestations,
+            warnings,
             snapshots,
             manifests,
             now,

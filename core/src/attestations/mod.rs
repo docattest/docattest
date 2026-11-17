@@ -8,3 +8,4 @@ pub mod examples;
 pub mod judge;
 pub mod literals;
 pub mod plan;
+mod tags;

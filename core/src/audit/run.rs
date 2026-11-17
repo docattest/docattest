@@ -47,7 +47,7 @@ fn candidates(state: &State) -> Result<Vec<(&String, PageCandidates)>> {
     let files = &state.files;
     let find = |page: &&String| -> Result<PageCandidates> {
         let text = files.read(page).map_err(Error::user)?;
-        candidates_of(&text).map_err(Error::internal)
+        candidates_of(&text).map_err(|why| why.on(page))
     };
     let found = crate::parallel::map_in_parallel(&pages, find);
     pages.into_iter().zip(found).map(|(page, found)| Ok((page, found?))).collect()

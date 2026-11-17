@@ -1,39 +1,31 @@
 //! A session, driven as the core drives it, on the sample project in `tests/fixture`:
 //! real code, compiled and run with this machine's cargo.
 
-use docattest_rust::protocol::{Error, Session};
+mod project;
+
+use docattest_rust::protocol::Session;
+use project::call;
 use serde_json::{Value, json};
+use std::path::Path;
 use std::sync::Arc;
 
 const FIXTURE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixture");
 
-/// Opens a session on the fixture, with some of what `open` says replaced.
-fn open(replaced: Value) -> Arc<dyn Session> {
-    let mut told = json!({
-        "root": FIXTURE,
-        "surfaces": [
-            { "name": "default", "entry": "shop" },
-            { "name": "shipping", "entry": "./src/shipping.rs" },
-            { "name": "gone", "entry": "shop::no_such_module" },
-        ],
+/// Opens a session on the fixture, told of these examples.
+fn open(examples: &[Value]) -> Arc<dyn Session> {
+    let surfaces = json!([
+        { "name": "default", "entry": "shop" },
+        { "name": "shipping", "entry": "./src/shipping.rs" },
+        { "name": "gone", "entry": "shop::no_such_module" },
+    ]);
+    let told = json!({
         "setup": "docs/docattest_setup.rs",
-        "timeoutMs": 2000, "workers": 4, "network": false,
+        "workers": 4,
         "snapshots": { "dir": "docs/.snapshots", "data": { "regions": ["NL", "DE"] } },
         "manifests": { "Cargo.toml": { "package": { "name": "shop", "rust-version": "1.80" } } },
-        "examples": [],
+        "examples": examples,
     });
-    for (key, value) in replaced.as_object().into_iter().flatten() {
-        told[key] = value.clone();
-    }
-    docattest_rust::session::open(told).unwrap_or_else(|_| panic!("the session did not open"))
-}
-
-fn call(session: &Arc<dyn Session>, method: &str, params: Value) -> Value {
-    match session.call(method, params) {
-        Some(Ok(value)) => value,
-        Some(Err(Error::User(message) | Error::Internal(message))) => panic!("{method}: {message}"),
-        None => panic!("no method {method}"),
-    }
+    project::open_session(Path::new(FIXTURE), surfaces, told)
 }
 
 fn block(id: &str, code: &str) -> Value {
@@ -46,7 +38,7 @@ fn fact(id: &str, expression: &str, surface: &str) -> Value {
 
 #[test]
 fn surfaces_are_modules_and_export_their_public_names() {
-    let session = open(json!({}));
+    let session = open(&[]);
     assert_eq!(
         call(&session, "exports", json!({ "surface": "default" })),
         json!([
@@ -94,7 +86,7 @@ fn blocks_compile_and_run_each_as_a_program_of_its_own() {
     let mut network = block("network", "assert!(true);");
     network["network"] = json!(true);
     examples.extend([panics, network]);
-    let session = open(json!({ "examples": examples }));
+    let session = open(&examples);
     let diagnostics = call(&session, "compile", json!({ "examples": examples }));
     assert_eq!(
         diagnostics,
@@ -129,7 +121,7 @@ fn blocks_compile_and_run_each_as_a_program_of_its_own() {
 
 #[test]
 fn facts_show_values_as_rust_prints_them() {
-    let session = open(json!({}));
+    let session = open(&[]);
     let facts = json!([
         fact("scalar", "MAX_DISCOUNT", "default"),
         fact("text", "DEFAULT_CURRENCY", "default"),
@@ -166,7 +158,7 @@ fn facts_show_values_as_rust_prints_them() {
 
 #[test]
 fn a_fact_without_a_value_says_why_and_costs_the_others_nothing() {
-    let session = open(json!({}));
+    let session = open(&[]);
     let facts = json!([
         fact("missing", "snapshot(\"none\")", "default"),
         fact("unread", "manifest(\"Cargo.lock\")", "default"),
@@ -207,7 +199,7 @@ fn a_fact_without_a_value_says_why_and_costs_the_others_nothing() {
 
 #[test]
 fn a_cases_table_gives_a_result_for_each_row() {
-    let session = open(json!({}));
+    let session = open(&[]);
     let table = |runner: &str, header: &[&str], rows: Value| {
         let rows: Vec<Value> = rows
             .as_array()

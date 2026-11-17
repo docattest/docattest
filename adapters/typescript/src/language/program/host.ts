@@ -3,7 +3,7 @@ import ts from '../ts.cjs';
 import { relativeTo, type FileSource } from '../../files/source.js';
 import { threadCache } from '../cache.js';
 import { typeScriptName } from './file-names.js';
-import { extensionOf } from './options.js';
+import { extensionOf, isTypeScriptSource } from './options.js';
 
 /** What a compiler host serves beyond the project's own files. */
 interface HostInput {
@@ -87,13 +87,12 @@ function sourceFile(
 // A surface's import specifier resolves straight to its types entry, not through the
 // project's module resolution.
 function resolvedSurface(surface: string): ts.ResolvedModuleWithFailedLookupLocations {
-  const resolvedUsingTsExtension = /\.[mc]?tsx?$/.test(surface) && !/\.d\.[mc]?ts$/.test(surface);
   return {
     resolvedModule: {
       resolvedFileName: surface,
       extension: extensionOf(surface),
       isExternalLibraryImport: false,
-      resolvedUsingTsExtension,
+      resolvedUsingTsExtension: isTypeScriptSource(surface),
     },
   };
 }

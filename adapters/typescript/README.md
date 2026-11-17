@@ -15,7 +15,7 @@ variables; the code now says 5, and reads a third:
 $ docattest check
 docs/retries.md
   ✗ L1 fact: expected 3, got 5 from RETRY_DEFAULTS.maxAttempts
-  ✗ L3 fact: expected 2 items from the page, got 3 from ENV_KEYS; missing: LOG_LEVEL
+  ✗ L3 fact: missing: LOG_LEVEL (2 items on the page, 3 in ENV_KEYS)
 results: 0 pass, 2 fail, 0 error, 0 skipped
 ...
 FAILED

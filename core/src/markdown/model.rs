@@ -22,11 +22,12 @@ pub struct ListItem {
     pub value: String,
 }
 
-/// A table cell: its source text (with `\|` unescaped) and its value.
+/// A table cell: its source text (with `\|` unescaped) and the values a column fact compares
+/// (every code span, else the cell's one value).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TableCell {
     pub raw: String,
-    pub value: String,
+    pub values: Vec<String>,
 }
 
 /// A table body row.
@@ -42,6 +43,17 @@ pub struct TableRow {
 pub struct Table {
     pub header: Vec<String>,
     pub rows: Vec<TableRow>,
+}
+
+impl Table {
+    /// The values of the column at `index`, row by row; a row without that cell has one
+    /// empty value.
+    pub fn column_values(&self, index: usize) -> Vec<String> {
+        self.rows
+            .iter()
+            .flat_map(|row| row.cells.get(index).map_or_else(|| vec![String::new()], |c| c.values.clone()))
+            .collect()
+    }
 }
 
 /// What a block-level node is. `text` is prose: comments removed, whitespace collapsed.
@@ -161,4 +173,13 @@ pub struct Page {
     pub code: Vec<CodeRef>,
     pub comments: Vec<Comment>,
     pub unclosed: Vec<Unclosed>,
+}
+
+impl Page {
+    /// Whether the block at `index` is an HTML block of directives: one the page's comments
+    /// sit in, which a reader never sees, and not prose.
+    pub fn is_only_comments(&self, index: usize) -> bool {
+        self.flow.get(index).is_some_and(|b| matches!(b.kind, BlockKind::Other))
+            && self.comments.iter().any(|c| c.block == index)
+    }
 }

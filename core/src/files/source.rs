@@ -2,8 +2,10 @@
 
 use super::project_files::ProjectFiles;
 use super::text_file;
+use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use super::ignored::Ignored;
 
@@ -68,16 +70,24 @@ pub struct DiskFiles {
     root: PathBuf,
     /// What is never the project's own, whatever it holds: the adapter's to say.
     ignored: Ignored,
+    /// What git ignores: project-relative paths, a directory's with a trailing `/`.
+    ignored_by_git: Arc<HashSet<String>>,
 }
 
 impl DiskFiles {
     pub fn new(root: PathBuf) -> DiskFiles {
-        DiskFiles { root, ignored: Ignored::default() }
+        DiskFiles { root, ignored: Ignored::default(), ignored_by_git: Arc::default() }
     }
 
     /// Leave out of [`DiskFiles::list`] every file and directory the language ignores.
     pub fn ignore(&mut self, ignored: &Ignored) {
         self.ignored = ignored.clone();
+    }
+
+    /// Leave out of [`DiskFiles::list`] the files and directories git ignores, as
+    /// [`crate::git::ignored::ignored_by_git`] lists them.
+    pub fn ignore_what_git_ignores(&mut self, ignored_by_git: HashSet<String>) {
+        self.ignored_by_git = Arc::new(ignored_by_git);
     }
 
     /// The absolute root, as text.
@@ -113,10 +123,10 @@ impl ProjectFiles for DiskFiles {
     }
 
     /// Every project file, sorted. Tool state (hidden directories) is never a page or a
-    /// source, and neither is anything the language ignores.
+    /// source, and neither is anything the language or git ignores.
     fn list(&self) -> Vec<String> {
         let mut out = Vec::new();
-        walk(&self.root, "", &self.ignored, &mut out);
+        self.walk("", &mut out);
         out
     }
 }
@@ -145,31 +155,43 @@ fn entries(dir: &Path) -> Vec<Entry> {
         .collect()
 }
 
-fn walk(root: &Path, rel: &str, ignored: &Ignored, out: &mut Vec<String>) {
-    let dir = if rel.is_empty() { root.to_path_buf() } else { root.join(rel) };
-    let mut here: Vec<String> = Vec::new();
-    let mut found = entries(&dir);
-    // A marker says the directory that holds it is not the project's own; the root always is.
-    if !rel.is_empty() && found.iter().any(|entry| entry.is_file && ignored.marker(&entry.name)) {
-        return;
-    }
-    found.sort_by(|a, b| crate::text::compare_utf16(&a.name, &b.name));
-    for entry in found.iter().filter(|entry| !passed_over(entry, ignored)) {
-        let child = if rel.is_empty() { entry.name.clone() } else { format!("{rel}/{}", entry.name) };
-        if entry.is_dir {
-            walk(root, &child, ignored, &mut here);
-        } else if entry.is_file {
-            here.push(child);
+impl DiskFiles {
+    fn walk(&self, rel: &str, out: &mut Vec<String>) {
+        let dir = if rel.is_empty() { self.root.clone() } else { self.root.join(rel) };
+        let mut here: Vec<String> = Vec::new();
+        let mut found = entries(&dir);
+        // A marker says the directory that holds it is not the project's own; the root always is.
+        if !rel.is_empty() && found.iter().any(|entry| entry.is_file && self.ignored.marker(&entry.name)) {
+            return;
         }
+        found.sort_by(|a, b| crate::text::compare_utf16(&a.name, &b.name));
+        for entry in &found {
+            let child = if rel.is_empty() { entry.name.clone() } else { format!("{rel}/{}", entry.name) };
+            if self.leaves_out(entry, &child) {
+                continue;
+            }
+            if entry.is_dir {
+                self.walk(&child, &mut here);
+            } else if entry.is_file {
+                here.push(child);
+            }
+        }
+        // Each directory's list is sorted as a whole, nested paths included.
+        here.sort_by(|a, b| crate::text::compare_utf16(a, b));
+        out.extend(here);
     }
-    // Each directory's list is sorted as a whole, nested paths included.
-    here.sort_by(|a, b| crate::text::compare_utf16(a, b));
-    out.extend(here);
-}
 
-/// An ignored name, or a hidden directory.
-fn passed_over(entry: &Entry, ignored: &Ignored) -> bool {
-    ignored.name(&entry.name) || (entry.is_dir && entry.name.starts_with('.'))
+    /// An ignored name, a hidden directory, or what git ignores; `child` is the entry's path
+    /// from the project's root, as git lists it (a directory's with a trailing `/`).
+    fn leaves_out(&self, entry: &Entry, child: &str) -> bool {
+        let hidden_dir = entry.is_dir && entry.name.starts_with('.');
+        let by_git = if entry.is_dir {
+            self.ignored_by_git.contains(&format!("{child}/"))
+        } else {
+            self.ignored_by_git.contains(child)
+        };
+        self.ignored.name(&entry.name) || hidden_dir || by_git
+    }
 }
 
 #[cfg(test)]
@@ -202,5 +224,17 @@ mod tests {
         assert_eq!(files.list(), [".hidden.md"]);
         files.ignore(&Ignored::new(&["deps".to_string()], &[".hidden.md".to_string()]).unwrap());
         assert_eq!(files.list(), [".hidden.md", "docs/a.md"]);
+    }
+
+    #[test]
+    fn the_listing_leaves_out_what_git_ignores() {
+        let project = crate::git::tests::Temp::new("files-git");
+        for file in ["docs/a.md", "docs/gen/api.md", "docs/b.md", "notes.md"] {
+            project.write(file, file);
+        }
+        let mut files = DiskFiles::new(project.0.clone());
+        let by_git = ["docs/gen/", "docs/b.md"].map(str::to_string);
+        files.ignore_what_git_ignores(by_git.into_iter().collect());
+        assert_eq!(files.list(), ["docs/a.md", "notes.md"]);
     }
 }

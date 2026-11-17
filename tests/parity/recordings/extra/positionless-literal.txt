@@ -1,8 +1,8 @@
 # positionless literal
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === index --json
 exit 2
 stdout empty
 stderr 2 lines, no newline at end
 docattest: internal error; this is a bug in docattest, please report it.
-markdown node "text" has no position
+docs/a.md: markdown node "text" has no position

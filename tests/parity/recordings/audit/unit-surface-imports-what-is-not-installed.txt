@@ -1,5 +1,5 @@
 # unit: surface imports what is not installed
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === audit
 exit 1
 stdout empty
@@ -14,9 +14,9 @@ docattest: audit: surface "default" failed to load: Error: Cannot find module 'n
 exit 1
 stdout empty
 stderr 1 line
-docattest: audit: surface "default" failed to load: Error: Cannot find module 'not-installed'
+docattest: inventory: surface "default" failed to load: Error: Cannot find module 'not-installed'
 === inventory --json
 exit 1
 stdout empty
 stderr 1 line
-docattest: audit: surface "default" failed to load: Error: Cannot find module 'not-installed'
+docattest: inventory: surface "default" failed to load: Error: Cannot find module 'not-installed'

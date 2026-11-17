@@ -1,5 +1,5 @@
 # audit-r5
-# recorded from: fixture names made neutral; no behaviour change
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === audit --json
 exit 0
 stdout 17 lines
@@ -23,7 +23,7 @@ stdout 17 lines
 stderr empty
 === check --json
 exit 0
-stdout 35 lines
+stdout 38 lines
 {
   "results": [],
   "coverage": {
@@ -57,6 +57,9 @@ stdout 35 lines
     }
   },
   "snapshots": [],
-  "exitCode": 0
+  "exitCode": 0,
+  "warnings": [
+    "\"pages\" has \"README.md\", which matches no file"
+  ]
 }
 stderr empty

@@ -1,5 +1,5 @@
 import ts from '../ts.cjs';
-import { relativeTo } from '../../files/source.js';
+import { ownRelativeTo } from '../../files/source.js';
 import { ownerKey, unitsOf, type ModuleUnits, type Unit } from './units.js';
 
 /**
@@ -21,8 +21,7 @@ export class UnitLookup {
 
   /** The project-relative path of a module, or undefined when it is not the project's. */
   relative(file: ts.SourceFile): string | undefined {
-    const rel = relativeTo(this.root, file.fileName);
-    return rel === undefined || /(^|\/)node_modules\//.test(rel) ? undefined : rel;
+    return ownRelativeTo(this.root, file.fileName);
   }
 
   /** The units of a project module (empty for any other). */

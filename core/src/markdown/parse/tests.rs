@@ -35,14 +35,17 @@ fn top_level_blocks_with_lines_from_positions() {
 
 #[test]
 fn table_cells_as_written_with_the_pipe_escape_undone() {
-    let page = parse_page("| case | page |\n|---|---|\n| a | At `3` <!-- c --> x \\| y |\n| b |  |\n");
+    let page = parse_page(
+        "| case | page |\n|---|---|\n| a | At `3` <!-- c --> x \\| y |\n| b |  |\n| c | `A`, **`B`** |\n",
+    );
     let table = &page.tables[0];
     assert_eq!(table.header, vec!["case", "page"]);
     let raw: Vec<_> = table.rows[0].cells.iter().map(|c| c.raw.as_str()).collect();
     assert_eq!(raw, vec!["a", "At `3` <!-- c --> x | y"]);
-    assert_eq!(table.rows[0].cells[1].value, "3");
+    assert_eq!(table.rows[0].cells[1].values, ["3"]);
     let raw: Vec<_> = table.rows[1].cells.iter().map(|c| c.raw.as_str()).collect();
     assert_eq!(raw, vec!["b", ""]);
+    assert_eq!(table.column_values(1), ["3", "", "A", "B"]);
 }
 
 #[test]

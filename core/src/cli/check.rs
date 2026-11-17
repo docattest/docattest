@@ -4,9 +4,10 @@
 use std::path::{Path, PathBuf};
 
 use super::args::Options;
+use super::ci_reports::ReportFiles;
 use super::{Io, detail, finish, network, pretty, relative};
 use crate::adapter::{Launch, Start};
-use crate::api::errors::{Error, Result, unprefixed};
+use crate::api::errors::{Error, Result};
 use crate::changes::BaseReading;
 use crate::config::{Member, ProjectConfig};
 use crate::files::source::DiskFiles;
@@ -17,13 +18,16 @@ use crate::report::members::{Checked, MemberReport};
 use crate::snapshots::now_ms;
 
 /// `check`: the reports, and exit code 1 when any project fails.
+/// With `--report`, also writes the report for CI services.
 pub(super) fn check(args: &[String], root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
+    let report_files = ReportFiles::asked(&options.reports, &io.cwd, root)?;
     let checked = check_projects(args, root, options.base.as_deref())?;
     if options.json {
         io.out(&pretty(&checked.to_json()));
     } else {
-        io.out(&checked.format(detail(options)));
+        io.out(&checked.format(detail(options, args)));
     }
+    report_files.write(&checked)?;
     Ok(checked.exit_code())
 }
 
@@ -64,9 +68,9 @@ fn check_member(
 ) -> Result<Vec<MemberReport>> {
     let path = path.map_or_else(|| member.path.clone(), |above| format!("{above}/{}", member.path));
     let launch = Launch::of_member(member.adapter_command.as_deref(), dir);
-    let member_dir = below(dir, &member.path).map_err(|why| in_member(why, &path))?;
-    let (report, config) =
-        check_project(&[], &member_dir, &launch, base).map_err(|why| in_member(why, &path))?;
+    let in_member = |why: Error| why.within(format!("member {path}"));
+    let member_dir = below(dir, &member.path).map_err(in_member)?;
+    let (report, config) = check_project(&[], &member_dir, &launch, base).map_err(in_member)?;
     let below_it = check_members(&member_dir, Some(&path), &config.members, base)?;
     Ok(std::iter::once(MemberReport { path, adapter: config.adapter, report }).chain(below_it).collect())
 }
@@ -82,14 +86,6 @@ fn below(dir: &Path, member: &str) -> Result<PathBuf> {
         return Err(Error::user(format!("{} leads out of {}", joined.display(), dir.display())));
     }
     Ok(joined)
-}
-
-/// A member's problem, saying which member it is.
-fn in_member(error: Error, path: &str) -> Error {
-    match error {
-        Error::User(message) => Error::user(format!("member {path}: {}", unprefixed(&message))),
-        internal => internal,
-    }
 }
 
 /// One project's report, and its config.

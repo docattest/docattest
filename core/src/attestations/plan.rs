@@ -61,19 +61,13 @@ fn own_sentence(lead: &str) -> &str {
 /// comments is invisible to a reader, so the paragraph before it is the one that counts.
 fn prose_before(page: &Page, block: usize) -> Option<&str> {
     let mut previous = page.flow.get(block)?.previous?;
-    while is_only_comments(page, previous) {
+    while page.is_only_comments(previous) {
         previous = page.flow.get(previous)?.previous?;
     }
     match &page.flow.get(previous)?.kind {
         BlockKind::Paragraph { text } | BlockKind::Heading { text } => Some(text),
         _ => None,
     }
-}
-
-/// An HTML block of directives: one the page's comments sit in, and not prose.
-fn is_only_comments(page: &Page, block: usize) -> bool {
-    page.flow.get(block).is_some_and(|b| matches!(b.kind, BlockKind::Other))
-        && page.comments.iter().any(|c| c.block == block)
 }
 
 struct Planner<'a> {

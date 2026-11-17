@@ -29,6 +29,15 @@ export function relativeTo(root: string, file: string): string | undefined {
   return rel.split(path.sep).join('/');
 }
 
+/**
+ * The project-relative form of a path that is the project's own: inside the root and not in
+ * a `node_modules` directory, which also holds pnpm's store inside the project.
+ */
+export function ownRelativeTo(root: string, file: string): string | undefined {
+  const rel = relativeTo(root, file);
+  return rel === undefined || /(^|\/)node_modules(\/|$)/.test(rel) ? undefined : rel;
+}
+
 /** A path for messages: project-relative when inside the project, else absolute. */
 export function displayPath(root: string, file: string): string {
   return relativeTo(root, file) ?? file;

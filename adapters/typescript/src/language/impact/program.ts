@@ -1,10 +1,10 @@
 import * as path from 'node:path';
 import ts from '../ts.cjs';
 import type { SurfaceSpec } from '../surfaces/specs.js';
-import { relativeTo, type FileSource } from '../../files/source.js';
+import { ownRelativeTo, type FileSource } from '../../files/source.js';
 import { isStringArray, objectOrNothing } from '../../json.js';
 import { createHost } from '../program/host.js';
-import { compilerOptions } from '../program/options.js';
+import { compilerOptions, isTypeScriptSource } from '../program/options.js';
 import { resolveSurfaces } from '../surfaces/resolve.js';
 
 /** A program over the code behind each surface, as one revision of the project has it. */
@@ -49,10 +49,7 @@ function overlayHost(files: FileSource, options: ts.CompilerOptions): ts.Compile
   const getSourceFile = host.getSourceFile.bind(host);
   const readFile = host.readFile.bind(host);
   const directoryExists = host.directoryExists?.bind(host);
-  const own = (abs: string) => {
-    const rel = relativeTo(files.root, abs);
-    return rel !== undefined && !/(^|\/)node_modules\//.test(rel);
-  };
+  const own = (abs: string) => ownRelativeTo(files.root, abs) !== undefined;
   const read = (abs: string) => (own(abs) ? files.readAbsolute(abs) : readFile(abs));
   host.readFile = read;
   host.fileExists = (abs) => read(abs) !== undefined;
@@ -78,7 +75,7 @@ function resolveBare(
 
 /** The source a built module was compiled from, when its source map names one. */
 export function sourceOf(files: FileSource, built: string): string {
-  if (/\.[mc]?tsx?$/.test(built) && !/\.d\.[mc]?ts$/.test(built)) return built;
+  if (isTypeScriptSource(built)) return built;
   const runtime = built.replace(/\.d\.([mc]?)ts$/, '.$1js');
   for (const map of [`${built}.map`, `${runtime}.map`]) {
     const source = mappedSource(files, map);

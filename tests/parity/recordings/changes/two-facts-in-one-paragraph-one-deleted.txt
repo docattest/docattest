@@ -1,8 +1,8 @@
 # two facts in one paragraph, one deleted
-# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --base HEAD --json
-exit 0
-stdout 67 lines
+exit 1
+stdout 75 lines
 {
   "results": [
     {
@@ -67,22 +67,31 @@ stdout 67 lines
     }
   },
   "snapshots": [],
-  "exitCode": 0,
-  "changes": []
+  "exitCode": 1,
+  "changes": [
+    {
+      "type": "orphaned-claim",
+      "page": "docs/p.md",
+      "line": 4,
+      "severity": "fail",
+      "message": "\"At most `3` tries and the first key is `A`.\" is still on the page, but the fact that proved it (docs/p.md:4 at the base) is gone"
+    }
+  ]
 }
 stderr empty
 === check --base HEAD
-exit 0
-stdout 11 lines
+exit 1
+stdout 12 lines
 docs/p.md
   ✓ L3 fact: LIMIT is 3
 results: 1 pass, 0 fail, 0 error, 0 skipped
 coverage: 1 living page, 1 covered (1 attestation, 0 weak), 0 uncovered, 0 frozen
-surface default: 4 symbols, 1 attested, 3 not referenced by any page
+surface default: 4 symbols, 1 attested, 3 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
-surface extra: 2 symbols, 0 attested, 2 not referenced by any page
+surface extra: 2 symbols, 0 attested, 2 not attested by any page
   fixture/extra → src/extra.ts (fixture@1.0.0)
 snapshots: none
-changes since the base: none
-ok
+changes since the base: 1 fail, 0 warnings
+  ✗ docs/p.md:4 orphaned-claim: "At most `3` tries and the first key is `A`." is still on the page, but the fact that proved it (docs/p.md:4 at the base) is gone
+FAILED
 stderr empty

@@ -50,6 +50,60 @@ assert.equal(report.results.length, 0);
 assert.equal(report.exitCode, 0);
 ```
 
+## `frozen` leaves pages out, not a `!` glob
+
+Every list of globs in the config adds files: a file is a page when any glob of `pages`
+matches it. A glob that starts with `!` would match every file it does not name, so the
+config refuses one and says to list the pages to leave out in `frozen`.
+
+```ts check
+import { createProject } from 'docattest';
+
+const project = createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/*.md', '!docs/old.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': `export const N = 3;`,
+    'docs/a.md': 'N is `3`. <!-- fact: N -->',
+    'docs/old.md': 'N was `2`. <!-- fact: N -->',
+  },
+});
+
+await assert.rejects(project.check(), /"pages" has "!docs\/old\.md": .*"frozen" leaves pages out of the check/);
+```
+
+## What git ignores is never a page
+
+In a git work tree, the files git ignores and does not track are left out of the project:
+generated reference pages, build output, installed packages. They are never pages, and
+never sources either. A file git tracks is the project's own whatever `.gitignore` says, and
+outside a work tree every file is, as is every file of a project in a directory git ignores
+as a whole.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-gitignore-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('package.json', JSON.stringify({ name: 'demo', type: 'module' }));
+put('src/index.ts', 'export const N = 3;');
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
+put('docs/guide.md', 'N is `3`. <!-- fact: N -->');
+put('docs/api/generated.md', '# Generated reference');
+put('.gitignore', 'docs/api/\n');
+const living = () => JSON.parse(spawnSync(process.execPath, [cli, 'check', '--json', '--root', root], { encoding: 'utf8' }).stdout).coverage;
+// ---cut---
+assert.deepEqual(living().uncovered, ['docs/api/generated.md']);
+
+spawnSync('git', ['init', '--quiet'], { cwd: root });
+assert.equal(living().living, 1);
+assert.deepEqual(living().uncovered, []);
+```
+
 ## A page can freeze itself with frontmatter
 
 `docattest: false` in the frontmatter freezes one page without touching the config.

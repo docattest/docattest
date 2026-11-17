@@ -1,8 +1,8 @@
 # many pages at the base
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --base HEAD --json
 exit 1
-stdout 2574 lines
+stdout 2577 lines
 {
   "results": [
     {
@@ -2567,6 +2567,9 @@ stdout 2574 lines
   },
   "snapshots": [],
   "exitCode": 1,
+  "warnings": [
+    "\"setup\" is \"docs/docattest.setup.ts\", which nothing reads: no living page has a cases table or a fact"
+  ],
   "changes": [
     {
       "type": "orphaned-claim",

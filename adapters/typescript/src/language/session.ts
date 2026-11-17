@@ -1,12 +1,14 @@
-import type { AdapterContext, AdapterSession } from '../api/adapter.js';
+import type { AdapterContext, AdapterSession, SurfaceDescription } from '../api/adapter.js';
+import type { FileSource } from '../files/source.js';
 import { listTests } from './citations/listing.js';
 import { Compiler } from './compiler.js';
 import { surfaceObservables } from './inventory/observables.js';
 import { affectedExports } from './impact/affected.js';
 import { FactEvaluator } from './run/facts.js';
 import { Runner } from './run/runner.js';
-import { resolveSurfaces } from './surfaces/resolve.js';
+import { resolveSurfaces, type ResolvedSurface } from './surfaces/resolve.js';
 import { surfaceSpecs } from './surfaces/specs.js';
+import { workspaceBuildWarnings } from './surfaces/workspace-builds.js';
 import { namesInCode } from './syntax/lexical.js';
 import { SymbolResolver } from './symbols.js';
 
@@ -35,10 +37,24 @@ export function createSession(ctx: AdapterContext): AdapterSession {
     exports: (name) => Promise.resolve(compiler.exports(name)),
     tests: (file) => Promise.resolve(listTests(ctx.files, file)),
     observables: async (name) => surfaceObservables(facts, compiler.exports(name) ?? [], name),
-    describeSurfaces: () =>
-      Promise.resolve(new Map(surfaces.map((s) => [s.spec.name, s.description]))),
+    describeSurfaces: () => Promise.resolve(describeSurfaces(ctx.files, surfaces)),
     affected: (change) => Promise.resolve(affectedExports(ctx.files, specs, change)),
     inCode: (names, files) => Promise.resolve(namesInCode(ctx.files, specs, names, files)),
     close: async () => runner.close(),
   };
+}
+
+// Only `check` asks for descriptions, so the imports behind the surfaces are walked then.
+function describeSurfaces(
+  files: FileSource,
+  surfaces: readonly ResolvedSurface[],
+): Map<string, SurfaceDescription> {
+  const buildWarnings = workspaceBuildWarnings(files);
+  return new Map(
+    surfaces.map((surface) => {
+      const { description } = surface;
+      const warnings = [...description.warnings, ...buildWarnings(surface)];
+      return [surface.spec.name, { ...description, warnings }];
+    }),
+  );
 }

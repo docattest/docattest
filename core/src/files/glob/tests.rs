@@ -193,3 +193,13 @@ fn is_glob_basics() {
     assert!(!is_glob("README.md"));
     assert!(!is_glob("\\*"));
 }
+
+#[test]
+fn a_leading_bang_negates_and_a_negated_extglob_does_not() {
+    for negated in ["!docs/a.md", "!**/*.md", "!!!a"] {
+        assert!(is_negation(negated), "{negated}");
+    }
+    for plain in ["docs/a.md", "!!a", "!(a|b).md", "docs/!a.md", "\\!a"] {
+        assert!(!is_negation(plain), "{plain}");
+    }
+}

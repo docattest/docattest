@@ -14,7 +14,9 @@ fn next_block<'p>(page: &'p Page, comment: &Comment) -> Option<&'p Block> {
 /// Bind a fact to its target, positionally and strictly. A directive that ends its line binds
 /// the list, table (with `column=`) or fenced block that starts on the next line; `column=`
 /// binds the next table across blank lines. Otherwise it binds what is before it in its
-/// sentence (see [`bind_inline`]). Anything else is an error.
+/// sentence (see [`bind_inline`]); when nothing there is a target, a directive that ends its
+/// block binds the list or fenced block right after that block, across blank lines. Anything
+/// else is an error.
 pub fn bind_fact(
     ordered: bool,
     column: Option<&str>,
@@ -26,16 +28,39 @@ pub fn bind_fact(
     if let Some(column) = column.filter(|c| !c.is_empty())
         && comment.ends_line
     {
-        return bind_column(&at, column, next, page);
+        return bind_column(&at, column, next_past_comments(page, comment), page);
     }
     let adjacent = next.filter(|b| comment.ends_line && b.start == comment.end_line + 1);
     if let Some(bound) = bind_block(&at, adjacent, ordered) {
         return bound;
     }
-    bind_inline(&at, comment, column, ordered)
+    if let Some(candidate) = last_candidate(comment).or_else(|| last_sentence_span(comment)) {
+        return bind_inline(&at, candidate, comment, column, ordered);
+    }
+    let following = next.filter(|b| ends_its_block(comment, page) && b.previous == Some(comment.block));
+    bind_block(&at, following, ordered).unwrap_or_else(|| {
+        let hint = "put it after a code span or number on the same line, at the end of a \
+                    sentence with code spans, or at the end of a line or paragraph before a \
+                    list, table or fenced block";
+        Err(format!("{at} has no target: {hint}"))
+    })
 }
 
-/// `column=`: the column of the table that follows, across blank lines.
+/// Nothing follows the directive in the paragraph, heading or HTML block that holds it.
+fn ends_its_block(comment: &Comment, page: &Page) -> bool {
+    comment.ends_line && page.flow.get(comment.block).is_some_and(|b| b.end == comment.end_line)
+}
+
+/// The first block after the comment's own that is not an HTML block of comments, so that
+/// the facts stacked above a table, one per column, all reach it.
+fn next_past_comments<'p>(page: &'p Page, comment: &Comment) -> Option<&'p Block> {
+    (comment.block + 1..page.flow.len())
+        .find(|&index| !page.is_only_comments(index))
+        .map(|index| &page.flow[index])
+}
+
+/// `column=`: the column of the table that follows, across blank lines and the other
+/// directives stacked above it.
 fn bind_column(at: &str, column: &str, next: Option<&Block>, page: &Page) -> Result<FactTarget, String> {
     let Some(BlockKind::Table(t)) = next.map(|b| &b.kind) else {
         return Err(format!("{at} has column={column} but no table follows it"));
@@ -45,9 +70,10 @@ fn bind_column(at: &str, column: &str, next: Option<&Block>, page: &Page) -> Res
         let columns = table.header.join(", ");
         return Err(format!("{at}: the table has no column \"{column}\" (columns: {columns})"));
     };
-    let items =
-        table.rows.iter().map(|r| r.cells.get(index).map(|c| c.value.clone()).unwrap_or_default()).collect();
-    Ok(FactTarget::Set { items, from: SetFrom::Table { column: column.to_string() } })
+    Ok(FactTarget::Set {
+        items: table.column_values(index),
+        from: SetFrom::Table { column: column.to_string() },
+    })
 }
 
 /// The list or fenced block on the next line, if one is there.
@@ -73,21 +99,17 @@ fn bind_block(at: &str, adjacent: Option<&Block>, ordered: bool) -> Option<Resul
     }
 }
 
-/// The code span, number or version before the comment on its line, else the code span of
-/// the sentence it ends (a sentence wrapped over lines); or, when that is a code span that
-/// ends a sentence of two or more, the sentence's code spans as a set, which the comparison
-/// reads as the last of them when the value is not a list.
+/// Bind `candidate`: the code span, number or version before the comment on its line, else the
+/// code span of the sentence it ends (a sentence wrapped over lines); or, when that is a code
+/// span that ends a sentence of two or more, the sentence's code spans as a set, which the
+/// comparison reads as the last of them when the value is not a list.
 fn bind_inline(
     at: &str,
+    candidate: Candidate,
     comment: &Comment,
     column: Option<&str>,
     ordered: bool,
 ) -> Result<FactTarget, String> {
-    let Some(candidate) = last_candidate(comment).or_else(|| last_sentence_span(comment)) else {
-        let hint = "put it after a code span or number on the same line, at the end of a \
-                    sentence with code spans, or on the line before a list, table or fenced block";
-        return Err(format!("{at} has no target: {hint}"));
-    };
     let not_scalar = || format!("{at}: column= and ordered apply to lists and tables, not scalars");
     if column.is_some_and(|c| !c.is_empty()) {
         return Err(not_scalar());
@@ -235,5 +257,40 @@ mod tests {
         assert!(bound("Keys are `a`. <!-- f -->", true).is_err());
         assert_eq!(bound("The key is `a`\nhere. <!-- f -->", false), Ok(FactTarget::Scalar("a".into())));
         assert!(bound("See `x`. No value\nhere. <!-- f -->", false).is_err());
+    }
+
+    #[test]
+    fn a_directive_ending_a_paragraph_with_no_target_binds_the_list_after_it() {
+        let list = |items: &[&str]| {
+            Ok(FactTarget::Set { items: items.iter().map(|s| s.to_string()).collect(), from: SetFrom::List })
+        };
+        assert_eq!(bound("Three keys: <!-- f -->\n\n- `a`\n- `b`", false), list(&["a", "b"]));
+        assert_eq!(bound("<!-- f -->\n\n\n- `a`", false), list(&["a"]));
+        assert_eq!(bound("Shape: <!-- f -->\n\n```ts\nx\n```", false), Ok(FactTarget::Text("x".into())));
+        assert_eq!(bound("Keys are `a`. <!-- f -->\n\n- `b`", false), Ok(FactTarget::Scalar("a".into())));
+        assert!(bound("Three keys: <!-- f --> more\n\n- `a`", false).is_err());
+        assert!(bound("Three keys: <!-- f -->\n\nProse.\n\n- `a`", false).is_err());
+        assert!(
+            bound("Three keys: <!-- f -->\n\n| a |\n|---|\n| b |", false)
+                .unwrap_err()
+                .contains("names no column")
+        );
+    }
+
+    #[test]
+    fn column_facts_stacked_above_one_table_each_bind_it() {
+        let column = |items: &[&str], name: &str| {
+            Ok(FactTarget::Set {
+                items: items.iter().map(|s| s.to_string()).collect(),
+                from: SetFrom::Table { column: name.into() },
+            })
+        };
+        let table = "| method | path |\n|---|---|\n| GET | `/a` |";
+        for gap in ["\n", "\n\n"] {
+            let page = parse_page(&format!("<!-- f -->{gap}<!-- g -->\n{table}")).unwrap_or_default();
+            let [first, second] = &page.comments[..] else { panic!("two comments") };
+            assert_eq!(bind_fact(false, Some("method"), first, &page), column(&["GET"], "method"));
+            assert_eq!(bind_fact(false, Some("path"), second, &page), column(&["/a"], "path"));
+        }
     }
 }

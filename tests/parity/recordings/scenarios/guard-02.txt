@@ -1,8 +1,8 @@
 # guard-02
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --base HEAD --json
 exit 1
-stdout 55 lines
+stdout 58 lines
 {
   "results": [
     {
@@ -48,6 +48,9 @@ stdout 55 lines
   },
   "snapshots": [],
   "exitCode": 1,
+  "warnings": [
+    "\"pages\" has \"README.md\", which matches no file"
+  ],
   "changes": [
     {
       "type": "orphaned-claim",

@@ -1,9 +1,11 @@
 //! Facts, and what a surface offers.
 //!
 //! A fact expression is a Rust expression. It is compiled in a program that imports
-//! everything its surface's module exports (`use shop::*`), so the exports are in scope
+//! everything its surface's module exports (`use ::shop::*`), so the exports are in scope
 //! by their own names and nothing else of the crate is; the setup module's `pub` items
-//! are in scope the same way; and `std` is there by its name, as everywhere.
+//! are in scope the same way; and `std` and the crates of the workspace are there by
+//! their names, as everywhere. The program names every crate from the root (`::shop`):
+//! a crate may declare a module of its own name, which the glob import brings in.
 
 use super::Runner;
 use super::generated::CRATE;
@@ -142,7 +144,7 @@ impl Runner {
     /// `facts`, or `observables`, which takes each with its name.
     fn facts_main(&self, surface: &Surface, expressions: &[String], live: &[bool], serves: &str) -> Rendered {
         let mut source = format!(
-            "#![allow(unused, ambiguous_glob_imports)]\nuse {CRATE}::harness::serve::{{manifest, snapshot}};\nuse {CRATE}::observe;\nuse {}::*;\n{}\nfn main() {{\n    {CRATE}::harness::serve::{serves}(vec![\n",
+            "#![allow(unused, ambiguous_glob_imports)]\nuse ::{CRATE}::harness::serve::{{manifest, snapshot}};\nuse ::{CRATE}::observe;\nuse ::{}::*;\n{}\nfn main() {{\n    ::{CRATE}::harness::serve::{serves}(vec![\n",
             surface.import,
             self.setup_module()
                 .map_or_else(|| "// no setup module".to_string(), |module| format!("{module} use setup::*;")),
@@ -165,7 +167,7 @@ impl Runner {
     /// exports that can be shown, each with the fact expression that reads it. A surface
     /// that cannot be read is the project's mistake.
     pub(crate) fn observables(&self, name: &str) -> Result<Value, Error> {
-        let user = |why: String| Error::User(format!("docattest: audit: {why}"));
+        let user = |why: String| Error::User(format!("docattest: {why}"));
         if let Some(missing) = self.analysis.not_found(name) {
             return Err(user(missing));
         }

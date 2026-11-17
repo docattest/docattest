@@ -76,33 +76,56 @@ fn parse_cases(text: &str, line: usize) -> Directive {
 fn parse_fact(rest: &str, line: usize) -> Directive {
     let invalid = |message: String| Directive::Invalid { as_kind: Keyword::Fact, message };
     let (column, remainder) = take_column(rest);
+    let bare_column = column.as_ref().filter(|c| !c.quoted).map(|c| c.name.as_str());
     let Some(colon) = remainder.find(':') else {
         return invalid(format!("fact at L{line} has no expression; expected <!-- fact: <expression> -->"));
     };
     let mut surface = DEFAULT_SURFACE.to_string();
     let mut ordered = false;
-    for word in words(trim(&remainder[..colon])) {
-        if let Some(name) = word.strip_prefix('@')
-            && !name.is_empty()
-        {
-            surface = name.to_string();
-        } else if word == "ordered" {
-            ordered = true;
-        } else {
-            return invalid(format!("fact at L{line}: unknown modifier \"{word}\""));
+    let modifiers = words(trim(&remainder[..colon]));
+    for word in &modifiers {
+        if !is_modifier(word) {
+            let unknown = format!("fact at L{line}: unknown modifier \"{word}\"");
+            return invalid(match bare_column {
+                Some(name) => format!("{unknown}; {}", quoting_hint(name, &modifiers)),
+                None => unknown,
+            });
+        }
+        match word.strip_prefix('@') {
+            Some(name) => surface = name.to_string(),
+            None => ordered = true,
         }
     }
     let expression = trim(&remainder[colon + 1..]);
     if expression.is_empty() {
         return invalid(format!("fact at L{line} has no expression"));
     }
-    let column = column.filter(|c| !c.is_empty());
+    let column = column.map(|c| c.name).filter(|name| !name.is_empty());
     Directive::Fact(FactDirective { expression: expression.to_string(), surface, ordered, column })
+}
+
+/// `@<surface>` or `ordered`.
+fn is_modifier(word: &str) -> bool {
+    word == "ordered" || word.strip_prefix('@').is_some_and(|name| !name.is_empty())
+}
+
+/// How to write a column name with spaces, from a bare `column=` and the words after it that
+/// are no modifier: they read as the rest of the name.
+fn quoting_hint(bare: &str, modifiers: &[&str]) -> String {
+    let rest = modifiers.iter().copied().filter(|word| !is_modifier(word));
+    let name = std::iter::once(bare).chain(rest).collect::<Vec<_>>().join(" ");
+    format!("a column name with spaces is quoted: column=\"{name}\"")
+}
+
+/// The value of `column=` and whether it was written in quotes.
+struct ColumnName {
+    name: String,
+    quoted: bool,
 }
 
 // column= may quote its value, and only counts when it comes before the expression's colon.
 // `/\bcolumn=(?:"([^"]*)"|'([^']*)'|([^\s:]+))/`
-fn take_column(rest: &str) -> (Option<String>, String) {
+fn take_column(rest: &str) -> (Option<ColumnName>, String) {
     let colon = rest.find(':');
     let mut from = 0;
     while let Some(found) = rest.get(from..).and_then(|r| r.find("column=")) {
@@ -126,17 +149,18 @@ fn take_column(rest: &str) -> (Option<String>, String) {
     (None, rest.to_string())
 }
 
-fn column_value(rest: &str, start: usize) -> Option<(String, usize)> {
+fn column_value(rest: &str, start: usize) -> Option<(ColumnName, usize)> {
     let tail = &rest[start..];
     for quote in ['"', '\''] {
         if let Some(inner) = tail.strip_prefix(quote)
             && let Some(close) = inner.find(quote)
         {
-            return Some((inner[..close].to_string(), start + 1 + close + 1));
+            let name = ColumnName { name: inner[..close].to_string(), quoted: true };
+            return Some((name, start + 1 + close + 1));
         }
     }
     let end = tail.find(|c: char| is_js_space(c) || c == ':').unwrap_or(tail.len());
-    (end > 0).then(|| (tail[..end].to_string(), start + end))
+    (end > 0).then(|| (ColumnName { name: tail[..end].to_string(), quoted: false }, start + end))
 }
 
 #[cfg(test)]
@@ -190,6 +214,16 @@ mod tests {
     fn malformed_directives() {
         assert!(message("fact N", 4).contains("L4 has no expression"));
         assert_eq!(message("fact sorted: N", 4), "fact at L4: unknown modifier \"sorted\"");
+        assert_eq!(
+            message("fact column=program address ordered: N", 4),
+            "fact at L4: unknown modifier \"address\"; a column name with spaces is quoted: \
+             column=\"program address\""
+        );
+        assert_eq!(message("fact column='a b' c: N", 4), "fact at L4: unknown modifier \"c\"");
+        assert_eq!(
+            parse_directive("fact column='program address': N", 1),
+            Some(fact("N", "default", false, Some("program address")))
+        );
         assert_eq!(message("fact: ", 4), "fact at L4 has no expression");
         assert!(matches!(
             parse_directive("cases: two words", 4),

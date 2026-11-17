@@ -4,6 +4,54 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.4] - 2026-11-17
+
+### Added
+
+- `check --report junit=<file>` and `--report codequality=<file>` also write the report as
+  JUnit XML and as a GitLab Code Quality report, with paths from the repository's root; the
+  README shows a GitLab CI job that uses them.
+- `manifest()` reads YAML (`.yaml`, `.yml`), such as `pnpm-workspace.yaml` or a CI file.
+- Warnings, which never change the exit code: a `pages` or `sources` glob that matches no
+  file, a `setup` module that is not there or that nothing reads, and (TypeScript) a
+  workspace package a surface imports whose build is missing or older than its sources.
+- **Rust**: a crate that declares a module of its own name (an Anchor program) can be a
+  surface; a surface that names a private module says which module is private; a fact that
+  reaches an item by its crate path names it for `where` and `impact`; and
+  `DOCATTEST_CARGO_FEATURES` enables features of the crate built for facts and cases.
+
+### Fixed
+
+- `check --base` reports a removed fact whose sentence stays on the page even when other
+  proofs remain in its paragraph, and quotes that sentence rather than the paragraph's first.
+- A `!` glob in `pages` (or another glob list) is a configuration error pointing to `frozen`,
+  instead of making every file a page; an internal error names the page it was reading.
+- Files git ignores are neither pages nor sources.
+- `[...manifest("x.json")]`: a spread before `manifest` is not mistaken for member access.
+- A template that fills in a value (`` manifest(`${dir}/x.json`) ``) is reported as built at
+  run time, not read as a literal path.
+- An error from `inventory` names `inventory`, not `audit`.
+- **Go**: a cases row names the symbols its runner reaches through the setup package's
+  helpers, so `where` finds it.
+
+### Changed
+
+- With pages named, `check` counts the uncovered pages instead of listing the whole project's;
+  frozen pages are counted, never listed, in the text report; `--json` keeps both lists.
+- A renderer's word on an untagged block (` ```ts twoslash `) leaves it documentation; only a
+  likely misspelling of `check`, `compile` or `network` is an error, naming the tag.
+- A fact that ends a paragraph with nothing to compare binds the list or fenced block after
+  it across blank lines (`The keys are: <!-- fact: … -->`, a blank line, a list).
+- A number or version may be written with a leading `v`: `v1.2.3` compares as `1.2.3`.
+- A column fact compares every code span of a cell (`` `A`, `B` ``), not only the first.
+- A set failure leads with what differs and gives the counts only when they differ:
+  `missing: C (2 items on the page, 3 in KEYS)`.
+- A fenced block compares token by token, so `[1,2]` matches `[1, 2]`.
+- `column=route path` says how to quote a column name with spaces.
+- Column facts stacked above one table, one per column, each bind it.
+- The surface summary counts symbols "not attested by any page" (it said "not referenced",
+  though a page may name a symbol it does not attest).
+
 ## [0.1.3] - 2026-11-17
 
 ### Added

@@ -3,7 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
-use super::{Failure, blobs, run};
+use super::{Failure, blobs, prefix, run};
 use crate::api::errors::{Error, Result};
 use crate::config::{CONFIG_FILE, parse_config};
 use crate::files::glob::GlobMatcher;
@@ -78,14 +78,13 @@ fn text(bytes: &[u8]) -> String {
 
 // The project may sit in a subdirectory of the repository; paths are relative to it.
 fn repository_prefix(root: &Path) -> Result<String> {
-    match git(root, &["rev-parse", "--show-prefix"]) {
-        Ok(out) => Ok(trim(&text(&out)).to_string()),
-        Err(Failure::Missing) => Err(Error::user("a base ref is read with git, which was not found")),
-        Err(Failure::Failed(_)) => Err(Error::user(format!(
+    prefix(root).map_err(|failure| match failure {
+        Failure::Missing => Error::user("a base ref is read with git, which was not found"),
+        Failure::Failed(_) => Error::user(format!(
             "a base ref is read from git, but {} is not in a git repository",
             root.display()
-        ))),
-    }
+        )),
+    })
 }
 
 fn resolve_ref(root: &Path, reference: &str) -> Result<String> {

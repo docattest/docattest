@@ -148,6 +148,29 @@ fn counts_an_unproven_copy_that_was_already_there() {
 }
 
 #[test]
+fn fails_each_lost_proof_whatever_other_proofs_stay_in_its_paragraph() {
+    let from = |base: String, head: String| kinds_from(&[("docs/k.md", Some(head))], &[("docs/k.md", base)]);
+    let keys = "The keys are `A` and `B` <!-- fact: KEYS -->, in order.";
+    let both = page(&[&format!("{keys} A call is tried at most `3` times. <!-- fact: LIMIT -->")]);
+    let one = page(&[&format!("The keys are `A` and `B`, in order. {FACT}")]);
+    let (base_files, head_files) = sides(&[("docs/k.md", Some(one))], &[("docs/k.md", both)]);
+    let changes = between(&plan(&base_files), &plan(&head_files), &head_files);
+    let message = "\"The keys are `A` and `B`, in order.\" is still on the page, but the fact that proved it (docs/k.md:3 at the base) is gone";
+    assert_eq!(changes.iter().map(|c| (c.line, c.message.as_str())).collect::<Vec<_>>(), [(3, message)]);
+    let under_block = |fact: &str| page(&lines(&[&[fact, ""], &EXAMPLE]));
+    assert_eq!(
+        from(under_block(FACT), under_block("A call is tried at most `3` times.")),
+        ["orphaned-claim docs/k.md:3"]
+    );
+    let item =
+        |fact: &str| page(&[&format!("- Calls are tried `3` times {fact}<!-- test: t.ts > \"retries\" -->")]);
+    assert_eq!(from(item("<!-- fact: LIMIT --> "), item("")), ["orphaned-claim docs/k.md:3"]);
+    let twice = page(&["A call is tried at most `3` <!-- fact: LIMIT --> <!-- fact: LIMIT === 3 --> times."]);
+    let once = page(&["A call is tried at most `3` <!-- fact: LIMIT === 3 --> times."]);
+    assert_eq!(from(twice, once), NONE);
+}
+
+#[test]
 fn covers_list_facts_table_cells_cases_tables_and_doc_comments() {
     let list = page(&["The keys are: <!-- fact: KEYS -->", "- `A`", "- `B`"]);
     let unbound = page(&["The keys are:", "- `A`", "- `B`"]);
@@ -285,6 +308,7 @@ fn report() -> Report {
         },
         surfaces: Vec::new(),
         snapshots: Vec::new(),
+        warnings: Vec::new(),
         exit_code: 0,
         changes: None,
     }

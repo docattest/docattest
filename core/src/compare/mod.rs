@@ -2,7 +2,10 @@
 
 mod block;
 
+use std::collections::HashSet;
+
 use crate::api::attestation::{FactTarget, SetFrom};
+use crate::attestations::literals::without_version_mark;
 use crate::counted::{agreeing, counted};
 use crate::json::json_string;
 use crate::report::Status;
@@ -32,7 +35,7 @@ pub struct Comparison {
     pub actual: String,
 }
 
-fn list(items: &[String]) -> String {
+fn list<S: std::borrow::Borrow<str>>(items: &[S]) -> String {
     format!("[{}]", items.join(", "))
 }
 
@@ -41,7 +44,9 @@ fn collapse(text: &str) -> String {
 }
 
 /// Compare a fact's observed value with its target: scalars as strings, sets
-/// order-insensitive unless `ordered`, text after collapsing whitespace.
+/// order-insensitive unless `ordered`, text token by token (whitespace counts only where it
+/// parts two words; see [`first_difference`]). A number or version
+/// compares without the `v` that may lead it, so `v1.2.3` is `1.2.3`.
 pub fn compare_fact(expression: &str, ordered: bool, target: &FactTarget, value: &Observation) -> Comparison {
     match target {
         FactTarget::Scalar(expected) => compare_scalar(expression, expected, value),
@@ -51,7 +56,7 @@ pub fn compare_fact(expression: &str, ordered: bool, target: &FactTarget, value:
 }
 
 fn compare_scalar(expression: &str, expected: &str, value: &Observation) -> Comparison {
-    let ok = value.text == expected;
+    let ok = without_version_mark(&value.text) == without_version_mark(expected);
     let message = if ok {
         format!("{expression} is {}", value.text)
     } else {
@@ -95,18 +100,26 @@ enum Counting {
 }
 
 impl Expected<'_> {
-    /// `count` of what the items are: `1 item`, `3 rows in column path`, `2 distinct code
+    /// `count` of what the items are: `1 item`, `3 values in column path`, `2 distinct code
     /// spans`.
     fn counted(&self, count: usize, counting: Counting) -> String {
         let distinct = matches!(counting, Counting::Distinct);
         let (noun, place) = match self.from {
             SetFrom::Table { column } => {
-                (if distinct { "distinct value" } else { "row" }, format!(" in column {column}"))
+                (if distinct { "distinct value" } else { "value" }, format!(" in column {column}"))
             }
             SetFrom::List => (if distinct { "distinct item" } else { "item" }, String::new()),
             SetFrom::Sentence => (if distinct { "distinct code span" } else { "code span" }, String::new()),
         };
         format!("{}{place}", counted(count, noun))
+    }
+
+    /// Where the items are on the page: `the list`, `column path`.
+    fn place(&self) -> String {
+        match self.from {
+            SetFrom::Table { column } => format!("column {column}"),
+            SetFrom::List | SetFrom::Sentence => format!("the {}", self.from.as_str()),
+        }
     }
 }
 
@@ -124,19 +137,23 @@ fn compare_set(expression: &str, ordered: bool, expected: Expected, value: &Obse
             actual: value.description.clone(),
         };
     };
-    let problems = set_problems(expected.items, items, ordered);
+    let (page_items, code_items) = (keyed(expected.items), keyed(items));
+    let problems = set_problems(&page_items, &code_items, ordered);
     // Unordered, the two sides are sets, so a value written twice counts once.
-    let count = |values: &[String]| if ordered { values.len() } else { unique(values).len() };
-    let (want, have) = (count(expected.items), count(items));
-    let repeats = want != expected.items.len() || have != items.len();
+    let count = |values: &[SetItem]| if ordered { values.len() } else { unique(values).count() };
+    let (want, have) = (count(&page_items), count(&code_items));
+    let repeats = want != page_items.len() || have != code_items.len();
     let counting = if repeats { Counting::Distinct } else { Counting::Each };
-    let order = if ordered { " in this order" } else { "" };
-    let counts = format!("expected {}{order} from the page, got {have}", expected.counted(want, counting));
+    // What differs leads; the counts follow only when they differ, as equal counts beside
+    // a difference read as a contradiction.
     let message = if problems.is_empty() {
         let verb = agreeing(want, "matches", "match");
         format!("{} {verb} {expression}", expected.counted(want, counting))
+    } else if want == have {
+        format!("{} (comparing {} on the page with {expression})", problems.join("; "), expected.place())
     } else {
-        format!("{counts} from {expression}; {}", problems.join("; "))
+        let counts = format!("{} on the page, {have} in {expression}", expected.counted(want, counting));
+        format!("{} ({counts})", problems.join("; "))
     };
     Comparison {
         status: if problems.is_empty() { Status::Pass } else { Status::Fail },
@@ -146,10 +163,21 @@ fn compare_set(expression: &str, ordered: bool, expected: Expected, value: &Obse
     }
 }
 
-/// Unique values in first-seen order: `new Set(values)`.
-fn unique(values: &[String]) -> Vec<&String> {
-    let mut seen = std::collections::HashSet::new();
-    values.iter().filter(|v| seen.insert(v.as_str())).collect()
+/// An item of a set as written, with the key it compares by: without the `v` that may lead
+/// a number or version.
+struct SetItem<'a> {
+    written: &'a str,
+    key: &'a str,
+}
+
+fn keyed(items: &[String]) -> Vec<SetItem<'_>> {
+    items.iter().map(|item| SetItem { written: item, key: without_version_mark(item) }).collect()
+}
+
+/// Unique items by key, in first-seen order: `new Set(values)`.
+fn unique<'a>(values: &'a [SetItem<'a>]) -> impl Iterator<Item = &'a SetItem<'a>> {
+    let mut seen = HashSet::new();
+    values.iter().filter(move |v| seen.insert(v.key))
 }
 
 /// An item as a message names it: an empty one, such as an empty cell, as `""`.
@@ -157,16 +185,9 @@ fn shown(item: &str) -> &str {
     if item.is_empty() { "\"\"" } else { item }
 }
 
-fn set_problems(expected: &[String], actual: &[String], ordered: bool) -> Vec<String> {
-    let want: std::collections::HashSet<&str> = expected.iter().map(String::as_str).collect();
-    let have: std::collections::HashSet<&str> = actual.iter().map(String::as_str).collect();
-    let mut missing: Vec<&String> =
-        unique(actual).into_iter().filter(|x| !want.contains(x.as_str())).collect();
-    let mut unexpected: Vec<&String> =
-        unique(expected).into_iter().filter(|x| !have.contains(x.as_str())).collect();
-    missing.sort_by(|a, b| compare_utf16(a, b));
-    unexpected.sort_by(|a, b| compare_utf16(a, b));
-    let join = |v: &[&String]| v.iter().map(|s| shown(s)).collect::<Vec<_>>().join(", ");
+fn set_problems(expected: &[SetItem], actual: &[SetItem], ordered: bool) -> Vec<String> {
+    let (missing, unexpected) = (absent_from(actual, expected), absent_from(expected, actual));
+    let join = |v: &[&str]| v.iter().map(|s| shown(s)).collect::<Vec<_>>().join(", ");
     let mut problems = Vec::new();
     if !missing.is_empty() {
         problems.push(format!("missing: {}", join(&missing)));
@@ -174,11 +195,20 @@ fn set_problems(expected: &[String], actual: &[String], ordered: bool) -> Vec<St
     if !unexpected.is_empty() {
         problems.push(format!("unexpected: {}", join(&unexpected)));
     }
-    let reordered = expected.len() != actual.len() || expected.iter().zip(actual).any(|(x, y)| x != y);
+    let reordered = expected.iter().map(|v| v.key).ne(actual.iter().map(|v| v.key));
     if ordered && problems.is_empty() && reordered {
-        problems.push(format!("order differs: the code has {}", list(actual)));
+        let written: Vec<&str> = actual.iter().map(|v| v.written).collect();
+        problems.push(format!("order differs: the code has {}", list(&written)));
     }
     problems
+}
+
+/// The unique `items` whose key `other` lacks, as written, in UTF-16 order.
+fn absent_from<'a>(items: &'a [SetItem<'a>], other: &[SetItem]) -> Vec<&'a str> {
+    let keys: HashSet<&str> = other.iter().map(|v| v.key).collect();
+    let mut absent: Vec<&str> = unique(items).filter(|x| !keys.contains(x.key)).map(|x| x.written).collect();
+    absent.sort_by(|a, b| compare_utf16(a, b));
+    absent
 }
 
 #[cfg(test)]
@@ -203,6 +233,19 @@ mod tests {
     }
 
     #[test]
+    fn a_leading_v_is_not_part_of_a_number() {
+        let c = compare_fact("V", false, &FactTarget::Scalar("v1.89.0".into()), &obs("1.89.0", None));
+        assert_eq!((c.status, c.message.as_str()), (Status::Pass, "V is 1.89.0"));
+        let c = compare_fact("V", false, &FactTarget::Scalar("1.89.0".into()), &obs("v1.89.0", None));
+        assert_eq!(c.status, Status::Pass);
+        let c = compare_fact("V", false, &FactTarget::Scalar("v1.89.0".into()), &obs("1.90.0", None));
+        assert_eq!(c.message, "expected v1.89.0, got 1.90.0 from V");
+        let list = FactTarget::Set { items: vec!["v1.0.0".into(), "v2.0.0".into()], from: SetFrom::List };
+        let c = compare_fact("V", true, &list, &obs("", Some(&["1.0.0", "2.0.0"])));
+        assert_eq!(c.status, Status::Pass);
+    }
+
+    #[test]
     fn sets_name_what_is_missing() {
         let target = FactTarget::Set {
             items: vec!["API_TOKEN".into(), "REGION".into(), "PORT".into()],
@@ -214,17 +257,14 @@ mod tests {
             &target,
             &obs("", Some(&["API_TOKEN", "REGION", "PORT", "LOG_LEVEL"])),
         );
-        assert_eq!(c.message, "expected 3 items from the page, got 4 from ENV_KEYS; missing: LOG_LEVEL");
+        assert_eq!(c.message, "missing: LOG_LEVEL (3 items on the page, 4 in ENV_KEYS)");
         let c = compare_fact(
             "K",
             true,
             &FactTarget::Set { items: vec!["a".into(), "b".into()], from: SetFrom::List },
             &obs("", Some(&["b", "a"])),
         );
-        assert_eq!(
-            c.message,
-            "expected 2 items in this order from the page, got 2 from K; order differs: the code has [b, a]"
-        );
+        assert_eq!(c.message, "order differs: the code has [b, a] (comparing the list on the page with K)");
         let c = compare_fact(
             "K",
             false,
@@ -256,7 +296,7 @@ mod tests {
     fn a_sentence_is_a_set_for_a_list_and_its_last_code_span_for_a_scalar() {
         let sentence = FactTarget::Set { items: vec!["A".into(), "B".into()], from: SetFrom::Sentence };
         let c = compare_fact("K", false, &sentence, &obs("", Some(&["A", "B", "C"])));
-        assert_eq!(c.message, "expected 2 code spans from the page, got 3 from K; missing: C");
+        assert_eq!(c.message, "missing: C (2 code spans on the page, 3 in K)");
         let c = compare_fact("N", false, &sentence, &obs("B", None));
         assert_eq!((c.status, c.message.as_str()), (Status::Pass, "N is B"));
         let c = compare_fact("N", true, &sentence, &obs("B", None));
@@ -275,14 +315,13 @@ mod tests {
             (Status::Pass, "2 distinct values in column Kind match K")
         );
         let c = compare_fact("K", false, &column(&["a", "a", ""]), &obs("", Some(&["a", "b"])));
-        assert_eq!(
-            c.message,
-            "expected 2 distinct values in column Kind from the page, got 2 from K; missing: b; unexpected: \"\""
-        );
+        assert_eq!(c.message, "missing: b; unexpected: \"\" (comparing column Kind on the page with K)");
+        let c = compare_fact("K", false, &column(&["a", "a"]), &obs("", Some(&["a", "b"])));
+        assert_eq!(c.message, "missing: b (1 distinct value in column Kind on the page, 2 in K)");
         let c = compare_fact("K", true, &column(&["a", "a"]), &obs("", Some(&["a"])));
         assert_eq!(
             c.message,
-            "expected 2 rows in column Kind in this order from the page, got 1 from K; order differs: the code has [a]"
+            "order differs: the code has [a] (2 values in column Kind on the page, 1 in K)"
         );
     }
 }

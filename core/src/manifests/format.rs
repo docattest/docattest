@@ -1,11 +1,15 @@
-//! A manifest's text as data, by the format its name says: JSON (`.json`), TOML (`.toml`)
-//! or `go.mod`. Every manifest is an object at the top, whatever its format, so that a fact
-//! reads a field of any of them the same way.
+//! A manifest's text as data, by the format its name says: JSON (`.json`), TOML (`.toml`),
+//! YAML (`.yaml`, `.yml`) or `go.mod`. Every manifest is an object at the top, whatever its
+//! format, so that a fact reads a field of any of them the same way.
 
 use serde_json::{Map, Number, Value};
 
 use super::go_mod::parse_go_mod;
+use super::yaml::parse_yaml;
 use crate::json::parse_json;
+
+const UNKNOWN_FORMAT: &str =
+    "not a format docattest reads: JSON (.json), TOML (.toml), YAML (.yaml, .yml) or go.mod";
 
 /// The data `text`, the contents of `file`, holds; or why it holds none, as a phrase that
 /// follows the manifest's name.
@@ -17,7 +21,8 @@ pub(super) fn parse_manifest(file: &str, text: &str) -> Result<Value, String> {
     match name.rsplit_once('.').map(|(_, extension)| extension) {
         Some("json") => json_object(text),
         Some("toml") => toml_table(text),
-        _ => Err("not a format docattest reads: JSON (.json), TOML (.toml) or go.mod".to_string()),
+        Some("yaml" | "yml") => parse_yaml(text),
+        _ => Err(UNKNOWN_FORMAT.to_string()),
     }
 }
 
@@ -86,9 +91,7 @@ mod tests {
             parse_manifest("a.toml", "a = 1\nb = \n"),
             Err("not valid TOML: string values must be quoted, expected literal string (line 2)".to_string())
         );
-        assert_eq!(
-            parse_manifest("a.yaml", "a: 1"),
-            Err("not a format docattest reads: JSON (.json), TOML (.toml) or go.mod".to_string())
-        );
+        assert_eq!(parse_manifest("a.ini", "a = 1"), Err(UNKNOWN_FORMAT.to_string()));
+        assert_eq!(parse_manifest("ci/.gitlab-ci.yml", "a: 1"), Ok(serde_json::json!({ "a": 1 })));
     }
 }

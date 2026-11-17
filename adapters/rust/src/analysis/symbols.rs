@@ -68,7 +68,7 @@ impl Refs<'_> {
             };
             for surface in &analysis.surfaces {
                 let import: Vec<&str> = surface.import.split("::").collect();
-                let bare = (own.is_some() && surface.file.as_deref() == own) || uses.imports_whole(&import);
+                let bare = (own.is_some() && surface.file() == own) || uses.imports_whole(&import);
                 match through(&path, &import, own.is_some()) {
                     Some(name) => self.add(name, surface),
                     None if bare => self.add(&written[0], surface),
@@ -104,7 +104,7 @@ impl Analysis {
             "example" => {
                 let own = is_source(&attestation.page).then(|| self.abs(&attestation.page));
                 if let Some(owner) = attestation.owner.as_ref().filter(|_| own.is_some()) {
-                    for surface in self.surfaces.iter().filter(|surface| surface.file == own) {
+                    for surface in self.surfaces.iter().filter(|surface| surface.file() == own.as_deref()) {
                         refs.add(owner, surface);
                     }
                 }
@@ -120,6 +120,7 @@ impl Analysis {
                         .into_iter()
                         .for_each(|name| refs.add(name, surface));
                 }
+                refs.collect(&attestation.expression, None, None);
             }
             "test" => self.citation_symbols(&mut refs, attestation),
             "cases" => self.runner_symbols(&mut refs, &attestation.runner),

@@ -1,7 +1,7 @@
 //! Manifests: the project files a fact reads with `manifest("<path>")`, such as a package's
 //! manifest or a config file, parsed by their format and given to the adapter when the
 //! session opens, as snapshots are (`src/manifests/`). The core reads formats (JSON, TOML,
-//! `go.mod`); what a field of a manifest means is the page's to say.
+//! YAML, `go.mod`); what a field of a manifest means is the page's to say.
 //!
 //! Only the paths facts write out as a string literal are read. The core never evaluates an
 //! expression, and the adapter cannot ask the core for a file while it evaluates one, so the
@@ -9,6 +9,7 @@
 
 mod format;
 mod go_mod;
+mod yaml;
 
 use std::path::{Component, Path};
 use std::sync::OnceLock;
@@ -114,14 +115,21 @@ fn expression_of(attestation: &Attestation) -> Option<&str> {
 
 /// The paths an expression passes to `manifest` as a string literal, in any of the quotes
 /// the adapters' languages write one with. A `manifest` that is a member of something else
-/// (`x.manifest("…")`) is not the one docattest gives.
+/// (`x.manifest("…")`) is not the one docattest gives; one after a spread (`...`) or a range
+/// (`..`) is, since two dots are never member access. A template that fills in a value
+/// (`` `${dir}/a.json` ``) is built at run time, so it names no path here.
 fn named_in(expression: &str) -> impl Iterator<Item = &str> {
     static CALL: OnceLock<fancy_regex::Regex> = OnceLock::new();
     let call = CALL.get_or_init(|| {
-        fancy_regex::Regex::new(r#"(?<![\w$.])manifest\(\s*(["'`])([^"'`\\\r\n]*)\1\s*\)"#)
+        fancy_regex::Regex::new(r#"(?:(?<=\.\.)|(?<![\w$.]))manifest\(\s*(["'`])([^"'`\\\r\n]*)\1\s*\)"#)
             .expect("the pattern of a manifest call is valid")
     });
-    call.captures_iter(expression).filter_map(|c| Some(c.ok()?.get(2)?.as_str()))
+    call.captures_iter(expression).filter_map(|c| {
+        let c = c.ok()?;
+        let path = c.get(2)?.as_str();
+        let filled_in = c.get(1)?.as_str() == "`" && path.contains("${");
+        (!filled_in).then_some(path)
+    })
 }
 
 fn read(files: &dyn ProjectFiles, written: &str) -> Named {
@@ -164,9 +172,16 @@ mod tests {
         assert_eq!(named("manifest(path)"), Vec::<&str>::new());
         assert_eq!(named(r#"loader.manifest("x.json")"#), Vec::<&str>::new());
         assert_eq!(named(r#"my_manifest("x.json")"#), Vec::<&str>::new());
+        // A spread, or a range in Rust, is not member access.
+        assert_eq!(named(r#"[...manifest("tsconfig.json").references].length"#), ["tsconfig.json"]);
+        assert_eq!(named(r#"0..manifest("n.json")["n"]"#), ["n.json"]);
         // Quotes that do not match name nothing. The apostrophe is written \u{27}: a bare one
         // in a string reads as the start of a character to tools that measure this file.
         assert_eq!(named("manifest(\"x.json\u{27} )"), Vec::<&str>::new());
+        // A template that fills in a value is built at run time; one that does not is a literal.
+        assert_eq!(named("manifest(`${dir}/package.json`)"), Vec::<&str>::new());
+        assert_eq!(named("manifest(`a/${'$'}b.json`)"), Vec::<&str>::new());
+        assert_eq!(named("manifest(\"${dir}.json\")"), ["${dir}.json"]);
     }
 
     #[test]

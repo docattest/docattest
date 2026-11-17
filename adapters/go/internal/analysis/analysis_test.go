@@ -33,6 +33,12 @@ func readFixture(t *testing.T, surfaces ...protocol.ConfiguredSurface) *Project 
 // readWritten writes a project into a directory of the test's own and reads it.
 func readWritten(t *testing.T, files map[string]string) *Project {
 	t.Helper()
+	return read(t, Config{Root: written(t, files), InMemory: true, Surfaces: entries("default", ".")})
+}
+
+// written writes files into a directory of the test's own, and is that directory.
+func written(t *testing.T, files map[string]string) string {
+	t.Helper()
 	root := t.TempDir()
 	for rel, text := range files {
 		path := filepath.Join(root, filepath.FromSlash(rel))
@@ -43,7 +49,7 @@ func readWritten(t *testing.T, files map[string]string) *Project {
 			t.Fatal(err)
 		}
 	}
-	return read(t, Config{Root: root, InMemory: true, Surfaces: entries("default", ".")})
+	return root
 }
 
 func read(t *testing.T, config Config) *Project {
@@ -103,6 +109,46 @@ func TestSymbols(t *testing.T) {
 		if got := names(found); err != nil || got != c.want {
 			t.Errorf("%s: got %q, %v", c.name, got, err)
 		}
+	}
+}
+
+func TestARunnerNamesWhatItsHelpersUse(t *testing.T) {
+	root := written(t, map[string]string{
+		"go.mod":       "module example.com/tool\n\ngo 1.21\n",
+		"exit/exit.go": "package exit\n\nconst (\n\tExitOK       = 0\n\tExitTimedOut = 124\n)\n\nfunc Unused() {}\n",
+		"docs/setup.go": `package docs
+
+import "fmt"
+
+var Cases = map[string]func(row map[string]string) error{
+	"exit": func(row map[string]string) error { return expect(row["status"], row["code"]) },
+}
+
+func expect(status, code string) error {
+	if fmt.Sprint(codes[status]) != code {
+		return fmt.Errorf("expected %s", code)
+	}
+	return nil
+}
+`,
+		"docs/codes.go": "package docs\n\nimport \"example.com/tool/exit\"\n\nvar codes = map[string]int{\"ok\": exit.ExitOK, \"timed out\": exit.ExitTimedOut}\n",
+	})
+	p := read(t, Config{Root: root, InMemory: true, Surfaces: entries("exit", "./exit"), Setup: "docs/setup.go"})
+	found, err := p.Symbols(protocol.Attestation{Kind: protocol.KindCases, Runner: "exit"})
+	if got := names(found); err != nil || got != "exit:ExitOK exit:ExitTimedOut" {
+		t.Fatalf("got %q, %v", got, err)
+	}
+}
+
+func TestASetupFileBehindABuildTagIsLeftOut(t *testing.T) {
+	root := written(t, map[string]string{
+		"go.mod":        "module example.com/tool\n\ngo 1.21\n",
+		"tool.go":       "package tool\n",
+		"docs/setup.go": "//go:build docattest\n\npackage docs\n\nfunc Helper() int { return 1 }\n",
+	})
+	p := read(t, Config{Root: root, InMemory: true, Surfaces: entries("default", "."), Setup: "docs/setup.go"})
+	if p.SetupFound() {
+		t.Fatal("a setup file behind a build tag was read")
 	}
 }
 

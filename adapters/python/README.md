@@ -213,9 +213,9 @@ docs/broken.md
   ✗ L21 example: ShopError: No carrier serves the region (block line 2)
   ✗ L26 example: timed out after 3000 ms
   ✗ L31 example: URLError: <urlopen error network access is disabled for attestations; tag the block `check network` to allow it> (block line 2)
-  ! L36 example: example at L36: unknown tag "chekc" (known: check, compile, network, continue; add renderer tags to "ignoreTags")
+  ! L36 example: example at L36: unknown tag "chekc"; did you mean "check"?
   ✗ L40 fact: expected 60, got 50 from MAX_DISCOUNT
-  ✗ L42 fact: expected 2 items from the page, got 3 from TAX_RATES; missing: DE, FR; unexpected: BE
+  ✗ L42 fact: missing: DE, FR; unexpected: BE (2 items on the page, 3 in TAX_RATES)
   ! L46 fact: fact `_round(0.5)`: _round is not exported by surface "default" (NameError: name '_round' is not defined)
   ✗ L51 cases: docs/broken.md:51 wrong on purpose: AssertionError: expected '800', got '750'
   ✗ L52 cases: docs/broken.md:52 too much: ShopError: The discount is outside the allowed range
@@ -336,7 +336,7 @@ surface does not export is an error, which is what keeps a page honest about wha
 can see.
 
 `manifest("pyproject.toml")` is the data of a project file, read and parsed by the core
-(JSON, TOML and `go.mod`; the [manifests](../../docs/manifests.md) page has the details),
+(JSON, TOML, YAML and `go.mod`; the [manifests](../../docs/manifests.md) page has the details),
 as dicts and lists: `manifest("pyproject.toml")["project"]["requires-python"]`. The commands
 and the Python version at the top of this page are read so, on any Python the package
 supports, `tomllib` or not. The path is relative to the project root and written out in

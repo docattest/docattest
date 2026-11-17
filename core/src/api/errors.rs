@@ -33,6 +33,25 @@ impl Error {
     pub fn internal(message: impl fmt::Display) -> Error {
         Error::Internal { message: message.to_string(), detail: String::new() }
     }
+
+    /// This error told inside `context`, such as the command or member that met it:
+    /// `docattest: {context}: {message}` for a user error; an internal one stays as it is.
+    pub fn within(self, context: impl fmt::Display) -> Error {
+        match self.into_user_message() {
+            Ok(message) => Error::user(format!("{context}: {message}")),
+            Err(internal) => internal,
+        }
+    }
+
+    /// A user error's message without the `docattest: ` it starts with, to be told inside
+    /// another message; an internal error comes back as the error, since it is a bug to
+    /// report, never a reason to tell the user.
+    pub fn into_user_message(self) -> std::result::Result<String, Error> {
+        match self {
+            Error::User(message) => Ok(unprefixed(&message).to_string()),
+            internal => Err(internal),
+        }
+    }
 }
 
 impl fmt::Display for Error {
@@ -51,4 +70,19 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// another message.
 pub fn unprefixed(message: &str) -> &str {
     message.strip_prefix(PREFIX).unwrap_or(message)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_problem_told_within_names_what_met_it() {
+        let failed = Error::user("surface \"default\" failed to load: Error: boom");
+        assert_eq!(
+            failed.within("inventory").to_string(),
+            "docattest: inventory: surface \"default\" failed to load: Error: boom"
+        );
+        assert_eq!(Error::internal("x").within("audit"), Error::internal("x"));
+    }
 }

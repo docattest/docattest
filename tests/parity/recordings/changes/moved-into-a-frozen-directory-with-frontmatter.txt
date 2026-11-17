@@ -1,8 +1,8 @@
 # moved into a frozen directory with frontmatter
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --base HEAD --json
 exit 0
-stdout 65 lines
+stdout 68 lines
 {
   "results": [],
   "coverage": {
@@ -58,6 +58,9 @@ stdout 65 lines
   },
   "snapshots": [],
   "exitCode": 0,
+  "warnings": [
+    "\"setup\" is \"docs/docattest.setup.ts\", which nothing reads: no living page has a cases table or a fact"
+  ],
   "changes": [
     {
       "type": "frozen-page",
@@ -74,10 +77,10 @@ exit 0
 stdout 11 lines
 results: 0 pass, 0 fail, 0 error, 0 skipped
 coverage: 0 living pages, 0 covered (0 attestations, 0 weak), 0 uncovered, 1 frozen
-  frozen: docs/old/retry.md
-surface default: 4 symbols, 0 attested, 4 not referenced by any page
+warning: "setup" is "docs/docattest.setup.ts", which nothing reads: no living page has a cases table or a fact
+surface default: 4 symbols, 0 attested, 4 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
-surface extra: 2 symbols, 0 attested, 2 not referenced by any page
+surface extra: 2 symbols, 0 attested, 2 not attested by any page
   fixture/extra → src/extra.ts (fixture@1.0.0)
 snapshots: none
 changes since the base: 0 fail, 1 warning

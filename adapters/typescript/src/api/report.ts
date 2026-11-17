@@ -72,6 +72,11 @@ export interface Report {
   surfaces: Record<string, SurfaceCoverage>;
   snapshots: SnapshotStatus[];
   /**
+   * What the config names to no effect: a glob that matches no file, a setup module that is
+   * not there or that nothing reads. Never changes the exit code. Only when there is one.
+   */
+  warnings?: string[];
+  /**
    * 1 when any result is `fail` or `error`, any change is a `fail`, or any member's report
    * has exit code 1.
    */

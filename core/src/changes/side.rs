@@ -5,7 +5,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::rc::Rc;
 
 use super::project::Project;
-use super::units::{Located, Unit, claim_unit, doc_comment_units, markdown_units};
+use super::units::{Located, Unit, claim_piece, claim_unit, doc_comment_units, markdown_units, pieces};
 use crate::api::attestation::Attestation;
 use crate::api::errors::{Error, Result};
 use crate::config::matcher;
@@ -23,11 +23,15 @@ pub struct CodeBlock {
 
 /// A page read as prose. Units are referred to by their index here.
 #[derive(Debug, Default)]
-pub struct PageView {
+pub struct PageView<'a> {
     pub units: Vec<Unit>,
     pub code: Vec<CodeBlock>,
-    /// The units some attestation stands behind: the claim units of the page's proofs.
-    pub defended: HashSet<usize>,
+    /// Every piece of the prose a claim can be ([`pieces`]) with its unit, in page order.
+    pub pieces: Vec<(usize, String)>,
+    /// The text of every piece, to ask whether the page says something anywhere.
+    pub piece_texts: HashSet<String>,
+    /// The piece each attestation on the page claims, for those that claim one.
+    pub claims: Vec<(&'a Attestation, (usize, String))>,
 }
 
 /// A side over a planned project. Pages are read and parsed lazily, once.
@@ -42,7 +46,7 @@ pub struct Side<'a> {
     /// The doc comments of the side's source files as prose, by page: asked of the language
     /// once, for both sides, before anything is compared ([`prose_of`]).
     prose: HashMap<String, Vec<Unit>>,
-    views: RefCell<HashMap<String, Rc<PageView>>>,
+    views: RefCell<HashMap<String, Rc<PageView<'a>>>>,
 }
 
 /// The prose of the source files among the pages that carry attestations on either side, for
@@ -131,8 +135,8 @@ impl<'a> Side<'a> {
                 && self.project.files.exists(page))
     }
 
-    /// The page's units, fenced blocks and defended units.
-    pub fn view(&self, page: &str) -> Result<Rc<PageView>> {
+    /// The page's units, fenced blocks, pieces and claims.
+    pub fn view(&self, page: &str) -> Result<Rc<PageView<'a>>> {
         if let Some(view) = self.views.borrow().get(page) {
             return Ok(Rc::clone(view));
         }
@@ -141,7 +145,7 @@ impl<'a> Side<'a> {
         Ok(view)
     }
 
-    fn read(&self, page: &str) -> Result<PageView> {
+    fn read(&self, page: &str) -> Result<PageView<'a>> {
         // A page the other side has and this one does not reads as empty.
         let text = if self.project.files.exists(page) {
             self.project.files.read(page).map_err(Error::user)?
@@ -151,7 +155,7 @@ impl<'a> Side<'a> {
         let text = || text.clone();
         let mut view = PageView::default();
         if self.markdown(page) {
-            let parsed = parse_page(&text()).map_err(Error::internal)?;
+            let parsed = parse_page(&text()).map_err(|why| why.on(page))?;
             view.units = markdown_units(&parsed);
             view.code = parsed
                 .code
@@ -167,13 +171,25 @@ impl<'a> Side<'a> {
         } else if let Some(units) = self.prose.get(page) {
             view.units = units.clone();
         }
-        view.defended =
-            self.on(page).iter().filter_map(|a| claim_unit(a, &view.units)).map(|l| l.unit).collect();
+        view.pieces = (view.units.iter().enumerate())
+            .flat_map(|(k, unit)| pieces(unit).into_iter().map(move |piece| (k, piece.to_string())))
+            .collect();
+        view.piece_texts = view.pieces.iter().map(|(_, piece)| piece.clone()).collect();
+        view.claims = self.claims(page, &view.units);
         Ok(view)
     }
 
+    /// The attestations on a page that claim a piece of its prose, with that piece.
+    fn claims(&self, page: &str, units: &[Unit]) -> Vec<(&'a Attestation, (usize, String))> {
+        let claim = |a: &'a Attestation| {
+            let located = claim_unit(a, units)?;
+            Some((a, (located.unit, claim_piece(a, &units[located.unit]).to_string())))
+        };
+        self.on(page).iter().filter_map(|&a| claim(a)).collect()
+    }
+
     /// The prose an attestation defends, on its own page.
-    pub fn claim(&self, a: &Attestation) -> Result<Option<(Rc<PageView>, Located)>> {
+    pub fn claim(&self, a: &Attestation) -> Result<Option<(Rc<PageView<'a>>, Located)>> {
         let view = self.view(&a.page)?;
         let located = claim_unit(a, &view.units);
         Ok(located.map(|l| (view, l)))

@@ -5,11 +5,12 @@ use super::{Outcome, Report};
 use crate::changes::change_lines;
 
 impl Report {
-    /// The results that fail or error, under their pages; the surfaces' warnings; the stale
-    /// snapshots; and with a base, what the change did to the proofs. Empty when there is
-    /// nothing to act on.
+    /// The results that fail or error, under their pages; the config's and the surfaces'
+    /// warnings; the stale snapshots; and with a base, what the change did to the proofs.
+    /// Empty when there is nothing to act on.
     pub fn attention_lines(&self) -> Vec<String> {
         let mut lines = self.finding_lines(Outcome::is_failure);
+        lines.extend(self.warning_lines());
         lines.extend(self.surface_warning_lines());
         lines.extend(self.stale_snapshots_line());
         if let Some(changes) = self.changes.as_deref().filter(|changes| !changes.is_empty()) {
@@ -72,6 +73,7 @@ mod tests {
             coverage,
             surfaces: vec![("default".into(), surface)],
             snapshots: vec![snapshot],
+            warnings: vec![],
             exit_code,
             changes: None,
         }
@@ -99,14 +101,15 @@ mod tests {
     }
 
     #[test]
-    fn surface_warnings_and_stale_snapshots_need_attention_without_failing() {
+    fn warnings_and_stale_snapshots_need_attention_without_failing() {
         let mut warned = report(vec![result(1, Status::Pass)]);
+        warned.warnings.push("\"pages\" has \"guide/*.md\", which matches no file".into());
         warned.surfaces[0].1.warnings.push("no declaration for M".into());
         warned.snapshots[0].warning = true;
         warned.snapshots[0].age_days = 90.0;
         assert_eq!(
             warned.format(Detail::Attention),
-            "surface default: warning: no declaration for M\nsnapshots: rates (90 days, stale)\nok"
+            "warning: \"pages\" has \"guide/*.md\", which matches no file\nsurface default: warning: no declaration for M\nsnapshots: rates (90 days, stale)\nok"
         );
     }
 

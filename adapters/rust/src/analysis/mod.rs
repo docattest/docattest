@@ -8,16 +8,18 @@ mod affected;
 mod documented;
 pub(crate) mod modules;
 mod setup;
+mod summary;
 pub(crate) mod surfaces;
 mod symbols;
 mod tests;
 
 use crate::project::{Package, Project};
 use documented::Documented;
-use modules::{Crate, Summary};
+use modules::Crate;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use summary::Summary;
 use surfaces::{Configured, Surface};
 
 /// A project as its syntax shows it, for one docattest invocation.
@@ -60,7 +62,7 @@ impl Analysis {
 
     /// A path relative to the project root with `/` separators, or the path itself when
     /// it is outside the project.
-    fn rel(&self, path: &Path) -> String {
+    pub(crate) fn rel(&self, path: &Path) -> String {
         match path.strip_prefix(&self.root) {
             Ok(rel) if rel.as_os_str().is_empty() => ".".to_string(),
             Ok(rel) => rel.to_string_lossy().replace('\\', "/"),
@@ -82,7 +84,7 @@ impl Analysis {
     /// given, and the files of the surfaces' modules.
     pub(crate) fn in_code(&self, names: &[String], files: &[String]) -> Vec<String> {
         let mut paths: Vec<PathBuf> = files.iter().map(|file| self.abs(file)).collect();
-        paths.extend(self.surfaces.iter().filter_map(|surface| surface.file.clone()));
+        paths.extend(self.surfaces.iter().filter_map(|surface| surface.file().map(Path::to_path_buf)));
         let texts: Vec<String> = paths.iter().filter_map(|path| std::fs::read_to_string(path).ok()).collect();
         let held = |name: &String| {
             texts.iter().any(|text| crate::language::text::identifiers(text).contains(&name.as_str()))

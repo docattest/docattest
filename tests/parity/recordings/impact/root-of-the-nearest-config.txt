@@ -1,5 +1,5 @@
 # root of the nearest config
-# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check
 exit 0
 stdout 8 lines
@@ -7,7 +7,7 @@ docs/inner.md
   ✓ L1 fact: inner is 1
 results: 1 pass, 0 fail, 0 error, 0 skipped
 coverage: 1 living page, 1 covered (1 attestation, 0 weak), 0 uncovered, 0 frozen
-surface default: 1 symbol, 1 attested, 0 not referenced by any page
+surface default: 1 symbol, 1 attested, 0 not attested by any page
   inner → src/index.ts (inner@1.0.0)
 snapshots: none
 ok
@@ -20,7 +20,7 @@ docs/a.md
   ✓ L3 fact: N is 3
 results: 1 pass, 1 fail, 0 error, 0 skipped
 coverage: 1 living page, 1 covered (2 attestations, 0 weak), 0 uncovered, 0 frozen
-surface default: 1 symbol, 1 attested, 0 not referenced by any page
+surface default: 1 symbol, 1 attested, 0 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 snapshots: none
 FAILED

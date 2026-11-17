@@ -1,6 +1,6 @@
 //! What on a page could be a copied claim: lists, table columns, fenced blocks and sentences that
-//! no directive binds. Values follow the fact rules: the first code span of an item or cell, else
-//! a bold lead term, else its visible text.
+//! no directive binds. Values follow the fact rules: the first code span of an item, every code
+//! span of a cell, else a bold lead term, else the visible text.
 
 use std::collections::HashSet;
 
@@ -130,11 +130,7 @@ fn block_sets(page: &Page, block: &Block) -> Option<Vec<SetCandidate>> {
                     target: Target::Column,
                     line: block.start,
                     end: block.end,
-                    items: table
-                        .rows
-                        .iter()
-                        .map(|row| row.cells.get(c).map(|cell| cell.value.clone()).unwrap_or_default())
-                        .collect(),
+                    items: table.column_values(c),
                     column: Some(column.clone()),
                 })
                 .filter(|c| is_comparable(&c.items))
@@ -220,7 +216,7 @@ mod tests {
                     items: strings(&["A", "B", "plain text"]),
                     column: None
                 }],
-                vec![column(7, 10, &["GET", "POST"], "Method"), column(7, 10, &["/a", "/c"], "Path")],
+                vec![column(7, 10, &["GET", "POST"], "Method"), column(7, 10, &["/a", "/b", "/c"], "Path")],
             ]
         );
     }

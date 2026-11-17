@@ -1,8 +1,8 @@
 # help
-# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === --help
 exit 0
-stdout 43 lines
+stdout 46 lines
 usage: docattest <command> [options]
 
   check [pages or globs...]       run attestations (all living pages, or just these);
@@ -12,6 +12,9 @@ usage: docattest <command> [options]
                                   --base <ref>: also judge what the change since the
                                   git ref did to the attestations (deleted, frozen,
                                   downgraded, weakened); exit 1 on an orphaned claim
+                                  --report <format>=<path>: also write the report to a
+                                  file for a CI service, junit or codequality (GitLab);
+                                  once for each file
   where <symbol>                  pages, lines and claims that attest a symbol. --json
   uncovered [--surface <name>]    public symbols of a surface no page attests. --json
   index                           the whole symbol → references map (parsing only). --json

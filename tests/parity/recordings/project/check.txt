@@ -1,31 +1,31 @@
 # check
-# recorded from: docattest 0.1.3: the GitHub Action in the README
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check
 exit 0
-stdout 425 lines
+stdout 446 lines
 README.md
-  ✓ L22 fact: manifest("adapters/typescript/package.json").version is 0.1.3
+  ✓ L22 fact: manifest("adapters/typescript/package.json").version is 0.1.4
   ✓ L29 example: every command printed what the block shows
   ✓ L40 example: every command printed what the block shows
-  ✓ L72 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
-  ✓ L73 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
-  ✓ L82 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L91 fact: manifest("adapters/go/go.mod")["go"] is 1.23
-  ✓ L107 fact: 5 code spans match Object.keys(manifest("protocol/platforms.json").platforms)
-  ✓ L129 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L162 example: every proof on the sample page held in a copy of adapters/python/tests/fixture
-  ✓ L197 example: every proof on the sample page held in a copy of adapters/go/testdata/fixture
-  ✓ L239 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
-  ✓ L263 fact: 5 rows in column Reported match KINDS
-  ✓ L285 fact: 12 distinct values in column Command match COMMANDS
-  ✓ L427 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L441 example: compiles
-  ✓ L455 fact: 12 rows in column Key match CONFIG_KEYS
-  ✓ L464 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
-  ✓ L465 fact: DEFAULT_TIMEOUT_MS is 10000
-  ✓ L546 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
-  ✓ L548 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L549 fact: manifest("adapters/go/go.mod").go is 1.23
+  ✓ L75 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
+  ✓ L77 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
+  ✓ L86 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L95 fact: manifest("adapters/go/go.mod")["go"] is 1.23
+  ✓ L111 fact: 5 code spans match Object.keys(manifest("protocol/platforms.json").platforms)
+  ✓ L133 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L170 example: every proof on the sample page held in a copy of adapters/python/tests/fixture
+  ✓ L205 example: every proof on the sample page held in a copy of adapters/go/testdata/fixture
+  ✓ L247 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
+  ✓ L271 fact: 5 values in column Reported match KINDS
+  ✓ L293 fact: 12 distinct values in column Command match COMMANDS
+  ✓ L466 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L480 example: compiles
+  ✓ L494 fact: 12 values in column Key match CONFIG_KEYS
+  ✓ L503 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
+  ✓ L504 fact: DEFAULT_TIMEOUT_MS is 10000
+  ✓ L585 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
+  ✓ L587 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L588 fact: manifest("adapters/go/go.mod").go is 1.23
 adapters/typescript/README.md
   ✓ L14 example: every command printed what the block shows
   ✓ L37 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
@@ -52,24 +52,26 @@ docs/audit.md
   ✓ L201 example: all assertions held
   ✓ L266 example: all assertions held
   ✓ L313 example: all assertions held
-  ✓ L340 example: all assertions held
+  ✓ L341 example: all assertions held
 docs/cases.md
   ✓ L30 example: all assertions held
   ✓ L68 example: all assertions held
   ✓ L88 example: all assertions held
   ✓ L110 example: all assertions held
   ✓ L148 example: all assertions held
+  ✓ L176 example: all assertions held
 docs/changes.md
   ✓ L23 example: all assertions held
   ✓ L52 example: all assertions held
-  ✓ L78 example: all assertions held
-  ✓ L103 example: all assertions held
-  ✓ L124 example: all assertions held
-  ✓ L145 example: all assertions held
-  ✓ L169 example: all assertions held
-  ✓ L183 fact: 4 items match CHANGE_TYPES
-  ✓ L197 example: all assertions held
-  ✓ L244 example: all assertions held
+  ✓ L80 example: all assertions held
+  ✓ L115 example: all assertions held
+  ✓ L140 example: all assertions held
+  ✓ L161 example: all assertions held
+  ✓ L182 example: all assertions held
+  ✓ L206 example: all assertions held
+  ✓ L220 fact: 4 items match CHANGE_TYPES
+  ✓ L234 example: all assertions held
+  ✓ L281 example: all assertions held
 docs/citations.md
   ✓ L32 example: all assertions held
   ✓ L52 example: all assertions held
@@ -82,12 +84,13 @@ docs/citations.md
   ✓ L265 example: all assertions held
   ✓ L285 test: adapters/typescript/test/unit/core-binary/locate.test.ts:37 declares "the core lookup" > "names platforms the same in every package" (not run by docattest)
 docs/cli.md
-  ✓ L17 example: all assertions held
-  ✓ L56 example: all assertions held
-  ✓ L89 example: all assertions held
-  ✓ L134 example: all assertions held
-  ✓ L186 example: all assertions held
-  ✓ L234 example: all assertions held
+  ✓ L19 example: all assertions held
+  ✓ L64 example: all assertions held
+  ✓ L97 example: all assertions held
+  ✓ L142 example: all assertions held
+  ✓ L208 example: all assertions held
+  ✓ L269 example: all assertions held
+  ✓ L317 example: all assertions held
 docs/console.md
   ✓ L28 example: all assertions held
   ✓ L56 example: all assertions held
@@ -114,47 +117,57 @@ docs/examples.md
   ✓ L183 fact: DEFAULT_TIMEOUT_MS is 10000
   ✓ L186 example: all assertions held
   ✓ L207 example: all assertions held
-  ✓ L248 example: all assertions held
-  ✓ L282 example: all assertions held
+  ✓ L253 example: all assertions held
+  ✓ L291 example: all assertions held
 docs/facts.md
-  ✓ L45 cases: docs/facts.md:45 scalar, code span on the same line
-  ✓ L46 cases: docs/facts.md:46 scalar, bare number on the same line
-  ✓ L47 cases: docs/facts.md:47 scalar mismatch
-  ✓ L48 cases: docs/facts.md:48 scalar, bare version
-  ✓ L49 cases: docs/facts.md:49 scalar, version mismatch
-  ✓ L50 cases: docs/facts.md:50 sentence of code spans, any order
-  ✓ L51 cases: docs/facts.md:51 sentence missing a code span
-  ✓ L52 cases: docs/facts.md:52 sentence with an extra code span
-  ✓ L53 cases: docs/facts.md:53 ordered sentence, wrong order
-  ✓ L54 cases: docs/facts.md:54 sentence starts after the previous one
-  ✓ L55 cases: docs/facts.md:55 single value after several code spans
-  ✓ L56 cases: docs/facts.md:56 sentence wrapped over lines
-  ✓ L57 cases: docs/facts.md:57 wrapped sentence missing a code span
-  ✓ L58 cases: docs/facts.md:58 wrapped sentence of one code span
-  ✓ L59 cases: docs/facts.md:59 list, any order
-  ✓ L60 cases: docs/facts.md:60 list missing an item
-  ✓ L61 cases: docs/facts.md:61 list with an extra item
-  ✓ L62 cases: docs/facts.md:62 list of bold lead terms
-  ✓ L63 cases: docs/facts.md:63 ordered list, wrong order
-  ✓ L64 cases: docs/facts.md:64 table column
-  ✓ L65 cases: docs/facts.md:65 table column after a blank line
-  ✓ L66 cases: docs/facts.md:66 lead-in code span cannot steal a table
-  ✓ L67 cases: docs/facts.md:67 empty cell in the column
-  ✓ L68 cases: docs/facts.md:68 repeated values count once
-  ✓ L69 cases: docs/facts.md:69 column= with no table below
-  ✓ L70 cases: docs/facts.md:70 fenced block, whitespace ignored
-  ✓ L71 cases: docs/facts.md:71 fenced block differing on one line
-  ✓ L72 cases: docs/facts.md:72 no target
-  ✓ L73 cases: docs/facts.md:73 expression throws
-  ✓ L74 cases: docs/facts.md:74 unknown surface
-  ✓ L75 cases: docs/facts.md:75 directive spanning two lines
-  ✓ L76 cases: docs/facts.md:76 scalar inside a table cell
-  ✓ L77 cases: docs/facts.md:77 unclosed directive
-  ✓ L83 example: all assertions held
-  ✓ L111 example: all assertions held
-  ✓ L130 example: all assertions held
+  ✓ L55 cases: docs/facts.md:55 scalar, code span on the same line
+  ✓ L56 cases: docs/facts.md:56 scalar, bare number on the same line
+  ✓ L57 cases: docs/facts.md:57 scalar mismatch
+  ✓ L58 cases: docs/facts.md:58 scalar, bare version
+  ✓ L59 cases: docs/facts.md:59 scalar, version mismatch
+  ✓ L60 cases: docs/facts.md:60 scalar, version with a leading v
+  ✓ L61 cases: docs/facts.md:61 code span, version with a leading v
+  ✓ L62 cases: docs/facts.md:62 sentence of code spans, any order
+  ✓ L63 cases: docs/facts.md:63 sentence missing a code span
+  ✓ L64 cases: docs/facts.md:64 sentence with an extra code span
+  ✓ L65 cases: docs/facts.md:65 ordered sentence, wrong order
+  ✓ L66 cases: docs/facts.md:66 sentence starts after the previous one
+  ✓ L67 cases: docs/facts.md:67 single value after several code spans
+  ✓ L68 cases: docs/facts.md:68 sentence wrapped over lines
+  ✓ L69 cases: docs/facts.md:69 wrapped sentence missing a code span
+  ✓ L70 cases: docs/facts.md:70 wrapped sentence of one code span
+  ✓ L71 cases: docs/facts.md:71 list, any order
+  ✓ L72 cases: docs/facts.md:72 list missing an item
+  ✓ L73 cases: docs/facts.md:73 list with an extra item
+  ✓ L74 cases: docs/facts.md:74 list with as many items, one differing
+  ✓ L75 cases: docs/facts.md:75 list after a lead-in and a blank line
+  ✓ L76 cases: docs/facts.md:76 a value on the line keeps it a scalar
+  ✓ L77 cases: docs/facts.md:77 list of bold lead terms
+  ✓ L78 cases: docs/facts.md:78 ordered list, wrong order
+  ✓ L79 cases: docs/facts.md:79 table column
+  ✓ L80 cases: docs/facts.md:80 table column after a blank line
+  ✓ L81 cases: docs/facts.md:81 lead-in code span cannot steal a table
+  ✓ L82 cases: docs/facts.md:82 column name with spaces, quoted
+  ✓ L83 cases: docs/facts.md:83 column name with spaces, unquoted
+  ✓ L84 cases: docs/facts.md:84 cell with several code spans
+  ✓ L85 cases: docs/facts.md:85 empty cell in the column
+  ✓ L86 cases: docs/facts.md:86 repeated values count once
+  ✓ L87 cases: docs/facts.md:87 column= with no table below
+  ✓ L88 cases: docs/facts.md:88 fenced block, whitespace ignored
+  ✓ L89 cases: docs/facts.md:89 fenced block, spaced differently
+  ✓ L90 cases: docs/facts.md:90 fenced block, words run together
+  ✓ L91 cases: docs/facts.md:91 fenced block differing on one line
+  ✓ L92 cases: docs/facts.md:92 no target
+  ✓ L93 cases: docs/facts.md:93 expression throws
+  ✓ L94 cases: docs/facts.md:94 unknown surface
+  ✓ L95 cases: docs/facts.md:95 directive spanning two lines
+  ✓ L96 cases: docs/facts.md:96 scalar inside a table cell
+  ✓ L97 cases: docs/facts.md:97 unclosed directive
+  ✓ L103 example: all assertions held
+  ✓ L131 example: all assertions held
   ✓ L150 example: all assertions held
-  ✓ L175 example: all assertions held
+  ✓ L170 example: all assertions held
+  ✓ L195 example: all assertions held
 docs/impact.md
   ✓ L26 example: all assertions held
   ✓ L54 example: all assertions held
@@ -174,31 +187,34 @@ docs/inventory.md
   ✓ L43 example: all assertions held
 docs/manifests.md
   ✓ L18 example: all assertions held
-  ✓ L44 example: all assertions held
-  ✓ L74 example: all assertions held
-  ✓ L108 example: all assertions held
-  ✓ L132 example: all assertions held
+  ✓ L46 example: all assertions held
+  ✓ L81 example: all assertions held
+  ✓ L117 example: all assertions held
+  ✓ L151 example: all assertions held
 docs/pages.md
   ✓ L14 example: all assertions held
   ✓ L36 example: all assertions held
-  ✓ L57 example: all assertions held
-  ✓ L79 example: all assertions held
-  ✓ L106 example: all assertions held
-  ✓ L128 example: all assertions held
+  ✓ L59 example: all assertions held
+  ✓ L82 example: all assertions held
+  ✓ L111 example: all assertions held
+  ✓ L133 example: all assertions held
+  ✓ L160 example: all assertions held
+  ✓ L182 example: all assertions held
 docs/protocol.md
   ✓ L34 example: all assertions held
   ✓ L83 example: all assertions held
   ✓ L125 example: all assertions held
   ✓ L170 example: all assertions held
-  ✓ L207 example: all assertions held
-  ✓ L253 example: all assertions held
+  ✓ L208 example: all assertions held
+  ✓ L254 example: all assertions held
 docs/report.md
-  ✓ L15 example: all assertions held
-  ✓ L41 example: all assertions held
-  ✓ L58 example: all assertions held
-  ✓ L75 example: all assertions held
-  ✓ L93 example: all assertions held
-  ✓ L119 example: every command printed what the block shows
+  ✓ L17 example: all assertions held
+  ✓ L43 example: all assertions held
+  ✓ L60 example: all assertions held
+  ✓ L77 example: all assertions held
+  ✓ L95 example: all assertions held
+  ✓ L119 example: all assertions held
+  ✓ L151 example: every command printed what the block shows
 docs/snapshots.md
   ✓ L14 example: all assertions held
   ✓ L36 example: all assertions held
@@ -209,13 +225,13 @@ docs/surfaces.md
   ✓ L18 example: all assertions held
   ✓ L52 example: all assertions held
   ✓ L87 example: all assertions held
-  ✓ L124 example: all assertions held
-results: 185 pass, 0 fail, 0 error, 0 skipped
-coverage: 23 living pages, 22 covered (185 attestations, 0 weak, 1 cited), 1 uncovered, 5 frozen
+  ✓ L129 example: all assertions held
+  ✓ L172 example: all assertions held
+results: 202 pass, 0 fail, 0 error, 0 skipped
+coverage: 23 living pages, 22 covered (202 attestations, 0 weak, 1 cited), 1 uncovered, 5 frozen
   uncovered: docs/why.md
-  frozen: docs/README.md, docs/design/ACCEPTANCE.md, docs/design/CORPUS.md, docs/design/PATTERN.md, docs/design/SPEC.md
-surface default: 43 symbols, 9 attested, 34 not referenced by any page
-  docattest → adapters/typescript/dist/index.js (docattest@0.1.3)
+surface default: 43 symbols, 9 attested, 34 not attested by any page
+  docattest → adapters/typescript/dist/index.js (docattest@0.1.4)
 snapshots: none
 ok
 
@@ -226,7 +242,7 @@ README.md
   ✓ L28 fact: DEFAULT_TIMEOUT_MS is 10000
   ✓ L29 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
   ✓ L31 fact: 2 items match ACTIONS
-  ✓ L37 test: src/config/mod.rs:341 declares "tests" > "valid_config_gets_defaults" (not run by docattest)
+  ✓ L37 test: src/config/mod.rs:347 declares "tests" > "valid_config_gets_defaults" (not run by docattest)
   ✓ L39 example: all assertions held
   ✓ L53 example: all assertions held
   ✓ L119 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
@@ -235,15 +251,15 @@ src/text.rs
   ✓ L68 example: all assertions held
 results: 11 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (11 attestations, 0 weak, 1 cited), 0 uncovered, 0 frozen
-surface default: 9 symbols, 5 attested, 4 not referenced by any page
+surface default: 9 symbols, 5 attested, 4 not attested by any page
   docattest::config → src/config/mod.rs (docattest-core)
-surface adapter: 1 symbol, 1 attested, 0 not referenced by any page
+surface adapter: 1 symbol, 1 attested, 0 not attested by any page
   docattest::adapter → src/adapter/mod.rs (docattest-core)
-surface agents: 3 symbols, 1 attested, 2 not referenced by any page
+surface agents: 3 symbols, 1 attested, 2 not attested by any page
   docattest::agents → src/agents/mod.rs (docattest-core)
-surface command: 6 symbols, 2 attested, 4 not referenced by any page
+surface command: 6 symbols, 2 attested, 4 not attested by any page
   docattest::cli::command → src/cli/command.rs (docattest-core)
-surface text: 9 symbols, 1 attested, 8 not referenced by any page
+surface text: 9 symbols, 1 attested, 8 not attested by any page
   docattest::text → src/text.rs (docattest-core)
 snapshots: none
 ok
@@ -251,48 +267,51 @@ ok
 member adapters/rust (rust)
 CONTRIBUTING.md
   ✓ L33 example: every command printed what the block shows
-  ✓ L63 test: tests/endtoend.rs:18 declares "the_adapter_conforms_to_the_protocol" (not run by docattest)
+  ✓ L67 test: tests/endtoend.rs:21 declares "the_adapter_conforms_to_the_protocol" (not run by docattest)
 README.md
   ✓ L18 fact: VERSION is 1
-  ✓ L33 fact: CORE_VARIABLE is DOCATTEST_CORE
-  ✓ L35 test: src/launcher.rs:117 declares "tests" > "a_core_someone_names_is_asked_what_it_speaks" (not run by docattest)
-  ✓ L37 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_RUST
-  ✓ L43 example: every command printed what the block shows
-  ✓ L51 test: src/launcher.rs:134 declares "tests" > "the_hand_over_adds_only_what_is_not_set" (not run by docattest)
-  ✓ L52 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
-  ✓ L75 test: src/analysis/modules.rs:346 declares "tests" > "exports_are_public_items_and_what_is_reexported" (not run by docattest)
-  ✓ L84 example: every proof on the sample page held in a copy of tests/fixture
-  ✓ L124 example: every command printed what the block shows
-  ✓ L152 fact: 2 code spans match hello().block_languages
-  ✓ L155 test: tests/session.rs:78 declares "blocks_compile_and_run_each_as_a_program_of_its_own" (not run by docattest)
-  ✓ L159 test: src/language/blocks.rs:58 declares "tests" > "a_snippet_is_the_body_of_main" (not run by docattest)
-  ✓ L160 test: src/language/blocks.rs:72 declares "tests" > "hidden_lines_are_part_of_the_program_and_keep_their_place" (not run by docattest)
-  ✓ L164 test: src/language/text.rs:156 declares "tests" > "a_block_asserts_when_something_in_it_can_end_the_program" (not run by docattest)
-  ✓ L168 test: src/toolchain/cargo.rs:185 declares "tests" > "errors_are_read_from_the_compilers_messages" (not run by docattest)
-  ✓ L178 example: every command printed what the block shows
-  ✓ L190 example: all assertions held
-  ✓ L195 test: src/toolchain/mod.rs:138 declares "tests" > "a_program_that_overruns_is_ended_with_what_it_started" (not run by docattest)
-  ✓ L201 example: every command printed what the block shows
-  ✓ L216 example: every command printed what the block shows
-  ✓ L221 fact: 9 items match ASSERTING_MACROS.map(|name| format!("{name}!"))
-  ✓ L232 fact: 4 items match ASSERTING_METHODS
-  ✓ L241 fact: 7 items match RUST_WORDS
-  ✓ L253 test: src/language/doc.rs:251 declares "tests" > "examples_are_the_rust_blocks_of_doc_comments" (not run by docattest)
-  ✓ L269 example: every command printed what the block shows
-  ✓ L292 test: tests/session.rs:168 declares "a_fact_without_a_value_says_why_and_costs_the_others_nothing" (not run by docattest)
-  ✓ L302 test: src/harness/observe.rs:234 declares "tests" > "maps_and_lists_of_pairs_show_their_keys" (not run by docattest)
-  ✓ L310 test: tests/session.rs:131 declares "facts_show_values_as_rust_prints_them" (not run by docattest)
-  ✓ L340 example: every command printed what the block shows
-  ✓ L354 test: tests/statics.rs:87 declares "tests_are_listed_with_the_modules_around_them" (not run by docattest)
-  ✓ L359 fact: hello().ignored_names.join(", ") is target
-  ✓ L399 example: every command printed what the block shows
-results: 35 pass, 0 fail, 0 error, 0 skipped
-coverage: 2 living pages, 2 covered (35 attestations, 0 weak, 15 cited), 0 uncovered, 0 frozen
-surface default: 5 symbols, 4 attested, 1 not referenced by any page
+  ✓ L43 fact: CORE_VARIABLE is DOCATTEST_CORE
+  ✓ L45 test: src/launcher.rs:117 declares "tests" > "a_core_someone_names_is_asked_what_it_speaks" (not run by docattest)
+  ✓ L47 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_RUST
+  ✓ L53 example: every command printed what the block shows
+  ✓ L61 test: tests/workspace.rs:124 declares "the_generated_crate_is_built_with_the_features_it_is_given" (not run by docattest)
+  ✓ L65 test: src/launcher.rs:134 declares "tests" > "the_hand_over_adds_only_what_is_not_set" (not run by docattest)
+  ✓ L66 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
+  ✓ L84 test: tests/workspace.rs:97 declares "a_private_module_is_no_surface_and_says_why" (not run by docattest)
+  ✓ L91 test: src/analysis/modules.rs:304 declares "tests" > "exports_are_public_items_and_what_is_reexported" (not run by docattest)
+  ✓ L100 example: every proof on the sample page held in a copy of tests/fixture
+  ✓ L140 example: every command printed what the block shows
+  ✓ L168 fact: 2 code spans match hello().block_languages
+  ✓ L171 test: tests/session.rs:70 declares "blocks_compile_and_run_each_as_a_program_of_its_own" (not run by docattest)
+  ✓ L175 test: src/language/blocks.rs:58 declares "tests" > "a_snippet_is_the_body_of_main" (not run by docattest)
+  ✓ L176 test: src/language/blocks.rs:72 declares "tests" > "hidden_lines_are_part_of_the_program_and_keep_their_place" (not run by docattest)
+  ✓ L180 test: src/language/text.rs:156 declares "tests" > "a_block_asserts_when_something_in_it_can_end_the_program" (not run by docattest)
+  ✓ L184 test: src/toolchain/cargo.rs:193 declares "tests" > "errors_are_read_from_the_compilers_messages" (not run by docattest)
+  ✓ L194 example: every command printed what the block shows
+  ✓ L206 example: all assertions held
+  ✓ L211 test: src/toolchain/mod.rs:138 declares "tests" > "a_program_that_overruns_is_ended_with_what_it_started" (not run by docattest)
+  ✓ L217 example: every command printed what the block shows
+  ✓ L232 example: every command printed what the block shows
+  ✓ L237 fact: 9 items match ASSERTING_MACROS.map(|name| format!("{name}!"))
+  ✓ L248 fact: 4 items match ASSERTING_METHODS
+  ✓ L257 fact: 7 items match RUST_WORDS
+  ✓ L269 test: src/language/doc.rs:251 declares "tests" > "examples_are_the_rust_blocks_of_doc_comments" (not run by docattest)
+  ✓ L285 example: every command printed what the block shows
+  ✓ L309 test: tests/session.rs:160 declares "a_fact_without_a_value_says_why_and_costs_the_others_nothing" (not run by docattest)
+  ✓ L311 test: tests/workspace.rs:109 declares "a_fact_names_the_surface_exports_its_crate_paths_reach" (not run by docattest)
+  ✓ L321 test: src/harness/observe.rs:234 declares "tests" > "maps_and_lists_of_pairs_show_their_keys" (not run by docattest)
+  ✓ L329 test: tests/session.rs:123 declares "facts_show_values_as_rust_prints_them" (not run by docattest)
+  ✓ L359 example: every command printed what the block shows
+  ✓ L373 test: tests/statics.rs:76 declares "tests_are_listed_with_the_modules_around_them" (not run by docattest)
+  ✓ L378 fact: hello().ignored_names.join(", ") is target
+  ✓ L416 example: every command printed what the block shows
+results: 38 pass, 0 fail, 0 error, 0 skipped
+coverage: 2 living pages, 2 covered (38 attestations, 0 weak, 18 cited), 0 uncovered, 0 frozen
+surface default: 5 symbols, 4 attested, 1 not attested by any page
   docattest_rust::language → src/language/mod.rs (docattest)
-surface launcher: 6 symbols, 5 attested, 1 not referenced by any page
+surface launcher: 6 symbols, 5 attested, 1 not attested by any page
   docattest_rust::launcher → src/launcher.rs (docattest)
-surface protocol: 29 symbols, 1 attested, 28 not referenced by any page
+surface protocol: 29 symbols, 1 attested, 28 not attested by any page
   docattest_rust::protocol → src/protocol/mod.rs (docattest)
 snapshots: none
 ok
@@ -362,11 +381,11 @@ README.md
   ✓ L421 test: tests/test_running.py:276 declares "Running" > "test_without_fork_every_job_gets_its_own_process" (not run by docattest)
 results: 60 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (60 attestations, 0 weak, 17 cited), 0 uncovered, 0 frozen
-surface default: 28 symbols, 6 attested, 22 not referenced by any page
-  docattest_python.language → docattest_python/language.py (docattest 0.1.3)
-surface launcher: 25 symbols, 5 attested, 20 not referenced by any page
-  docattest.launcher → docattest/launcher.py (docattest 0.1.3)
-surface shop: 13 symbols, 3 attested, 10 not referenced by any page
+surface default: 28 symbols, 6 attested, 22 not attested by any page
+  docattest_python.language → docattest_python/language.py (docattest 0.1.4)
+surface launcher: 25 symbols, 5 attested, 20 not attested by any page
+  docattest.launcher → docattest/launcher.py (docattest 0.1.4)
+surface shop: 13 symbols, 3 attested, 10 not attested by any page
   shoplib → tests/fixture/src/shoplib/__init__.py (shoplib 1.2.3)
 snapshots: none
 ok
@@ -383,45 +402,47 @@ CONTRIBUTING.md
 README.md
   ✓ L17 fact: Hello().Protocol is 1
   ✓ L33 fact: manifest("go.mod")["go"] is 1.23
-  ✓ L37 fact: 5 rows in column platform match Platforms()
-  ✓ L56 test: internal/launcher/launcher_test.go:58 declares "TestFindCoreInOrder" (not run by docattest)
-  ✓ L58 fact: CoreVariable is DOCATTEST_CORE
-  ✓ L60 test: internal/launcher/launcher_test.go:80 declares "TestACoreSomeonePointsAtIsAsked" (not run by docattest)
-  ✓ L73 cases: README.md:73 any
-  ✓ L74 cases: README.md:74 macOS
-  ✓ L75 cases: README.md:75 Linux
-  ✓ L76 cases: README.md:76 Linux
-  ✓ L77 cases: README.md:77 Linux
-  ✓ L78 cases: README.md:78 Windows
-  ✓ L79 cases: README.md:79 Windows
-  ✓ L82 fact: TraceVariable is DOCATTEST_TRACE
-  ✓ L95 fact: CommandVariable is DOCATTEST_COMMAND
-  ✓ L98 fact: AdapterVariable is DOCATTEST_ADAPTER_GO
-  ✓ L104 example: every command printed what the block shows
-  ✓ L146 example: every proof on the sample page held in a copy of testdata/fixture
-  ✓ L201 example: every command printed what the block shows
-  ✓ L232 fact: 2 code spans match Hello().BlockLanguages
-  ✓ L248 test: internal/running/running_test.go:93 declares "TestBlocksCompileAndRun" (not run by docattest)
-  ✓ L271 cases: README.md:271 `fmt.Println(1)`
-  ✓ L272 cases: README.md:272 `panic("no")`
-  ✓ L273 cases: README.md:273 `log.Fatalf("no")`
-  ✓ L274 cases: README.md:274 `log.Panicln("no")`
-  ✓ L275 cases: README.md:275 `os.Exit(1)`
-  ✓ L281 test: internal/running/running_test.go:136 declares "TestDocExamplesRunAsGoTestRunsThem" (not run by docattest)
-  ✓ L297 example: every command printed what the block shows
-  ✓ L320 test: internal/running/running_test.go:205 declares "TestEvaluateSaysWhyAFactHasNoValue" (not run by docattest)
-  ✓ L324 fact: 4 code spans match []any{true, nil, 1.5, []string{"a", "b"}}
-  ✓ L327 test: internal/running/running_test.go:184 declares "TestEvaluateShowsValuesAsGoPrintsThem" (not run by docattest)
-  ✓ L333 test: internal/running/running_test.go:184 declares "TestEvaluateShowsValuesAsGoPrintsThem" (not run by docattest)
-  ✓ L368 test: internal/analysis/analysis_test.go:132 declares "TestSubtestsWithComputedNames" (not run by docattest)
-  ✓ L374 fact: 3 code spans match Hello().IgnoredNames
-results: 41 pass, 0 fail, 0 error, 0 skipped
-coverage: 2 living pages, 2 covered (41 attestations, 0 weak, 12 cited), 0 uncovered, 0 frozen
-surface default: 15 symbols, 2 attested, 13 not referenced by any page
+  ✓ L45 fact: 5 values in column platform match Platforms()
+  ✓ L64 test: internal/launcher/launcher_test.go:58 declares "TestFindCoreInOrder" (not run by docattest)
+  ✓ L66 fact: CoreVariable is DOCATTEST_CORE
+  ✓ L68 test: internal/launcher/launcher_test.go:80 declares "TestACoreSomeonePointsAtIsAsked" (not run by docattest)
+  ✓ L81 cases: README.md:81 any
+  ✓ L82 cases: README.md:82 macOS
+  ✓ L83 cases: README.md:83 Linux
+  ✓ L84 cases: README.md:84 Linux
+  ✓ L85 cases: README.md:85 Linux
+  ✓ L86 cases: README.md:86 Windows
+  ✓ L87 cases: README.md:87 Windows
+  ✓ L90 fact: TraceVariable is DOCATTEST_TRACE
+  ✓ L108 fact: CommandVariable is DOCATTEST_COMMAND
+  ✓ L111 fact: AdapterVariable is DOCATTEST_ADAPTER_GO
+  ✓ L117 example: every command printed what the block shows
+  ✓ L159 example: every proof on the sample page held in a copy of testdata/fixture
+  ✓ L214 example: every command printed what the block shows
+  ✓ L245 fact: 2 code spans match Hello().BlockLanguages
+  ✓ L261 test: internal/running/running_test.go:93 declares "TestBlocksCompileAndRun" (not run by docattest)
+  ✓ L284 cases: README.md:284 `fmt.Println(1)`
+  ✓ L285 cases: README.md:285 `panic("no")`
+  ✓ L286 cases: README.md:286 `log.Fatalf("no")`
+  ✓ L287 cases: README.md:287 `log.Panicln("no")`
+  ✓ L288 cases: README.md:288 `os.Exit(1)`
+  ✓ L294 test: internal/running/running_test.go:136 declares "TestDocExamplesRunAsGoTestRunsThem" (not run by docattest)
+  ✓ L310 example: every command printed what the block shows
+  ✓ L333 test: internal/running/running_test.go:205 declares "TestEvaluateSaysWhyAFactHasNoValue" (not run by docattest)
+  ✓ L361 fact: 4 code spans match []any{true, nil, 1.5, []string{"a", "b"}}
+  ✓ L364 test: internal/running/running_test.go:184 declares "TestEvaluateShowsValuesAsGoPrintsThem" (not run by docattest)
+  ✓ L370 test: internal/running/running_test.go:184 declares "TestEvaluateShowsValuesAsGoPrintsThem" (not run by docattest)
+  ✓ L407 test: internal/analysis/analysis_test.go:115 declares "TestARunnerNamesWhatItsHelpersUse" (not run by docattest)
+  ✓ L412 test: internal/analysis/analysis_test.go:143 declares "TestASetupFileBehindABuildTagIsLeftOut" (not run by docattest)
+  ✓ L424 test: internal/analysis/analysis_test.go:178 declares "TestSubtestsWithComputedNames" (not run by docattest)
+  ✓ L430 fact: 3 code spans match Hello().IgnoredNames
+results: 43 pass, 0 fail, 0 error, 0 skipped
+coverage: 2 living pages, 2 covered (43 attestations, 0 weak, 14 cited), 0 uncovered, 0 frozen
+surface default: 15 symbols, 2 attested, 13 not attested by any page
   github.com/docattest/docattest/adapters/go/internal/language → internal/language (github.com/docattest/docattest/adapters/go)
-surface launcher: 10 symbols, 6 attested, 4 not referenced by any page
+surface launcher: 10 symbols, 6 attested, 4 not attested by any page
   github.com/docattest/docattest/adapters/go/internal/launcher → internal/launcher (github.com/docattest/docattest/adapters/go)
-surface protocoldata: 5 symbols, 3 attested, 2 not referenced by any page
+surface protocoldata: 5 symbols, 3 attested, 2 not attested by any page
   github.com/docattest/docattest/adapters/go/internal/protocoldata → internal/protocoldata (github.com/docattest/docattest/adapters/go)
 snapshots: none
 ok

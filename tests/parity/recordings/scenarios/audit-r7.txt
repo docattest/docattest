@@ -1,5 +1,5 @@
 # audit-r7
-# recorded from: audit suggests values in sentences (inline, scalar); inventory offers setup named facts
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === audit --json
 exit 0
 stdout 16 lines
@@ -22,7 +22,7 @@ stdout 16 lines
 stderr empty
 === check --json
 exit 0
-stdout 35 lines
+stdout 38 lines
 {
   "results": [],
   "coverage": {
@@ -56,6 +56,9 @@ stdout 35 lines
     }
   },
   "snapshots": [],
-  "exitCode": 0
+  "exitCode": 0,
+  "warnings": [
+    "\"pages\" has \"README.md\", which matches no file"
+  ]
 }
 stderr empty

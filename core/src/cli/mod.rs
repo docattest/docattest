@@ -7,6 +7,7 @@ mod agents;
 pub(crate) mod args;
 mod audit;
 mod check;
+mod ci_reports;
 pub mod command;
 mod conformance;
 mod git_hook;
@@ -166,9 +167,13 @@ fn load(root: &Path) -> Result<State> {
     load_state(DiskFiles::new(root.to_path_buf()), now_ms())
 }
 
-/// `--quiet` prints only what needs attention.
-fn detail(options: &Options) -> Detail {
-    if options.quiet { Detail::Attention } else { Detail::Full }
+/// `--quiet` prints only what needs attention; a check of named pages counts the rest.
+fn detail(options: &Options, pages: &[String]) -> Detail {
+    match (options.quiet, pages.is_empty()) {
+        (true, _) => Detail::Attention,
+        (false, true) => Detail::Full,
+        (false, false) => Detail::Pages,
+    }
 }
 
 /// Finish the conversation with the adapter, after a session was opened.

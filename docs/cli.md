@@ -11,8 +11,10 @@ built command line against a small project in a temporary directory, the way CI 
 
 `docattest check` runs every living page. Given paths or globs relative to the project
 root, it runs only those pages, which is what an agent does after editing one page; the
-coverage line still describes the whole project. `--json` prints the report object instead
-of text. The exit code is `1` when any result is `fail` or `error`, and `0` otherwise.
+coverage line still describes the whole project, in counts: the uncovered pages are named
+only when every page ran, and frozen pages are counted, never named. `--json` prints the
+report object instead of text, with every list in full. The exit code is `1` when any
+result is `fail` or `error`, and `0` otherwise.
 
 ```ts check
 import { spawnSync } from 'node:child_process';
@@ -26,18 +28,24 @@ const root = mkdtempSync(join(tmpdir(), 'docattest-cli-'));
 const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
 put('package.json', JSON.stringify({ name: 'demo', type: 'module' }));
 put('src/index.ts', 'export const N = 3;');
-put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], frozen: ['docs/old/**'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
 put('docs/good.md', 'N is `3`. <!-- fact: N -->');
 put('docs/stale.md', 'N is `4`. <!-- fact: N -->');
+put('docs/plain.md', 'A page with no proofs.');
+put('docs/old/notes.md', 'N was `2`.');
 const docattest = (...args: string[]) => spawnSync(process.execPath, [cli, ...args, '--root', root], { encoding: 'utf8' });
 // ---cut---
 const all = docattest('check');
 assert.equal(all.status, 1);
 assert.match(all.stdout, /docs\/stale\.md\n {2}✗ L1 fact: expected 4, got 3 from N/);
+assert.match(all.stdout, /, 1 uncovered, 1 frozen\n {2}uncovered: docs\/plain\.md\n/);
+assert.doesNotMatch(all.stdout, /docs\/old/);
 
 const one = docattest('check', 'docs/good.md');
 assert.equal(one.status, 0);
 assert.match(one.stdout, /results: 1 pass, 0 fail/);
+assert.match(one.stdout, /coverage: 3 living pages, 2 covered .*, 1 uncovered, 1 frozen\nsurface/);
+assert.deepEqual(JSON.parse(docattest('check', '--json', 'docs/good.md').stdout).coverage.frozen, ['docs/old/notes.md']);
 
 const typo = docattest('check', 'docs/goood.md');
 assert.equal(typo.status, 1);
@@ -48,10 +56,10 @@ assert.match(typo.stderr, /"docs\/goood\.md" matches no living page/);
 
 `docattest check --quiet` is for whoever has to act on the result: a coding agent, a git
 hook, a busy reader. It prints the results that `fail` or `error`, each under its page; the
-warnings of a surface; the snapshots that are stale; and with `--base`, what the change did
-to the proofs. Then the verdict, `ok` or `FAILED`. Passes, skips, coverage and the
-surfaces' summaries are left out, so a project where everything holds prints one line. The
-exit code is the same as without it.
+warnings of the config and of a surface; the snapshots that are stale; and with `--base`,
+what the change did to the proofs. Then the verdict, `ok` or `FAILED`. Passes, skips,
+coverage and the surfaces' summaries are left out, so a project where everything holds
+prints one line. The exit code is the same as without it.
 
 ```ts check
 import { spawnSync } from 'node:child_process';
@@ -172,6 +180,81 @@ assert.deepEqual(json.members.map((m: { path: string; report: { exitCode: number
 const inside = docattest('packages/good', 'check');
 assert.equal(inside.status, 0);
 assert.doesNotMatch(inside.stdout, /member/);
+```
+
+## Reports for other CI services
+
+`docattest check --report <format>=<path>` also writes the report to a file in a format a
+CI service reads, while the text, or the `--json` report, still prints as it would without
+it. Give it once for each file; a relative path is from the working directory, and
+directories that are missing are made.
+
+- `junit` is JUnit XML, which GitLab, Jenkins, CircleCI, Azure Pipelines and most other
+  services show as test results: a test suite for each page, a test case for each result,
+  `<failure>` for a `fail`, `<error>` for an `error` and `<skipped>` for a skip. A change
+  of `--base` that fails is a failing test case too; JUnit has no warnings, so a change
+  that only warns is left out.
+- `codequality` is a GitLab Code Quality report, which a merge request shows on its
+  Reports tab, and in GitLab Ultimate beside the diff: one issue for each result that fails
+  (`major`) or errors (`critical`), and each change of `--base` (`major` when it fails,
+  `minor` when it warns). An issue's `fingerprint` names the same finding in every run,
+  even after lines are added above it, so GitLab can tell new findings from old ones.
+
+Members' results are in both files. Every path in them is from the top of the git
+repository, also when the project is in a subdirectory or is a member, because that is how
+a CI service finds the file; docattest asks git where the top is, so `--report` needs git
+and a repository.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-reports-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+const project = (dir: string, page: string, members?: string[]) => {
+  put(`${dir}/package.json`, JSON.stringify({ name: 'demo', type: 'module' }));
+  put(`${dir}/src/index.ts`, 'export const N = 3;');
+  put(`${dir}/docattest.config.json`, JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript', members }));
+  put(`${dir}/docs/n.md`, page);
+};
+const docattest = (cwd: string, ...args: string[]) => spawnSync(process.execPath, [cli, ...args], { cwd: join(root, cwd), encoding: 'utf8' });
+spawnSync('git', ['init', '--quiet', root]);
+// ---cut---
+project('site', 'N is `3`. <!-- fact: N -->\n\nN is `4`. <!-- fact: N -->', ['packages/acme']);
+project('site/packages/acme', 'N is `4`. <!-- fact: N -->');
+
+const reports = ['--report', 'junit=reports/docattest.xml', '--report=codequality=reports/gl-code-quality.json'];
+const run = docattest('site', 'check', '--json', ...reports);
+assert.equal(run.status, 1);
+assert.deepEqual(JSON.parse(run.stdout), JSON.parse(docattest('site', 'check', '--json').stdout));
+
+const quality = JSON.parse(readFileSync(join(root, 'site/reports/gl-code-quality.json'), 'utf8'));
+assert.deepEqual(quality.map((issue: { location: { path: string; lines: { begin: number } }; severity: string }) =>
+  [issue.location.path, issue.location.lines.begin, issue.severity]), [
+  ['site/docs/n.md', 3, 'major'],
+  ['site/packages/acme/docs/n.md', 1, 'major'],
+]);
+assert.equal(quality[0].check_name, 'docattest-fact');
+assert.equal(quality[0].description, 'docattest fact: expected 4, got 3 from N');
+assert.notEqual(quality[0].fingerprint, quality[1].fingerprint);
+
+const junit = readFileSync(join(root, 'site/reports/docattest.xml'), 'utf8');
+assert.match(junit, /<testsuites name="docattest" tests="3" failures="2" errors="0" skipped="0">/);
+const cases = [...junit.matchAll(/<testcase name="([^"]+)" classname="([^"]+)"/g)].map(([, name, page]) => `${page} ${name}`);
+assert.deepEqual(cases, ['site/docs/n.md L1 fact', 'site/docs/n.md L3 fact', 'site/packages/acme/docs/n.md L1 fact']);
+assert.match(junit, /<failure message="expected 4, got 3 from N" type="fact">/);
+
+// Run again, the same findings have the same fingerprints.
+docattest('site', 'check', ...reports);
+assert.deepEqual(JSON.parse(readFileSync(join(root, 'site/reports/gl-code-quality.json'), 'utf8')), quality);
+
+const unknown = docattest('site', 'check', '--report', 'xml=out.xml');
+assert.equal(unknown.status, 1);
+assert.match(unknown.stderr, /--report takes <format>=<path>, where <format> is junit or codequality, not "xml=out.xml"/);
 ```
 
 ## The agent skill installs into the project

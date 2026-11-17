@@ -30,6 +30,11 @@ function readManifest(file: string): Record<string, unknown> | undefined {
   return fs.existsSync(file) ? objectOrNothing(fs.readFileSync(file, 'utf8')) : undefined;
 }
 
+/** The package a bare specifier names: `@scope/name/sub` → `@scope/name`, `name/sub` → `name`. */
+export function packageName(specifier: string): string {
+  return splitSpecifier(specifier).name;
+}
+
 function splitSpecifier(specifier: string): { name: string; subpath: string } {
   const parts = specifier.split('/');
   const n = specifier.startsWith('@') ? 2 : 1;

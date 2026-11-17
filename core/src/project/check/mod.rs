@@ -176,6 +176,7 @@ pub fn run_check(state: &State, network: Network, selected: &HashSet<String>) ->
         coverage,
         surfaces,
         snapshots: state.snapshots.statuses.clone(),
+        warnings: state.warnings.clone(),
         exit_code,
         changes: None,
     })

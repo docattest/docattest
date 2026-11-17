@@ -238,12 +238,17 @@ assert.match(report.results[1].message, /timed out after 200 ms/);
 reports as available. Workers are reused from page to page, and each block still gets a
 fresh module registry inside its worker.
 
-## Renderer tags are allowed only when the config names them
+## Renderer tags are allowed on proofs only when the config names them
 
 Documentation sites add their own words to an info string, such as `twoslash` for type
-hovers. An unknown tag is an error, so a typo like `chekc` can never pass silently.
-Tags listed in `ignoreTags` are accepted and otherwise ignored. A bracketed title such
-as `[TypeScript SDK]`, which code-group renderers use as a tab label, is always ignored.
+hovers. On a block tagged `check` or `compile`, a word docattest does not know is an error
+unless it is listed in `ignoreTags`, which accepts it and otherwise ignores it. On a block
+with no tag of docattest's, a renderer's word leaves it documentation, counted toward
+nothing; but a word that is likely a misspelling of `check`, `compile` or `network` (within
+a third of the tag's length in edits, at least one, ignoring case) is an error that names
+the tag it resembles, so a typo like `chekc` can never pass silently as prose. A bracketed
+title such as `[TypeScript SDK]`, which code-group renderers use as a tab label, is always
+ignored.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -258,7 +263,11 @@ const page = (info: string, ignoreTags?: string[]) => ({
 
 const typo = await createProject(page('ts chekc')).check();
 assert.equal(typo.results[0].status, 'error');
-assert.match(typo.results[0].message, /unknown tag "chekc"/);
+assert.match(typo.results[0].message, /unknown tag "chekc"; did you mean "check"\?/);
+
+const rendered = await createProject(page('ts twoslash')).check();
+assert.equal(rendered.results.length, 0);
+assert.deepEqual(rendered.coverage.uncovered, ['docs/n.md']);
 
 const unlisted = await createProject(page('ts twoslash check')).check();
 assert.equal(unlisted.results[0].status, 'error');

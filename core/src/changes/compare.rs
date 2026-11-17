@@ -52,13 +52,18 @@ fn head_sources(head: &Project) -> Result<Vec<String>> {
 
 /// What became of the base attestations with no counterpart, on pages not frozen.
 fn vanished(base: &Side, now: &Side, matching: &Matching, frozen: &HashSet<String>) -> Result<Vec<Change>> {
+    let became: HashSet<usize> = matching.pairs.iter().map(|&(_, h)| h).collect();
+    let fresh: HashSet<&str> = (now.project.attestations.iter().enumerate())
+        .filter(|(k, _)| !became.contains(k))
+        .map(|(_, h)| h.id.as_str())
+        .collect();
     let mut changes = Vec::new();
     for &k in &matching.unmatched {
         let a = &base.project.attestations[k];
         if frozen.contains(&a.page) {
             continue;
         }
-        changes.extend(lost_proof(a, base, now, &matching.counterparts(now, &a.page))?);
+        changes.extend(lost_proof(a, base, now, &matching.counterparts(now, &a.page), &fresh)?);
     }
     Ok(changes)
 }

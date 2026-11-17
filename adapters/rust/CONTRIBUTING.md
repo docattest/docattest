@@ -58,7 +58,11 @@ cargo test
 The unit tests sit beside the code they test. `tests/statics.rs` drives a session's
 answers from syntax on `tests/fixture/`, and `tests/session.rs` compiles and runs real
 code against it with your cargo. `tests/compiled.rs` covers what the compiler is asked,
-on small projects it writes to the temporary directory. `tests/endtoend.rs` runs the conformance suite with this
+and `tests/workspace.rs` a workspace whose names the generated programs must not confuse
+(a crate that declares a module of its own name, a private module) and the features they
+are built with; both write small projects to the temporary directory. What the tests
+share (opening a session, writing a project, running the `docattest` command) is in
+`tests/project/`. `tests/endtoend.rs` runs the conformance suite with this
 adapter's kit (through the `docattest` command, whose core carries it) and the `docattest`
 command on the fixture. <!-- test: tests/endtoend.rs > "the_adapter_conforms_to_the_protocol" -->
 

@@ -1,8 +1,8 @@
 # guard-n4
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --base HEAD --json
 exit 0
-stdout 65 lines
+stdout 68 lines
 {
   "results": [
     {
@@ -66,6 +66,9 @@ stdout 65 lines
   },
   "snapshots": [],
   "exitCode": 0,
+  "warnings": [
+    "\"pages\" has \"README.md\", which matches no file"
+  ],
   "changes": []
 }
 stderr empty

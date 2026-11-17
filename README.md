@@ -19,7 +19,7 @@ Try it in your browser: the [playground](https://docattest.github.io/docattest/p
 lets you break a small project's code and watch docattest catch its docs. The
 [website](https://docattest.github.io/docattest/) has the short tour.
 
-> **Status:** `0.1.3` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
+> **Status:** `0.1.4` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
 > crates.io, and for Go by `go install` (see [Install](#install)).
 
 ## What it looks like
@@ -41,7 +41,7 @@ Someone raises the retry limit to 5 and adds `LOG_LEVEL`, and forgets the docs:
 $ docattest check
 docs/retries.md
   ✗ L1 fact: expected 3, got 5 from RETRY_DEFAULTS.maxAttempts
-  ✗ L3 fact: expected 2 items from the page, got 3 from ENV_KEYS; missing: LOG_LEVEL
+  ✗ L3 fact: missing: LOG_LEVEL (2 items on the page, 3 in ENV_KEYS)
 results: 0 pass, 2 fail, 0 error, 0 skipped
 ...
 FAILED
@@ -69,7 +69,11 @@ FAILED
 npm install --save-dev docattest typescript
 ```
 
+With pnpm, add it to the workspace's root with `pnpm add -D -w docattest typescript` and run
+it with `pnpm exec docattest check`.
+
 Node 22.12 or later. <!-- fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") -->
+That is the Node that runs docattest, in CI too, even when your package supports older ones.
 TypeScript from `5.4` up to (not including) `7` <!-- fact ordered: manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g) --> is a
 peer dependency, so examples are type-checked with your project's own compiler.
 
@@ -144,6 +148,10 @@ There is no install script and nothing is downloaded when docattest runs.
    ```sh
    npx docattest check
    ```
+
+   In a monorepo, build the workspace packages the surface imports first: an import of one
+   resolves to what its `package.json` exports, usually its built `dist`, as it does for
+   your users.
 
 ### Python
 
@@ -287,6 +295,7 @@ report.
 |---|---|---|
 | `check` | `check [pages…]` | Run every proof, or just those pages. Exit 1 on a failure. |
 | `check` | `check --base <ref>` | Also fail when a proof was removed since `<ref>` but its claim was kept. |
+| `check` | `check --report <format>=<path>` | Also write the report for another CI service: JUnit XML (`junit`) or GitLab Code Quality (`codequality`). |
 | `where` | `where <symbol>` | The pages, lines and sentences that describe a symbol. |
 | `uncovered` | `uncovered` | Public symbols no page describes yet. |
 | `index` | `index` | The whole symbol-to-pages map. |
@@ -343,7 +352,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --if-present
-      - uses: docattest/docattest@v0.1.3
+      - uses: docattest/docattest@v0.1.4
         with:
           args: --base origin/main
 ```
@@ -353,7 +362,37 @@ claim that fails on its line of the pull request, and lists them on the run's su
 For a Python project, replace the Node steps with `actions/setup-python` and
 `pip install docattest`. For a Go project, replace them with `actions/setup-go` and the
 `go install` above; for a Rust project, with a Rust toolchain and `cargo install docattest`.
-On another CI service, run `docattest check --base origin/main` in their place.
+On another CI service, run `docattest check --base origin/main` in their place, and add
+`--report` to give it a file it shows: JUnit XML, which most services read as test results,
+or a GitLab Code Quality report ([the command line](docs/cli.md#reports-for-other-ci-services)).
+
+### Run it in GitLab CI
+
+```yaml
+docattest:
+  image: node:22
+  variables:
+    GIT_DEPTH: 0 # the whole history, so --base finds the merge request's base commit
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - npm ci
+    - npm run build --if-present
+    # --base only in a merge request pipeline, where GitLab names the commit it diffs against
+    - npx docattest check ${CI_MERGE_REQUEST_DIFF_BASE_SHA:+--base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"}
+      --report junit=docattest.xml --report codequality=gl-code-quality.json
+  artifacts:
+    when: always # the reports matter most when the check fails
+    reports:
+      junit: docattest.xml
+      codequality: gl-code-quality.json
+```
+
+A merge request then shows each claim that fails with its page and line, among its test
+results and its code quality findings. The base commit is an ancestor of the merge
+request's branch, so the full clone holds it and nothing else is fetched. For Python, Go or
+Rust, use that language's image and install docattest as [Install](#install) says.
 
 ### Show that your docs are checked
 
@@ -428,7 +467,7 @@ A fact reads the manifest:
 Node 22.12 or later. <!-- fact: manifest("package.json").engines.node.replace(">=", "") -->
 ```
 
-JSON, TOML and `go.mod` are read; the path is relative to the project root. See
+JSON, TOML, YAML and `go.mod` are read; the path is relative to the project root. See
 [manifests](docs/manifests.md).
 
 ### Keep a page out of the check
@@ -455,7 +494,7 @@ test it.
 <!-- fact column=Key: CONFIG_KEYS -->
 | Key | Meaning |
 |---|---|
-| `pages` | Globs of the Markdown pages to check. Required. |
+| `pages` | Globs of the Markdown pages to check. Required. What git ignores is never a page, and a glob cannot start with `!`: use `frozen` to leave pages out. |
 | `adapter` | The project's language: `"typescript"`, `"python"`, `"go"` or `"rust"`. Required. |
 | `surfaces` | Your public API, by name. `default` is required. An entry is an entry file, a package or module name (a package's directory or import path in Go, a module path in Rust), or `{ "import": "<name>", "path": "<file>" }`. |
 | `sources` | Globs of source files whose doc-comment examples are checked. |

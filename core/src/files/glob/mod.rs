@@ -122,3 +122,9 @@ impl GlobMatcher {
 pub fn is_glob(pattern: &str) -> bool {
     Scanner::new(&w(pattern)).is_glob()
 }
+
+/// Whether picomatch reads `pattern` as a negation: `!a` matches every path but `a`. A
+/// negated extglob, `!(a)`, is not one.
+pub fn is_negation(pattern: &str) -> bool {
+    parse::parse(&w(pattern), true).is_ok_and(|parsed| parsed.negated)
+}

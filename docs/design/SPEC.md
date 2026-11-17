@@ -61,10 +61,13 @@ checks the docs also yields the map from code to docs.
 
 - Info string: `<lang> check` compiles and runs; `<lang> compile` compiles only; no tag
   means documentation only and counts as uncovered.
-- Renderer words in the info string (`twoslash`) are accepted only when listed in the
-  config's `ignoreTags`; bracketed titles (`[TypeScript SDK]`) are always ignored. Any
-  other word on a block in a language the adapter runs is an `error`, tagged or not, so
-  `ts chekc` fails instead of silently becoming an untagged block.
+- Renderer words in the info string (`twoslash`) are accepted on a `check` or `compile`
+  block only when listed in the config's `ignoreTags`; bracketed titles (`[TypeScript
+  SDK]`) are always ignored. On an untagged block a renderer word leaves it documentation,
+  but a word that is likely a misspelling of `check`, `compile` or `network` (within a
+  third of the tag's length in edits, at least one, ignoring case) on a block in a language
+  the adapter runs is an `error` naming the tag, so `ts chekc` fails instead of silently
+  becoming an untagged block.
 - `assert` (the host language's standard assertion) is in scope. Assertions are the
   proof. A `check` block without an assertion runs as a smoke test and is reported as
   *weak* coverage, never as a pass of a claim.
@@ -117,22 +120,29 @@ of the fixture, in process, with the fixture's config and adapter.
   - …next line starts a table, with `column=<name>` on the directive → **set** compare
     over that column;
   - …next line starts a fenced block → **text** compare, whitespace-normalised;
-  - otherwise, the nearest inline code span, bare number or bare version (`1.2.3-rc.1`)
-    before the directive on the same line → **scalar** compare;
+  - otherwise, the nearest inline code span, bare number or bare version (`1.2.3-rc.1`,
+    or `v1.2.3`, read as `1.2.3`) before the directive on the same line → **scalar**
+    compare;
   - …unless that is a code span ending a sentence of two or more (counted from the
     previous sentence end or comment in the same paragraph, list item or cell) → **set**
     compare over the sentence's code spans when the value is a list (`ordered` allowed),
     and a scalar compare with the last of them when it is not;
+  - none of these, and the directive ends its paragraph (or heading, or HTML block) with a
+    list or fenced block right after it, blank lines or not → that list or block, as for
+    the next line ("The keys are: `<!-- fact: … -->`", a blank line, a list);
   - none of these → `error`: "fact at L12 has no target". Fail closed.
   Prose may precede the directive on its line ("The server reads: `<!-- fact: … -->`")
   without turning a list binding into a scalar one. A directive with `column=` can only
   mean a table, so it binds the next table across blank lines, and a code span earlier
-  on its line never makes it a scalar; with no table following it is an `error`.
+  on its line never makes it a scalar; with no table following it is an `error`. A column
+  name with spaces is quoted (`column="route path"`, or single quotes); a bare name runs to
+  the next space, and the error for the word after it says how to quote.
 - Inside a table cell a fact binds within that cell: the nearest code span, number or
   version before it, or the cell's sentence of code spans, as above. (Cells of a table bound by `cases` are row data, so comments
   in them are never directives.)
-- Lists and table columns compare item values: the first inline code span of an item or
-  cell, else its visible text.
+- Lists and table columns compare item values: the first inline code span of an item, or
+  every inline code span of a cell (a cell may group several, `` `A`, `B` ``), else a bold
+  lead term, else the visible text.
 - **Named facts.** The setup module may export `facts`, an object of helpers; an expression
   may call them by bare name: `<!-- fact column=Field: errorFields() -->`. The helper reads
   the surface and returns a value; the expectation stays on the page. The setup module is
@@ -144,8 +154,11 @@ of the fixture, in process, with the fixture's config and adapter.
   with its own time budget.
 - Comparison: scalars as strings after `String(value)`; sets order-insensitive unless
   `ordered`; text after collapsing whitespace. Messages carry both sides:
-  `expected 3 items from the page, got 4 from ENV_KEYS; missing: LOG_LEVEL`. An unordered
-  set counts distinct values (a column may repeat one), and an empty value shows as `""`.
+  `missing: LOG_LEVEL (3 items on the page, 4 in ENV_KEYS)`: what differs first, the counts
+  only when they differ. An unordered set counts distinct values (a column may repeat one),
+  and an empty value shows as `""`. A number or version compares without a leading `v`
+  (`v1.2.3` is `1.2.3`). A block compares token by token (a run of letters, digits, `_` and
+  `$`, or any other single character), so whitespace counts only where it parts two runs.
   A block that differs names the first line of the block where it does:
   `the block differs from SHAPE at line 3 (whitespace ignored): expected "y: number", got "y: string"`.
 - A fact never rewrites the page. The fix is a human or an agent editing the prose.
@@ -165,7 +178,7 @@ of the fixture, in process, with the fixture's config and adapter.
   anything else in between, or no table at all, is an `error`.
 - Header cells become row keys. Each row is one test named `<page>:<line> <first cell>`.
   The runner receives each cell as written (code spans and comments kept, `\|` unescaped),
-  unlike a fact over a column, which compares a cell's first code span; it throws to fail. Each row has its own time budget; a row that times out fails and the
+  unlike a fact over a column, which compares a cell's code spans; it throws to fail. Each row has its own time budget; a row that times out fails and the
   table resumes at the next row on a fresh worker.
 - Unknown runner → `error`. Header missing a column the runner declares
   (`validateConfig.columns = ['config', 'result']`) → `error` before any row runs. Rows
@@ -221,7 +234,14 @@ is the attestation's symbol for the index.
 }
 ```
 
-- Globs are matched with picomatch, dotfiles included, relative to the project root.
+- Globs are matched with picomatch, dotfiles included, relative to the project root. A
+  list of globs only adds files: a glob that starts with `!` (picomatch's negation, which
+  matches every file it does not name) is a config error, and `frozen` leaves pages out.
+- The project's files are those below the root, less hidden directories, what the
+  adapter's language ignores, and, in a git work tree, what git ignores and does not track.
+- A glob of `pages` or `sources` that matches no file, and a `setup` that is not there or
+  that nothing reads (no living page has a cases table or a fact), are warnings in the
+  report's `warnings`: they never change the exit code.
 - A **surface** is one of three forms. A bare specifier (`@example/client`) is imported as
   itself and resolved the way Node resolves it from the project root (import conditions are
   used when a package has no `require` export). A `./path` is a file in the project,
@@ -255,7 +275,8 @@ is the attestation's symbol for the index.
   produce), so checking one page never makes the rest look uncovered. A pattern that
   matches no living page is an error, and so is one that matches only frozen pages.
 - Frozen pages are never parsed. Their count is shown so coverage describes maintained
-  docs only.
+  docs only; the text report names the uncovered pages (wrapped to 100 columns, and only
+  when every page ran) but never the frozen ones, which the report object lists.
 
 ## 5. Duality: the index
 
@@ -428,18 +449,19 @@ constants), and `files` and `util` (file sources, globs and helpers the adapter 
 ## 8. Report
 
     docs/errors.md
-      ✗ L24 fact: expected 9 items from the page, got 10 from ErrorCodes; missing: AUTH_ERROR
+      ✗ L24 fact: missing: AUTH_ERROR (9 items on the page, 10 in ErrorCodes)
     docs/config.md
       ✗ L31 example: AssertionError: expected false, got true  (assert.equal, block line 4)
     results: 116 pass, 2 fail, 0 error, 0 skipped
     coverage: 42 living pages, 31 covered (118 attestations, 2 weak), 11 uncovered, 15 frozen
-    surface default: 57 symbols, 44 attested, 13 not referenced by any page
+    surface default: 57 symbols, 44 attested, 13 not attested by any page
       @example/client → node_modules/@example/client/dist/index.js (@example/client@4.2.0)
     snapshots: regions (48 days)
     FAILED
 
 `--quiet` prints only what needs attention: the `fail` and `error` results under their
-pages, each surface warning as `surface <name>: warning: …`, the stale snapshots, and with
+pages, each config warning as `warning: …`, each surface warning as
+`surface <name>: warning: …`, the stale snapshots, and with
 `--base` the changes, if any; then the verdict. A project where everything holds prints
 `ok`. With members, a project that needs nothing is left out, and one that does is printed
 under its `member <path> (<adapter>)` line.
@@ -449,14 +471,19 @@ coverage, surfaces, snapshots, exitCode }`, where `surfaces` is keyed by surface
 each entry is `{ symbols, attested, unattested, resolution?, warnings }`. `resolution` is
 `{ import, entry, package?: { name, version? } }`: the specifier, the entry file it
 resolved to (project-relative when inside the project) and the package that file belongs
-to (nearest `package.json` with a name). Unreferenced symbols are reported as a backlog
-("not referenced by any page"), not as a defect.
+to (nearest `package.json` with a name). Unattested symbols are reported as a backlog
+("not attested by any page"), not as a defect.
 
 A surface **warning** never changes the exit code. One is emitted when a surface did not
 resolve, and when a bare-specifier surface resolves to an installed package directory that
 is not the workspace package of the same name (not a symlink to it) and whose version
 differs from it: the pages would otherwise be checked, silently, against old code. Workspace
 packages come from `workspaces` in the root `package.json` and from `pnpm-workspace.yaml`.
+The TypeScript adapter also follows each surface's imports through the project's files, and
+warns for every workspace package they reach through a `node_modules` link into the project
+whose build is missing (it does not resolve) or older than one of its TypeScript files: the
+runtime loads the build, so the pages would otherwise be checked against code its sources no
+longer hold.
 
 Exit 1 on any `fail` or `error`; `skipped` and warnings never change the exit code. The
 command line also exits 1 for a mistake in the request or the project (an unknown page, an

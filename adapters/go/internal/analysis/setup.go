@@ -79,3 +79,34 @@ func callableAlone(f *ast.FuncDecl) bool {
 	_, variadic := params[0].Type.(*ast.Ellipsis)
 	return len(params) == 1 && len(params[0].Names) <= 1 && variadic
 }
+
+// reached is a piece of code and the package's top-level functions, variables and
+// constants it names, at any depth, in the order they are first named: a runner's work is
+// also in the helpers it calls and the tables it reads. The declaration named `skip` is
+// never followed (the Cases table, which names every runner).
+func (pkg *goPackage) reached(start code, skip string) []code {
+	seen := map[ast.Node]bool{start.node: true}
+	if decl, found := pkg.topLevel[skip]; found {
+		seen[decl.node] = true
+	}
+	out := []code{start}
+	var visit func(ast.Node) bool
+	visit = func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.SelectorExpr:
+			// `pkg.Name` and `value.Field` name nothing of this package after the dot.
+			ast.Inspect(x.X, visit)
+			return false
+		case *ast.Ident:
+			if decl, found := pkg.topLevel[x.Name]; found && !seen[decl.node] {
+				seen[decl.node] = true
+				out = append(out, decl)
+			}
+		}
+		return true
+	}
+	for k := 0; k < len(out); k++ {
+		ast.Inspect(out[k].node, visit)
+	}
+	return out
+}

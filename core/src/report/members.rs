@@ -56,18 +56,16 @@ impl Checked {
             return self.top.format(detail);
         }
         let sections = match detail {
-            Detail::Full => self.full_sections(),
+            Detail::Full | Detail::Pages => self.full_sections(detail),
             Detail::Attention => self.attention_sections(),
         };
         sections.join("\n\n")
     }
 
     /// The top project's report, then each member's under its heading, then the summary.
-    fn full_sections(&self) -> Vec<String> {
-        let mut sections = vec![self.top.format(Detail::Full)];
-        sections.extend(
-            self.members.iter().map(|m| format!("{}\n{}", m.heading(), m.report.format(Detail::Full))),
-        );
+    fn full_sections(&self, detail: Detail) -> Vec<String> {
+        let mut sections = vec![self.top.format(detail)];
+        sections.extend(self.members.iter().map(|m| format!("{}\n{}", m.heading(), m.report.format(detail))));
         sections.push(self.summary());
         sections
     }
@@ -123,7 +121,15 @@ mod tests {
             weak: 0,
             cited: 0,
         };
-        Report { results: vec![], coverage, surfaces: vec![], snapshots: vec![], exit_code, changes: None }
+        Report {
+            results: vec![],
+            coverage,
+            surfaces: vec![],
+            snapshots: vec![],
+            warnings: vec![],
+            exit_code,
+            changes: None,
+        }
     }
 
     fn member(path: &str, exit_code: i32) -> MemberReport {

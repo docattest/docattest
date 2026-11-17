@@ -33,13 +33,15 @@ assert.equal(moved.status, 'fail');
 assert.match(moved.message, /expected 22\.12, got 24/);
 ```
 
-## JSON, TOML and go.mod
+## JSON, TOML, YAML and go.mod
 
-The file's name says its format: `.json` is JSON, `.toml` is TOML, and a file named `go.mod`
-is read for its `module`, `go` and `toolchain` directives, each the string it was given
-(the other directives are not read). Every manifest is an object at the top, so a fact
-reads a field of any of them the same way; a JSON file that holds anything else is an
-error. Keys keep the order the file writes them in.
+The file's name says its format: `.json` is JSON, `.toml` is TOML, `.yaml` and `.yml` are
+YAML, and a file named `go.mod` is read for its `module`, `go` and `toolchain` directives,
+each the string it was given (the other directives are not read). Every manifest is an
+object at the top, so a fact reads a field of any of them the same way; a JSON or YAML
+file that holds anything else is an error. Keys keep the order the file writes them in.
+YAML is read as YAML 1.2: an alias is the node its anchor names, a key is its text, and a
+file of several documents is an error.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -50,6 +52,7 @@ const report = await createProject({
     'src/index.ts': 'export const x = 1;',
     'pyproject.toml': '[project]\nname = "shop"\nrequires-python = ">=3.10"\n\n[project.scripts]\nshop = "shop:main"\nshop-admin = "shop:admin"\n',
     'go.mod': 'module example.com/shop\n\ngo 1.23\n\nrequire example.com/money v1.2.0\n',
+    'pnpm-workspace.yaml': 'packages:\n  - apps/*\n  - libs/*\n',
     'docs/install.md': [
       'Python 3.10 or later. <!-- fact: manifest("pyproject.toml").project["requires-python"].slice(2) -->',
       '',
@@ -59,11 +62,15 @@ const report = await createProject({
       '',
       'The module is `example.com/shop` <!-- fact: manifest("go.mod").module -->, for Go 1.23 or later. <!-- fact: manifest("go.mod").go -->',
       '',
+      'The workspace holds two kinds of package: <!-- fact: manifest("pnpm-workspace.yaml").packages -->',
+      '- `apps/*`',
+      '- `libs/*`',
+      '',
     ].join('\n'),
   },
 }).check();
 
-assert.deepEqual(report.results.map((r) => r.status), ['pass', 'pass', 'pass', 'pass']);
+assert.deepEqual(report.results.map((r) => r.status), ['pass', 'pass', 'pass', 'pass', 'pass']);
 ```
 
 ## A manifest that cannot be read is an error that names it
@@ -104,6 +111,8 @@ adapter with the session, as it gives it the snapshots: it never evaluates an ex
 and an adapter cannot ask it for a file halfway through one. So it reads exactly the files
 that facts name as a string literal, in any quotes, and a path built at run time was never
 read. Reading only those keeps a check from reading, or failing on, files no page is about.
+A call is the one docattest gives unless it is a member of something else, so a spread
+before it, `[...manifest("tsconfig.json").references]`, still names its file.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -119,6 +128,16 @@ const report = await createProject({
 
 assert.equal(report.results[0].status, 'error');
 assert.match(report.results[0].message, /manifest "package\.json" was not read: name it in the fact itself, as manifest\("package\.json"\)/);
+
+const spread = await createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': 'export const x = 1;',
+    'tsconfig.json': JSON.stringify({ references: [{ path: 'apps/web' }, { path: 'libs/money' }] }),
+    'docs/build.md': 'The build has `2` projects. <!-- fact: [...manifest("tsconfig.json").references].length -->\n',
+  },
+}).check();
+assert.equal(spread.results[0].status, 'pass');
 ```
 
 ## A changed manifest reaches `impact`

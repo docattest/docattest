@@ -14,6 +14,7 @@ use crate::files::glob::GlobMatcher;
 use crate::files::project_files::ProjectFiles;
 use crate::markdown::model::Page;
 use crate::markdown::parse::parse_page;
+use crate::project::config_warnings::config_warnings;
 
 /// The pages, sorted into living and frozen, and the attestations planned on the living.
 #[derive(Debug, Clone, Default)]
@@ -23,6 +24,8 @@ pub struct Plan {
     pub frozen: Vec<String>,
     /// Every attestation on every living page, in plan order.
     pub attestations: Vec<Attestation>,
+    /// What the config names that does nothing in the project.
+    pub warnings: Vec<String>,
 }
 
 /// Plan every page `config` names in `files`, and the examples in the sources' doc comments.
@@ -49,6 +52,7 @@ pub fn plan_project(
     }
     let sources = source_texts(files, &all, config, language)?;
     plan.ask_language(language, &sources)?;
+    plan.warnings = config_warnings(files, &all, config, &plan.attestations)?;
     Ok(plan)
 }
 
@@ -64,7 +68,7 @@ fn parse_pages(
             return Ok(None);
         }
         let text = files.read(page).map_err(Error::user)?;
-        parse_page(&text).map(Some).map_err(Error::internal)
+        parse_page(&text).map(Some).map_err(|why| why.on(page))
     };
     crate::parallel::map_in_parallel(pages, parse).into_iter().collect()
 }
@@ -171,5 +175,18 @@ mod tests {
             planned.err(),
             Some(Error::User("docattest: cannot read docs/a.md: permission denied".into()))
         );
+    }
+
+    #[test]
+    fn a_page_the_parser_cannot_place_is_named_in_the_internal_error() {
+        let config =
+            parse_config(r#"{"pages":["docs/**/*.md"],"surfaces":{"default":"x"},"adapter":"typescript"}"#)
+                .unwrap();
+        let files = crate::files::memory::MemoryFiles::new(vec![
+            ("docs/a.md".to_string(), "# A\n".to_string()),
+            ("docs/b.md".to_string(), "say 'www.example.com' ok\n".to_string()),
+        ]);
+        let planned = plan_project(&files, &config, &typescript());
+        assert_eq!(planned.err(), Some(Error::internal("docs/b.md: markdown node \"text\" has no position")));
     }
 }

@@ -1,41 +1,30 @@
 //! What a session answers from syntax alone, on the sample project in `tests/fixture`.
 
-use docattest_rust::protocol::{Error, Session};
+mod project;
+
+use docattest_rust::protocol::Session;
+use project::{call, try_call};
 use serde_json::{Value, json};
+use std::path::Path;
 use std::sync::Arc;
 
 const FIXTURE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixture");
 
 fn open() -> Arc<dyn Session> {
-    let told = json!({
-        "root": FIXTURE,
-        "surfaces": [{ "name": "default", "entry": "shop" }, { "name": "shipping", "entry": "shop::shipping" }, { "name": "gone", "entry": "./src/nowhere.rs" }],
-        "setup": "docs/docattest_setup.rs",
-        "timeoutMs": 2000, "workers": 2, "network": false, "snapshots": { "data": {} }, "manifests": {}, "examples": [],
-    });
-    docattest_rust::session::open(told).unwrap_or_else(|_| panic!("the session did not open"))
-}
-
-fn call(session: &Arc<dyn Session>, method: &str, params: Value) -> Result<Value, String> {
-    match session.call(method, params) {
-        Some(Ok(value)) => Ok(value),
-        Some(Err(Error::User(message) | Error::Internal(message))) => Err(message),
-        None => Err(format!("no method {method}")),
-    }
+    let surfaces = json!([
+        { "name": "default", "entry": "shop" },
+        { "name": "shipping", "entry": "shop::shipping" },
+        { "name": "gone", "entry": "./src/nowhere.rs" },
+    ]);
+    project::open_session(Path::new(FIXTURE), surfaces, json!({ "setup": "docs/docattest_setup.rs" }))
 }
 
 /// The symbols an attestation names, as `surface:name` words.
 fn named(session: &Arc<dyn Session>, attestation: Value) -> String {
     let mut attestation = attestation;
     attestation["id"] = json!("a");
-    let found = call(session, "symbols", json!({ "attestations": [attestation] })).unwrap();
-    let refs: Vec<String> = found["a"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|r| format!("{}:{}", r["surface"].as_str().unwrap(), r["name"].as_str().unwrap()))
-        .collect();
-    refs.join(" ")
+    let found = call(session, "symbols", json!({ "attestations": [attestation] }));
+    project::surface_names(&found["a"]).join(" ")
 }
 
 #[test]
@@ -86,7 +75,7 @@ fn symbols_are_what_an_attestation_names_of_a_surface() {
 #[test]
 fn tests_are_listed_with_the_modules_around_them() {
     let session = open();
-    let listing = call(&session, "tests", json!({ "file": "src/lib.rs" })).unwrap();
+    let listing = call(&session, "tests", json!({ "file": "src/lib.rs" }));
     assert_eq!(
         listing["tests"],
         json!([
@@ -98,7 +87,7 @@ fn tests_are_listed_with_the_modules_around_them() {
         listing["suites"],
         json!([{ "title": "tests", "describes": [], "line": 77, "kind": "a module" }])
     );
-    let missing = call(&session, "tests", json!({ "file": "src/none.rs" })).unwrap();
+    let missing = call(&session, "tests", json!({ "file": "src/none.rs" }));
     assert_eq!(missing, json!({ "ok": false, "message": "src/none.rs does not exist" }));
 }
 
@@ -110,13 +99,13 @@ fn names_the_code_still_holds_are_told_from_those_it_does_not() {
         "inCode",
         json!({ "names": ["GONE", "quote", "delivery", "round"], "files": ["docs/docattest_setup.rs"] }),
     );
-    assert_eq!(held.unwrap(), json!(["quote", "delivery", "round"]));
+    assert_eq!(held, json!(["quote", "delivery", "round"]));
 }
 
 #[test]
 fn a_surface_offers_its_exports_that_are_values() {
     let session = open();
-    let found = call(&session, "observables", json!({ "surface": "default" })).unwrap();
+    let found = call(&session, "observables", json!({ "surface": "default" }));
     let read: Vec<(&str, &str)> = found
         .as_array()
         .unwrap()
@@ -131,29 +120,12 @@ fn a_surface_offers_its_exports_that_are_values() {
     );
     assert_eq!(found[2]["value"]["items"], json!(["NL", "DE", "FR"]));
     assert_eq!(found[4]["value"]["items"].as_array().map(Vec::len), Some(3));
-    let shipping = call(&session, "observables", json!({ "surface": "shipping" })).unwrap();
+    let shipping = call(&session, "observables", json!({ "surface": "shipping" }));
     let called =
         shipping.as_array().unwrap().iter().filter(|o| o["expression"].as_str().unwrap().ends_with("()"));
     assert_eq!(called.count(), 0, "a setup helper is offered on the default surface only");
-    let refused = call(&session, "observables", json!({ "surface": "gone" })).unwrap_err();
-    assert!(refused.starts_with("docattest: audit: surface \"gone\""), "{refused}");
-}
-
-/// The exports a change affects: one file as it was at the base, with `now` in it
-/// replaced by `was`.
-fn affected(session: &Arc<dyn Session>, file: &str, now: &str, was: &str) -> String {
-    let text = std::fs::read_to_string(format!("{FIXTURE}/{file}")).unwrap();
-    assert!(text.contains(now), "{file} does not hold {now:?}");
-    let found =
-        call(session, "affected", json!({ "base": { file: text.replacen(now, was, 1) }, "changed": [file] }))
-            .unwrap();
-    let refs: Vec<String> = found
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|r| format!("{}:{}", r["surface"].as_str().unwrap(), r["name"].as_str().unwrap()))
-        .collect();
-    refs.join(" ")
+    let refused = try_call(&session, "observables", json!({ "surface": "gone" })).unwrap_err();
+    assert!(refused.starts_with("docattest: surface \"gone\""), "{refused}");
 }
 
 #[test]
@@ -204,13 +176,12 @@ fn a_change_affects_the_exports_that_reach_it() {
         ),
     ];
     for (what, file, now, was, want) in cases {
-        assert_eq!(affected(&session, file, now, was), want, "{what}");
+        assert_eq!(project::affected(&session, Path::new(FIXTURE), file, now, was).join(" "), want, "{what}");
     }
     let new = call(
         &session,
         "affected",
         json!({ "base": { "src/shipping.rs": null }, "changed": ["src/shipping.rs"] }),
-    )
-    .unwrap();
+    );
     assert_eq!(new.as_array().unwrap().len(), 2, "a file the base did not have: {new}");
 }

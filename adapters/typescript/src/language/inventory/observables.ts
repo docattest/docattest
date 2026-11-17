@@ -37,7 +37,7 @@ export async function surfaceObservables(
     ...helpers.map(helperProbeExpression),
   ]);
   if (!loaded?.ok) {
-    throw new UserError(`audit: ${loaded?.message ?? `surface "${surface}" did not evaluate`}`);
+    throw new UserError(loaded?.message ?? `surface "${surface}" did not evaluate`);
   }
   const ofExports = exported.flatMap((name, k) => {
     const probe = probes[k];

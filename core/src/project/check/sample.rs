@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 use super::{Network, run_check};
 use crate::api::attestation::{Attestation, Kind, Sample};
-use crate::api::errors::{Error, Result, unprefixed};
+use crate::api::errors::Result;
 use crate::files::source::DiskFiles;
 use crate::project::state::{State, load_state_beside};
 use crate::report::{Outcome, Status};
@@ -53,14 +53,13 @@ pub(super) fn check_sample(
                 sample.path
             ),
         )),
-        Err(Error::User(message)) => {
-            let why = unprefixed(&message);
+        Err(error) => {
+            let why = error.into_user_message()?;
             Ok(verdict(
                 Status::Error,
                 &format!("the sample page cannot be checked in a copy of {fixture}: {why}"),
             ))
         }
-        Err(bug) => Err(bug),
     }
 }
 

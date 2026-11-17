@@ -130,6 +130,15 @@ impl Crate {
         self.module(&at).map(|_| (at, name.clone()))
     }
 
+    /// Whether the module at a path is declared `pub`, with no restriction, by its parent;
+    /// the root is.
+    pub fn declared_public(&self, path: &[String]) -> bool {
+        let Some((name, parent)) = path.split_last() else { return true };
+        let declares = |item: &&Item| matches!(item, Item::Mod(declared) if declared.ident == name);
+        let declaration = self.module(parent).and_then(|parent| parent.items.iter().find(declares));
+        declaration.and_then(visibility).is_some_and(is_public)
+    }
+
     /// The names a module exports: its own `pub` items that are not modules, and what it
     /// re-exports with `pub use`, a glob's by the exports of the module it names.
     pub fn exports(&self, path: &[String]) -> Vec<Export> {
@@ -250,57 +259,6 @@ fn child(parent: &Module, item: &Item, read: Read) -> Option<Module> {
     Some(Module { path, file, dir: parent.dir.join(&name), items })
 }
 
-/// What a session keeps of a crate once it is read: where its modules are, and what each
-/// exports. (A syntax tree cannot be shared between the threads that answer requests.)
-pub struct Summary {
-    modules: Vec<Outline>,
-}
-
-/// What is kept of one module.
-struct Outline {
-    path: Vec<String>,
-    file: PathBuf,
-    exports: Vec<Export>,
-    opaque: bool,
-}
-
-impl Summary {
-    /// Reads a crate and keeps what a session asks of it.
-    pub fn of(krate: &Crate) -> Summary {
-        let modules = krate.modules.iter().map(|module| Outline {
-            path: module.path.clone(),
-            file: module.file.clone(),
-            exports: krate.exports(&module.path),
-            opaque: krate.opaque(&module.path),
-        });
-        Summary { modules: modules.collect() }
-    }
-
-    /// The file of the module at a path below the root.
-    pub fn file_of(&self, path: &[String]) -> Option<&Path> {
-        self.at(path).map(|module| module.file.as_path())
-    }
-
-    /// The path of the module a file is, when a file is one whole module.
-    pub fn module_of(&self, file: &Path) -> Option<&[String]> {
-        self.modules.iter().find(|module| module.file == file).map(|module| module.path.as_slice())
-    }
-
-    /// The names the module at a path exports, as its source declares them.
-    pub fn exports(&self, path: &[String]) -> &[Export] {
-        self.at(path).map_or(&[], |module| &module.exports)
-    }
-
-    /// Whether syntax cannot say everything the module at a path exports.
-    pub fn opaque(&self, path: &[String]) -> bool {
-        self.at(path).is_some_and(|module| module.opaque)
-    }
-
-    fn at(&self, path: &[String]) -> Option<&Outline> {
-        self.modules.iter().find(|module| module.path == path)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -353,6 +311,15 @@ mod tests {
         assert_eq!(krate.origin(&[], "DEFAULTS"), (path("retry"), "RETRY".to_string()));
         assert_eq!(krate.origin(&[], "Low"), (path("deep::below"), "Low".to_string()));
         assert_eq!(krate.origin(&[], "N"), (Vec::new(), "N".to_string()));
+    }
+
+    #[test]
+    fn modules_are_public_when_their_parent_declares_them_pub() {
+        let krate = krate();
+        let public: Vec<bool> = ["", "deep", "here", "retry", "deep::below"]
+            .map(|module| krate.declared_public(&path(module)))
+            .to_vec();
+        assert_eq!(public, [true, true, true, false, false]);
     }
 
     #[test]

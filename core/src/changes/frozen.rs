@@ -82,7 +82,7 @@ fn moved_out_of_living(gone: &[&str], base: &Side, head: &Side, frozen: &mut Fro
         .filter(|f| is_markdown_file(f) && !head.living(f) && !base.project.files.exists(f));
     for file in fresh {
         let text = head.project.files.read(&file).map_err(Error::user)?;
-        let plan = plan_page(&file, &unfrozen(&text), &options).map_err(Error::internal)?;
+        let plan = plan_page(&file, &unfrozen(&text), &options).map_err(|why| why.on(&file))?;
         let proofs: HashSet<String> = plan.attestations.iter().map(proof_of).collect();
         for &page in gone {
             if frozen.pages.contains(page) || !base.on(page).iter().any(|a| proofs.contains(&proof_of(a))) {

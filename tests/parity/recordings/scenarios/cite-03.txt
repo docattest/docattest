@@ -1,8 +1,8 @@
 # cite-03
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.1.4: what adopting it in three projects found
 === check --json
 exit 1
-stdout 43 lines
+stdout 46 lines
 {
   "results": [
     {
@@ -44,6 +44,9 @@ stdout 43 lines
     }
   },
   "snapshots": [],
-  "exitCode": 1
+  "exitCode": 1,
+  "warnings": [
+    "\"pages\" has \"README.md\", which matches no file"
+  ]
 }
 stderr empty

@@ -3,12 +3,14 @@
 //! Git runs as a child process from the project root, and only reads:
 //! nothing is checked out, stored or written. [`base`] reads the project as committed at a
 //! ref, for `check --base`; [`change`] reads the working tree's difference from a commit,
-//! for `impact`. Both start git through [`run`], which starts it through
-//! [`crate::process::spawn`] like every other child: under the spawn lock, so git may
-//! run on any thread at any time, also while the adapter is being started.
+//! for `impact`; [`ignored`] lists what git ignores, which is never a page or a source.
+//! Each starts git through [`run`], which starts it through [`crate::process::spawn`] like
+//! every other child: under the spawn lock, so git may run on any thread at any time, also
+//! while the adapter is being started.
 
 pub mod base;
 pub mod change;
+pub mod ignored;
 
 use crate::files::text_file::decode;
 use std::io::{BufRead, Read, Write};
@@ -50,6 +52,13 @@ pub(crate) fn run(root: &Path, args: &[&str], input: Option<&[u8]>) -> Result<Ve
         Ok(output) => Err(Failure::Failed(decode(output.stderr))),
         Err(e) => Err(Failure::Failed(e.to_string())),
     }
+}
+
+/// Where `root` is below the top of its working tree: its directories with `/` after each,
+/// as git writes them on every platform; empty at the top.
+pub(crate) fn prefix(root: &Path) -> Result<String, Failure> {
+    let out = decode(run(root, &["rev-parse", "--show-prefix"], None)?);
+    Ok(out.strip_suffix('\n').unwrap_or(&out).to_string())
 }
 
 /// The contents of several objects, read by one `git cat-file --batch`: one answer for each

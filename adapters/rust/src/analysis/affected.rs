@@ -16,6 +16,7 @@
 
 use super::Analysis;
 use super::modules::{Crate, Module, calls_macro, use_leaves};
+use super::surfaces::Located;
 use crate::language::doc::{impl_owner, named};
 use crate::language::text;
 use crate::protocol::SymbolRef;
@@ -193,7 +194,7 @@ impl Analysis {
         let mut out: Vec<SymbolRef> = Vec::new();
         let mut crates: HashMap<String, (Crate, Crate, Changes)> = HashMap::new();
         for surface in &self.surfaces {
-            let Some(package) = &surface.package else {
+            let Some(Located { package, module, .. }) = surface.located() else {
                 continue;
             };
             let (now, before, changes) = crates.entry(package.lib.clone()).or_insert_with(|| {
@@ -210,9 +211,9 @@ impl Analysis {
             let mut exports: Vec<(String, Key)> =
                 listed.into_iter().filter_map(|export| Some((export.name, export.origin?))).collect();
             for krate in [&*now, &*before] {
-                let read = krate.exports(&surface.module).into_iter();
+                let read = krate.exports(module).into_iter();
                 exports.extend(read.map(|export| {
-                    let unit = krate.origin(&surface.module, &export.name);
+                    let unit = krate.origin(module, &export.name);
                     (export.name, unit)
                 }));
             }

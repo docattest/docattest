@@ -3,6 +3,7 @@
 //! asked about them.
 
 use super::examples::{Piece, pieces, tag_words, unknown_tag, without_titles};
+use super::tags::{UnknownWord, unknown_to_report};
 use crate::api::attestation::{Body, Console, Sample};
 use crate::console::transcript::{PROMPT, TranscriptError, parse_transcript};
 
@@ -15,8 +16,7 @@ const MARKDOWN: [&str; 2] = ["md", "markdown"];
 
 /// The body a block the core runs declares, with its planning error, if any; None for any
 /// other block. An untagged console or Markdown block is documentation, as any untagged
-/// block is, unless an unknown tag sits on it: that is a typo of `check` until proven
-/// otherwise, so it fails closed.
+/// block is, unless a misspelling of a tag sits on it: then it fails closed.
 pub fn plan_core_example(
     line: usize,
     info: &str,
@@ -31,7 +31,8 @@ pub fn plan_core_example(
         return None;
     }
     let tags = Tags::read(after, ignore_tags);
-    if !tags.has(CHECK) && !tags.has(COMPILE) && tags.unknown().is_none() {
+    let misspelled = tags.unknown.as_ref().is_some_and(|unknown| unknown.meant.is_some());
+    if !tags.has(CHECK) && !tags.has(COMPILE) && !misspelled {
         return None;
     }
     let at = format!("{lang} block at L{line}");
@@ -94,6 +95,8 @@ struct Tags<'a> {
     attributes: Vec<(&'a str, &'a str)>,
     /// Renderer words the config accepts.
     ignore_tags: &'a [String],
+    /// The word that is no tag here which the error names, if any.
+    unknown: Option<UnknownWord<'a>>,
 }
 
 impl<'a> Tags<'a> {
@@ -105,18 +108,15 @@ impl<'a> Tags<'a> {
                 Piece::Word(_) => None,
             })
             .collect();
-        Tags { words: tag_words(after), attributes, ignore_tags }
+        let words = tag_words(after);
+        let known =
+            |word: &str| word == CHECK || NOT_HERE.contains(&word) || ignore_tags.iter().any(|t| t == word);
+        let unknown = unknown_to_report(words.iter().copied().filter(|word| !known(word)));
+        Tags { words, attributes, ignore_tags, unknown }
     }
 
     fn has(&self, tag: &str) -> bool {
         self.words.contains(&tag)
-    }
-
-    fn unknown(&self) -> Option<&'a str> {
-        let known = |word: &str| {
-            word == CHECK || NOT_HERE.contains(&word) || self.ignore_tags.iter().any(|t| t == word)
-        };
-        self.words.iter().copied().find(|word| !known(word))
     }
 
     /// The value of the last attribute `key`, as a renderer reads it.
@@ -127,7 +127,7 @@ impl<'a> Tags<'a> {
     fn error(&self, at: &str) -> Option<String> {
         if self.has(COMPILE) {
             Some(format!("{at} cannot be compiled: it runs, tagged {CHECK}"))
-        } else if let Some(unknown) = self.unknown() {
+        } else if let Some(unknown) = &self.unknown {
             let known: Vec<&str> =
                 std::iter::once(CHECK).chain(self.ignore_tags.iter().map(String::as_str)).collect();
             Some(unknown_tag(at, unknown, &known))
@@ -172,11 +172,16 @@ mod tests {
     fn untagged_blocks_are_documentation_and_typos_fail_closed() {
         assert!(plan("console", "$ x").is_none());
         assert!(plan("md twoslash title=\"a\"", "x").is_none());
+        assert!(plan("console vue", "$ x").is_none());
         assert!(plan("ts check", "x").is_none());
         assert!(plan("", "x").is_none());
         assert_eq!(
             error_of("console chekc", "$ x"),
-            Some("console block at L4: unknown tag \"chekc\" (known: check, twoslash; add renderer tags to \"ignoreTags\")".into())
+            Some("console block at L4: unknown tag \"chekc\"; did you mean \"check\"?".into())
+        );
+        assert_eq!(
+            error_of("console check vue", "$ x"),
+            Some("console block at L4: unknown tag \"vue\" (known: check, twoslash; add renderer tags to \"ignoreTags\")".into())
         );
         assert_eq!(
             error_of("console compile", "$ x"),
