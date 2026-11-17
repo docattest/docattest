@@ -1,5 +1,5 @@
 # check --json
-# recorded from: release 0.1.2: crates.io and go install in the README and guides
+# recorded from: README: website links and the docs attested badge moved its lines
 === check --json
 exit 0
 stdout 3753 lines
@@ -7,7 +7,7 @@ stdout 3753 lines
   "results": [
     {
       "page": "README.md",
-      "line": 16,
+      "line": 22,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -17,7 +17,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 23,
+      "line": 29,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -25,7 +25,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 34,
+      "line": 40,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -33,7 +33,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 66,
+      "line": 72,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -43,7 +43,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 67,
+      "line": 73,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -53,7 +53,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 76,
+      "line": 82,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -63,7 +63,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 85,
+      "line": 91,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -73,7 +73,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 101,
+      "line": 107,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -83,7 +83,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 123,
+      "line": 129,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -91,7 +91,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 156,
+      "line": 162,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -99,7 +99,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 191,
+      "line": 197,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -107,7 +107,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 233,
+      "line": 239,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -115,7 +115,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 257,
+      "line": 263,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -127,7 +127,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 279,
+      "line": 285,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -139,7 +139,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 409,
+      "line": 423,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -147,7 +147,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 423,
+      "line": 437,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -157,7 +157,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 437,
+      "line": 451,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -169,7 +169,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 446,
+      "line": 460,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -181,7 +181,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 447,
+      "line": 461,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -193,7 +193,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 528,
+      "line": 542,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -203,7 +203,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 530,
+      "line": 544,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -213,7 +213,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 531,
+      "line": 545,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -223,7 +223,7 @@ stdout 3753 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 11,
+      "line": 14,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -231,7 +231,7 @@ stdout 3753 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 34,
+      "line": 37,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -241,7 +241,7 @@ stdout 3753 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 35,
+      "line": 38,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -251,7 +251,7 @@ stdout 3753 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 39,
+      "line": 42,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -261,7 +261,7 @@ stdout 3753 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 67,
+      "line": 70,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -269,7 +269,7 @@ stdout 3753 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 108,
+      "line": 111,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -279,7 +279,7 @@ stdout 3753 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 120,
+      "line": 123,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -2175,7 +2175,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 15,
+            "line": 18,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2187,7 +2187,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 30,
+            "line": 33,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2199,7 +2199,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 32,
+            "line": 35,
             "kind": "test",
             "status": "pass",
             "symbols": [
@@ -2209,7 +2209,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 34,
+            "line": 37,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2221,7 +2221,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 40,
+            "line": 43,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2229,7 +2229,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 48,
+            "line": 51,
             "kind": "test",
             "status": "pass",
             "symbols": [
@@ -2241,7 +2241,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 49,
+            "line": 52,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2253,7 +2253,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 72,
+            "line": 75,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2261,7 +2261,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 81,
+            "line": 84,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2269,7 +2269,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 121,
+            "line": 124,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2277,7 +2277,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 149,
+            "line": 152,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2289,7 +2289,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 152,
+            "line": 155,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2297,7 +2297,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 156,
+            "line": 159,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2305,7 +2305,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 157,
+            "line": 160,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2313,7 +2313,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 161,
+            "line": 164,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2321,7 +2321,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 165,
+            "line": 168,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2329,7 +2329,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 175,
+            "line": 178,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2337,7 +2337,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 187,
+            "line": 190,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2345,7 +2345,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 192,
+            "line": 195,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2353,7 +2353,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 198,
+            "line": 201,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2361,7 +2361,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 213,
+            "line": 216,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2369,7 +2369,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 218,
+            "line": 221,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2381,7 +2381,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 229,
+            "line": 232,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2393,7 +2393,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 238,
+            "line": 241,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2405,7 +2405,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 250,
+            "line": 253,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2413,7 +2413,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 266,
+            "line": 269,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2421,7 +2421,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 289,
+            "line": 292,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2429,7 +2429,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 299,
+            "line": 302,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2437,7 +2437,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 307,
+            "line": 310,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2445,7 +2445,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 337,
+            "line": 340,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2453,7 +2453,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 351,
+            "line": 354,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2461,7 +2461,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 356,
+            "line": 359,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2473,7 +2473,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 396,
+            "line": 399,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2609,7 +2609,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 7,
+            "line": 10,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -2619,7 +2619,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 12,
+            "line": 15,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2631,7 +2631,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 15,
+            "line": 18,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -2641,7 +2641,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 16,
+            "line": 19,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -2651,7 +2651,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 18,
+            "line": 21,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -2661,7 +2661,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 26,
+            "line": 29,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -2671,35 +2671,11 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 34,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [],
-            "message": "README.md:34 macOS 11+ on Apple silicon"
-          },
-          {
-            "page": "README.md",
-            "line": 35,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [],
-            "message": "README.md:35 macOS 10.12+ on Intel"
-          },
-          {
-            "page": "README.md",
-            "line": 36,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [],
-            "message": "README.md:36 Linux x86-64, glibc or musl"
-          },
-          {
-            "page": "README.md",
             "line": 37,
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:37 Linux arm64, glibc or musl"
+            "message": "README.md:37 macOS 11+ on Apple silicon"
           },
           {
             "page": "README.md",
@@ -2707,11 +2683,35 @@ stdout 3753 lines
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:38 Windows x64"
+            "message": "README.md:38 macOS 10.12+ on Intel"
           },
           {
             "page": "README.md",
-            "line": 57,
+            "line": 39,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:39 Linux x86-64, glibc or musl"
+          },
+          {
+            "page": "README.md",
+            "line": 40,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:40 Linux arm64, glibc or musl"
+          },
+          {
+            "page": "README.md",
+            "line": 41,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:41 Windows x64"
+          },
+          {
+            "page": "README.md",
+            "line": 60,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2719,7 +2719,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 59,
+            "line": 62,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2731,7 +2731,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 61,
+            "line": 64,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2739,41 +2739,11 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 63,
+            "line": 66,
             "kind": "example",
             "status": "pass",
             "symbols": [],
             "message": "every command printed what the block shows"
-          },
-          {
-            "page": "README.md",
-            "line": 77,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "cache_directory"
-            ],
-            "message": "README.md:77 any system"
-          },
-          {
-            "page": "README.md",
-            "line": 78,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "cache_directory"
-            ],
-            "message": "README.md:78 macOS"
-          },
-          {
-            "page": "README.md",
-            "line": 79,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "cache_directory"
-            ],
-            "message": "README.md:79 Linux"
           },
           {
             "page": "README.md",
@@ -2783,7 +2753,7 @@ stdout 3753 lines
             "symbols": [
               "cache_directory"
             ],
-            "message": "README.md:80 Linux"
+            "message": "README.md:80 any system"
           },
           {
             "page": "README.md",
@@ -2793,7 +2763,7 @@ stdout 3753 lines
             "symbols": [
               "cache_directory"
             ],
-            "message": "README.md:81 Linux"
+            "message": "README.md:81 macOS"
           },
           {
             "page": "README.md",
@@ -2803,7 +2773,7 @@ stdout 3753 lines
             "symbols": [
               "cache_directory"
             ],
-            "message": "README.md:82 Windows"
+            "message": "README.md:82 Linux"
           },
           {
             "page": "README.md",
@@ -2813,11 +2783,41 @@ stdout 3753 lines
             "symbols": [
               "cache_directory"
             ],
-            "message": "README.md:83 Windows"
+            "message": "README.md:83 Linux"
           },
           {
             "page": "README.md",
-            "line": 88,
+            "line": 84,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:84 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 85,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:85 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 86,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "cache_directory"
+            ],
+            "message": "README.md:86 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 91,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2825,7 +2825,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 103,
+            "line": 106,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2833,7 +2833,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 108,
+            "line": 111,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2841,7 +2841,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 109,
+            "line": 112,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2853,7 +2853,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 111,
+            "line": 114,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2861,7 +2861,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 119,
+            "line": 122,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2873,7 +2873,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 125,
+            "line": 128,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2885,7 +2885,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 158,
+            "line": 161,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2893,7 +2893,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 204,
+            "line": 207,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2901,7 +2901,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 229,
+            "line": 232,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2913,7 +2913,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 238,
+            "line": 241,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -2921,7 +2921,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 245,
+            "line": 248,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2929,7 +2929,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 246,
+            "line": 249,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2941,7 +2941,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 247,
+            "line": 250,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2949,7 +2949,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 257,
+            "line": 260,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2957,7 +2957,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 262,
+            "line": 265,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2965,7 +2965,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 263,
+            "line": 266,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -2977,7 +2977,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 267,
+            "line": 270,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -2985,7 +2985,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 270,
+            "line": 273,
             "kind": "example",
             "status": "pass",
             "symbols": [
@@ -2995,7 +2995,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 277,
+            "line": 280,
             "kind": "example",
             "status": "pass",
             "symbols": [
@@ -3005,19 +3005,11 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 281,
+            "line": 284,
             "kind": "example",
             "status": "pass",
             "symbols": [],
             "message": "all assertions held"
-          },
-          {
-            "page": "README.md",
-            "line": 294,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/test_running.py:158 declares \"Running\" > \"test_a_stuck_block_is_stopped_and_the_next_one_runs\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3025,11 +3017,19 @@ stdout 3753 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
+            "message": "tests/test_running.py:158 declares \"Running\" > \"test_a_stuck_block_is_stopped_and_the_next_one_runs\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 300,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
             "message": "tests/test_running.py:233 declares \"Running\" > \"test_stdout_carries_nothing_but_responses\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 299,
+            "line": 302,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3037,7 +3037,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 309,
+            "line": 312,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3045,7 +3045,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 351,
+            "line": 354,
             "kind": "example",
             "status": "pass",
             "symbols": [
@@ -3057,7 +3057,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 375,
+            "line": 378,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3065,7 +3065,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 388,
+            "line": 391,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3073,39 +3073,39 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 397,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [],
-            "message": "README.md:397 set"
-          },
-          {
-            "page": "README.md",
-            "line": 398,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [],
-            "message": "README.md:398 not set"
-          },
-          {
-            "page": "README.md",
-            "line": 399,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [],
-            "message": "README.md:399 not set"
-          },
-          {
-            "page": "README.md",
             "line": 400,
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:400 not set"
+            "message": "README.md:400 set"
           },
           {
             "page": "README.md",
-            "line": 406,
+            "line": 401,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:401 not set"
+          },
+          {
+            "page": "README.md",
+            "line": 402,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:402 not set"
+          },
+          {
+            "page": "README.md",
+            "line": 403,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:403 not set"
+          },
+          {
+            "page": "README.md",
+            "line": 409,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3117,7 +3117,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 407,
+            "line": 410,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3129,7 +3129,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 418,
+            "line": 421,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3324,7 +3324,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 14,
+            "line": 17,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3336,7 +3336,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 30,
+            "line": 33,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -3346,7 +3346,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 34,
+            "line": 37,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3358,7 +3358,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 53,
+            "line": 56,
             "kind": "test",
             "status": "pass",
             "symbols": [
@@ -3369,7 +3369,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 55,
+            "line": 58,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3381,7 +3381,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 57,
+            "line": 60,
             "kind": "test",
             "status": "pass",
             "symbols": [
@@ -3389,42 +3389,6 @@ stdout 3753 lines
               "FindCore"
             ],
             "message": "internal/launcher/launcher_test.go:80 declares \"TestACoreSomeonePointsAtIsAsked\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 70,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Core",
-              "Machine",
-              "FindCore"
-            ],
-            "message": "README.md:70 any"
-          },
-          {
-            "page": "README.md",
-            "line": 71,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Core",
-              "Machine",
-              "FindCore"
-            ],
-            "message": "README.md:71 macOS"
-          },
-          {
-            "page": "README.md",
-            "line": 72,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Core",
-              "Machine",
-              "FindCore"
-            ],
-            "message": "README.md:72 Linux"
           },
           {
             "page": "README.md",
@@ -3436,7 +3400,7 @@ stdout 3753 lines
               "Machine",
               "FindCore"
             ],
-            "message": "README.md:73 Linux"
+            "message": "README.md:73 any"
           },
           {
             "page": "README.md",
@@ -3448,7 +3412,7 @@ stdout 3753 lines
               "Machine",
               "FindCore"
             ],
-            "message": "README.md:74 Linux"
+            "message": "README.md:74 macOS"
           },
           {
             "page": "README.md",
@@ -3460,7 +3424,7 @@ stdout 3753 lines
               "Machine",
               "FindCore"
             ],
-            "message": "README.md:75 Windows"
+            "message": "README.md:75 Linux"
           },
           {
             "page": "README.md",
@@ -3472,11 +3436,47 @@ stdout 3753 lines
               "Machine",
               "FindCore"
             ],
-            "message": "README.md:76 Windows"
+            "message": "README.md:76 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 77,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:77 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 78,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:78 Windows"
           },
           {
             "page": "README.md",
             "line": 79,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore"
+            ],
+            "message": "README.md:79 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 82,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3488,7 +3488,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 92,
+            "line": 95,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3500,7 +3500,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 95,
+            "line": 98,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3512,7 +3512,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 101,
+            "line": 104,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3520,7 +3520,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 143,
+            "line": 146,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3528,7 +3528,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 198,
+            "line": 201,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3536,7 +3536,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 229,
+            "line": 232,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3548,41 +3548,11 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 245,
+            "line": 248,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "internal/running/running_test.go:93 declares \"TestBlocksCompileAndRun\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 268,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Asserts"
-            ],
-            "message": "README.md:268 `fmt.Println(1)`"
-          },
-          {
-            "page": "README.md",
-            "line": 269,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Asserts"
-            ],
-            "message": "README.md:269 `panic(\"no\")`"
-          },
-          {
-            "page": "README.md",
-            "line": 270,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Asserts"
-            ],
-            "message": "README.md:270 `log.Fatalf(\"no\")`"
           },
           {
             "page": "README.md",
@@ -3592,7 +3562,7 @@ stdout 3753 lines
             "symbols": [
               "Asserts"
             ],
-            "message": "README.md:271 `log.Panicln(\"no\")`"
+            "message": "README.md:271 `fmt.Println(1)`"
           },
           {
             "page": "README.md",
@@ -3602,11 +3572,41 @@ stdout 3753 lines
             "symbols": [
               "Asserts"
             ],
-            "message": "README.md:272 `os.Exit(1)`"
+            "message": "README.md:272 `panic(\"no\")`"
           },
           {
             "page": "README.md",
-            "line": 278,
+            "line": 273,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Asserts"
+            ],
+            "message": "README.md:273 `log.Fatalf(\"no\")`"
+          },
+          {
+            "page": "README.md",
+            "line": 274,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Asserts"
+            ],
+            "message": "README.md:274 `log.Panicln(\"no\")`"
+          },
+          {
+            "page": "README.md",
+            "line": 275,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Asserts"
+            ],
+            "message": "README.md:275 `os.Exit(1)`"
+          },
+          {
+            "page": "README.md",
+            "line": 281,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3614,7 +3614,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 294,
+            "line": 297,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3622,7 +3622,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 317,
+            "line": 320,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3630,7 +3630,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 321,
+            "line": 324,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -3640,7 +3640,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 324,
+            "line": 327,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3648,7 +3648,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 330,
+            "line": 333,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3656,7 +3656,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 365,
+            "line": 368,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3664,7 +3664,7 @@ stdout 3753 lines
           },
           {
             "page": "README.md",
-            "line": 371,
+            "line": 374,
             "kind": "fact",
             "status": "pass",
             "symbols": [

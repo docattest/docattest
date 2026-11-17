@@ -1,39 +1,39 @@
 # check
-# recorded from: release 0.1.2: crates.io and go install in the README and guides
+# recorded from: README: website links and the docs attested badge moved its lines
 === check
 exit 0
 stdout 425 lines
 README.md
-  ✓ L16 fact: manifest("adapters/typescript/package.json").version is 0.1.2
-  ✓ L23 example: every command printed what the block shows
-  ✓ L34 example: every command printed what the block shows
-  ✓ L66 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
-  ✓ L67 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
-  ✓ L76 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L85 fact: manifest("adapters/go/go.mod")["go"] is 1.23
-  ✓ L101 fact: 5 code spans match Object.keys(manifest("protocol/platforms.json").platforms)
-  ✓ L123 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L156 example: every proof on the sample page held in a copy of adapters/python/tests/fixture
-  ✓ L191 example: every proof on the sample page held in a copy of adapters/go/testdata/fixture
-  ✓ L233 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
-  ✓ L257 fact: 5 rows in column Reported match KINDS
-  ✓ L279 fact: 12 distinct values in column Command match COMMANDS
-  ✓ L409 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L423 example: compiles
-  ✓ L437 fact: 12 rows in column Key match CONFIG_KEYS
-  ✓ L446 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
-  ✓ L447 fact: DEFAULT_TIMEOUT_MS is 10000
-  ✓ L528 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
-  ✓ L530 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L531 fact: manifest("adapters/go/go.mod").go is 1.23
+  ✓ L22 fact: manifest("adapters/typescript/package.json").version is 0.1.2
+  ✓ L29 example: every command printed what the block shows
+  ✓ L40 example: every command printed what the block shows
+  ✓ L72 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
+  ✓ L73 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
+  ✓ L82 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L91 fact: manifest("adapters/go/go.mod")["go"] is 1.23
+  ✓ L107 fact: 5 code spans match Object.keys(manifest("protocol/platforms.json").platforms)
+  ✓ L129 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L162 example: every proof on the sample page held in a copy of adapters/python/tests/fixture
+  ✓ L197 example: every proof on the sample page held in a copy of adapters/go/testdata/fixture
+  ✓ L239 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
+  ✓ L263 fact: 5 rows in column Reported match KINDS
+  ✓ L285 fact: 12 distinct values in column Command match COMMANDS
+  ✓ L423 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L437 example: compiles
+  ✓ L451 fact: 12 rows in column Key match CONFIG_KEYS
+  ✓ L460 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
+  ✓ L461 fact: DEFAULT_TIMEOUT_MS is 10000
+  ✓ L542 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
+  ✓ L544 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L545 fact: manifest("adapters/go/go.mod").go is 1.23
 adapters/typescript/README.md
-  ✓ L11 example: every command printed what the block shows
-  ✓ L34 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
-  ✓ L35 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
-  ✓ L39 fact: 5 items match Object.keys(manifest("adapters/typescript/package.json").optionalDependencies)
-  ✓ L67 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L108 example: compiles
-  ✓ L120 fact: 2 items match Object.keys(manifest("adapters/typescript/package.json").bin)
+  ✓ L14 example: every command printed what the block shows
+  ✓ L37 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
+  ✓ L38 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
+  ✓ L42 fact: 5 items match Object.keys(manifest("adapters/typescript/package.json").optionalDependencies)
+  ✓ L70 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L111 example: compiles
+  ✓ L123 fact: 2 items match Object.keys(manifest("adapters/typescript/package.json").bin)
 docs/adapters.md
   ✓ L14 fact: 12 items match COMMANDS
 docs/agents.md
@@ -253,39 +253,39 @@ CONTRIBUTING.md
   ✓ L33 example: every command printed what the block shows
   ✓ L63 test: tests/endtoend.rs:18 declares "the_adapter_conforms_to_the_protocol" (not run by docattest)
 README.md
-  ✓ L15 fact: VERSION is 1
-  ✓ L30 fact: CORE_VARIABLE is DOCATTEST_CORE
-  ✓ L32 test: src/launcher.rs:117 declares "tests" > "a_core_someone_names_is_asked_what_it_speaks" (not run by docattest)
-  ✓ L34 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_RUST
-  ✓ L40 example: every command printed what the block shows
-  ✓ L48 test: src/launcher.rs:134 declares "tests" > "the_hand_over_adds_only_what_is_not_set" (not run by docattest)
-  ✓ L49 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
-  ✓ L72 test: src/analysis/modules.rs:346 declares "tests" > "exports_are_public_items_and_what_is_reexported" (not run by docattest)
-  ✓ L81 example: every proof on the sample page held in a copy of tests/fixture
-  ✓ L121 example: every command printed what the block shows
-  ✓ L149 fact: 2 code spans match hello().block_languages
-  ✓ L152 test: tests/session.rs:78 declares "blocks_compile_and_run_each_as_a_program_of_its_own" (not run by docattest)
-  ✓ L156 test: src/language/blocks.rs:58 declares "tests" > "a_snippet_is_the_body_of_main" (not run by docattest)
-  ✓ L157 test: src/language/blocks.rs:72 declares "tests" > "hidden_lines_are_part_of_the_program_and_keep_their_place" (not run by docattest)
-  ✓ L161 test: src/language/text.rs:156 declares "tests" > "a_block_asserts_when_something_in_it_can_end_the_program" (not run by docattest)
-  ✓ L165 test: src/toolchain/cargo.rs:185 declares "tests" > "errors_are_read_from_the_compilers_messages" (not run by docattest)
-  ✓ L175 example: every command printed what the block shows
-  ✓ L187 example: all assertions held
-  ✓ L192 test: src/toolchain/mod.rs:138 declares "tests" > "a_program_that_overruns_is_ended_with_what_it_started" (not run by docattest)
-  ✓ L198 example: every command printed what the block shows
-  ✓ L213 example: every command printed what the block shows
-  ✓ L218 fact: 9 items match ASSERTING_MACROS.map(|name| format!("{name}!"))
-  ✓ L229 fact: 4 items match ASSERTING_METHODS
-  ✓ L238 fact: 7 items match RUST_WORDS
-  ✓ L250 test: src/language/doc.rs:251 declares "tests" > "examples_are_the_rust_blocks_of_doc_comments" (not run by docattest)
-  ✓ L266 example: every command printed what the block shows
-  ✓ L289 test: tests/session.rs:168 declares "a_fact_without_a_value_says_why_and_costs_the_others_nothing" (not run by docattest)
-  ✓ L299 test: src/harness/observe.rs:234 declares "tests" > "maps_and_lists_of_pairs_show_their_keys" (not run by docattest)
-  ✓ L307 test: tests/session.rs:131 declares "facts_show_values_as_rust_prints_them" (not run by docattest)
-  ✓ L337 example: every command printed what the block shows
-  ✓ L351 test: tests/statics.rs:87 declares "tests_are_listed_with_the_modules_around_them" (not run by docattest)
-  ✓ L356 fact: hello().ignored_names.join(", ") is target
-  ✓ L396 example: every command printed what the block shows
+  ✓ L18 fact: VERSION is 1
+  ✓ L33 fact: CORE_VARIABLE is DOCATTEST_CORE
+  ✓ L35 test: src/launcher.rs:117 declares "tests" > "a_core_someone_names_is_asked_what_it_speaks" (not run by docattest)
+  ✓ L37 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_RUST
+  ✓ L43 example: every command printed what the block shows
+  ✓ L51 test: src/launcher.rs:134 declares "tests" > "the_hand_over_adds_only_what_is_not_set" (not run by docattest)
+  ✓ L52 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
+  ✓ L75 test: src/analysis/modules.rs:346 declares "tests" > "exports_are_public_items_and_what_is_reexported" (not run by docattest)
+  ✓ L84 example: every proof on the sample page held in a copy of tests/fixture
+  ✓ L124 example: every command printed what the block shows
+  ✓ L152 fact: 2 code spans match hello().block_languages
+  ✓ L155 test: tests/session.rs:78 declares "blocks_compile_and_run_each_as_a_program_of_its_own" (not run by docattest)
+  ✓ L159 test: src/language/blocks.rs:58 declares "tests" > "a_snippet_is_the_body_of_main" (not run by docattest)
+  ✓ L160 test: src/language/blocks.rs:72 declares "tests" > "hidden_lines_are_part_of_the_program_and_keep_their_place" (not run by docattest)
+  ✓ L164 test: src/language/text.rs:156 declares "tests" > "a_block_asserts_when_something_in_it_can_end_the_program" (not run by docattest)
+  ✓ L168 test: src/toolchain/cargo.rs:185 declares "tests" > "errors_are_read_from_the_compilers_messages" (not run by docattest)
+  ✓ L178 example: every command printed what the block shows
+  ✓ L190 example: all assertions held
+  ✓ L195 test: src/toolchain/mod.rs:138 declares "tests" > "a_program_that_overruns_is_ended_with_what_it_started" (not run by docattest)
+  ✓ L201 example: every command printed what the block shows
+  ✓ L216 example: every command printed what the block shows
+  ✓ L221 fact: 9 items match ASSERTING_MACROS.map(|name| format!("{name}!"))
+  ✓ L232 fact: 4 items match ASSERTING_METHODS
+  ✓ L241 fact: 7 items match RUST_WORDS
+  ✓ L253 test: src/language/doc.rs:251 declares "tests" > "examples_are_the_rust_blocks_of_doc_comments" (not run by docattest)
+  ✓ L269 example: every command printed what the block shows
+  ✓ L292 test: tests/session.rs:168 declares "a_fact_without_a_value_says_why_and_costs_the_others_nothing" (not run by docattest)
+  ✓ L302 test: src/harness/observe.rs:234 declares "tests" > "maps_and_lists_of_pairs_show_their_keys" (not run by docattest)
+  ✓ L310 test: tests/session.rs:131 declares "facts_show_values_as_rust_prints_them" (not run by docattest)
+  ✓ L340 example: every command printed what the block shows
+  ✓ L354 test: tests/statics.rs:87 declares "tests_are_listed_with_the_modules_around_them" (not run by docattest)
+  ✓ L359 fact: hello().ignored_names.join(", ") is target
+  ✓ L399 example: every command printed what the block shows
 results: 35 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (35 attestations, 0 weak, 15 cited), 0 uncovered, 0 frozen
 surface default: 5 symbols, 4 attested, 1 not referenced by any page
@@ -303,63 +303,63 @@ CONTRIBUTING.md
   ✓ L46 fact: CORE_VARIABLE is DOCATTEST_CORE
   ✓ L82 fact: manifest("pyproject.toml")["tool"]["pyright"]["pythonVersion"] is 3.10
 README.md
-  ✓ L7 fact: 2 items match list(manifest("pyproject.toml")["project"]["scripts"])
-  ✓ L12 fact: PROTOCOL_VERSION is 1
-  ✓ L15 fact: manifest("pyproject.toml")["project"]["name"] is docattest
-  ✓ L16 fact: 2 code spans match [p for p in manifest("pyproject.toml")["tool"]["setuptools"]["packages"] if "." not in p]
-  ✓ L18 fact: manifest("pyproject.toml")["project"]["requires-python"].removeprefix(">=") is 3.10
-  ✓ L26 fact: len(platforms()) is 5
-  ✓ L34 cases: README.md:34 macOS 11+ on Apple silicon
-  ✓ L35 cases: README.md:35 macOS 10.12+ on Intel
-  ✓ L36 cases: README.md:36 Linux x86-64, glibc or musl
-  ✓ L37 cases: README.md:37 Linux arm64, glibc or musl
-  ✓ L38 cases: README.md:38 Windows x64
-  ✓ L57 test: tests/test_launcher.py:70 declares "Lookup" > "test_the_core_is_the_one_given_then_the_bundled_one_then_the_cached_one" (not run by docattest)
-  ✓ L59 fact: CORE_VARIABLE is DOCATTEST_CORE
-  ✓ L61 test: tests/test_launcher.py:98 declares "Lookup" > "test_a_core_that_speaks_another_protocol_is_refused" (not run by docattest)
-  ✓ L63 example: every command printed what the block shows
-  ✓ L77 cases: README.md:77 any system
-  ✓ L78 cases: README.md:78 macOS
-  ✓ L79 cases: README.md:79 Linux
-  ✓ L80 cases: README.md:80 Linux
-  ✓ L81 cases: README.md:81 Linux
-  ✓ L82 cases: README.md:82 Windows
-  ✓ L83 cases: README.md:83 Windows
-  ✓ L88 test: tests/test_launcher.py:206 declares "Launch" > "test_a_trace_names_the_core_it_runs" (not run by docattest)
-  ✓ L103 test: tests/test_launcher.py:271 declares "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" (not run by docattest)
-  ✓ L108 test: tests/test_launcher.py:242 declares "Launch" > "test_hooks_are_told_a_command_that_runs_docattest_without_node" (not run by docattest)
-  ✓ L109 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
-  ✓ L111 test: tests/test_launcher.py:234 declares "Launch" > "test_what_is_already_set_stands" (not run by docattest)
-  ✓ L119 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_PYTHON
-  ✓ L125 fact: CONFIG_FILE is docattest.config.json
-  ✓ L158 example: every proof on the sample page held in a copy of tests/fixture
-  ✓ L204 example: every command printed what the block shows
-  ✓ L229 fact: 5 code spans match BLOCK_LANGUAGES
-  ✓ L238 example: all assertions held
-  ✓ L245 test: tests/test_protocol.py:116 declares "Text" > "test_assertions" (not run by docattest)
-  ✓ L246 fact: ", ".join(SESSION_LANGUAGES) is pycon
-  ✓ L247 test: tests/test_running.py:62 declares "Running" > "test_sessions_run_as_doctest_runs_them" (not run by docattest)
-  ✓ L257 test: tests/test_static.py:108 declares "Static" > "test_compile_is_what_can_be_said_without_running" (not run by docattest)
-  ✓ L262 test: tests/test_running.py:139 declares "Running" > "test_blocks_are_isolated_from_each_other" (not run by docattest)
-  ✓ L263 fact: CONTINUE is continue
-  ✓ L267 test: tests/test_running.py:73 declares "Running" > "test_a_block_tagged_continue_goes_on_from_the_blocks_before_it" (not run by docattest)
-  ✓ L270 example: all assertions held
-  ✓ L277 example: all assertions held
-  ✓ L281 example: all assertions held
-  ✓ L294 test: tests/test_running.py:158 declares "Running" > "test_a_stuck_block_is_stopped_and_the_next_one_runs" (not run by docattest)
-  ✓ L297 test: tests/test_running.py:233 declares "Running" > "test_stdout_carries_nothing_but_responses" (not run by docattest)
-  ✓ L299 test: tests/test_running.py:176 declares "Running" > "test_network_is_off_unless_a_block_asks" (not run by docattest)
-  ✓ L309 test: tests/test_running.py:125 declares "Running" > "test_a_docstring_session_starts_with_its_module" (not run by docattest)
-  ✓ L351 example: compiles
-  ✓ L375 test: tests/test_static.py:184 declares "Static" > "test_tests_are_listed_from_syntax" (not run by docattest)
-  ✓ L388 example: every command printed what the block shows
-  ✓ L397 cases: README.md:397 set
-  ✓ L398 cases: README.md:398 not set
-  ✓ L399 cases: README.md:399 not set
-  ✓ L400 cases: README.md:400 not set
-  ✓ L406 fact: 5 code spans match IGNORED_NAMES
-  ✓ L407 fact: ", ".join(IGNORED_MARKERS) is pyvenv.cfg
-  ✓ L418 test: tests/test_running.py:276 declares "Running" > "test_without_fork_every_job_gets_its_own_process" (not run by docattest)
+  ✓ L10 fact: 2 items match list(manifest("pyproject.toml")["project"]["scripts"])
+  ✓ L15 fact: PROTOCOL_VERSION is 1
+  ✓ L18 fact: manifest("pyproject.toml")["project"]["name"] is docattest
+  ✓ L19 fact: 2 code spans match [p for p in manifest("pyproject.toml")["tool"]["setuptools"]["packages"] if "." not in p]
+  ✓ L21 fact: manifest("pyproject.toml")["project"]["requires-python"].removeprefix(">=") is 3.10
+  ✓ L29 fact: len(platforms()) is 5
+  ✓ L37 cases: README.md:37 macOS 11+ on Apple silicon
+  ✓ L38 cases: README.md:38 macOS 10.12+ on Intel
+  ✓ L39 cases: README.md:39 Linux x86-64, glibc or musl
+  ✓ L40 cases: README.md:40 Linux arm64, glibc or musl
+  ✓ L41 cases: README.md:41 Windows x64
+  ✓ L60 test: tests/test_launcher.py:70 declares "Lookup" > "test_the_core_is_the_one_given_then_the_bundled_one_then_the_cached_one" (not run by docattest)
+  ✓ L62 fact: CORE_VARIABLE is DOCATTEST_CORE
+  ✓ L64 test: tests/test_launcher.py:98 declares "Lookup" > "test_a_core_that_speaks_another_protocol_is_refused" (not run by docattest)
+  ✓ L66 example: every command printed what the block shows
+  ✓ L80 cases: README.md:80 any system
+  ✓ L81 cases: README.md:81 macOS
+  ✓ L82 cases: README.md:82 Linux
+  ✓ L83 cases: README.md:83 Linux
+  ✓ L84 cases: README.md:84 Linux
+  ✓ L85 cases: README.md:85 Windows
+  ✓ L86 cases: README.md:86 Windows
+  ✓ L91 test: tests/test_launcher.py:206 declares "Launch" > "test_a_trace_names_the_core_it_runs" (not run by docattest)
+  ✓ L106 test: tests/test_launcher.py:271 declares "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" (not run by docattest)
+  ✓ L111 test: tests/test_launcher.py:242 declares "Launch" > "test_hooks_are_told_a_command_that_runs_docattest_without_node" (not run by docattest)
+  ✓ L112 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
+  ✓ L114 test: tests/test_launcher.py:234 declares "Launch" > "test_what_is_already_set_stands" (not run by docattest)
+  ✓ L122 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_PYTHON
+  ✓ L128 fact: CONFIG_FILE is docattest.config.json
+  ✓ L161 example: every proof on the sample page held in a copy of tests/fixture
+  ✓ L207 example: every command printed what the block shows
+  ✓ L232 fact: 5 code spans match BLOCK_LANGUAGES
+  ✓ L241 example: all assertions held
+  ✓ L248 test: tests/test_protocol.py:116 declares "Text" > "test_assertions" (not run by docattest)
+  ✓ L249 fact: ", ".join(SESSION_LANGUAGES) is pycon
+  ✓ L250 test: tests/test_running.py:62 declares "Running" > "test_sessions_run_as_doctest_runs_them" (not run by docattest)
+  ✓ L260 test: tests/test_static.py:108 declares "Static" > "test_compile_is_what_can_be_said_without_running" (not run by docattest)
+  ✓ L265 test: tests/test_running.py:139 declares "Running" > "test_blocks_are_isolated_from_each_other" (not run by docattest)
+  ✓ L266 fact: CONTINUE is continue
+  ✓ L270 test: tests/test_running.py:73 declares "Running" > "test_a_block_tagged_continue_goes_on_from_the_blocks_before_it" (not run by docattest)
+  ✓ L273 example: all assertions held
+  ✓ L280 example: all assertions held
+  ✓ L284 example: all assertions held
+  ✓ L297 test: tests/test_running.py:158 declares "Running" > "test_a_stuck_block_is_stopped_and_the_next_one_runs" (not run by docattest)
+  ✓ L300 test: tests/test_running.py:233 declares "Running" > "test_stdout_carries_nothing_but_responses" (not run by docattest)
+  ✓ L302 test: tests/test_running.py:176 declares "Running" > "test_network_is_off_unless_a_block_asks" (not run by docattest)
+  ✓ L312 test: tests/test_running.py:125 declares "Running" > "test_a_docstring_session_starts_with_its_module" (not run by docattest)
+  ✓ L354 example: compiles
+  ✓ L378 test: tests/test_static.py:184 declares "Static" > "test_tests_are_listed_from_syntax" (not run by docattest)
+  ✓ L391 example: every command printed what the block shows
+  ✓ L400 cases: README.md:400 set
+  ✓ L401 cases: README.md:401 not set
+  ✓ L402 cases: README.md:402 not set
+  ✓ L403 cases: README.md:403 not set
+  ✓ L409 fact: 5 code spans match IGNORED_NAMES
+  ✓ L410 fact: ", ".join(IGNORED_MARKERS) is pyvenv.cfg
+  ✓ L421 test: tests/test_running.py:276 declares "Running" > "test_without_fork_every_job_gets_its_own_process" (not run by docattest)
 results: 60 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (60 attestations, 0 weak, 17 cited), 0 uncovered, 0 frozen
 surface default: 28 symbols, 6 attested, 22 not referenced by any page
@@ -381,40 +381,40 @@ CONTRIBUTING.md
   ✓ L63 test: internal/platform/platform_test.go:11 declares "TestThePlatformsOfTheCore" (not run by docattest)
   ✓ L73 example: every command printed what the block shows
 README.md
-  ✓ L14 fact: Hello().Protocol is 1
-  ✓ L30 fact: manifest("go.mod")["go"] is 1.23
-  ✓ L34 fact: 5 rows in column platform match Platforms()
-  ✓ L53 test: internal/launcher/launcher_test.go:58 declares "TestFindCoreInOrder" (not run by docattest)
-  ✓ L55 fact: CoreVariable is DOCATTEST_CORE
-  ✓ L57 test: internal/launcher/launcher_test.go:80 declares "TestACoreSomeonePointsAtIsAsked" (not run by docattest)
-  ✓ L70 cases: README.md:70 any
-  ✓ L71 cases: README.md:71 macOS
-  ✓ L72 cases: README.md:72 Linux
-  ✓ L73 cases: README.md:73 Linux
-  ✓ L74 cases: README.md:74 Linux
-  ✓ L75 cases: README.md:75 Windows
-  ✓ L76 cases: README.md:76 Windows
-  ✓ L79 fact: TraceVariable is DOCATTEST_TRACE
-  ✓ L92 fact: CommandVariable is DOCATTEST_COMMAND
-  ✓ L95 fact: AdapterVariable is DOCATTEST_ADAPTER_GO
-  ✓ L101 example: every command printed what the block shows
-  ✓ L143 example: every proof on the sample page held in a copy of testdata/fixture
-  ✓ L198 example: every command printed what the block shows
-  ✓ L229 fact: 2 code spans match Hello().BlockLanguages
-  ✓ L245 test: internal/running/running_test.go:93 declares "TestBlocksCompileAndRun" (not run by docattest)
-  ✓ L268 cases: README.md:268 `fmt.Println(1)`
-  ✓ L269 cases: README.md:269 `panic("no")`
-  ✓ L270 cases: README.md:270 `log.Fatalf("no")`
-  ✓ L271 cases: README.md:271 `log.Panicln("no")`
-  ✓ L272 cases: README.md:272 `os.Exit(1)`
-  ✓ L278 test: internal/running/running_test.go:136 declares "TestDocExamplesRunAsGoTestRunsThem" (not run by docattest)
-  ✓ L294 example: every command printed what the block shows
-  ✓ L317 test: internal/running/running_test.go:205 declares "TestEvaluateSaysWhyAFactHasNoValue" (not run by docattest)
-  ✓ L321 fact: 4 code spans match []any{true, nil, 1.5, []string{"a", "b"}}
-  ✓ L324 test: internal/running/running_test.go:184 declares "TestEvaluateShowsValuesAsGoPrintsThem" (not run by docattest)
-  ✓ L330 test: internal/running/running_test.go:184 declares "TestEvaluateShowsValuesAsGoPrintsThem" (not run by docattest)
-  ✓ L365 test: internal/analysis/analysis_test.go:132 declares "TestSubtestsWithComputedNames" (not run by docattest)
-  ✓ L371 fact: 3 code spans match Hello().IgnoredNames
+  ✓ L17 fact: Hello().Protocol is 1
+  ✓ L33 fact: manifest("go.mod")["go"] is 1.23
+  ✓ L37 fact: 5 rows in column platform match Platforms()
+  ✓ L56 test: internal/launcher/launcher_test.go:58 declares "TestFindCoreInOrder" (not run by docattest)
+  ✓ L58 fact: CoreVariable is DOCATTEST_CORE
+  ✓ L60 test: internal/launcher/launcher_test.go:80 declares "TestACoreSomeonePointsAtIsAsked" (not run by docattest)
+  ✓ L73 cases: README.md:73 any
+  ✓ L74 cases: README.md:74 macOS
+  ✓ L75 cases: README.md:75 Linux
+  ✓ L76 cases: README.md:76 Linux
+  ✓ L77 cases: README.md:77 Linux
+  ✓ L78 cases: README.md:78 Windows
+  ✓ L79 cases: README.md:79 Windows
+  ✓ L82 fact: TraceVariable is DOCATTEST_TRACE
+  ✓ L95 fact: CommandVariable is DOCATTEST_COMMAND
+  ✓ L98 fact: AdapterVariable is DOCATTEST_ADAPTER_GO
+  ✓ L104 example: every command printed what the block shows
+  ✓ L146 example: every proof on the sample page held in a copy of testdata/fixture
+  ✓ L201 example: every command printed what the block shows
+  ✓ L232 fact: 2 code spans match Hello().BlockLanguages
+  ✓ L248 test: internal/running/running_test.go:93 declares "TestBlocksCompileAndRun" (not run by docattest)
+  ✓ L271 cases: README.md:271 `fmt.Println(1)`
+  ✓ L272 cases: README.md:272 `panic("no")`
+  ✓ L273 cases: README.md:273 `log.Fatalf("no")`
+  ✓ L274 cases: README.md:274 `log.Panicln("no")`
+  ✓ L275 cases: README.md:275 `os.Exit(1)`
+  ✓ L281 test: internal/running/running_test.go:136 declares "TestDocExamplesRunAsGoTestRunsThem" (not run by docattest)
+  ✓ L297 example: every command printed what the block shows
+  ✓ L320 test: internal/running/running_test.go:205 declares "TestEvaluateSaysWhyAFactHasNoValue" (not run by docattest)
+  ✓ L324 fact: 4 code spans match []any{true, nil, 1.5, []string{"a", "b"}}
+  ✓ L327 test: internal/running/running_test.go:184 declares "TestEvaluateShowsValuesAsGoPrintsThem" (not run by docattest)
+  ✓ L333 test: internal/running/running_test.go:184 declares "TestEvaluateShowsValuesAsGoPrintsThem" (not run by docattest)
+  ✓ L368 test: internal/analysis/analysis_test.go:132 declares "TestSubtestsWithComputedNames" (not run by docattest)
+  ✓ L374 fact: 3 code spans match Hello().IgnoredNames
 results: 41 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (41 attestations, 0 weak, 12 cited), 0 uncovered, 0 frozen
 surface default: 15 symbols, 2 attested, 13 not referenced by any page
