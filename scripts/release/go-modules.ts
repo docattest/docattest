@@ -21,7 +21,7 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { commandLine } from '../lib/command-line.ts';
 import { version as releaseVersion } from '../lib/core-pin.ts';
@@ -56,7 +56,8 @@ const packageTag = `${GO_PACKAGE}/${version}`;
 const packageDir = join(ROOT, GO_PACKAGE);
 
 const work = mkdtempSync(join(tmpdir(), 'docattest-go-modules-'));
-writeModules(args.cores, join(work, CORES));
+// Absolute: the cores are read by a command that runs in the Go package's directory.
+writeModules(resolve(args.cores), join(work, CORES));
 const published = remoteTags('refs/tags/*');
 if (names.every((name) => published.includes(coreTag(name)))) {
   console.log(`the core modules of ${version} are tagged already`);
