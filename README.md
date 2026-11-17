@@ -1,5 +1,7 @@
 # docattest
 
+[![docs: attested](https://img.shields.io/badge/docs-attested-17a35e)](https://docattest.github.io/docattest/)
+
 **Documentation that CI can fail.**
 
 Docs go stale because nothing checks them. docattest lets a Markdown page carry its own
@@ -348,6 +350,14 @@ For a Python project, replace the Node steps with `actions/setup-python`,
 `pip install docattest` and `docattest check`. For a Go project, replace them with
 `actions/setup-go`, the `go install` above, and `docattest check`; for a Rust project, with
 a Rust toolchain, `cargo install docattest` and `docattest check`.
+
+### Show that your docs are checked
+
+Put the badge at the top of your README, so a reader knows its claims are tested:
+
+```markdown
+[![docs: attested](https://img.shields.io/badge/docs-attested-17a35e)](https://docattest.github.io/docattest/)
+```
 
 ### Stop proofs being quietly removed
 
