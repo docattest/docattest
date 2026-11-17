@@ -49,7 +49,10 @@ jobs:
       - run: npm run test:action
       # The docs, and every project the root config lists as members (the core, and the Rust,
       # Python and Go guides), each with its own adapter: one command for all of them, run by
-      # this repository's own GitHub Action (action.yml), as a user's workflow runs it.
+      # this repository's own GitHub Action (action.yml), as a user's workflow runs it. npm ci
+      # linked no node_modules/.bin/docattest, because the package's launcher was not built
+      # yet; rebuild links it now that it is.
+      - run: npm rebuild docattest
       - uses: ./
         env:
           DOCATTEST_CORE: ${{ github.workspace }}/core/target/release/docattest
