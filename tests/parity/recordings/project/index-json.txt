@@ -1,5 +1,5 @@
 # index --json
-# recorded from: release 0.1.1: the README's version and status note
+# recorded from: release 0.1.2: crates.io and go install in the README and guides
 === index --json
 exit 0
 stdout 650 lines
@@ -15,7 +15,7 @@ stdout 650 lines
   "COMMANDS": [
     {
       "page": "README.md",
-      "line": 276,
+      "line": 279,
       "kind": "fact",
       "claim": "Commands"
     },
@@ -29,7 +29,7 @@ stdout 650 lines
   "CONFIG_KEYS": [
     {
       "page": "README.md",
-      "line": 434,
+      "line": 437,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     }
@@ -37,7 +37,7 @@ stdout 650 lines
   "DEFAULT_SNAPSHOT_MAX_AGE_DAYS": [
     {
       "page": "README.md",
-      "line": 443,
+      "line": 446,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -51,7 +51,7 @@ stdout 650 lines
   "DEFAULT_TIMEOUT_MS": [
     {
       "page": "README.md",
-      "line": 444,
+      "line": 447,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -71,7 +71,7 @@ stdout 650 lines
   "KINDS": [
     {
       "page": "README.md",
-      "line": 254,
+      "line": 257,
       "kind": "fact",
       "claim": "Kinds of proof"
     },
@@ -101,7 +101,7 @@ stdout 650 lines
   "createProject": [
     {
       "page": "README.md",
-      "line": 420,
+      "line": 423,
       "kind": "example",
       "claim": "Use it from code"
     },

@@ -13,8 +13,8 @@ fails at that page and line.
 - **No generated files, no lockfiles, no model calls.** The page runs.
 - **Adopt one page at a time.** A page with no proofs is reported, not failed.
 
-> **Status:** `0.1.1` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm and PyPI
-> (see [Install](#install)); the Go and Rust packages are not published yet.
+> **Status:** `0.1.2` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
+> crates.io, and for Go by `go install` (see [Install](#install)).
 
 ## What it looks like
 
@@ -78,16 +78,19 @@ No dependencies, and Node is not needed.
 
 **Go**
 
-Unpack the release archive for your platform (`docattest-go-<version>-<platform>.tar.gz`)
-and put its directory on your `PATH`. Your project's own `go` command (1.21 or later) is
-all it needs (on recent macOS, 1.23 or later, or `CGO_ENABLED=0`); Node and Python are
-not. The [Go guide](adapters/go/README.md) has the details, and what `go install` can and
-cannot bring.
+```sh
+go install github.com/docattest/docattest/adapters/go/cmd/...@latest
+```
+
+Installing needs Go 1.23 or later. <!-- fact: manifest("adapters/go/go.mod")["go"] -->
+After that, your project's own `go` command (1.21 or later) is all it needs (on recent
+macOS, 1.23 or later, or `CGO_ENABLED=0`); Node and Python are not. The
+[Go guide](adapters/go/README.md) has the details.
 
 **Rust**
 
 ```sh
-cargo install --path adapters/rust    # from a checkout; not on crates.io yet
+cargo install docattest
 ```
 
 Your project's own `cargo` is all it needs. The core is written in Rust, so this builds
@@ -339,8 +342,8 @@ jobs:
 
 For a Python project, replace the Node steps with `actions/setup-python`,
 `pip install docattest` and `docattest check`. For a Go project, replace them with
-`actions/setup-go`, unpacking the release archive, and `docattest check`; for a Rust
-project, with a Rust toolchain, `cargo install` and `docattest check`.
+`actions/setup-go`, the `go install` above, and `docattest check`; for a Rust project, with
+a Rust toolchain, `cargo install docattest` and `docattest check`.
 
 ### Stop proofs being quietly removed
 

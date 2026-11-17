@@ -1,10 +1,11 @@
 # A release, from a version tag (v0.1.0): build the core for every platform and test it,
 # make the five npm packages that carry it, the docattest npm package, the five wheels and
 # the five Go archives, install each into a fresh project on every platform and run it, and
-# keep everything as artifacts of the run. The Go archives are not published by this
-# workflow. Publishing is a separate job that runs only when the repository
-# variable DOCATTEST_PUBLISH is "true" and someone approves the `release` environment; it
-# uses npm's and PyPI's trusted publishing (OIDC), so no token is stored anywhere.
+# keep everything as artifacts of the run. Publishing is a separate job that runs only when
+# the repository variable DOCATTEST_PUBLISH is "true" and someone approves the `release`
+# environment: npm, PyPI and crates.io by trusted publishing (OIDC), so no token is stored
+# anywhere, and the Go package as tags of this repository. The Go archives are kept as
+# artifacts only.
 # CONTRIBUTING.md, "Releasing", has the whole procedure.
 name: release
 
@@ -218,14 +219,30 @@ jobs:
     runs-on: ubuntu-24.04
     environment: release
     permissions:
-      contents: read
+      # Write: the Go package is published as tags of this repository.
+      contents: write
       id-token: write
+    env:
+      # Set only while a crate is new to crates.io, which adds a trusted publisher only to a
+      # crate that exists (CONTRIBUTING.md, "Releasing"); unset, the job signs in by OIDC.
+      CRATES_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: adapters/go/go.mod
+          cache: false
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: core-*
+          path: cores
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: npm-packages
@@ -262,3 +279,25 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
           packages-dir: wheels/
+          # A run that a later step stopped can be run again.
+          skip-existing: true
+      - id: crates-io
+        if: env.CRATES_TOKEN == ''
+        uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
+      - name: crates.io, each crate after the ones it needs
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ env.CRATES_TOKEN || steps.crates-io.outputs.token }}
+        run: |
+          # cargo publish returns once crates.io lists the version, so the next crate can
+          # require it. A version crates.io has already is left as it is.
+          for crate in core/vendor/markdown core adapters/rust; do
+            spec="$(cargo metadata --no-deps --format-version 1 --manifest-path "$crate/Cargo.toml" \
+              | node -p 'const [p] = JSON.parse(require("fs").readFileSync(0)).packages; `${p.name}/${p.version}`')"
+            if curl -sfA 'docattest-release (github.com/docattest/docattest)' "https://crates.io/api/v1/crates/$spec" > /dev/null; then
+              echo "$spec is on crates.io already"
+            else
+              cargo publish --manifest-path "$crate/Cargo.toml"
+            fi
+          done
+      - name: Go, as tags of this repository (go install … @latest)
+        run: node scripts/release/go-modules.ts --cores cores

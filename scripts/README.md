@@ -10,8 +10,9 @@ checking every relative link in the repository's Markdown. `npm run versions` an
 `npm run links` run in CI.
 
 [`release/`](release) holds what the release workflow runs: packaging the core for one
-platform as an npm package, packaging the Go archive for one platform, and refusing to
-publish the `docattest` npm package before its platform packages are on the registry.
+platform as an npm package, packaging the Go archive for one platform, refusing to
+publish the `docattest` npm package before its platform packages are on the registry, and
+publishing the Go package as tags of this repository.
 
 What several scripts, and the test suites, need is in [`lib/`](lib), one small typed module
 for each thing: the repository's root and its JSON files, the platforms of

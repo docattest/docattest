@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn the_version_is_the_one_every_language_package_pins() {
-        let pinned: Value = serde_json::from_str(include_str!("../../../protocol/core.json")).unwrap();
+        let pinned: Value = serde_json::from_str(include_str!("../../protocol/core.json")).unwrap();
         assert_eq!(serde_json::from_str::<Value>(&version_json()).unwrap(), pinned);
         assert_eq!(version_text(), format!("docattest {}", pinned["version"].as_str().unwrap()));
     }

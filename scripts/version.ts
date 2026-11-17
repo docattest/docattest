@@ -62,15 +62,22 @@ const pin = (file: string): Place =>
 
 /** Every place the version is written. */
 const PLACES: readonly Place[] = [
-  text('core/Cargo.toml', /^\[package\]\nname = "docattest"\nversion = "([^"]+)"/m),
-  text('core/Cargo.lock', /^\[\[package\]\]\nname = "docattest"\nversion = "([^"]+)"/m),
-  text('adapters/rust/Cargo.toml', /^\[package\]\nname = "docattest-rust"\nversion = "([^"]+)"/m),
+  text('core/Cargo.toml', /^\[package\]\nname = "docattest-core"\nversion = "([^"]+)"/m),
+  text('core/Cargo.lock', /^\[\[package\]\]\nname = "docattest-core"\nversion = "([^"]+)"/m),
+  // The core compiles its copy in, so the copy is kept in the tree.
+  pin('core/protocol/core.json'),
+  text('adapters/rust/Cargo.toml', /^\[package\]\nname = "docattest"\nversion = "([^"]+)"/m),
+  // The Rust package (the crate `docattest`) requires exactly its release's core.
+  text(
+    'adapters/rust/Cargo.toml',
+    /^docattest = \{ package = "docattest-core", version = "=([^"]+)"/m,
+  ),
+  text('adapters/rust/Cargo.lock', /^\[\[package\]\]\nname = "docattest"\nversion = "([^"]+)"/m),
+  // The Rust package is built with the core, which its lock file names too.
   text(
     'adapters/rust/Cargo.lock',
-    /^\[\[package\]\]\nname = "docattest-rust"\nversion = "([^"]+)"/m,
+    /^\[\[package\]\]\nname = "docattest-core"\nversion = "([^"]+)"/m,
   ),
-  // The Rust package is built with the core, which its lock file names too.
-  text('adapters/rust/Cargo.lock', /^\[\[package\]\]\nname = "docattest"\nversion = "([^"]+)"/m),
   text('adapters/python/pyproject.toml', /^\[project\]\nname = "docattest"\nversion = "([^"]+)"/m),
   text('adapters/python/docattest_python/__init__.py', /^__version__ = "([^"]+)"/m),
   pin('protocol/core.json'),
@@ -93,7 +100,8 @@ function text(file: string, pattern: RegExp): Place {
       const old = readFileSync(path, 'utf8');
       const found = pattern.exec(old);
       if (!found) fail(`${file}: no version where one was expected`);
-      writeFileSync(path, old.replace(found[0], found[0].replace(`"${found[1] ?? ''}"`, `"${v}"`)));
+      // The version is the end of a quoted string, which may hold more (`"=0.1.0"`).
+      writeFileSync(path, old.replace(found[0], found[0].replace(`${found[1] ?? ''}"`, `${v}"`)));
     },
   };
 }

@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.2] - 2026-11-17
+
+### Added
+
+- **Rust**: `cargo install docattest` installs the command from crates.io. The core is the
+  crate `docattest-core`, and its patched markdown parser `docattest-markdown`.
+- **Go**: `go install github.com/docattest/docattest/adapters/go/cmd/...@latest` brings a
+  working docattest, the core for your platform included, with nothing else to download.
+
 ## [0.1.1] - 2026-11-17
 
 ### Changed
@@ -96,5 +105,6 @@ First public release.
   run time: macOS arm64 and x64, Linux x64 and arm64 (static builds, for glibc and musl), and
   Windows x64.
 
+[0.1.2]: https://github.com/docattest/docattest/releases/tag/v0.1.2
 [0.1.1]: https://github.com/docattest/docattest/releases/tag/v0.1.1
 [0.1.0]: https://github.com/docattest/docattest/releases/tag/v0.1.0

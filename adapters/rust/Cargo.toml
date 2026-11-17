@@ -1,10 +1,14 @@
 [package]
-name = "docattest-rust"
-version = "0.1.1"
+name = "docattest"
+version = "0.1.2"
 edition = "2024"
-description = "docattest for Rust projects: the Rust adapter and the docattest command."
+description = "Documentation that CI can fail, for Rust projects: the docattest command and its Rust adapter."
 license = "MIT"
-publish = false
+repository = "https://github.com/docattest/docattest"
+readme = "README.md"
+keywords = ["documentation", "markdown", "testing", "ci", "docs"]
+categories = ["development-tools::testing", "command-line-utilities"]
+include = ["src/", "README.md", "LICENSE"]
 
 [lib]
 name = "docattest_rust"
@@ -20,7 +24,8 @@ name = "docattest-adapter-rust"
 path = "src/bin/adapter.rs"
 
 [dependencies]
-docattest = { path = "../../core" }
+# The core, at exactly this release's version.
+docattest = { package = "docattest-core", version = "=0.1.2", path = "../../core" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 # Reading Rust from syntax: exports, doc comments, tests, what a change affects.
@@ -40,7 +45,3 @@ opt-level = 3
 lto = true
 codegen-units = 1
 panic = "unwind"
-
-# The core's own patch: a patch applies only from the package being built.
-[patch.crates-io]
-markdown = { path = "../../core/vendor/markdown" }

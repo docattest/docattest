@@ -284,11 +284,18 @@ run.
   `docattest/bin/docattest` and its executable bit. There is no sdist: it could not build
   the core, so a platform without a wheel fails at `pip install`, and an install from a
   checkout fails at first run with the launcher's message.
-- **Go**: `node scripts/release/go-archive.ts --platform <p> --core <binary> --out <dir>`
-  cross-compiles the launcher and the adapter for the platform and writes
-  `docattest-go-<version>-<p>.tar.gz`, with the core beside them as `docattest-core`.
-  `go install` builds the two Go programs alone; a launcher installed that way says where
-  it looked for a core and how to get one.
+- **Go**: `node scripts/release/go-modules.ts --cores <dir>` (in the release's publish
+  job) puts each core in a Go module of its own, tags the modules and the Go package that
+  requires them in this repository, and checks that `go install` brings a working
+  docattest. `node scripts/release/go-archive.ts --platform <p> --core <binary> --out <dir>`
+  writes the archive the install tests use: the launcher and the adapter, with the core
+  beside them as `docattest-core`.
+- **Rust**: three crates, published in this order: `docattest-markdown` (the patched
+  markdown-rs below), `docattest-core` (this directory: the library `docattest` and the
+  bare core) and `docattest` (`adapters/rust`: the command Rust users install). The core
+  compiles in its own copy of the protocol's files, `core/protocol/`, because a crate
+  carries only what is inside its directory (`node protocol/sync.ts core/protocol`; a test
+  fails when the copy differs).
 - **One version**: `node scripts/version.ts check` holds `core/Cargo.toml` (and its lock),
   `protocol/core.json`, the npm package, its five optional dependencies (and its lock),
   the Python package, the Go package's pin and the Rust package to one version (and to the tag,
@@ -369,7 +376,7 @@ core/target/release/examples/dump_page docs/*.md
 | crate | why |
 |---|---|
 | `serde_json` (`preserve_order`) | the protocol and `--json`, keeping docattest's key order |
-| `markdown` 1.0.0, vendored in `vendor/markdown` | markdown-rs: the same mdast as `mdast-util-from-markdown`, whose trees the core keeps; three small fixes in `vendor/markdown/PATCHES.md` |
+| `markdown` 1.0.0, vendored in `vendor/markdown` and published as `docattest-markdown` | markdown-rs: the same mdast as `mdast-util-from-markdown`, whose trees the core keeps; three small fixes in `vendor/markdown/PATCHES.md` |
 | `yaml-rust2` | frontmatter: whether a page says `docattest: false` |
 | `fancy-regex` | executing picomatch's regex sources (lookarounds), and Unicode `\p{P}\p{S}` for autolink literals |
 | `chrono` | reading snapshot dates and `DOCATTEST_NOW`, and writing `fetchedAt` |

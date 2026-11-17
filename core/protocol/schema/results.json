@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docattest adapter protocol, version 1: what running, evaluating and reading a project answers",
+  "description": "Every value the protocol carries. Optional fields are omitted, never null, unless a type says null. Paths are relative to the project root, with / separators.",
+  "$defs": {
+    "Result": {
+      "type": "object",
+      "description": "The verdict on one example, or on one row of a cases table.",
+      "properties": {
+        "page": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "enum": ["example", "fact", "cases", "snapshot", "test"]
+        },
+        "status": {
+          "enum": ["pass", "fail", "error", "skipped"]
+        },
+        "symbols": {
+          "description": "The core fills this in; an adapter may leave it empty or out.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": ["page", "line", "kind", "status", "message"],
+      "additionalProperties": false
+    },
+    "Diagnostic": {
+      "type": "object",
+      "description": "A reason an example does not compile.",
+      "properties": {
+        "id": {
+          "description": "The example's id.",
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "line": {
+          "description": "Line within the block; 1 when omitted.",
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": ["id", "message"],
+      "additionalProperties": false
+    },
+    "Evaluation": {
+      "description": "The outcome of evaluating one fact expression.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "value": {
+              "$ref": "#/$defs/Observation"
+            }
+          },
+          "required": ["ok", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "const": false
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": ["ok", "message"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Observation": {
+      "type": "object",
+      "description": "A value as the runtime observed it: everything a comparison needs, as plain data.",
+      "properties": {
+        "text": {
+          "description": "The value as the language itself displays it to a reader: String(value) in JavaScript, str(value) in Python. A scalar on a page is compared with it, character for character.",
+          "type": "string"
+        },
+        "items": {
+          "description": "Each item displayed the same way, when the value is a list, a set or another iterable that is not text.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "description": "A few words for messages, such as 'an object' or 'number 3'. Never parsed.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "text when the value is a string of the language. Omitted otherwise.",
+          "enum": ["text"]
+        }
+      },
+      "required": ["text", "description"],
+      "additionalProperties": false
+    },
+    "Observable": {
+      "type": "object",
+      "description": "A value a surface offers, with the fact expression that reads it.",
+      "properties": {
+        "surface": {
+          "type": "string"
+        },
+        "expression": {
+          "description": "A fact expression that evaluates to value.",
+          "type": "string"
+        },
+        "path": {
+          "description": "Names on the way to the value.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "value": {
+          "$ref": "#/$defs/Observation"
+        }
+      },
+      "required": ["surface", "expression", "value"],
+      "additionalProperties": false
+    },
+    "SymbolRef": {
+      "type": "object",
+      "description": "A surface symbol an attestation exercises.",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "surface": {
+          "description": "Omitted when no surface exports the name.",
+          "type": "string"
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+    "TestListing": {
+      "description": "What a test file declares, or why it cannot be read.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "tests": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DeclaredTest"
+              }
+            },
+            "suites": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/DeclaredSuite"
+              }
+            }
+          },
+          "required": ["ok", "tests", "suites"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "const": false
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": ["ok", "message"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "DeclaredTest": {
+      "type": "object",
+      "description": "A test a test file declares.",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "describes": {
+          "description": "Titles that enclose it, outermost first; null where one cannot be cited (it is not a literal).",
+          "type": "array",
+          "items": {
+            "type": ["string", "null"]
+          }
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": ["title", "describes", "line"],
+      "additionalProperties": false
+    },
+    "DeclaredSuite": {
+      "type": "object",
+      "description": "Something a test file declares that may be cited by mistake for a test.",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "describes": {
+          "type": "array",
+          "items": {
+            "type": ["string", "null"]
+          }
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "description": "What it is, in the language's words and with its article ('a describe block', 'a class'): the core says '\"x\" in <file> is <kind>, not a test'.",
+          "type": "string"
+        }
+      },
+      "required": ["title", "describes", "line", "kind"],
+      "additionalProperties": false
+    }
+  }
+}

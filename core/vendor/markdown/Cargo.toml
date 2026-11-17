@@ -12,20 +12,22 @@
 [package]
 edition = "2018"
 rust-version = "1.56"
-name = "markdown"
+name = "docattest-markdown"
 version = "1.0.0"
 authors = ["Titus Wormer <tituswormer@gmail.com>"]
 build = false
 include = [
     "src/",
     "license",
+    "PATCHES.md",
+    "README.md",
 ]
 autolib = false
 autobins = false
 autoexamples = false
 autotests = false
 autobenches = false
-description = "CommonMark compliant markdown parser in Rust with ASTs and extensions"
+description = "markdown-rs 1.0.0 with the fixes docattest needs to parse as micromark does (see PATCHES.md); use markdown-rs itself unless you need these."
 homepage = "https://github.com/wooorm/markdown-rs"
 readme = "README.md"
 keywords = [
@@ -43,7 +45,7 @@ categories = [
     "text-processing",
 ]
 license = "MIT"
-repository = "https://github.com/wooorm/markdown-rs"
+repository = "https://github.com/docattest/docattest"
 
 [features]
 default = []

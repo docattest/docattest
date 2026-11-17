@@ -20,8 +20,8 @@ FAILED
 ```
 
 This is the npm package. The same tool for Python is the PyPI package `docattest`, and
-for Go a release archive ([adapters/go](../go/README.md)), and for Rust a cargo package
-([adapters/rust](../rust/README.md)); all run one shared core. The project's front page is the
+for Go a module that `go install` brings ([adapters/go](../go/README.md)), and for Rust the
+crate `docattest` ([adapters/rust](../rust/README.md)); all run one shared core. The project's front page is the
 [repository README](../../README.md), and the full documentation is in
 [docs/](../../docs/index.md).
 

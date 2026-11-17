@@ -1,10 +1,20 @@
 [package]
-name = "docattest"
-version = "0.1.1"
+name = "docattest-core"
+version = "0.1.2"
 edition = "2024"
 description = "The language-neutral core of docattest: documentation that CI can fail."
 license = "MIT"
-publish = false
+repository = "https://github.com/docattest/docattest"
+readme = "README.md"
+keywords = ["documentation", "markdown", "testing", "ci", "docs"]
+categories = ["development-tools::testing", "command-line-utilities"]
+# What the crate needs to build: the sources, its copy of the protocol, the build script.
+include = ["src/", "protocol/", "build.rs", "README.md"]
+
+# The library is `docattest`, the name the core's own code and its adapters use.
+[lib]
+name = "docattest"
+path = "src/lib.rs"
 
 [[bin]]
 name = "docattest"
@@ -12,7 +22,9 @@ path = "src/main.rs"
 
 [dependencies]
 serde_json = { version = "1", features = ["preserve_order"] }
-markdown = "=1.0.0"
+# markdown-rs 1.0.0 with small fixes where it parsed differently from micromark, the
+# reference's parser (see vendor/markdown/PATCHES.md), published as docattest-markdown.
+markdown = { package = "docattest-markdown", version = "=1.0.0", path = "vendor/markdown" }
 fancy-regex = "0.16"
 yaml-rust2 = { version = "0.13", default-features = false }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
@@ -29,8 +41,3 @@ opt-level = 3
 lto = true
 codegen-units = 1
 panic = "unwind"
-
-# markdown-rs 1.0.0 with small fixes where it parsed differently from micromark, the
-# reference's parser (see vendor/markdown/PATCHES.md).
-[patch.crates-io]
-markdown = { path = "vendor/markdown" }

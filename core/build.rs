@@ -5,10 +5,10 @@ use std::fmt::Write;
 use std::path::Path;
 
 fn main() {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../protocol/agents");
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("protocol/agents");
     println!("cargo:rerun-if-changed={}", dir.display());
     let mut names: Vec<String> = std::fs::read_dir(&dir)
-        .expect("protocol/agents beside the core")
+        .expect("protocol/agents in the core's copy of the protocol")
         .filter_map(|entry| entry.ok()?.file_name().to_str()?.strip_suffix(".json").map(String::from))
         .filter(|name| name != "index")
         .collect();

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Copy the protocol's neutral files (the schemas, core.json, platforms.json and the agent
-// descriptors) into a package being built:
+// Copy the protocol's neutral files (the schemas, core.json, platforms.json, and the agent
+// descriptors and texts) into a package being built:
 //
 //   node protocol/sync.ts <directory>       writes <directory>/schema/*.json, core.json,
-//                                           platforms.json and <directory>/agents/*.json
+//                                           platforms.json and <directory>/agents/*
 //
 // Each language package ships its own copy, made here from the one source and never by
 // hand; a test in each package fails when its copy differs.
@@ -15,12 +15,15 @@ const source = dirname(fileURLToPath(import.meta.url));
 const [target] = process.argv.slice(2);
 if (!target) throw new Error('usage: node protocol/sync.ts <directory>');
 const into = resolve(target);
-const json = (dir: string): string[] => readdirSync(dir).filter((f) => f.endsWith('.json'));
+// The JSON files, and the agent texts beside the descriptors (a directory's README is for
+// people reading this repository, and is not copied).
+const copied = (dir: string): string[] =>
+  readdirSync(dir).filter((f) => f.endsWith('.json') || (f.endsWith('.md') && f !== 'README.md'));
 // A directory is replaced whole, except for what the package compiled into it itself.
 for (const dir of ['schema', 'agents']) {
   mkdirSync(join(into, dir), { recursive: true });
-  for (const old of json(join(into, dir))) rmSync(join(into, dir, old));
-  for (const file of json(join(source, dir))) {
+  for (const old of copied(join(into, dir))) rmSync(join(into, dir, old));
+  for (const file of copied(join(source, dir))) {
     cpSync(join(source, dir, file), join(into, dir, file));
   }
 }

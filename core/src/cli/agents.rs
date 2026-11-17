@@ -14,7 +14,7 @@ pub const AGENTS_FILE: &str = "AGENTS.md";
 
 /// The section's text (`protocol/agents/agents-section.md` in the repository, carried in the
 /// binary), `{docattest}` standing for the command that runs docattest.
-pub const PACKAGED_SECTION: &str = include_str!("../../../protocol/agents/agents-section.md");
+pub const PACKAGED_SECTION: &str = include_str!("../../protocol/agents/agents-section.md");
 
 const BEGIN: &str = "<!-- docattest:begin -->";
 const END: &str = "<!-- docattest:end -->";

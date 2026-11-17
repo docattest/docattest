@@ -8,8 +8,8 @@ protocol's data.
 |---|---|---|---|
 | [typescript/](typescript) | npm `docattest` | `docattest-adapter-typescript` | [typescript/README.md](typescript/README.md) |
 | [python/](python) | PyPI `docattest` | `docattest-adapter-python` | [python/README.md](python/README.md) |
-| [go/](go) | release archives `docattest-go-<version>-<platform>`, and `go install` | `docattest-adapter-go` | [go/README.md](go/README.md) |
-| [rust/](rust) | `cargo install` | `docattest-adapter-rust` | [rust/README.md](rust/README.md) |
+| [go/](go) | `go install` | `docattest-adapter-go` | [go/README.md](go/README.md) |
+| [rust/](rust) | crates.io `docattest` | `docattest-adapter-rust` | [rust/README.md](rust/README.md) |
 
 Everything that is the same in every language (configuration, Markdown, directives, binding,
 comparison, the index, the report, git, `audit`, `check --base`, `impact`, hooks, exit
@@ -138,9 +138,8 @@ and no download at run time:
   module per platform that embeds that platform's core, which the launcher imports under
   the platform's build constraint and writes to the shared cache on its first run
   (`go/internal/bundled/`, `go/tools/coremodule/`). The go command downloads only the one
-  module, and checks it against `go.sum`. Where those modules are hosted is not decided
-  yet, so today the Go package is delivered as one archive per platform, with the core
-  beside the launcher (`scripts/release/go-archive.ts`);
+  module, and checks it against `go.sum`. A release tags those modules in this repository,
+  outside `main` (`scripts/release/go-modules.ts`);
 - **Rust** needs none of this: the core is a Rust library, so the Rust package depends on
   it and its `docattest` command is built with the core inside (`rust/src/bin/docattest.rs`).
 

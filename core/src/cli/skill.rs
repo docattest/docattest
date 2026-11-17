@@ -10,7 +10,7 @@ use crate::api::errors::{Error, Result};
 use crate::files::text_file;
 
 /// The skill's text: `protocol/agents/SKILL.md` in the repository, carried in the binary.
-pub const PACKAGED_SKILL: &str = include_str!("../../../protocol/agents/SKILL.md");
+pub const PACKAGED_SKILL: &str = include_str!("../../protocol/agents/SKILL.md");
 
 /// What installing did.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

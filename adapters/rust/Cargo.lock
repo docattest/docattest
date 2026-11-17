@@ -92,22 +92,9 @@ dependencies = [
 
 [[package]]
 name = "docattest"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
- "chrono",
- "fancy-regex",
- "markdown",
- "serde_json",
- "toml 1.2.1+spec-1.1.0",
- "ureq",
- "yaml-rust2",
-]
-
-[[package]]
-name = "docattest-rust"
-version = "0.1.1"
-dependencies = [
- "docattest",
+ "docattest-core",
  "libc",
  "proc-macro2",
  "quote",
@@ -115,6 +102,26 @@ dependencies = [
  "serde_json",
  "syn 2.0.119",
  "toml 0.8.23",
+]
+
+[[package]]
+name = "docattest-core"
+version = "0.1.2"
+dependencies = [
+ "chrono",
+ "docattest-markdown",
+ "fancy-regex",
+ "serde_json",
+ "toml 1.2.1+spec-1.1.0",
+ "ureq",
+ "yaml-rust2",
+]
+
+[[package]]
+name = "docattest-markdown"
+version = "1.0.0"
+dependencies = [
+ "unicode-id",
 ]
 
 [[package]]
@@ -229,13 +236,6 @@ name = "log"
 version = "0.4.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c"
-
-[[package]]
-name = "markdown"
-version = "1.0.0"
-dependencies = [
- "unicode-id",
-]
 
 [[package]]
 name = "memchr"

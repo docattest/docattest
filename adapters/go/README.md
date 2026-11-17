@@ -23,11 +23,16 @@ program without the `LC_UUID` load command, which the macOS loader now refuses t
 
 ## Install
 
-Unpack the release archive for your platform, `docattest-go-<version>-<platform>.tar.gz`,
-and put its directory on your `PATH` (or call `docattest` by its path):
+```sh
+go install github.com/docattest/docattest/adapters/go/cmd/...@latest
+```
 
-<!-- fact column=archive @protocoldata: Platforms() -->
-| platform | archive |
+It needs Go 1.23 or later. <!-- fact: manifest("go.mod")["go"] -->
+That one command brings the launcher (`docattest`), the Go adapter (`docattest-adapter-go`)
+and the core for your platform:
+
+<!-- fact column=platform @protocoldata: Platforms() -->
+| system | platform |
 |---|---|
 | macOS on Apple silicon | `darwin-arm64` |
 | macOS on Intel | `darwin-x64` |
@@ -35,25 +40,14 @@ and put its directory on your `PATH` (or call `docattest` by its path):
 | Linux arm64, glibc or musl | `linux-arm64` |
 | Windows x64 | `windows-x64` |
 
-The archive holds three programs side by side: `docattest`, `docattest-adapter-go` and
-`docattest-core`, the core. Nothing is downloaded when docattest runs.
-
-`go install` is meant to do the same in one line. It needs Go 1.23 or later. <!-- fact: manifest("go.mod")["go"] -->
-
-```sh
-go install github.com/docattest/docattest/adapters/go/cmd/...@latest
-```
-
 The go command builds Go source and cannot bring a program that is not Go, and the core is
 written in Rust. So a release carries each platform's core in a small Go module of its
-own, as bytes, and the launcher imports the one for the platform it is built for: the go
-command downloads that module like any dependency, checked against `go.sum`, and the
-launcher writes the core to the shared cache (3, below) the first time it runs. Nothing
-is downloaded when docattest runs. **This is built and tested, and not yet published**:
-where the core modules are hosted is still to be decided
-([CONTRIBUTING.md](../../CONTRIBUTING.md), "Releasing"), and until it is, a `docattest`
-built by `go install` or from a checkout carries no core, and says so on its first run,
-with where it looked.
+own, as bytes (`github.com/docattest/docattest/go-core/core-<platform>`), and the launcher
+imports the one for the platform it is built for: the go command downloads that module like
+any dependency, checked against `go.sum` and Go's checksum database, and the launcher writes
+the core to the shared cache (3, below) the first time it runs. Nothing is downloaded when
+docattest runs. A `docattest` built from a checkout carries no core, and says so on its
+first run, with where it looked.
 
 The launcher looks for a core in this order, the same as the npm and PyPI packages do:
 <!-- test: internal/launcher/launcher_test.go > "TestFindCoreInOrder" -->
@@ -62,7 +56,7 @@ The launcher looks for a core in this order, the same as the npm and PyPI packag
    It is asked for its version (`--version --json`) and refused when it speaks another
    protocol than this package. <!-- test: internal/launcher/launcher_test.go > "TestACoreSomeonePointsAtIsAsked" -->
 2. `docattest-core` beside the `docattest` command (`docattest-core.exe` on Windows):
-   where a release archive carries it.
+   where the release's Go archives, which its install tests use, carry it.
 3. `<cache>/core/<version>/<os>-<arch>/docattest` (`docattest.exe` on Windows), a cache
    shared with the npm and PyPI packages. The version is the one this package pins
    (`internal/protocoldata/protocol/core.json`).

@@ -19,14 +19,13 @@ compiled by it. Node, Python and Go are never needed.
 
 ## Install
 
-From a checkout of the repository:
-
 ```sh
-cargo install --path adapters/rust
+cargo install docattest
 ```
 
-That builds both commands, the core among them, and puts them side by side in cargo's bin
-directory. It is not on crates.io yet. Nothing is downloaded when docattest runs.
+That builds both commands, the core among them (the crate `docattest-core`), and puts them
+side by side in cargo's bin directory. Nothing is downloaded when docattest runs. From a
+checkout of the repository, `cargo install --path adapters/rust` does the same.
 
 Another core runs in place of the one built in when `DOCATTEST_CORE` names it. <!-- fact @launcher: CORE_VARIABLE -->
 That core is asked for its version (`--version --json`) and refused when it speaks another

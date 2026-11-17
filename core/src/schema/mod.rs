@@ -10,14 +10,14 @@ use serde_json::{Map, Value};
 
 /// The schema files, by the name a `$ref` gives them.
 const FILES: [(&str, &str); 8] = [
-    ("agent.json", include_str!("../../../protocol/schema/agent.json")),
-    ("attestations.json", include_str!("../../../protocol/schema/attestations.json")),
-    ("kit.json", include_str!("../../../protocol/schema/kit.json")),
-    ("language.json", include_str!("../../../protocol/schema/language.json")),
-    ("messages.json", include_str!("../../../protocol/schema/messages.json")),
-    ("methods.json", include_str!("../../../protocol/schema/methods.json")),
-    ("project.json", include_str!("../../../protocol/schema/project.json")),
-    ("results.json", include_str!("../../../protocol/schema/results.json")),
+    ("agent.json", include_str!("../../protocol/schema/agent.json")),
+    ("attestations.json", include_str!("../../protocol/schema/attestations.json")),
+    ("kit.json", include_str!("../../protocol/schema/kit.json")),
+    ("language.json", include_str!("../../protocol/schema/language.json")),
+    ("messages.json", include_str!("../../protocol/schema/messages.json")),
+    ("methods.json", include_str!("../../protocol/schema/methods.json")),
+    ("project.json", include_str!("../../protocol/schema/project.json")),
+    ("results.json", include_str!("../../protocol/schema/results.json")),
 ];
 
 /// The file that holds every method's params and result.

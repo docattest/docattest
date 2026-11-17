@@ -1,0 +1,412 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docattest adapter protocol, version 1: methods",
+  "description": "For each method, the shape of its params and of its result: #/$defs/<method>.params and #/$defs/<method>.result.",
+  "$defs": {
+    "hello.params": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "number"
+        },
+        "warm": {
+          "type": "boolean"
+        }
+      },
+      "required": ["protocol"],
+      "additionalProperties": false
+    },
+    "hello.result": {
+      "$ref": "language.json#/$defs/Hello"
+    },
+    "docComments.params": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "language.json#/$defs/SourceText"
+          }
+        }
+      },
+      "required": ["files"],
+      "additionalProperties": false
+    },
+    "docComments.result": {
+      "type": "array",
+      "items": {
+        "$ref": "attestations.json#/$defs/ExampleAttestation"
+      }
+    },
+    "assertions.params": {
+      "type": "object",
+      "properties": {
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              }
+            },
+            "required": ["lang", "code"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["examples"],
+      "additionalProperties": false
+    },
+    "assertions.result": {
+      "type": "array",
+      "items": {
+        "type": "boolean"
+      }
+    },
+    "docProse.params": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "language.json#/$defs/SourceText"
+          }
+        }
+      },
+      "required": ["files"],
+      "additionalProperties": false
+    },
+    "docProse.result": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "language.json#/$defs/DocProse"
+        }
+      }
+    },
+    "mentions.params": {
+      "type": "object",
+      "properties": {
+        "spans": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "symbols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["spans", "symbols"],
+      "additionalProperties": false
+    },
+    "mentions.result": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      }
+    },
+    "expressions.params": {
+      "type": "object",
+      "properties": {
+        "expressions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["expressions"],
+      "additionalProperties": false
+    },
+    "expressions.result": {
+      "type": "array",
+      "items": {
+        "$ref": "language.json#/$defs/ExpressionShape"
+      }
+    },
+    "open.params": {
+      "type": "object",
+      "properties": {
+        "root": {
+          "description": "The project's directory, absolute.",
+          "type": "string"
+        },
+        "files": {
+          "description": "Only for a project that exists in memory: every file of it, by path. Then nothing is read from root.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "surfaces": {
+          "type": "array",
+          "items": {
+            "$ref": "project.json#/$defs/ConfiguredSurface"
+          }
+        },
+        "setup": {
+          "type": "string"
+        },
+        "timeoutMs": {
+          "type": "number"
+        },
+        "workers": {
+          "type": "number"
+        },
+        "network": {
+          "type": "boolean"
+        },
+        "snapshots": {
+          "$ref": "project.json#/$defs/Snapshots"
+        },
+        "manifests": {
+          "$ref": "project.json#/$defs/Manifests"
+        },
+        "examples": {
+          "description": "Every example a compile or run of this session may name: all the well-formed examples of the pages being checked, in page order.",
+          "type": "array",
+          "items": {
+            "$ref": "attestations.json#/$defs/ExampleAttestation"
+          }
+        }
+      },
+      "required": [
+        "root",
+        "surfaces",
+        "timeoutMs",
+        "workers",
+        "network",
+        "snapshots",
+        "manifests",
+        "examples"
+      ],
+      "additionalProperties": false
+    },
+    "open.result": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "compile.params": {
+      "type": "object",
+      "properties": {
+        "examples": {
+          "type": "array",
+          "items": {
+            "$ref": "attestations.json#/$defs/ExampleAttestation"
+          }
+        }
+      },
+      "required": ["examples"],
+      "additionalProperties": false
+    },
+    "compile.result": {
+      "type": "array",
+      "items": {
+        "$ref": "results.json#/$defs/Diagnostic"
+      }
+    },
+    "evaluate.params": {
+      "type": "object",
+      "properties": {
+        "facts": {
+          "type": "array",
+          "items": {
+            "$ref": "attestations.json#/$defs/FactAttestation"
+          }
+        }
+      },
+      "required": ["facts"],
+      "additionalProperties": false
+    },
+    "evaluate.result": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "results.json#/$defs/Evaluation"
+      }
+    },
+    "run.params": {
+      "type": "object",
+      "properties": {
+        "examples": {
+          "type": "array",
+          "items": {
+            "$ref": "attestations.json#/$defs/ExampleAttestation"
+          }
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "$ref": "attestations.json#/$defs/CasesAttestation"
+          }
+        }
+      },
+      "required": ["examples", "cases"],
+      "additionalProperties": false
+    },
+    "run.result": {
+      "type": "array",
+      "items": {
+        "$ref": "results.json#/$defs/Result"
+      }
+    },
+    "symbols.params": {
+      "type": "object",
+      "properties": {
+        "attestations": {
+          "type": "array",
+          "items": {
+            "$ref": "attestations.json#/$defs/Attestation"
+          }
+        }
+      },
+      "required": ["attestations"],
+      "additionalProperties": false
+    },
+    "symbols.result": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "results.json#/$defs/SymbolRef"
+        }
+      }
+    },
+    "exports.params": {
+      "type": "object",
+      "properties": {
+        "surface": {
+          "type": "string"
+        }
+      },
+      "required": ["surface"],
+      "additionalProperties": false
+    },
+    "exports.result": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "describeSurfaces.params": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "describeSurfaces.result": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "project.json#/$defs/SurfaceDescription"
+      }
+    },
+    "tests.params": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string"
+        }
+      },
+      "required": ["file"],
+      "additionalProperties": false
+    },
+    "tests.result": {
+      "$ref": "results.json#/$defs/TestListing"
+    },
+    "observables.params": {
+      "type": "object",
+      "properties": {
+        "surface": {
+          "type": "string"
+        }
+      },
+      "required": ["surface"],
+      "additionalProperties": false
+    },
+    "observables.result": {
+      "type": "array",
+      "items": {
+        "$ref": "results.json#/$defs/Observable"
+      }
+    },
+    "affected.params": {
+      "type": "object",
+      "properties": {
+        "base": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "null"]
+          }
+        },
+        "changed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["base", "changed"],
+      "additionalProperties": false
+    },
+    "affected.result": {
+      "type": "array",
+      "items": {
+        "$ref": "results.json#/$defs/SymbolRef"
+      }
+    },
+    "inCode.params": {
+      "type": "object",
+      "properties": {
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["names", "files"],
+      "additionalProperties": false
+    },
+    "inCode.result": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "close.params": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "close.result": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}

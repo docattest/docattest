@@ -21,8 +21,9 @@ launcher. Around it:
 
 ## One source, copied
 
-Each language package ships its own copy of `schema/`, `agents/*.json`, `core.json` and
-`platforms.json`, made from this directory when it is built and never by hand:
+Each language package ships its own copy of `schema/`, `agents/` (the descriptors and the
+agent texts beside them), `core.json` and `platforms.json`, made from this directory when it
+is built and never by hand:
 `node protocol/sync.ts <dir>` for npm (the build writes it into `dist/`),
 `python3 adapters/python/sync_protocol.py` for Python (into
 `adapters/python/docattest_python/protocol/`, also run by every build of the wheel), and
@@ -30,9 +31,10 @@ Each language package ships its own copy of `schema/`, `agents/*.json`, `core.js
 compiled into its two commands. A test in each package fails when its copy differs from
 this one.
 
-The core takes what it needs at build time: `core/build.rs` embeds every agent descriptor,
-and `include_str!` embeds `schema/*.json`, `agents/SKILL.md`, `agents/agents-section.md`
-and, in a test, `core.json`.
+The core compiles in its own copy too, `node protocol/sync.ts core/protocol`, because a
+crate published to crates.io carries only what is inside its directory: `core/build.rs`
+embeds every agent descriptor, and `include_str!` embeds `schema/*.json`,
+`agents/SKILL.md`, `agents/agents-section.md` and, in a test, `core.json`.
 
 ## The conformance suite
 
@@ -81,8 +83,8 @@ in `core.json` (and the core's own constant), and say so in the changelog.
 ## How to add a platform
 
 1. Add it to [platforms.json](platforms.json), and copy the data into the packages
-   (`node protocol/sync.ts adapters/go/internal/protocoldata/protocol` and
-   `python3 adapters/python/sync_protocol.py`).
+   (`node protocol/sync.ts adapters/go/internal/protocoldata/protocol`,
+   `node protocol/sync.ts core/protocol` and `python3 adapters/python/sync_protocol.py`).
 2. Run `node scripts/version.ts set <the current version>`, which writes the new core
    package into the npm package's `optionalDependencies`.
 3. Add the platform to the build matrix and the packaging loops of

@@ -65,7 +65,7 @@ Status: version 1, draft. Four adapters speak it: TypeScript
 ### Launchers
 
 Nobody installs the core by itself. A user installs a language package (from npm, from
-PyPI, a release archive for Go), and that package brings the core with it and provides the `docattest` command: a
+PyPI, from crates.io, or with `go install`), and that package brings the core with it and provides the `docattest` command: a
 *launcher*, written in the package's language, which knows what the core must not, namely
 how docattest was installed. A launcher does three things and then gets out of the way.
 

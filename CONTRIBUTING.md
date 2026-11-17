@@ -185,14 +185,21 @@ the owner's list below), published by it too.
    (`scripts/release/go-archive.ts`) on one runner, and installs them into fresh
    projects on all five platforms ([tests/smoke/](tests/README.md#smoke-a-fresh-install)).
    Every package is kept as an artifact of the run (`npm-packages`, `wheels`,
-   `go-archives`). The Go archives are not published anywhere by the workflow: attach
-   them to the release by hand.
+   `go-archives`); the Go archives are used by those install tests only.
    `workflow_dispatch` runs the same without a tag, to try a release before tagging one.
 3. Publish: only when the repository variable `DOCATTEST_PUBLISH` is `true`, and only once
    someone approves the run in the `release` environment. The job publishes the five
    platform packages first, waits until the registry lists them, then `docattest` (npm,
-   with provenance), then the wheels (PyPI). It authenticates by OIDC (trusted
-   publishing); no token is stored in the repository.
+   with provenance), the wheels (PyPI), the three crates in the order they need each
+   other (`docattest-markdown`, `docattest-core`, `docattest`), and the Go package
+   (`scripts/release/go-modules.ts`): each platform's core as a Go module, committed
+   outside `main` and tagged `go-core/core-<platform>/v0.2.0`, the Go package requiring
+   them, committed on the release's commit and tagged `adapters/go/v0.2.0`, then a real
+   `go install` of it, then the earlier releases' core tags deleted (Go's module proxy
+   keeps every version it served), so a clone carries one release's cores. npm, PyPI and
+   crates.io authenticate by OIDC (trusted publishing); the Go tags are pushed with the
+   workflow's own token. Every step leaves alone what an earlier run already published,
+   so a stopped run can be run again.
 
 To try the packages on your own machine, see
 [tests/README.md](tests/README.md#smoke-a-fresh-install).
@@ -210,28 +217,24 @@ the first release, in this order:
    `adapters/typescript/package.json`'s `optionalDependencies`, then
    `npm install --package-lock-only`); the launcher, the scripts and the version check
    read the name there.
-2. **Go core modules**: decide where they live, so that `go install` brings the core: a
-   Go module is fetched from a git repository, so each platform's core must be committed
-   somewhere under a path of its own and tagged with the release's version (a repository
-   kept for that keeps this one small). With the path known, the release runs
-   `go run ./tools/coremodule` in `adapters/go` (which writes the five modules and the five
-   files of `internal/bundled` that import them), commits those files and the `require`
-   lines `go mod tidy` adds, and pushes the modules and their tags before tagging this
-   repository. `adapters/go/endtoend/carried_test.go` does all of it against a stand-in.
-3. **Security reports**: turn on private vulnerability reporting in the repository's
+2. **Security reports**: turn on private vulnerability reporting in the repository's
    settings, which [SECURITY.md](SECURITY.md) points to.
-4. **PyPI**: register a pending trusted publisher for the project `docattest` (owner, this
+3. **PyPI**: register a pending trusted publisher for the project `docattest` (owner, this
    repository, workflow `release.yml`, environment `release`); PyPI creates the project on
    the first upload.
-5. **npm trusted publishing**: on each of the six packages' settings page, add GitHub
+4. **npm trusted publishing**: on each of the six packages' settings page, add GitHub
    Actions as trusted publisher: this repository, workflow `release.yml`, environment
    `release`, with **Allow npm publish** ticked (without it npm holds every version until
    a maintainer approves it). A new trusted publisher expires unless a release publishes
    through it within two days. npm adds one only to a package that exists, so a package
    new to npm is first published with a short-lived token, set as `NODE_AUTH_TOKEN` on the
    publish step for that one release.
+5. **crates.io**: on each of the three crates' settings page, add a trusted publisher:
+   this repository, workflow `release.yml`, environment `release`. crates.io adds one
+   only to a crate that exists, so a crate new to crates.io is first published with an
+   API token (scope `publish-new` and `publish-update`) saved as the repository secret
+   `CARGO_REGISTRY_TOKEN`: the publish job uses it when it is set. Delete the secret, and
+   revoke the token, once every crate has its trusted publisher.
 6. **GitHub**: create the environment `release` with required reviewers (and, if wanted,
    limited to tags `v*`), then set the repository variable `DOCATTEST_PUBLISH` to `true`.
    Until it is set, the publish job is skipped.
-7. After the first publish, run `npm install` once in this repository: the lockfile holds
-   placeholders for the five platform packages until they exist on the registry.
