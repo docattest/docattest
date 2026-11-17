@@ -1,6 +1,7 @@
 # Build output and installed packages.
 **/node_modules/
 adapters/typescript/dist/
+website/dist/
 core/target/
 package-lock.json
 # Markdown is never reformatted: pages are attested by line, and tables are hand-aligned.
@@ -10,6 +11,8 @@ package-lock.json
 tests/parity/recordings/
 tests/bench/results/
 core/tests/fixtures/*.json
+# The website's recordings: generated, and checked byte for byte by its recorder.
+website/src/playground/recordings.json
 # Not this tool's: Rust is formatted by rustfmt, the vendored crate is upstream's, and Python
 # (with the JSON its package copies from protocol/) is ruff's.
 core/vendor/

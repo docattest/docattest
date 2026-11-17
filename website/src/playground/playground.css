@@ -1,0 +1,192 @@
+/* Layout: one screen. A list of things to try down the left; on the right, one line that
+   says what to do, then the two panes (panes.css): 1 the files you change, 2 the terminal
+   you run. */
+html:has(.play) {
+  height: 100%;
+}
+.play {
+  height: 100%;
+  display: grid;
+  gap: 0.75rem 1.25rem;
+  overflow: hidden;
+  background: var(--sky);
+  grid-template-columns: 15.5rem minmax(0, 1fr);
+  grid-template-rows: auto 5rem minmax(0, 1fr);
+  grid-template-areas: 'top top' 'side brief' 'side desk';
+  padding-block: 0.75rem 1.1rem;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+
+.topbar {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.topbar-name {
+  font: 600 1.25rem var(--display);
+}
+.topbar .nav-links {
+  margin-left: auto;
+  align-items: center;
+}
+
+.sidebar {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+.stops {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0 6px 6px 0;
+}
+.stop-group {
+  font: 600 0.72rem var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding-top: 0.45rem;
+}
+.stop-group:first-child {
+  padding-top: 0;
+}
+.stop {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 0.3rem 0.65rem;
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+.stop b {
+  font: 600 0.98rem/1.25 var(--display);
+}
+.stop span {
+  font: 400 0.78rem/1.25 var(--body);
+  color: var(--dim);
+}
+.stop:hover {
+  transform: translateX(3px);
+}
+.stop.current {
+  background: var(--pink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.stop.current span {
+  color: var(--ink);
+}
+
+.about {
+  position: relative;
+  flex: none;
+}
+.about summary {
+  cursor: pointer;
+  width: max-content;
+  font: 600 0.85rem var(--display);
+  background: var(--mint);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.1rem 0.7rem;
+  list-style: none;
+}
+.about summary::-webkit-details-marker {
+  display: none;
+}
+.about p {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.5rem);
+  width: min(24rem, 80vw);
+  z-index: 3;
+  font-size: 0.9rem;
+  background: var(--card);
+  border: var(--line);
+  border-radius: 14px;
+  box-shadow: var(--lift);
+  padding: 0.8rem 1rem;
+}
+
+.brief {
+  grid-area: brief;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  min-width: 0;
+}
+.brief .character {
+  width: 4.5rem;
+  flex: none;
+}
+.brief .bubble {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: left;
+  font: 500 1.05rem/1.35 var(--body);
+  padding: 0.6rem 1rem;
+}
+.brief .bubble::after {
+  left: -9px;
+  bottom: 50%;
+  transform: translateY(50%) rotate(135deg);
+}
+
+.desk {
+  grid-area: desk;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem;
+  min-height: 0;
+  padding: 0 6px 6px 0;
+}
+
+@media (max-width: 900px) {
+  html:has(.play) {
+    height: auto;
+  }
+  .play {
+    height: auto;
+    overflow: visible;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: 'top' 'side' 'brief' 'desk';
+  }
+  .stops {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .stops li {
+    flex: none;
+  }
+  .stop-group {
+    display: none;
+  }
+  .stop {
+    width: 11rem;
+    height: 100%;
+  }
+  .about p {
+    bottom: auto;
+    top: calc(100% + 0.5rem);
+  }
+  .desk {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,23 @@
+<section class="band" id="how">
+  <div class="wrap">
+    <h2>How a lie gets caught</h2>
+    <ol class="steps">
+      <li class="card pop">
+        <h3>You write a sentence</h3>
+        <p>Plus a comment saying where the truth lives.</p>
+        <pre><code>Retried `3` times.
+<span class="dim">&lt;!-- fact: RETRY.maxAttempts --&gt;</span></code></pre>
+      </li>
+      <li class="card pop">
+        <h3>The code changes</h3>
+        <p>Nobody opens the docs. Nobody ever does.</p>
+        <pre><code>maxAttempts: <span class="strike">3</span> 5</code></pre>
+      </li>
+      <li class="card pop">
+        <h3>The build says no</h3>
+        <p>It names the page and the exact line that’s now wrong.</p>
+        <pre><code><span class="bad">✗ L1 fact: expected 3, got 5</span></code></pre>
+      </li>
+    </ol>
+  </div>
+</section>

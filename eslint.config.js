@@ -33,6 +33,8 @@ export default defineConfig(
       'adapters/python/',
       'tests/parity/recordings/',
       'tests/bench/results/',
+      // The website's build.
+      'website/dist/',
       // Projects the docs run docattest in: what a user writes, not the repository's code.
       'docs/.fixtures/',
     ],
@@ -93,7 +95,27 @@ export default defineConfig(
   {
     // Test code is tables of cases (and the benchmark's scenarios are data), each case one
     // entry and many of them longer than a line: a line limit would only cut a table apart.
-    files: ['tests/**/*.ts', 'core/tests/**/*.ts'],
+    // The website recorder's invented project is files written out line for line.
+    files: [
+      'tests/**/*.ts',
+      'core/tests/**/*.ts',
+      'website/test/**/*.ts',
+      'website/recorder/project.ts',
+    ],
     rules: { 'max-len': 'off' },
+  },
+  {
+    // node:test's describe and it return promises the runner itself waits for.
+    files: ['website/test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': [
+        'error',
+        {
+          allowForKnownSafeCalls: [
+            { from: 'package', name: ['describe', 'it'], package: 'node:test' },
+          ],
+        },
+      ],
+    },
   },
 );

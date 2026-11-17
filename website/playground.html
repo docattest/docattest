@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>docattest playground</title>
+    <meta
+      name="description"
+      content="Break the code, watch docattest catch the docs. Every terminal line is real docattest output."
+    />
+    <meta name="theme-color" content="#cfe8ff" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap"
+    />
+    <script type="module" src="/src/playground/playground.ts"></script>
+  </head>
+  <body class="play" id="playground">
+    <header class="topbar">
+      <a class="logo" href="index.html">doc<span>attest</span></a>
+      <span class="topbar-name">Playground</span>
+      <nav class="nav-links" aria-label="Pages">
+        <a href="index.html">Home</a>
+        <a class="star" href="https://github.com/docattest/docattest">★ Star on GitHub</a>
+      </nav>
+    </header>
+
+    <nav class="sidebar" aria-label="What to try">
+      <ol class="stops" id="stops"></ol>
+      <details class="about">
+        <summary>Is this real?</summary>
+        <p>
+          Yes. Every terminal line was printed by the built docattest %DOCATTEST_VERSION%, run on
+          this project for each change you can make, and replayed here. That is why you click to
+          change a part instead of typing. Folder names are shortened to /work/acme-client, and a
+          hook’s one-line JSON reply is unfolded so you can read it.
+        </p>
+      </details>
+    </nav>
+
+    <div class="brief">
+      <img class="character" id="who" src="/img/proud.png" alt="" width="640" height="640" />
+      <p class="bubble" id="task" role="status"></p>
+    </div>
+
+    <main class="desk">
+      <section class="deskpane files" aria-label="Project files">
+        <p class="panelabel"><b>1</b> <span id="file-hint"></span></p>
+        <div class="panebar"><div class="tabs" id="tabs"></div></div>
+        <div class="panebody"><div class="code-lines" id="code-lines"></div></div>
+      </section>
+
+      <section class="deskpane term" aria-label="Terminal">
+        <p class="panelabel">
+          <b>2</b> Press a command to run it <span class="exit" id="exit" hidden></span>
+        </p>
+        <div class="panebar"><div class="tabs" id="commands"></div></div>
+        <div class="panebody">
+          <pre><code id="output" aria-live="polite"></code></pre>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

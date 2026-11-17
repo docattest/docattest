@@ -1,0 +1,177 @@
+/* The top of the home page: the pitch, the demo that flips between stale and true docs, and
+   the marquee of things stale docs say. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 2.5rem;
+  align-items: center;
+  padding-block: 4rem 6rem;
+}
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+.tag {
+  font: 600 0.95rem var(--display);
+  background: var(--card);
+  border: var(--line);
+  border-radius: 999px;
+  padding: 0.25rem 0.9rem;
+  transform: rotate(-2deg);
+}
+.lede {
+  font-size: 1.2rem;
+  max-width: 34rem;
+}
+.squiggle {
+  background: linear-gradient(var(--sun), var(--sun)) 0 85% / 100% 0.32em no-repeat;
+  display: inline-block;
+  animation: tilt 2.6s ease-in-out infinite;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.demo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+.pane {
+  border: var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--lift);
+  padding: 0.9rem 1.1rem 1.1rem;
+  min-width: 0;
+  position: relative;
+}
+.pane-doc {
+  background: var(--card);
+  transform: rotate(-1deg);
+}
+.pane-term {
+  background: var(--term);
+  color: var(--term-fg);
+  transform: rotate(0.6deg);
+}
+.pane-title {
+  font: 500 0.8rem var(--mono);
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+}
+/* Room on the right for the character who sits on the pane's corner. */
+.pane-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding-right: 6.5rem;
+  margin-bottom: 0.75rem;
+}
+.pane-head .pane-title {
+  margin: 0;
+}
+.pane-term .line {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  animation: type-in 0.35s both;
+}
+.pane-term .line:nth-child(2) {
+  animation-delay: 0.6s;
+}
+.pane-term .line:nth-child(3) {
+  animation-delay: 0.9s;
+}
+.pane-term .line:nth-child(4) {
+  animation-delay: 1.2s;
+}
+.pane-term .line:nth-child(5) {
+  animation-delay: 1.5s;
+}
+.pane-term .line:nth-child(6) {
+  animation-delay: 1.8s;
+}
+.pane-term pre {
+  white-space: normal;
+}
+.pane-term .bad {
+  color: #ff9a9d;
+}
+.claim {
+  background: var(--sun);
+  color: inherit;
+  border-radius: 6px;
+  padding: 0 0.2em;
+}
+.claim-true,
+[data-state='true'] .claim {
+  background: var(--mint);
+}
+[data-state='stale'] .claim[data-stale] {
+  background: #ffc2c4;
+  animation: shake 2.4s 2s ease-in-out infinite;
+  display: inline-block;
+}
+[data-state='stale'] .only-true,
+[data-state='true'] .only-stale {
+  display: none;
+}
+.demo-dale {
+  position: absolute;
+  width: 132px;
+  right: -18px;
+  top: -62px;
+  animation-duration: 2.2s;
+}
+[data-state='true'] .demo-dale {
+  animation-name: hop;
+  animation-duration: 0.9s;
+}
+
+.marquee {
+  border-top: var(--line);
+  background: var(--ink);
+  color: var(--paper);
+  overflow: hidden;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: slide 38s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+.marquee ul {
+  display: flex;
+  gap: 2.5rem;
+  padding: 0.7rem 1.25rem;
+  white-space: nowrap;
+  font: 500 1.05rem var(--display);
+}
+.marquee b {
+  color: var(--sun);
+  font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding-bottom: 2.5rem;
+  }
+  .demo {
+    margin-top: 2.5rem;
+  }
+  .demo-dale {
+    width: 104px;
+    right: -4px;
+    top: -70px;
+  }
+}

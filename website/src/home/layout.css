@@ -1,0 +1,138 @@
+/* The home page's frame: full-width colour bands, the nav, buttons, cards, the footer, and
+   the toast that says a command was copied. */
+.band {
+  padding-block: clamp(3rem, 7vw, 5.5rem);
+}
+.band-sky {
+  background: var(--sky);
+  padding-block: 1.25rem 0;
+  border-bottom: var(--line);
+}
+.band-sun {
+  background: var(--sun);
+  border-block: var(--line);
+}
+.band-pink {
+  background: var(--pink);
+  border-block: var(--line);
+}
+.band-ink {
+  background: var(--ink);
+  color: var(--paper);
+  padding-block: 1.5rem;
+}
+.band-pink .fineprint {
+  color: var(--ink);
+}
+.wrap {
+  max-width: 1120px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.button {
+  font: 600 1.05rem var(--display);
+  color: var(--ink);
+  background: var(--pink);
+  border: var(--line);
+  border-radius: 999px;
+  padding: 0.65rem 1.4rem;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--lift);
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+.button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--ink);
+}
+.button:active {
+  transform: translate(4px, 4px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+.button-quiet {
+  background: var(--card);
+}
+.button-small {
+  font-size: 0.95rem;
+  padding: 0.45rem 1rem;
+}
+
+.card {
+  background: var(--card);
+  border: var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--lift);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.card pre {
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  margin-top: auto;
+}
+.chip {
+  font: 600 0.95rem var(--display);
+  border: var(--line);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  text-align: center;
+}
+.chip-pink {
+  background: var(--pink);
+}
+.chip-blue {
+  background: var(--blue);
+}
+.chip-mint {
+  background: var(--mint);
+}
+.chip-sun {
+  background: var(--sun);
+}
+.chip-red {
+  background: var(--red);
+}
+
+.footer {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 2rem;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  background: var(--mint);
+  border: var(--line);
+  border-radius: 999px;
+  padding: 0.4rem 1.1rem;
+  font: 600 1rem var(--display);
+  box-shadow: var(--lift);
+  animation: slam 0.3s both;
+  z-index: 5;
+}
+.pop.seen {
+  animation: pop 0.5s both;
+}

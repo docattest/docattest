@@ -1,0 +1,148 @@
+<section class="band" id="commands">
+  <div class="wrap">
+    <h2>The crew</h2>
+
+    <div class="crew">
+      <article class="crew-group">
+        <div class="cast">
+          <button
+            class="talker"
+            type="button"
+            data-lines="Not on the list. Not getting in.|Deleted the proof? I noticed.|Exit code 1. Next."
+          >
+            <img
+              class="character"
+              loading="lazy"
+              src="/img/bouncer.png"
+              alt="Gate, an unimpressed blue robot bouncer"
+              width="640"
+              height="640"
+            />
+            <span class="bubble">Not on the list. Not getting in.</span>
+          </button>
+        </div>
+        <div class="crew-body">
+          <h3>Gate guards the build</h3>
+          <p class="crew-when">Run these in CI. Exit 1 turns the build red.</p>
+          <ul class="commands">
+            <li>
+              <button type="button" class="command">docattest check</button>
+              <p>
+                Runs every proof on every page. A failure names the page, the line, and what the
+                code says instead.
+              </p>
+              <pre
+                class="sample"
+              ><code><span class="bad">✗ L10 fact: expected 3, got 5 from RETRY.maxAttempts</span>
+FAILED</code></pre>
+            </li>
+            <li>
+              <button type="button" class="command">docattest check --base main</button>
+              <p>
+                Also compares with <code>main</code>, so deleting a proof to get a green build fails
+                while its sentence is still there.
+              </p>
+              <pre
+                class="sample"
+              ><code><span class="bad">✗ docs/retries.md:10 orphaned-claim: "Tried at most `3` times." is still on the page, but the fact that proved it … is gone</span></code></pre>
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="crew-group">
+        <div class="cast">
+          <button
+            class="talker"
+            type="button"
+            data-lines="I see an unproven table.|Who wrote this list? When?|That symbol has no page. Awkward."
+          >
+            <img
+              class="character"
+              loading="lazy"
+              src="/img/detective.png"
+              alt="Snoop, a magnifying glass in a detective hat"
+              width="640"
+              height="640"
+            />
+            <span class="bubble">I see an unproven table.</span>
+          </button>
+        </div>
+        <div class="crew-body">
+          <h3>Snoop answers questions</h3>
+          <p class="crew-when">Run these while you write, before you push.</p>
+          <ul class="commands">
+            <li>
+              <button type="button" class="command">docattest impact</button>
+              <p>The sentences your uncommitted change might have made untrue: re-read these.</p>
+              <pre class="sample"><code>RETRY
+  docs/retries.md:10 proven fact  Tried at most `3` times.</code></pre>
+            </li>
+            <li>
+              <button type="button" class="command">docattest where RETRY</button>
+              <p>Every sentence that describes a symbol, before you rename or change it.</p>
+              <pre
+                class="sample"
+              ><code>docs/retries.md:10 fact  Tried at most `3` times.</code></pre>
+            </li>
+            <li>
+              <button type="button" class="command">docattest audit</button>
+              <p>Lists and tables copied from the code with no proof, and the proof to add.</p>
+              <pre
+                class="sample"
+              ><code>? L31 list drifts from ERROR_CODES (missing: NO_SESSION) → &lt;!-- fact: ERROR_CODES --&gt; above the list</code></pre>
+            </li>
+            <li>
+              <button type="button" class="command">docattest uncovered</button>
+              <p>Exported code that no page mentions yet: your docs to-do list.</p>
+              <pre class="sample"><code>ERROR_CODES</code></pre>
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="crew-group">
+        <div class="cast">
+          <button
+            class="talker"
+            type="button"
+            data-lines="I’ll tell your agent to behave.|Edit code, check docs. Every time.|Hooks installed. You’re welcome."
+          >
+            <img
+              class="character"
+              loading="lazy"
+              src="/img/agent.png"
+              alt="Bolt, a round mint robot with a wrench"
+              width="640"
+              height="640"
+            />
+            <span class="bubble">I’ll tell your agent to behave.</span>
+          </button>
+        </div>
+        <div class="crew-body">
+          <h3>Bolt wires up your tools</h3>
+          <p class="crew-when">Run these once. They keep working after that.</p>
+          <ul class="commands">
+            <li>
+              <button type="button" class="command">docattest hooks install</button>
+              <p>
+                Hooks for Claude Code, Cursor or Gemini CLI, so the agent can’t finish while a proof
+                fails. Where the agent allows it, it also hears which sentences to re-read after
+                each edit.
+              </p>
+              <pre class="sample"><code>PostToolUse (Edit|Write): npx --no docattest impact --hook
+Stop: npx --no docattest check --hook</code></pre>
+            </li>
+            <li>
+              <button type="button" class="command">docattest hooks install --git</button>
+              <p>A pre-commit hook: a commit that makes the docs wrong never lands.</p>
+              <pre
+                class="sample"
+              ><code>pre-commit: npx --no docattest check --quiet || exit 1</code></pre>
+            </li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

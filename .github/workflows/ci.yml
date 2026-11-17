@@ -50,6 +50,11 @@ jobs:
       # Python and Go guides), each with its own adapter: one command for all of them.
       - run: npm run test:docs
       - run: npm run bench
+      # The website: its tests, its build, and its playground's recordings, which must be what
+      # the docattest built above prints today.
+      - run: npm test --workspace website
+      - run: npm run build --workspace website
+      - run: npm run record:check --workspace website
       - name: cargo test, clippy, fmt
         working-directory: core
         run: |

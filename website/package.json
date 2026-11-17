@@ -1,0 +1,19 @@
+{
+  "name": "docattest-website",
+  "private": true,
+  "description": "The docattest website: the home page and the playground, built to static files for GitHub Pages.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p . && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p .",
+    "test": "node --test 'test/**/*.test.ts'",
+    "record": "node ../scripts/with-core.ts node recorder/record.ts",
+    "record:check": "node ../scripts/with-core.ts node recorder/record.ts --check"
+  },
+  "devDependencies": {
+    "vite": "8.3.8"
+  }
+}

@@ -5,7 +5,8 @@
   "license": "MIT",
   "type": "module",
   "workspaces": [
-    "adapters/typescript"
+    "adapters/typescript",
+    "website"
   ],
   "engines": {
     "node": ">=22.18"
@@ -13,7 +14,7 @@
   "scripts": {
     "build:core": "cargo build --release --manifest-path core/Cargo.toml",
     "build": "npm run build --workspace adapters/typescript",
-    "typecheck": "npm run typecheck --workspace adapters/typescript && tsc -p tsconfig.json",
+    "typecheck": "npm run typecheck --workspace adapters/typescript && npm run typecheck --workspace website && tsc -p tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

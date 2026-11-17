@@ -1,0 +1,118 @@
+<section class="band band-pink" id="install">
+  <div class="wrap">
+    <h2>Make your docs earn it</h2>
+    <div class="setup" id="setup">
+      <div class="setup-tabs" role="tablist" aria-label="Language">
+        <button type="button" role="tab" aria-selected="true" aria-controls="setup-ts">
+          TypeScript
+        </button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="setup-py">
+          Python
+        </button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="setup-go">Go</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="setup-rs">
+          Rust
+        </button>
+      </div>
+
+      <ol class="setup-steps" id="setup-ts" role="tabpanel">
+        <li>
+          <b>Install</b>
+          <button type="button" class="command">npm install -D docattest typescript</button>
+        </li>
+        <li>
+          <b>Configure</b>
+          <pre><code>// docattest.config.json
+{
+  "pages": ["docs/**/*.md"],
+  "surfaces": { "default": "./src/index.ts" },
+  "adapter": "typescript"
+}</code></pre>
+        </li>
+        <li>
+          <b>Prove a sentence</b>
+          <pre><code>Retried `5` times. &lt;!-- fact: RETRY.maxAttempts --&gt;</code></pre>
+        </li>
+        <li>
+          <b>Run it</b>
+          <button type="button" class="command">npx docattest check</button>
+        </li>
+      </ol>
+
+      <ol class="setup-steps" id="setup-py" role="tabpanel" hidden>
+        <li>
+          <b>Install</b>
+          <button type="button" class="command">pip install docattest</button>
+        </li>
+        <li>
+          <b>Configure</b>
+          <pre><code>// docattest.config.json
+{
+  "pages": ["docs/**/*.md"],
+  "surfaces": { "default": "shoplib" },
+  "adapter": "python"
+}</code></pre>
+        </li>
+        <li>
+          <b>Prove a sentence</b>
+          <pre><code>Prices are in `EUR`. &lt;!-- fact: DEFAULT_CURRENCY --&gt;</code></pre>
+        </li>
+        <li>
+          <b>Run it</b>
+          <button type="button" class="command">docattest check</button>
+        </li>
+      </ol>
+
+      <ol class="setup-steps" id="setup-go" role="tabpanel" hidden>
+        <li>
+          <b>Install</b>
+          <button type="button" class="command">
+            go install github.com/docattest/docattest/adapters/go/cmd/...@latest
+          </button>
+        </li>
+        <li>
+          <b>Configure</b>
+          <pre><code>// docattest.config.json
+{
+  "pages": ["docs/**/*.md"],
+  "surfaces": { "default": "." },
+  "adapter": "go"
+}</code></pre>
+        </li>
+        <li>
+          <b>Prove a sentence</b>
+          <pre><code>Prices are in `EUR`. &lt;!-- fact: DefaultCurrency --&gt;</code></pre>
+        </li>
+        <li>
+          <b>Run it</b>
+          <button type="button" class="command">docattest check</button>
+        </li>
+      </ol>
+
+      <ol class="setup-steps" id="setup-rs" role="tabpanel" hidden>
+        <li>
+          <b>Install</b>
+          <button type="button" class="command">cargo install --path adapters/rust</button>
+        </li>
+        <li>
+          <b>Configure</b>
+          <pre><code>// docattest.config.json
+{
+  "pages": ["docs/**/*.md"],
+  "sources": ["src/**/*.rs"],
+  "surfaces": { "default": "shop" },
+  "adapter": "rust"
+}</code></pre>
+        </li>
+        <li>
+          <b>Prove a sentence</b>
+          <pre><code>Prices are in `EUR`. &lt;!-- fact: DEFAULT_CURRENCY --&gt;</code></pre>
+        </li>
+        <li>
+          <b>Run it</b>
+          <button type="button" class="command">docattest check</button>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>

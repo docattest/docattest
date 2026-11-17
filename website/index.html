@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>docattest: documentation that CI can fail</title>
+    <meta
+      name="description"
+      content="docattest checks every claim in your docs against the real code, and fails the build at the exact line that stopped being true."
+    />
+    <meta name="theme-color" content="#cfe8ff" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap"
+    />
+    <script type="module" src="/src/home/home.ts"></script>
+  </head>
+  <body>
+    <header class="band band-sky">
+      <div class="wrap">
+        <nav class="nav" aria-label="Page">
+          <a class="logo" href="#top" id="top">doc<span>attest</span></a>
+          <div class="nav-links">
+            <a href="#how">How it works</a>
+            <a href="#install">Install</a>
+            <a href="playground.html">Playground</a>
+            <a class="star" href="https://github.com/docattest/docattest">★ Star on GitHub</a>
+          </div>
+        </nav>
+
+        <div class="hero">
+          <div class="hero-copy">
+            <p class="tag">Documentation that CI can fail</p>
+            <h1>Your docs are <span class="squiggle">lying</span> to you.</h1>
+            <p class="lede">
+              The code changed. The docs didn’t. docattest fails the build at the exact line that
+              stopped being true.
+            </p>
+            <div class="hero-actions">
+              <a class="button" href="#install">Get started</a>
+              <a class="button button-quiet" href="playground.html">Try to fool it</a>
+            </div>
+          </div>
+
+          <div class="demo" id="demo" data-state="stale">
+            <div class="pane pane-doc">
+              <div class="pane-head">
+                <p class="pane-title">docs/retries.md</p>
+                <button class="button button-small" id="demo-toggle" type="button">
+                  Fine, fix the docs
+                </button>
+              </div>
+              <pre><code>Retried <mark class="claim" data-stale="`3`" data-true="`5`">`3`</mark> times. <span class="dim">&lt;!-- fact: RETRY.maxAttempts --&gt;</span>
+Waits <mark class="claim claim-true">`200`</mark> ms. <span class="dim">&lt;!-- fact: RETRY.backoffMs --&gt;</span></code></pre>
+            </div>
+
+            <div class="pane pane-term">
+              <p class="pane-title">terminal</p>
+              <pre class="only-stale"><code><span class="line">$ npx docattest check</span>
+<span class="line">docs/retries.md</span>
+<span class="line bad">  ✗ L1 fact: expected 3, got 5 from RETRY.maxAttempts</span>
+<span class="line good">  ✓ L2 fact: RETRY.backoffMs is 200</span>
+<span class="line">results: 1 pass, 1 fail, 0 error, 0 skipped</span>
+<span class="line bad">FAILED</span></code></pre>
+              <pre class="only-true"><code><span class="line">$ npx docattest check</span>
+<span class="line">docs/retries.md</span>
+<span class="line good">  ✓ L1 fact: RETRY.maxAttempts is 5</span>
+<span class="line good">  ✓ L2 fact: RETRY.backoffMs is 200</span>
+<span class="line">results: 2 pass, 0 fail, 0 error, 0 skipped</span>
+<span class="line good">ok</span></code></pre>
+              <span class="stamp only-stale" aria-hidden="true">Busted</span>
+              <span class="stamp stamp-good only-true" aria-hidden="true">Holds up</span>
+            </div>
+
+            <img
+              class="character demo-dale only-stale"
+              src="/img/stale.png"
+              alt="Dale, a grumpy yellowed page, sweating"
+              width="640"
+              height="640"
+            />
+            <img
+              class="character demo-dale only-true"
+              src="/img/proud.png"
+              alt="Paige, a happy page with a green check"
+              width="640"
+              height="640"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="marquee" aria-label="Things stale docs say">
+        <div class="marquee-track">
+          <ul>
+            <li>“Retries 3 times.” <b>It’s 5.</b></li>
+            <li>“Two regions supported.” <b>Count again.</b></li>
+            <li>“Returns null on failure.” <b>It throws now.</b></li>
+            <li>“Default timeout is 30s.” <b>Cute.</b></li>
+            <li>“This option is required.” <b>Since when?</b></li>
+            <li>“See the full list below.” <b>That list is missing three.</b></li>
+          </ul>
+          <ul aria-hidden="true">
+            <li>“Retries 3 times.” <b>It’s 5.</b></li>
+            <li>“Two regions supported.” <b>Count again.</b></li>
+            <li>“Returns null on failure.” <b>It throws now.</b></li>
+            <li>“Default timeout is 30s.” <b>Cute.</b></li>
+            <li>“This option is required.” <b>Since when?</b></li>
+            <li>“See the full list below.” <b>That list is missing three.</b></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- include: src/home/sections/how.html -->
+
+      <!-- include: src/home/sections/proofs.html -->
+
+      <!-- include: src/home/sections/commands.html -->
+
+      <!-- include: src/home/sections/install.html -->
+    </main>
+
+    <footer class="band band-ink">
+      <div class="wrap footer">
+        <span class="logo">doc<span>attest</span></span>
+        <span>MIT licensed. No docs were trusted in the making of this page.</span>
+      </div>
+    </footer>
+
+    <p class="toast" id="toast" role="status" hidden>Copied</p>
+  </body>
+</html>

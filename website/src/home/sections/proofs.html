@@ -1,0 +1,97 @@
+<section class="band band-sun" id="proofs">
+  <div class="wrap proofs">
+    <div class="cast">
+      <button
+        class="talker"
+        type="button"
+        data-lines="I only stamp what’s true.|Looks true? Prove it.|No proof, no stamp."
+      >
+        <img
+          class="character"
+          loading="lazy"
+          src="/img/stamp.png"
+          alt="Attie, a smug pink rubber stamp"
+          width="640"
+          height="640"
+        />
+        <span class="bubble">I only stamp what’s true.</span>
+      </button>
+    </div>
+    <div class="proofs-body">
+      <h2>Five ways to prove a sentence</h2>
+      <ul class="proof-list">
+        <li class="pop">
+          <details name="proof">
+            <summary>
+              <b class="chip chip-pink">Example</b><code>```ts check</code
+              ><em>fails if it throws</em>
+            </summary>
+            <div class="proof-more">
+              <pre><code>```ts check
+import { retry } from 'acme-client';
+assert.equal(await retry(async () =&gt; 'ok'), 'ok');
+```</code></pre>
+              <a href="playground.html#example">Try it in the playground →</a>
+            </div>
+          </details>
+        </li>
+        <li class="pop">
+          <details name="proof">
+            <summary>
+              <b class="chip chip-blue">Fact</b><code>&lt;!-- fact: expr --&gt;</code
+              ><em>fails if page and code disagree</em>
+            </summary>
+            <div class="proof-more">
+              <pre><code>Retried `3` times. &lt;!-- fact: RETRY.maxAttempts --&gt;</code></pre>
+              <a href="playground.html#fact">Try it in the playground →</a>
+            </div>
+          </details>
+        </li>
+        <li class="pop">
+          <details name="proof">
+            <summary>
+              <b class="chip chip-mint">Cases</b><code>&lt;!-- cases: runner --&gt;</code
+              ><em>fails if a table row is wrong</em>
+            </summary>
+            <div class="proof-more">
+              <pre><code>&lt;!-- cases: backoff --&gt;
+| case       | attempt | result |
+|------------|---------|--------|
+| first try  | 1       | 200    |
+| third try  | 3       | 800    |</code></pre>
+              <a href="playground.html#cases">Try it in the playground →</a>
+            </div>
+          </details>
+        </li>
+        <li class="pop">
+          <details name="proof">
+            <summary>
+              <b class="chip chip-sun">Citation</b><code>&lt;!-- test: file &gt; "name" --&gt;</code
+              ><em>fails if the test is gone</em>
+            </summary>
+            <div class="proof-more">
+              <pre><code>Throws the last error. &lt;!-- test: test/retry.test.ts &gt; "throws the last error" --&gt;</code></pre>
+              <a href="playground.html#citation">Try it in the playground →</a>
+            </div>
+          </details>
+        </li>
+        <li class="pop">
+          <details name="proof">
+            <summary>
+              <b class="chip chip-red">Snapshot</b><code>snapshot("name")</code
+              ><em>fails if outside data drifts</em>
+            </summary>
+            <div class="proof-more">
+              <pre><code>Regions: &lt;!-- fact: snapshot("regions").map(r =&gt; r.code) --&gt;
+- `eu`
+- `us`</code></pre>
+              <a href="https://github.com/docattest/docattest/blob/main/docs/snapshots.md"
+                >How snapshots work →</a
+              >
+            </div>
+          </details>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
