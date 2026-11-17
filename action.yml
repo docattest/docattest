@@ -1,0 +1,19 @@
+# The docattest GitHub Action: runs `docattest check` and marks each claim that stopped being
+# true on the line of the page where it is made. Its code is in action/; GitHub Marketplace
+# lists an action only from a metadata file at the root of its repository.
+name: docattest
+description: Fail the build when documentation stops matching the code, and mark each stale line on the pull request.
+author: docattest
+branding:
+  icon: check-square
+  color: blue
+inputs:
+  working-directory:
+    description: The project's root, where docattest.config.json is, relative to the repository.
+    default: .
+  args:
+    description: More arguments for docattest check, such as `--base origin/main` or the pages to check.
+    default: ''
+runs:
+  using: node24
+  main: action/main.ts

@@ -36,6 +36,7 @@ python3 -m venv .venv && .venv/bin/pip install --group lint    # ruff and pyrigh
 | [adapters/python/](adapters/python/README.md) | the PyPI package: the Python adapter (`docattest_python/`) and launcher (`docattest/`) |
 | [adapters/rust/](adapters/rust/README.md) | the Rust package, one crate: the Rust adapter (`src/bin/adapter.rs`) and the `docattest` command built with the core inside it (`src/bin/docattest.rs`) |
 | [adapters/go/](adapters/go/README.md) | the Go package, one Go module: the Go adapter (`cmd/docattest-adapter-go`) and launcher (`cmd/docattest`), both built from `internal/` |
+| [action/](action/README.md), `action.yml` | the GitHub Action: runs `check` and marks each failure on its page's line |
 | [docs/](docs/README.md) | the documentation, which is also the acceptance test suite |
 | [tests/](tests/README.md) | the suites that test the whole: benchmark, parity, schemas, mirror, install smoke test |
 | [scripts/](scripts/README.md) | the version check, packaging, the link check, `with-core.ts` |
@@ -106,11 +107,12 @@ Everything CI runs, from the repository root:
 |---|---|
 | `npm run versions` | every package carries one version (`scripts/version.ts`) |
 | `npm run build:core`, `npm run build` | the core, and the npm package |
-| `npm run typecheck` | the npm package's sources, tests and the docs' setup module, and the repository's tools (`tsconfig.json`: `tests/`, `scripts/`, `protocol/`, the core's fixture generators) |
+| `npm run typecheck` | the npm package's sources, tests and the docs' setup module, and the repository's tools (`tsconfig.json`: `action/`, `tests/`, `scripts/`, `protocol/`, the core's fixture generators) |
 | `npm run lint` | ESLint over all TypeScript |
 | `npm run format:check` | Prettier over all TypeScript, JavaScript, JSON and YAML |
 | `npm run links` | every relative link in every Markdown file |
 | `npm test` | the npm package's unit, protocol, acceptance and corpus tests |
+| `npm run test:action` | the GitHub Action's tests (CI also runs the action itself, on this repository's docs) |
 | `npm run test:docs` | docattest on its own docs, and on the projects the root config lists as `members`: the core's README and doc comments, and the Rust, Python and Go guides, each with its own adapter (so it needs cargo, Python and Go) |
 | `cargo test`, `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check` | the core (in `core/`) |
 | `python3 -m unittest discover -s tests` | the Python package (in `adapters/python/`; set `DOCATTEST_CORE` to the built core) |

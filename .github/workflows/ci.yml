@@ -46,9 +46,13 @@ jobs:
       - run: npm run format:check
       - run: npm run links
       - run: npm test
+      - run: npm run test:action
       # The docs, and every project the root config lists as members (the core, and the Rust,
-      # Python and Go guides), each with its own adapter: one command for all of them.
-      - run: npm run test:docs
+      # Python and Go guides), each with its own adapter: one command for all of them, run by
+      # this repository's own GitHub Action (action.yml), as a user's workflow runs it.
+      - uses: ./
+        env:
+          DOCATTEST_CORE: ${{ github.workspace }}/core/target/release/docattest
       - run: npm run bench
       # The website: its tests, its build, and its playground's recordings, which must be what
       # the docattest built above prints today.

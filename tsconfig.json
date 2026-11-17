@@ -1,7 +1,7 @@
 {
   // Type-checks the repository's own tools, written in TypeScript and run by Node as they are
-  // (type stripping: Node 22.18 or later): tests/, scripts/, protocol/, the core's fixture
-  // generators, and the ESLint config. Emits nothing. The npm package has its own
+  // (type stripping: Node 22.18 or later): the GitHub Action (action/), tests/, scripts/,
+  // protocol/, the core's fixture generators, and the ESLint config. Emits nothing. The npm package has its own
   // (adapters/typescript/tsconfig.json), and these flags are its flags.
   "compilerOptions": {
     "target": "ES2023",
@@ -28,6 +28,6 @@
     // extra dependency or an unstable flag); it is type-checked all the same (`// @ts-check`).
     "allowJs": true
   },
-  "include": ["tests", "scripts", "protocol", "core/tests/fixtures", "eslint.config.js"],
+  "include": ["action", "tests", "scripts", "protocol", "core/tests/fixtures", "eslint.config.js"],
   "exclude": ["tests/parity/recordings", "tests/bench/results"]
 }

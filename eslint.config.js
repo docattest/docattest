@@ -99,6 +99,7 @@ export default defineConfig(
     files: [
       'tests/**/*.ts',
       'core/tests/**/*.ts',
+      'action/test/**/*.ts',
       'website/test/**/*.ts',
       'website/recorder/project.ts',
     ],
@@ -106,7 +107,7 @@ export default defineConfig(
   },
   {
     // node:test's describe and it return promises the runner itself waits for.
-    files: ['website/test/**/*.ts'],
+    files: ['action/test/**/*.ts', 'website/test/**/*.ts'],
     rules: {
       '@typescript-eslint/no-floating-promises': [
         'error',
