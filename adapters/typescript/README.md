@@ -2,6 +2,9 @@
 
 **Documentation that CI can fail**, for TypeScript and JavaScript projects.
 
+Try it in your browser first: the [playground](https://docattest.github.io/docattest/playground.html)
+lets you break a small project's code and watch docattest catch its docs.
+
 A Markdown page carries its own proof: examples that run, values in the prose that are
 compared with your code, tables whose rows are tests, and citations of tests you already
 have. When the code changes and a sentence stops being true, `docattest check` fails at that

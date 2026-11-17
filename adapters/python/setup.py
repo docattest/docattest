@@ -17,6 +17,7 @@ sys.path.insert(0, HERE)
 from sync_protocol import TARGET, sync  # noqa: E402
 
 REPOSITORY = "https://github.com/docattest/docattest"
+HOMEPAGE = "https://docattest.github.io/docattest/"
 # Where this package sits in the repository, which its README's relative links start from.
 PACKAGE_PATH = "adapters/python"
 # A link's target in Markdown, `](target)`, when it is relative: no scheme, no leading `/`
@@ -53,5 +54,5 @@ setup(
     cmdclass={"build_py": BuildWithProtocol},
     long_description=readme_for_pypi(),
     long_description_content_type="text/markdown",
-    project_urls={"Source": REPOSITORY, "Issues": f"{REPOSITORY}/issues"},
+    project_urls={"Homepage": HOMEPAGE, "Source": REPOSITORY, "Issues": f"{REPOSITORY}/issues"},
 )

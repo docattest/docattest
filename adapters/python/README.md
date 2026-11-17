@@ -4,6 +4,9 @@
 Markdown pages carry examples that run, facts that are compared with values in your code,
 tables whose rows are tests, and citations of tests you already have.
 
+Try it in your browser first: the [playground](https://docattest.github.io/docattest/playground.html)
+lets you break a small project's code and watch docattest catch its docs.
+
 This package is what a Python user installs. It provides two commands: <!-- fact: list(manifest("pyproject.toml")["project"]["scripts"]) -->
 - **`docattest`**, the command you run. It is a launcher: it finds the docattest core (one
   binary for every language, which reads the pages and writes the report), tells it how to

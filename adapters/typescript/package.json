@@ -10,7 +10,14 @@
     "typescript",
     "testing",
     "ci",
-    "drift"
+    "drift",
+    "docs-as-code",
+    "documentation-testing",
+    "stale-docs",
+    "readme",
+    "python",
+    "go",
+    "rust"
   ],
   "license": "MIT",
   "author": "Matthew Hammond",
@@ -19,7 +26,7 @@
     "url": "git+https://github.com/docattest/docattest.git",
     "directory": "adapters/typescript"
   },
-  "homepage": "https://github.com/docattest/docattest#readme",
+  "homepage": "https://docattest.github.io/docattest/",
   "bugs": "https://github.com/docattest/docattest/issues",
   "type": "module",
   "exports": {

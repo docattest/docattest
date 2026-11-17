@@ -9,6 +9,16 @@ description = "docattest for Python projects: documentation that CI can fail"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = []
+keywords = ["documentation", "docs", "doctest", "markdown", "testing", "ci", "docs-as-code"]
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Documentation",
+  "Topic :: Software Development :: Documentation",
+  "Topic :: Software Development :: Testing",
+]
 # setup.py gives both: the README with its relative links made absolute for PyPI's page,
 # and the links to the repository, whose address it holds.
 dynamic = ["readme", "urls"]

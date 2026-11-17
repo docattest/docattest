@@ -5,6 +5,7 @@ edition = "2024"
 description = "The language-neutral core of docattest: documentation that CI can fail."
 license = "MIT"
 repository = "https://github.com/docattest/docattest"
+homepage = "https://docattest.github.io/docattest/"
 readme = "README.md"
 keywords = ["documentation", "markdown", "testing", "ci", "docs"]
 categories = ["development-tools::testing", "command-line-utilities"]

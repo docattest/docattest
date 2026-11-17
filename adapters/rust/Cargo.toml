@@ -5,6 +5,7 @@ edition = "2024"
 description = "Documentation that CI can fail, for Rust projects: the docattest command and its Rust adapter."
 license = "MIT"
 repository = "https://github.com/docattest/docattest"
+homepage = "https://docattest.github.io/docattest/"
 readme = "README.md"
 keywords = ["documentation", "markdown", "testing", "ci", "docs"]
 categories = ["development-tools::testing", "command-line-utilities"]

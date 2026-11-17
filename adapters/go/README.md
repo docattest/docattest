@@ -4,6 +4,9 @@
 pages carry examples that run, facts that are compared with values in your code, tables
 whose rows are tests, and citations of tests you already have.
 
+Try it in your browser first: the [playground](https://docattest.github.io/docattest/playground.html)
+lets you break a small project's code and watch docattest catch its docs.
+
 This package is what a Go user installs. It provides two commands:
 
 - **`docattest`**, the command you run. It is a launcher: it finds the docattest core (one

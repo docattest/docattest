@@ -5,6 +5,9 @@ Markdown pages carry examples that run, facts that are compared with values in y
 tables whose rows are tests, and citations of tests you already have. The examples in your
 doc comments are checked the same way.
 
+Try it in your browser first: the [playground](https://docattest.github.io/docattest/playground.html)
+lets you break a small project's code and watch docattest catch its docs.
+
 This package is what a Rust user installs. It provides two commands:
 
 - **`docattest`**, the command you run. The docattest core is written in Rust, so this
