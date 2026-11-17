@@ -4,14 +4,28 @@ import { defineConfig, type Plugin } from 'vite';
 
 const local = (path: string): string => fileURLToPath(new URL(path, import.meta.url));
 
+/** Where the site is served. Search engines and link previews need absolute addresses, so the
+ *  pages' canonical links, social cards and the sitemap are all built from this one. */
+const SITE_URL = 'https://docattest.github.io/docattest/';
+
+/** Each page: the name of its build input, its source file, and its address under SITE_URL. */
+const PAGES = [
+  { input: 'home', file: 'index.html', address: '' },
+  { input: 'playground', file: 'playground.html', address: 'playground.html' },
+] as const;
+
 export default defineConfig({
   // Relative URLs, so the build works wherever it is served: a project's GitHub Pages path
   // (/docattest/), a custom domain, or `vite preview`.
   base: './',
-  plugins: [htmlIncludes(), docattestVersion()],
+  plugins: [
+    htmlIncludes(),
+    pageValues({ DOCATTEST_VERSION: docattestVersion(), SITE_URL }),
+    sitemap(),
+  ],
   build: {
     rolldownOptions: {
-      input: { home: local('index.html'), playground: local('playground.html') },
+      input: Object.fromEntries(PAGES.map((page) => [page.input, local(page.file)])),
     },
   },
 });
@@ -31,9 +45,25 @@ function htmlIncludes(): Plugin {
   };
 }
 
-/** Writes the npm package's version where a page says %DOCATTEST_VERSION%, so the site never
- *  names a version the repository has moved past. */
-function docattestVersion(): Plugin {
+/** Writes each value where a page says %NAME%. It runs before Vite reads the page's URLs, so
+ *  an address built from %SITE_URL% is already absolute when Vite sees it. */
+function pageValues(values: Record<string, string>): Plugin {
+  return {
+    name: 'page-values',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: (html) =>
+        Object.entries(values).reduce(
+          (page, [name, value]) => page.replaceAll(`%${name}%`, value),
+          html,
+        ),
+    },
+  };
+}
+
+/** The npm package's version, so the site never names a version the repository has moved
+ *  past. */
+function docattestVersion(): string {
   const manifest: unknown = JSON.parse(
     readFileSync(local('../adapters/typescript/package.json'), 'utf8'),
   );
@@ -45,9 +75,24 @@ function docattestVersion(): Plugin {
   ) {
     throw new Error('adapters/typescript/package.json has no version');
   }
-  const { version } = manifest;
+  return manifest.version;
+}
+
+/** Writes sitemap.xml, listing every page, for submitting the site to search engines. */
+function sitemap(): Plugin {
+  const urls = PAGES.map((page) => `  <url><loc>${SITE_URL}${page.address}</loc></url>`);
+  const source = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls,
+    '</urlset>',
+    '',
+  ].join('\n');
   return {
-    name: 'docattest-version',
-    transformIndexHtml: (html) => html.replaceAll('%DOCATTEST_VERSION%', version),
+    name: 'sitemap',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source });
+    },
   };
 }

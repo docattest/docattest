@@ -3,11 +3,48 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>docattest: documentation that CI can fail</title>
+    <title>docattest: test your documentation in CI so it never goes stale</title>
     <meta
       name="description"
-      content="docattest checks every claim in your docs against the real code, and fails the build at the exact line that stopped being true."
+      content="Test your Markdown docs in CI. Examples run, facts are checked against the code, and the build fails at the line that went stale. For TypeScript, Python, Go and Rust."
     />
+    <link rel="canonical" href="%SITE_URL%" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="docattest" />
+    <meta property="og:url" content="%SITE_URL%" />
+    <meta property="og:title" content="docattest: your docs are lying to you" />
+    <meta
+      property="og:description"
+      content="Documentation that CI can fail. The code changed, the docs didn’t, and docattest fails the build at the exact line that stopped being true."
+    />
+    <meta property="og:image" content="%SITE_URL%img/social-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="docattest check failing a stale doc: expected 3, got 5"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "docattest",
+        "url": "%SITE_URL%",
+        "image": "%SITE_URL%img/social-card.png",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "macOS, Linux, Windows",
+        "softwareVersion": "%DOCATTEST_VERSION%",
+        "license": "https://opensource.org/licenses/MIT",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "sameAs": [
+          "https://github.com/docattest/docattest",
+          "https://www.npmjs.com/package/docattest",
+          "https://pypi.org/project/docattest/",
+          "https://crates.io/crates/docattest"
+        ]
+      }
+    </script>
     <meta name="theme-color" content="#cfe8ff" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link

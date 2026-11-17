@@ -38,6 +38,16 @@ are not what docattest prints today.
 The version the pages name (`%DOCATTEST_VERSION%` in the HTML) is read from the npm package's
 manifest at build time, so the site never names a version the repository has moved past.
 
+## How search engines and link previews see it
+
+They need absolute addresses, so `SITE_URL` in `vite.config.ts` names where the site is
+served, and everything that points at a page starts from it: the canonical links and
+social-card tags (`%SITE_URL%` in the HTML) and the `sitemap.xml` the build writes from the
+list of pages. When the site moves to its own domain, change `SITE_URL` and nothing else. No
+`robots.txt` is written, because crawlers read one only at a domain's root, which a GitHub
+Pages project path is not. The card a shared link shows is `public/img/social-card.png`,
+1200 × 630.
+
 ## How to add a playground stop
 
 1. In `recorder/stops.ts`, add the stop: its switches (each one's first option must occur
