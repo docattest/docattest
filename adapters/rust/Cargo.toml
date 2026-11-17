@@ -1,6 +1,6 @@
 [package]
 name = "docattest"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 description = "Documentation that CI can fail, for Rust projects: the docattest command and its Rust adapter."
 license = "MIT"
@@ -26,7 +26,7 @@ path = "src/bin/adapter.rs"
 
 [dependencies]
 # The core, at exactly this release's version.
-docattest = { package = "docattest-core", version = "=0.1.2", path = "../../core" }
+docattest = { package = "docattest-core", version = "=0.1.3", path = "../../core" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 # Reading Rust from syntax: exports, doc comments, tests, what a change affects.

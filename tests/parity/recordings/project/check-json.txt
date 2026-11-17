@@ -1,5 +1,5 @@
 # check --json
-# recorded from: README: website links and the docs attested badge moved its lines
+# recorded from: docattest 0.1.3: the GitHub Action in the README
 === check --json
 exit 0
 stdout 3753 lines
@@ -11,9 +11,9 @@ stdout 3753 lines
       "kind": "fact",
       "status": "pass",
       "symbols": [],
-      "message": "manifest(\"adapters/typescript/package.json\").version is 0.1.2",
-      "expected": "0.1.2",
-      "actual": "0.1.2"
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.1.3",
+      "expected": "0.1.3",
+      "actual": "0.1.3"
     },
     {
       "page": "README.md",
@@ -139,7 +139,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 423,
+      "line": 427,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -147,7 +147,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 437,
+      "line": 441,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -157,7 +157,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 451,
+      "line": 455,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -169,7 +169,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 460,
+      "line": 464,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -181,7 +181,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 461,
+      "line": 465,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -193,7 +193,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 542,
+      "line": 546,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -203,7 +203,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 544,
+      "line": 548,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -213,7 +213,7 @@ stdout 3753 lines
     },
     {
       "page": "README.md",
-      "line": 545,
+      "line": 549,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -1903,8 +1903,8 @@ stdout 3753 lines
         "entry": "adapters/typescript/dist/index.js",
         "package": {
           "name": "docattest",
-          "version": "0.1.2",
-          "display": "docattest@0.1.2"
+          "version": "0.1.3",
+          "display": "docattest@0.1.3"
         }
       },
       "warnings": []
@@ -3178,8 +3178,8 @@ stdout 3753 lines
               "entry": "docattest_python/language.py",
               "package": {
                 "name": "docattest",
-                "version": "0.1.2",
-                "display": "docattest 0.1.2"
+                "version": "0.1.3",
+                "display": "docattest 0.1.3"
               }
             },
             "warnings": []
@@ -3214,8 +3214,8 @@ stdout 3753 lines
               "entry": "docattest/launcher.py",
               "package": {
                 "name": "docattest",
-                "version": "0.1.2",
-                "display": "docattest 0.1.2"
+                "version": "0.1.3",
+                "display": "docattest 0.1.3"
               }
             },
             "warnings": []

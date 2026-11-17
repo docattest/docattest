@@ -22,6 +22,8 @@ const FILES = [
   'protocol/platforms.json',
   'adapters/typescript/package.json',
   'package-lock.json',
+  'README.md',
+  'action/README.md',
 ];
 
 const versions = (...args: string[]) =>
@@ -37,7 +39,7 @@ describe('the version of a release', () => {
   it('is the same everywhere in this repository', () => {
     const done = versions('check');
     expect([done.status, done.stderr]).toEqual([0, '']);
-    expect(done.stdout).toMatch(/^version \d+\.\d+\.\d+\S* in all 28 places\n$/);
+    expect(done.stdout).toMatch(/^version \d+\.\d+\.\d+\S* in all 30 places\n$/);
   });
 
   it('fails when one place disagrees, and names it', () => {
@@ -63,8 +65,11 @@ describe('the version of a release', () => {
   it('is written everywhere by one command, and held to the tag of a release', () => {
     const root = copy();
     const set = versions('set', '9.8.7', '--root', root);
-    expect([set.status, set.stdout]).toEqual([0, 'version 9.8.7 in all 28 places\n']);
+    expect([set.status, set.stdout]).toEqual([0, 'version 9.8.7 in all 30 places\n']);
     expect(readFileSync(join(root, 'core/Cargo.toml'), 'utf8')).toContain('version = "9.8.7"');
+    expect(readFileSync(join(root, 'README.md'), 'utf8')).toContain(
+      'uses: docattest/docattest@v9.8.7',
+    );
     expect(versions('check', '--root', root, '--tag', 'v9.8.7').status).toBe(0);
     const tagged = versions('check', '--root', root, '--tag', 'v9.8.6');
     expect([tagged.status, tagged.stderr]).toEqual([1, expect.stringContaining('expected 9.8.6')]);

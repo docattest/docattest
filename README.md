@@ -19,7 +19,7 @@ Try it in your browser: the [playground](https://docattest.github.io/docattest/p
 lets you break a small project's code and watch docattest catch its docs. The
 [website](https://docattest.github.io/docattest/) has the short tour.
 
-> **Status:** `0.1.2` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
+> **Status:** `0.1.3` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
 > crates.io, and for Go by `go install` (see [Install](#install)).
 
 ## What it looks like
@@ -343,13 +343,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --if-present
-      - run: npx docattest check --base origin/main
+      - uses: docattest/docattest@v0.1.3
+        with:
+          args: --base origin/main
 ```
 
-For a Python project, replace the Node steps with `actions/setup-python`,
-`pip install docattest` and `docattest check`. For a Go project, replace them with
-`actions/setup-go`, the `go install` above, and `docattest check`; for a Rust project, with
-a Rust toolchain, `cargo install docattest` and `docattest check`.
+The [GitHub Action](action/README.md) runs the docattest your project installed, marks each
+claim that fails on its line of the pull request, and lists them on the run's summary page.
+For a Python project, replace the Node steps with `actions/setup-python` and
+`pip install docattest`. For a Go project, replace them with `actions/setup-go` and the
+`go install` above; for a Rust project, with a Rust toolchain and `cargo install docattest`.
+On another CI service, run `docattest check --base origin/main` in their place.
 
 ### Show that your docs are checked
 

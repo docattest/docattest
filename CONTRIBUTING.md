@@ -202,6 +202,9 @@ the owner's list below), published by it too.
    crates.io authenticate by OIDC (trusted publishing); the Go tags are pushed with the
    workflow's own token. Every step leaves alone what an earlier run already published,
    so a stopped run can be run again.
+4. List the GitHub Action: draft a GitHub release from the tag, with its `CHANGELOG.md`
+   entry as the notes, and tick "Publish this Action to the GitHub Marketplace". The
+   README's workflow pins the action to this tag, which `scripts/version.ts set` wrote.
 
 To try the packages on your own machine, see
 [tests/README.md](tests/README.md#smoke-a-fresh-install).

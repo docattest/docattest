@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] - 2026-11-17
+
+### Added
+
+- **GitHub Action**: `uses: docattest/docattest@v0.1.3` runs `docattest check` and marks each
+  claim that fails on its line of the pull request, with the counts and the failures on the
+  run's summary page. It runs the docattest your project installed, in any language.
+
+### Changed
+
+- The npm, PyPI and crates.io pages link to the website and its playground.
+
 ## [0.1.2] - 2026-11-17
 
 ### Added

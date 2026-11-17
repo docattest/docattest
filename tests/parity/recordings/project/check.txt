@@ -1,10 +1,10 @@
 # check
-# recorded from: README: website links and the docs attested badge moved its lines
+# recorded from: docattest 0.1.3: the GitHub Action in the README
 === check
 exit 0
 stdout 425 lines
 README.md
-  ✓ L22 fact: manifest("adapters/typescript/package.json").version is 0.1.2
+  ✓ L22 fact: manifest("adapters/typescript/package.json").version is 0.1.3
   ✓ L29 example: every command printed what the block shows
   ✓ L40 example: every command printed what the block shows
   ✓ L72 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
@@ -18,14 +18,14 @@ README.md
   ✓ L239 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
   ✓ L263 fact: 5 rows in column Reported match KINDS
   ✓ L285 fact: 12 distinct values in column Command match COMMANDS
-  ✓ L423 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L437 example: compiles
-  ✓ L451 fact: 12 rows in column Key match CONFIG_KEYS
-  ✓ L460 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
-  ✓ L461 fact: DEFAULT_TIMEOUT_MS is 10000
-  ✓ L542 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
-  ✓ L544 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L545 fact: manifest("adapters/go/go.mod").go is 1.23
+  ✓ L427 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L441 example: compiles
+  ✓ L455 fact: 12 rows in column Key match CONFIG_KEYS
+  ✓ L464 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
+  ✓ L465 fact: DEFAULT_TIMEOUT_MS is 10000
+  ✓ L546 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
+  ✓ L548 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L549 fact: manifest("adapters/go/go.mod").go is 1.23
 adapters/typescript/README.md
   ✓ L14 example: every command printed what the block shows
   ✓ L37 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
@@ -215,7 +215,7 @@ coverage: 23 living pages, 22 covered (185 attestations, 0 weak, 1 cited), 1 unc
   uncovered: docs/why.md
   frozen: docs/README.md, docs/design/ACCEPTANCE.md, docs/design/CORPUS.md, docs/design/PATTERN.md, docs/design/SPEC.md
 surface default: 43 symbols, 9 attested, 34 not referenced by any page
-  docattest → adapters/typescript/dist/index.js (docattest@0.1.2)
+  docattest → adapters/typescript/dist/index.js (docattest@0.1.3)
 snapshots: none
 ok
 
@@ -363,9 +363,9 @@ README.md
 results: 60 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (60 attestations, 0 weak, 17 cited), 0 uncovered, 0 frozen
 surface default: 28 symbols, 6 attested, 22 not referenced by any page
-  docattest_python.language → docattest_python/language.py (docattest 0.1.2)
+  docattest_python.language → docattest_python/language.py (docattest 0.1.3)
 surface launcher: 25 symbols, 5 attested, 20 not referenced by any page
-  docattest.launcher → docattest/launcher.py (docattest 0.1.2)
+  docattest.launcher → docattest/launcher.py (docattest 0.1.3)
 surface shop: 13 symbols, 3 attested, 10 not referenced by any page
   shoplib → tests/fixture/src/shoplib/__init__.py (shoplib 1.2.3)
 snapshots: none

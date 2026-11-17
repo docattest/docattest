@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // One version for everything a release ships: the core, its pin, the npm package
 // (adapters/typescript) and the packages that carry its core, the Python package, and the
-// Go package, whose version is its copy of the pin, and the Rust package.
+// Go package, whose version is its copy of the pin, the Rust package, and the tag the docs
+// pin the GitHub Action to.
 //
 //   node scripts/version.ts check [--tag v0.1.0]    fail when any of them disagree (or differ
 //                                                    from the tag a release is built for)
@@ -85,6 +86,9 @@ const PLACES: readonly Place[] = [
   pin('adapters/go/internal/protocoldata/protocol/core.json'),
   json<NpmManifest>('adapters/typescript/package.json', npmVersions, setNpmVersions),
   json<NpmLock>('package-lock.json', lockVersions, setLockVersions),
+  // A workflow pins the GitHub Action (action.yml) to a release's tag.
+  text('README.md', /uses: docattest\/docattest@v(\S+)/),
+  text('action/README.md', /uses: docattest\/docattest@v(\S+)/),
 ];
 
 /** A version inside a text file, as the first group of `pattern`. */
@@ -98,10 +102,11 @@ function text(file: string, pattern: RegExp): Place {
     write: (root, v) => {
       const path = join(root, file);
       const old = readFileSync(path, 'utf8');
-      const found = pattern.exec(old);
-      if (!found) fail(`${file}: no version where one was expected`);
-      // The version is the end of a quoted string, which may hold more (`"=0.1.0"`).
-      writeFileSync(path, old.replace(found[0], found[0].replace(`${found[1] ?? ''}"`, `${v}"`)));
+      // With `d`, the match says where the version itself is, so only it is replaced: it may
+      // sit inside a longer string (`"=0.1.0"`) or end a line (`@v0.1.0`).
+      const at = new RegExp(pattern.source, `${pattern.flags}d`).exec(old)?.indices?.[1];
+      if (!at) fail(`${file}: no version where one was expected`);
+      writeFileSync(path, old.slice(0, at[0]) + v + old.slice(at[1]));
     },
   };
 }

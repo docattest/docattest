@@ -14,7 +14,7 @@ runtime, which strips the types; nothing is built.
 The action runs the docattest the project installed, so a workflow installs docattest as the
 [Install](../README.md#install) section says before this step: the npm package (found in
 `node_modules/.bin`, as npx finds it) or any install on the `PATH`. Pin the action to a
-docattest release tag; the first release that carries it is the one after 0.1.2.
+docattest release's tag.
 
 ```yaml
 - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ docattest release tag; the first release that carries it is the one after 0.1.2.
   with:
     node-version: 22
 - run: npm ci
-- uses: docattest/docattest@vX.Y.Z
+- uses: docattest/docattest@v0.1.3
   with:
     args: --base origin/main
 ```
