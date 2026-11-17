@@ -33,10 +33,19 @@ interface NpmManifest {
   optionalDependencies?: Record<string, string>;
 }
 
+/** A package of a package-lock.json: its manifest, where npm fetches it and the hash it checks. */
+interface NpmLockEntry extends NpmManifest {
+  resolved?: string;
+  integrity?: string;
+}
+
 /** A package-lock.json: its packages by path. */
 interface NpmLock {
-  packages?: Record<string, NpmManifest>;
+  packages?: Record<string, NpmLockEntry>;
 }
+
+/** Where npm fetches a package's tarball from. */
+const NPM_REGISTRY = 'https://registry.npmjs.org';
 
 /** The npm package is a workspace of the repository's lockfile, at its directory's path. */
 const NPM_PACKAGE = 'adapters/typescript';
@@ -131,13 +140,32 @@ function setNpmVersions(data: NpmManifest, v: string, root: string): void {
 
 function lockVersions(data: NpmLock, root: string): Found[] {
   const entry = data.packages?.[NPM_PACKAGE] ?? {};
-  return npmVersions(entry, root).map(([where, v]) => [`packages["${NPM_PACKAGE}"].${where}`, v]);
+  const workspace = npmVersions(entry, root).map(([where, v]): Found => [
+    `packages["${NPM_PACKAGE}"].${where}`,
+    v,
+  ]);
+  const installed = corePackages(root).map((name): Found => {
+    const key = `node_modules/${name}`;
+    return [`packages["${key}"].version`, data.packages?.[key]?.version];
+  });
+  return [...workspace, ...installed];
 }
 
 function setLockVersions(data: NpmLock, v: string, root: string): void {
   data.packages ??= {};
   data.packages[NPM_PACKAGE] ??= {};
   setNpmVersions(data.packages[NPM_PACKAGE], v, root);
+  // A new version's platform packages reach the registry only when its release publishes
+  // them, after CI has installed from this lockfile. So the entry names where the tarball
+  // will be and no hash: npm ci skips an optional package it cannot fetch, and the first
+  // npm install after the release records the hash.
+  for (const name of corePackages(root)) {
+    const entry = data.packages[`node_modules/${name}`];
+    if (entry === undefined) continue;
+    entry.version = v;
+    entry.resolved = `${NPM_REGISTRY}/${name}/-/${name.split('/').pop() ?? name}-${v}.tgz`;
+    delete entry.integrity;
+  }
 }
 
 /** Every [file, where, version] of the repository at `root`. */

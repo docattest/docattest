@@ -1,5 +1,5 @@
 # index --json
-# recorded from: check --quiet prints only what needs attention
+# recorded from: release 0.1.1: the README's version and status note
 === index --json
 exit 0
 stdout 650 lines
@@ -15,7 +15,7 @@ stdout 650 lines
   "COMMANDS": [
     {
       "page": "README.md",
-      "line": 277,
+      "line": 276,
       "kind": "fact",
       "claim": "Commands"
     },
@@ -29,7 +29,7 @@ stdout 650 lines
   "CONFIG_KEYS": [
     {
       "page": "README.md",
-      "line": 435,
+      "line": 434,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     }
@@ -37,7 +37,7 @@ stdout 650 lines
   "DEFAULT_SNAPSHOT_MAX_AGE_DAYS": [
     {
       "page": "README.md",
-      "line": 444,
+      "line": 443,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -51,7 +51,7 @@ stdout 650 lines
   "DEFAULT_TIMEOUT_MS": [
     {
       "page": "README.md",
-      "line": 445,
+      "line": 444,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -71,7 +71,7 @@ stdout 650 lines
   "KINDS": [
     {
       "page": "README.md",
-      "line": 255,
+      "line": 254,
       "kind": "fact",
       "claim": "Kinds of proof"
     },
@@ -101,7 +101,7 @@ stdout 650 lines
   "createProject": [
     {
       "page": "README.md",
-      "line": 421,
+      "line": 420,
       "kind": "example",
       "claim": "Use it from code"
     },

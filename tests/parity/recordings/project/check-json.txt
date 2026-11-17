@@ -1,5 +1,5 @@
 # check --json
-# recorded from: the Rust adapter's commands never colour their output
+# recorded from: release 0.1.1: the README's version and status note
 === check --json
 exit 0
 stdout 3743 lines
@@ -11,13 +11,13 @@ stdout 3743 lines
       "kind": "fact",
       "status": "pass",
       "symbols": [],
-      "message": "manifest(\"adapters/typescript/package.json\").version is 0.1.0",
-      "expected": "0.1.0",
-      "actual": "0.1.0"
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.1.1",
+      "expected": "0.1.1",
+      "actual": "0.1.1"
     },
     {
       "page": "README.md",
-      "line": 24,
+      "line": 23,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -25,7 +25,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 35,
+      "line": 34,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -33,7 +33,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 67,
+      "line": 66,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -43,7 +43,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 68,
+      "line": 67,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -53,7 +53,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 77,
+      "line": 76,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -63,7 +63,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 99,
+      "line": 98,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -73,7 +73,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 121,
+      "line": 120,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -81,7 +81,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 154,
+      "line": 153,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -89,7 +89,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 189,
+      "line": 188,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -97,7 +97,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 231,
+      "line": 230,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -105,7 +105,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 255,
+      "line": 254,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -117,7 +117,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 277,
+      "line": 276,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -129,7 +129,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 407,
+      "line": 406,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -137,7 +137,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 421,
+      "line": 420,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -147,7 +147,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 435,
+      "line": 434,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -159,7 +159,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 444,
+      "line": 443,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -171,7 +171,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 445,
+      "line": 444,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -183,7 +183,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 526,
+      "line": 525,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -193,7 +193,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 528,
+      "line": 527,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -203,7 +203,7 @@ stdout 3743 lines
     },
     {
       "page": "README.md",
-      "line": 529,
+      "line": 528,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -1893,8 +1893,8 @@ stdout 3743 lines
         "entry": "adapters/typescript/dist/index.js",
         "package": {
           "name": "docattest",
-          "version": "0.1.0",
-          "display": "docattest@0.1.0"
+          "version": "0.1.1",
+          "display": "docattest@0.1.1"
         }
       },
       "warnings": []
@@ -3168,8 +3168,8 @@ stdout 3743 lines
               "entry": "docattest_python/language.py",
               "package": {
                 "name": "docattest",
-                "version": "0.1.0",
-                "display": "docattest 0.1.0"
+                "version": "0.1.1",
+                "display": "docattest 0.1.1"
               }
             },
             "warnings": []
@@ -3204,8 +3204,8 @@ stdout 3743 lines
               "entry": "docattest/launcher.py",
               "package": {
                 "name": "docattest",
-                "version": "0.1.0",
-                "display": "docattest 0.1.0"
+                "version": "0.1.1",
+                "display": "docattest 0.1.1"
               }
             },
             "warnings": []

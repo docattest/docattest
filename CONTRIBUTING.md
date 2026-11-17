@@ -223,12 +223,13 @@ the first release, in this order:
 4. **PyPI**: register a pending trusted publisher for the project `docattest` (owner, this
    repository, workflow `release.yml`, environment `release`); PyPI creates the project on
    the first upload.
-5. **npm trusted publishing**: npm configures a trusted publisher per package, and a package
-   must exist first. For the first release, save a short-lived granular npm token (read
-   and write, for the scope `@docattest` and the package `docattest`) as the repository
-   secret `NPM_TOKEN`: the publish job uses it when it is set, with provenance as always.
-   Once the six packages exist, add this repository's `release.yml` and environment
-   `release` as each one's trusted publisher, then delete the secret and revoke the token.
+5. **npm trusted publishing**: on each of the six packages' settings page, add GitHub
+   Actions as trusted publisher: this repository, workflow `release.yml`, environment
+   `release`, with **Allow npm publish** ticked (without it npm holds every version until
+   a maintainer approves it). A new trusted publisher expires unless a release publishes
+   through it within two days. npm adds one only to a package that exists, so a package
+   new to npm is first published with a short-lived token, set as `NODE_AUTH_TOKEN` on the
+   publish step for that one release.
 6. **GitHub**: create the environment `release` with required reviewers (and, if wanted,
    limited to tags `v*`), then set the repository variable `DOCATTEST_PUBLISH` to `true`.
    Until it is set, the publish job is skipped.

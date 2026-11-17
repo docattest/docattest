@@ -235,10 +235,6 @@ jobs:
           name: wheels
           path: wheels
       - name: npm, the packages that carry the core first
-        env:
-          # Set only for the first release, before npm lists this workflow as each package's
-          # trusted publisher (CONTRIBUTING.md, "Releasing"); unset, npm authenticates by OIDC.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           # A tarball is named with ./ in front: npm reads a bare `npm/x.tgz` as the GitHub
           # repository npm/x.tgz. A version npm has already is left as it is, so a run that a

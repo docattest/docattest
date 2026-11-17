@@ -13,9 +13,8 @@ fails at that page and line.
 - **No generated files, no lockfiles, no model calls.** The page runs.
 - **Adopt one page at a time.** A page with no proofs is reported, not failed.
 
-> **Status:** `0.1.0` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release. The packages
-> are not on npm or PyPI yet; until they are, build from this repository (see
-> [Contributing](#contributing)).
+> **Status:** `0.1.1` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm and PyPI
+> (see [Install](#install)); the Go and Rust packages are not published yet.
 
 ## What it looks like
 
