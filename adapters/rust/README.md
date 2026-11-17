@@ -35,8 +35,8 @@ CI, cache a directory of its own to install into: cargo then finds that version 
 
 ```yaml
 - uses: actions/cache@v4
-  with: { path: ~/.docattest, key: "docattest-0.1.4-${{ runner.os }}-${{ runner.arch }}" }
-- run: cargo install docattest --version 0.1.4 --locked --root ~/.docattest
+  with: { path: ~/.docattest, key: "docattest-0.1.5-${{ runner.os }}-${{ runner.arch }}" }
+- run: cargo install docattest --version 0.1.5 --locked --root ~/.docattest
 - run: echo "$HOME/.docattest/bin" >> "$GITHUB_PATH"
 ```
 

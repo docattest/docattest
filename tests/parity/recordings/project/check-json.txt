@@ -1,5 +1,5 @@
 # check --json
-# recorded from: impact --hook gives the agent a brief, not the whole report
+# recorded from: docattest 0.1.5
 === check --json
 exit 0
 stdout 3977 lines
@@ -11,9 +11,9 @@ stdout 3977 lines
       "kind": "fact",
       "status": "pass",
       "symbols": [],
-      "message": "manifest(\"adapters/typescript/package.json\").version is 0.1.4",
-      "expected": "0.1.4",
-      "actual": "0.1.4"
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.1.5",
+      "expected": "0.1.5",
+      "actual": "0.1.5"
     },
     {
       "page": "README.md",
@@ -2087,8 +2087,8 @@ stdout 3977 lines
         "entry": "adapters/typescript/dist/index.js",
         "package": {
           "name": "docattest",
-          "version": "0.1.4",
-          "display": "docattest@0.1.4"
+          "version": "0.1.5",
+          "display": "docattest@0.1.5"
         }
       },
       "warnings": []
@@ -3386,8 +3386,8 @@ stdout 3977 lines
               "entry": "docattest_python/language.py",
               "package": {
                 "name": "docattest",
-                "version": "0.1.4",
-                "display": "docattest 0.1.4"
+                "version": "0.1.5",
+                "display": "docattest 0.1.5"
               }
             },
             "warnings": []
@@ -3422,8 +3422,8 @@ stdout 3977 lines
               "entry": "docattest/launcher.py",
               "package": {
                 "name": "docattest",
-                "version": "0.1.4",
-                "display": "docattest 0.1.4"
+                "version": "0.1.5",
+                "display": "docattest 0.1.5"
               }
             },
             "warnings": []
