@@ -228,7 +228,7 @@ class Changes(unittest.TestCase):
         event = json.dumps({"tool_input": {"file_path": os.path.join(self.root, "src/shoplib/shipping.py")}})
         code, out, _ = core("impact", "--hook", root=self.root, stdin=event)
         self.assertIn(
-            "changes since HEAD affect 2 exported symbols",
+            "this edit affects 2 exported symbols",
             json.loads(out)["hookSpecificOutput"]["additionalContext"],
         )
         quiet = json.dumps({"tool_input": {"file_path": os.path.join(self.root, "docs/notes.md")}})
