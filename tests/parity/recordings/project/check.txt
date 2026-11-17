@@ -1,8 +1,8 @@
 # check
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: impact --hook gives the agent a brief, not the whole report
 === check
 exit 0
-stdout 446 lines
+stdout 447 lines
 README.md
   ✓ L22 fact: manifest("adapters/typescript/package.json").version is 0.1.4
   ✓ L29 example: every command printed what the block shows
@@ -178,6 +178,7 @@ docs/impact.md
   ✓ L183 example: all assertions held
   ✓ L242 example: all assertions held
   ✓ L303 example: all assertions held
+  ✓ L341 example: all assertions held
 docs/index.md
   ✓ L21 example: all assertions held
   ✓ L42 fact: 5 items match KINDS
@@ -227,8 +228,8 @@ docs/surfaces.md
   ✓ L87 example: all assertions held
   ✓ L129 example: all assertions held
   ✓ L172 example: all assertions held
-results: 202 pass, 0 fail, 0 error, 0 skipped
-coverage: 23 living pages, 22 covered (202 attestations, 0 weak, 1 cited), 1 uncovered, 5 frozen
+results: 203 pass, 0 fail, 0 error, 0 skipped
+coverage: 23 living pages, 22 covered (203 attestations, 0 weak, 1 cited), 1 uncovered, 5 frozen
   uncovered: docs/why.md
 surface default: 43 symbols, 9 attested, 34 not attested by any page
   docattest → adapters/typescript/dist/index.js (docattest@0.1.4)

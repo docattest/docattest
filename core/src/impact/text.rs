@@ -38,7 +38,7 @@ pub fn format_impact(impact: &Impact) -> String {
 
 /// How many exported symbols, manifests and commands the change affects, naming only those it
 /// does.
-fn affected(impact: &Impact) -> String {
+pub(super) fn affected(impact: &Impact) -> String {
     let count = |items: &[String], noun: &str| (!items.is_empty()).then(|| counted(items.len(), noun));
     let parts = [
         count(&impact.symbols, "exported symbol"),

@@ -293,8 +293,8 @@ assert.equal(docattest('impact', '--file', join(root, 'src/old.ts')).status, 0);
 ## `docattest hooks install` makes an agent run it without being asked
 
 `docattest hooks install` adds two hooks to the settings of a coding agent that has hooks:
-after the agent edits or writes a file, `docattest impact --hook` puts the impact of the
-edit next to it, and before it stops, `docattest check --hook` sends it back to work
+after the agent edits or writes a file, `docattest impact --hook` puts a brief of the
+edit's impact next to it, and before it stops, `docattest check --hook` sends it back to work
 once if a page no longer matches the code. Whatever the settings file already holds is kept,
 and a second run adds nothing. `--agent` names the agent; without it the hooks are Claude
 Code's, in `.claude/settings.json`. Which agents there are, how one is described, and what
@@ -327,4 +327,41 @@ assert.deepEqual(installed.hooks, {
 
 assert.match(docattest('hooks', 'install').stdout, /already installed/);
 assert.deepEqual(JSON.parse(readFileSync(settings, 'utf8')), installed);
+```
+
+## After an edit the agent gets a brief, not the report
+
+The hook comes after every edit, so what it adds to the agent's context is kept small
+whatever the change. It lists each place that names what the edit affects and that nothing
+checks, once with every symbol it names and at most five, then how many more there are and
+the command that lists them; the places a proof or a cited test defends it only counts,
+since `docattest check` covers them. When no page names what the edit affects, it says
+nothing. `docattest impact --file` still prints the whole report.
+
+```ts check
+import { execFileSync, spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const env = { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null', GIT_AUTHOR_NAME: 'docs', GIT_AUTHOR_EMAIL: 'docs@example.invalid', GIT_COMMITTER_NAME: 'docs', GIT_COMMITTER_EMAIL: 'docs@example.invalid' };
+const root = mkdtempSync(join(tmpdir(), 'docattest-brief-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('package.json', JSON.stringify({ name: 'demo', type: 'module' }));
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
+put('src/index.ts', 'export const LIMIT = 3;\nexport function retry() {}');
+put('docs/limit.md', 'At most `3` calls are made. <!-- fact: LIMIT -->\n\nCall `retry` after `LIMIT` calls fail.');
+for (const args of [['init', '-q'], ['add', '-A'], ['commit', '-q', '-m', 'base']]) execFileSync('git', args, { cwd: root, env });
+const hook = (file: string) => spawnSync(process.execPath, [cli, 'impact', '--hook', '--root', root], { encoding: 'utf8', env, input: JSON.stringify({ tool_input: { file_path: join(root, file) } }) });
+// ---cut---
+put('src/index.ts', 'export const LIMIT = 5;\nexport function retry(times = 1) {}');
+const brief = JSON.parse(hook('src/index.ts').stdout).hookSpecificOutput.additionalContext;
+assert.equal(
+  brief,
+  'docattest: this edit affects 2 exported symbols. Nothing checks these places; re-read them:\n' +
+    '  docs/limit.md:3 LIMIT, retry "Call `retry` after `LIMIT` calls fail."\n' +
+    'docattest check covers 1 other place.',
+);
 ```

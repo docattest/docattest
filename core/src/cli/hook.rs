@@ -16,8 +16,8 @@ use crate::adapter::Start;
 use crate::agents::{Binding, load_agent, reply_with, value_at};
 use crate::api::errors::{Error, Result};
 use crate::files::source::DiskFiles;
+use crate::impact::brief::brief_impact;
 use crate::impact::commands::builds_any;
-use crate::impact::text::format_impact;
 use crate::impact::{Impact, Scope};
 use crate::project::state::{Started, start};
 use crate::report::Detail;
@@ -112,8 +112,9 @@ fn after_edit(started: Started, rel: &str, options: &Options) -> Result<Option<I
 }
 
 /// `impact --hook`, after the agent edited a file. Silent unless the edited file is a source
-/// file of the project and its change affects an export; then the impact report goes into the
-/// agent's context next to the edit. An agent edits files anywhere, so one outside the
+/// file of the project and a page names what its change affects; then a brief of the impact
+/// (see [`brief_impact`]) goes into the agent's context next to the edit, small because it
+/// comes after every edit. An agent edits files anywhere, so one outside the
 /// project is not a mistake, only none of the project's business.
 pub(super) fn impact_hook(stdin: &str, root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
     let binding = bound("impact", options, io)?;
@@ -124,8 +125,8 @@ pub(super) fn impact_hook(stdin: &str, root: &Path, options: &Options, io: &mut 
     let Edited::Inside { root, rel } = locate(&resolve(&io.cwd, edited), root, options) else {
         return Ok(0);
     };
-    if let Some(found) = impact_of_edit(&root, &rel, options)? {
-        io.out(&reply_with(&binding.reply, format_impact(&found)));
+    if let Some(brief) = impact_of_edit(&root, &rel, options)?.and_then(|found| brief_impact(&found, &rel)) {
+        io.out(&reply_with(&binding.reply, brief));
     }
     Ok(0)
 }
@@ -167,6 +168,7 @@ mod tests {
     use crate::adapter::{Adapter, Launch, Starting};
     use crate::cli::hooks::tests::FLAT;
     use crate::git::tests::Temp;
+    use crate::impact::text::format_impact;
     use std::path::PathBuf;
 
     fn at(keys: &[&str]) -> Vec<String> {

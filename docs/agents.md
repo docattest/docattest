@@ -164,7 +164,7 @@ Some agents run a command of the project on their own events. For such an agent,
 `docattest hooks install --agent <name>` writes two hooks into the agent's settings file:
 `docattest impact --hook` after the agent edits a file, and `docattest check --hook` before
 it stops. In hook mode the commands read the agent's event from standard input and answer
-in the agent's JSON: `impact --hook` puts the impact into the agent's context, and
+in the agent's JSON: `impact --hook` puts a brief of the impact into the agent's context, and
 `check --hook` keeps the agent working, once, when a page no longer matches the code.
 
 What differs between agents is data. This is the whole descriptor of Claude Code, the agent

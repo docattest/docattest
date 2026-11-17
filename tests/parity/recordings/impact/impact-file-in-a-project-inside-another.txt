@@ -1,5 +1,5 @@
 # impact --file in a project inside another
-# recorded from: impact --file answers for the edited file's change alone; config key commands
+# recorded from: impact --hook gives the agent a brief, not the whole report
 === impact --file packages/inner/src/index.ts
 exit 0
 stdout 5 lines
@@ -65,7 +65,7 @@ stderr empty
 === impact --hook
 exit 0
 stdout 1 line
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest impact: changes since HEAD affect 1 exported symbol\ninner\n  docs/inner.md:1 proven fact  It is `1`.\n  docs/inner.md:3 mention (unproven)  Use `inner`.\nnext: re-read docs/inner.md and correct any sentence above that the change made untrue; then run docattest check docs/inner.md"}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 1 exported symbol. Nothing checks these places; re-read them:\n  docs/inner.md:3 inner \"Use `inner`.\"\ndocattest check covers 1 other place."}}
 stderr empty
 === impact --hook --root __ROOT__
 exit 0

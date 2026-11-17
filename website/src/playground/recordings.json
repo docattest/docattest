@@ -581,7 +581,7 @@
       },
       "impact-hook": {
        "command": "npx docattest impact --hook",
-       "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"docattest impact: changes since HEAD affect 3 exported symbols\\nRETRY\\n  docs/retries.md:10 proven fact  Tried at most `3` times.\\nbackoff\\n  docs/retries.md:20 proven cases  The wait doubles each time.\\nretry\\n  docs/retries.md:5 proven example  A call that works returns its value unchanged.\\n  docs/retries.md:27 cited test  A call that keeps failing throws the last error.\\nnext: re-read docs/retries.md and correct any sentence above that the change made untrue; then run docattest check docs/retries.md\"}}\n",
+       "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"docattest: this edit affects 3 exported symbols; docattest check covers the 4 places that name it.\"}}\n",
        "stderr": "",
        "exitCode": 0,
        "stdin": "{\"tool_input\":{\"file_path\":\"src/index.ts\"}}"
@@ -621,7 +621,7 @@
       },
       "impact-hook": {
        "command": "npx docattest impact --hook",
-       "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"docattest impact: changes since HEAD affect 3 exported symbols\\nRETRY\\n  docs/retries.md:10 proven fact  Tried at most `5` times.\\nbackoff\\n  docs/retries.md:20 proven cases  The wait doubles each time.\\nretry\\n  docs/retries.md:5 proven example  A call that works returns its value unchanged.\\n  docs/retries.md:27 cited test  A call that keeps failing throws the last error.\\nnext: re-read docs/retries.md and correct any sentence above that the change made untrue; then run docattest check docs/retries.md\"}}\n",
+       "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"docattest: this edit affects 3 exported symbols; docattest check covers the 4 places that name it.\"}}\n",
        "stderr": "",
        "exitCode": 0,
        "stdin": "{\"tool_input\":{\"file_path\":\"src/index.ts\"}}"

@@ -1,8 +1,8 @@
 # check --json
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: impact --hook gives the agent a brief, not the whole report
 === check --json
 exit 0
-stdout 3969 lines
+stdout 3977 lines
 {
   "results": [
     {
@@ -1617,6 +1617,14 @@ stdout 3969 lines
       "message": "all assertions held"
     },
     {
+      "page": "docs/impact.md",
+      "line": 341,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
       "page": "docs/index.md",
       "line": 21,
       "kind": "example",
@@ -2030,7 +2038,7 @@ stdout 3969 lines
       "docs/design/PATTERN.md",
       "docs/design/SPEC.md"
     ],
-    "attestations": 202,
+    "attestations": 203,
     "weak": 0,
     "cited": 1
   },

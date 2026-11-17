@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- `impact --hook` gives the agent a brief instead of the whole report, since it comes after
+  every edit: each place that names what the edit affects and that nothing checks, once and
+  at most five, then a count of the rest and of the places `docattest check` covers, and
+  nothing when no page names what the edit affects. `impact --file` still prints the report.
+
 ## [0.1.4] - 2026-11-17
 
 ### Added

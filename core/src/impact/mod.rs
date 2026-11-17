@@ -5,6 +5,7 @@
 //! anything. A changed manifest affects the facts that read it, and a change to a command's
 //! files the blocks that run it. Reads only: nothing runs, nothing is written.
 
+pub mod brief;
 pub mod commands;
 pub mod covered;
 pub mod mentions;
