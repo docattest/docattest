@@ -108,7 +108,7 @@ of the fixture, in process, with the fixture's config and adapter.
     - `REGION`
     - `PORT`
 
-- Syntax: `<!-- fact[ @surface][ ordered][ column=<name>]: <expression> -->`. Invisible when
+- Syntax: `<!-- fact[ @surface][ ordered][ column=<name> | field=<path>]: <expression> -->`. Invisible when
   rendered. The adapter evaluates the expression against the named surface (default if
   omitted) and compares it to the **target**. A directive may span lines; it binds from the
   line where it ends, and results report the line where it starts. A `<!-- fact` or
@@ -137,6 +137,14 @@ of the fixture, in process, with the fixture's config and adapter.
   on its line never makes it a scalar; with no table following it is an `error`. A column
   name with spaces is quoted (`column="route path"`, or single quotes); a bare name runs to
   the next space, and the error for the word after it says how to quote.
+- A directive with `field=<path>` binds one value of the next fenced block, across blank
+  lines and the directives stacked above it, as `column=` binds a table. The block's
+  language is `json`, `toml`, `yaml` or `yml`, and it is parsed as a manifest of that format
+  is. The path is keys parted by dots; a key of digits indexes a list; a key with a dot or
+  space is quoted (`limits."max retries"`). A string, number, boolean or null value is a
+  **scalar** compare; a list of them is a **set** compare (`ordered` allowed). An object, a
+  list of non-scalars, another language, a block that does not parse and a path that is not
+  there are each an `error` at the fact, naming what is there instead.
 - Inside a table cell a fact binds within that cell: the nearest code span, number or
   version before it, or the cell's sentence of code spans, as above. (Cells of a table bound by `cases` are row data, so comments
   in them are never directives.)
@@ -239,9 +247,10 @@ is the attestation's symbol for the index.
   matches every file it does not name) is a config error, and `frozen` leaves pages out.
 - The project's files are those below the root, less hidden directories, what the
   adapter's language ignores, and, in a git work tree, what git ignores and does not track.
-- A glob of `pages` or `sources` that matches no file, and a `setup` that is not there or
-  that nothing reads (no living page has a cases table or a fact), are warnings in the
-  report's `warnings`: they never change the exit code.
+- A glob of `pages` or `sources` that matches no file, a `setup` that is not there or
+  that nothing reads (no living page has a cases table or a fact), and a glob of
+  `undocumented` that matches no symbol its surface exports, are warnings in the report's
+  `warnings`: they never change the exit code.
 - A **surface** is one of three forms. A bare specifier (`@example/client`) is imported as
   itself and resolved the way Node resolves it from the project root (import conditions are
   used when a package has no `require` export). A `./path` is a file in the project,
@@ -298,7 +307,9 @@ comment. The core keeps `symbols: string[]` per attestation and derives:
   that checks the docs.
 - **`docattest uncovered --surface [name]`** — public symbols of a surface with no
   attestation against that surface. The dual of page coverage: a documentation backlog by
-  symbol. Coverage is keyed by surface and name: a name attested on one surface says
+  symbol. The config's `undocumented` gives, by surface, globs of the names that are not
+  meant to be documented; those no page attests are left out of the backlog and counted
+  apart, and one a page attests counts as attested. Coverage is keyed by surface and name: a name attested on one surface says
   nothing about another surface that exports the same name. An example's symbols belong to
   the surface it imports them from; a fact's to the surface it is evaluated against (and,
   for a named fact, to the surface identifiers the helper's code imports); a cases table's
@@ -453,7 +464,7 @@ constants), and `files` and `util` (file sources, globs and helpers the adapter 
     docs/config.md
       ✗ L31 example: AssertionError: expected false, got true  (assert.equal, block line 4)
     results: 116 pass, 2 fail, 0 error, 0 skipped
-    coverage: 42 living pages, 31 covered (118 attestations, 2 weak), 11 uncovered, 15 frozen
+    coverage: 42 living pages, 31 covered (118 attestations: 104 proofs, 2 of them weak, and 14 citations), 11 uncovered, 15 frozen
     surface default: 57 symbols, 44 attested, 13 not attested by any page
       @example/client → node_modules/@example/client/dist/index.js (@example/client@4.2.0)
     snapshots: regions (48 days)
@@ -468,7 +479,8 @@ under its `member <path> (<adapter>)` line.
 
 `--json`: `{ results: [{page, line, kind, status, symbols, expected, actual, message}],
 coverage, surfaces, snapshots, exitCode }`, where `surfaces` is keyed by surface name and
-each entry is `{ symbols, attested, unattested, resolution?, warnings }`. `resolution` is
+each entry is `{ symbols, attested, unattested, undocumented?, resolution?, warnings }`
+(`undocumented` only when the config gives the surface a glob). `resolution` is
 `{ import, entry, package?: { name, version? } }`: the specifier, the entry file it
 resolved to (project-relative when inside the project) and the package that file belongs
 to (nearest `package.json` with a name). Unattested symbols are reported as a backlog

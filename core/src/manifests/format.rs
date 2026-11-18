@@ -1,6 +1,7 @@
 //! A manifest's text as data, by the format its name says: JSON (`.json`), TOML (`.toml`),
 //! YAML (`.yaml`, `.yml`) or `go.mod`. Every manifest is an object at the top, whatever its
-//! format, so that a fact reads a field of any of them the same way.
+//! format, so that a fact reads a field of any of them the same way. A fenced block that a
+//! `field=` fact reads is parsed the same way, by its language.
 
 use serde_json::{Map, Number, Value};
 
@@ -13,16 +14,24 @@ const UNKNOWN_FORMAT: &str =
 
 /// The data `text`, the contents of `file`, holds; or why it holds none, as a phrase that
 /// follows the manifest's name.
-pub(super) fn parse_manifest(file: &str, text: &str) -> Result<Value, String> {
+pub fn parse_manifest(file: &str, text: &str) -> Result<Value, String> {
     let name = file.rsplit('/').next().unwrap_or(file);
     if name == "go.mod" {
         return parse_go_mod(text);
     }
-    match name.rsplit_once('.').map(|(_, extension)| extension) {
-        Some("json") => json_object(text),
-        Some("toml") => toml_table(text),
-        Some("yaml" | "yml") => parse_yaml(text),
-        _ => Err(UNKNOWN_FORMAT.to_string()),
+    let extension = name.rsplit_once('.').map_or("", |(_, extension)| extension);
+    parse_data(extension, text).unwrap_or_else(|| Err(UNKNOWN_FORMAT.to_string()))
+}
+
+/// The object `text` holds in `format`, a file's extension or a fenced block's language:
+/// `json`, `toml`, `yaml` or `yml`; or why it holds none, as a phrase. None when the format is
+/// none of these.
+pub fn parse_data(format: &str, text: &str) -> Option<Result<Value, String>> {
+    match format {
+        "json" => Some(json_object(text)),
+        "toml" => Some(toml_table(text)),
+        "yaml" | "yml" => Some(parse_yaml(text)),
+        _ => None,
     }
 }
 

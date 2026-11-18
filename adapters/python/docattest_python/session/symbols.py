@@ -5,10 +5,9 @@ from __future__ import annotations
 
 import ast
 import os
-from collections.abc import Iterator
-from typing import NamedTuple
 
 from .. import language
+from ..analysis.declared_tests.listing import cited, declared
 from ..analysis.modules import Declaration, Module
 from ..analysis.names import Imports, chains, expression_names, free_names
 from ..attestations import Attestation, Example, Fact, TestCitation
@@ -80,6 +79,11 @@ class Symbols:
 
     def _exports(self, surface: str) -> list[str]:
         return self.workspace.exports(surface) or []
+
+    def _constants(self, surface: str) -> dict[str, object]:
+        if surface not in self.workspace.by_name:
+            return {}
+        return self.workspace.readable(surface).constants
 
     def _refs(self, imports: Imports, nodes: list[ast.AST] | None) -> list[Ref]:
         """Surface symbols reached through ``imports``: all of them when ``nodes`` is None
@@ -171,9 +175,12 @@ class Symbols:
         return [{"name": name, "surface": s} for s in chosen] if chosen else [{"name": name}]
 
     def _fact_symbols(self, f: Fact) -> list[SymbolRef]:
+        """The exports a fact reads, and the constants it reads from source, which it
+        attests although they may not be exports."""
         names = expression_names(f.expression)
         exported = set(self._exports(f.surface))
-        refs = [{"name": n, "surface": f.surface} for n in names if n in exported]
+        read = exported | set(self._constants(f.surface))
+        refs = [{"name": n, "surface": f.surface} for n in names if n in read]
         seen = {(r["name"], r["surface"]) for r in refs}
         for key in self.workspace.setup_entries("facts"):
             if key in names and key not in exported:
@@ -213,7 +220,9 @@ class Symbols:
             return []
         name, _ = self.project.module_name(file)
         module = Module(name or "test", file, text, os.path.basename(file) == "__init__.py")
-        found: list[ast.AST] = [d.node for d in _declared(module.tree) if d.kind == "test" and _cited(d, t)]
+        found: list[ast.AST] = [
+            d.node for d in declared(module.tree) if d.kind == "test" and cited(d, t.title, list(t.describes))
+        ]
         if not found:
             return []
         return self._known(self._refs(Imports(module.tree, module), found))
@@ -235,13 +244,9 @@ class Symbols:
             }
         tests: list[dict[str, object]] = []
         suites: list[dict[str, object]] = []
-        for declared in _declared(tree):
-            entry: dict[str, object] = {
-                "title": declared.title,
-                "describes": declared.describes,
-                "line": declared.line,
-            }
-            if declared.kind == "test":
+        for test in declared(tree):
+            entry: dict[str, object] = {"title": test.title, "describes": test.describes, "line": test.line}
+            if test.kind == "test":
                 tests.append(entry)
             else:
                 # What it is, in Python's word: the core's message says "is a class, not a test".
@@ -280,40 +285,3 @@ def _module_uses(modules: dict[str, str], by_import: dict[str, str], used: list[
         if best:
             refs.append(best)
     return refs
-
-
-class _Declared(NamedTuple):
-    """A test, or a class that holds tests (a suite), as a test file declares it."""
-
-    kind: str
-    title: str
-    #: The classes that enclose it, outermost first.
-    describes: list[str]
-    line: int
-    node: ast.AST
-
-
-def _declared(tree: ast.Module) -> list[_Declared]:
-    """Tests and the classes that hold them, as pytest and unittest find them: a function
-    or method whose name starts with ``test`` is a test, titled by its name; a class is a
-    suite."""
-    return list(_visit(tree.body, []))
-
-
-def _visit(body: list[ast.stmt], describes: list[str]) -> Iterator[_Declared]:
-    for node in body:
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            if node.name.startswith("test"):
-                yield _Declared("test", node.name, list(describes), node.lineno, node)
-        elif isinstance(node, ast.ClassDef):
-            yield _Declared("suite", node.name, list(describes), node.lineno, node)
-            yield from _visit(node.body, describes + [node.name])
-        elif isinstance(node, (ast.If, ast.Try, ast.With)):
-            yield from _visit(node.body, describes)
-            yield from _visit(node.orelse if isinstance(node, (ast.If, ast.Try)) else [], describes)
-
-
-def _cited(declared: _Declared, cited: TestCitation) -> bool:
-    if declared.title != cited.title:
-        return False
-    return not cited.describes or list(cited.describes) == declared.describes

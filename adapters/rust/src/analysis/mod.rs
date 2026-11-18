@@ -5,6 +5,7 @@
 //! ([`documented`]).
 
 mod affected;
+mod constants;
 mod documented;
 pub(crate) mod modules;
 mod setup;
@@ -30,7 +31,8 @@ pub(crate) struct Analysis {
     /// The setup module's path in the project, when the config names one.
     pub(crate) setup: Option<String>,
     surfaces: Vec<Surface>,
-    crates: Mutex<HashMap<String, Arc<Summary>>>,
+    /// Each crate read, by its root file: a library and a binary may share a name.
+    crates: Mutex<HashMap<PathBuf, Arc<Summary>>>,
     /// Each library the compiler was asked to list, or why it could not.
     documented: Mutex<HashMap<String, Result<Arc<Documented>, String>>>,
 }
@@ -72,11 +74,16 @@ impl Analysis {
 
     /// A package's library, as far as a session asks about it: read once.
     fn krate(&self, package: &Package) -> Arc<Summary> {
+        self.summary(&package.lib, &package.root)
+    }
+
+    /// A crate, by its name and root file, as far as a session asks about it: read once.
+    fn summary(&self, name: &str, root: &Path) -> Arc<Summary> {
         let mut crates = self.crates.lock().unwrap_or_else(|p| p.into_inner());
         let read = |path: &Path| std::fs::read_to_string(path).ok();
         let loaded = crates
-            .entry(package.lib.clone())
-            .or_insert_with(|| Arc::new(Summary::of(&Crate::load(&package.lib, &package.root, &read))));
+            .entry(root.to_path_buf())
+            .or_insert_with(|| Arc::new(Summary::of(&Crate::load(name, root, &read))));
         Arc::clone(loaded)
     }
 

@@ -150,6 +150,18 @@
             "names": { "$ref": "#/$defs/Words" }
           },
           "required": ["base", "changed", "names"]
+        },
+        "display": {
+          "description": "For an adapter that lists the display capability: values of a data block, each with a fact expression of the same value.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": { "type": ["string", "number", "boolean", "null"] },
+              "expression": { "type": "string" }
+            },
+            "required": ["value", "expression"]
+          }
         }
       },
       "required": [

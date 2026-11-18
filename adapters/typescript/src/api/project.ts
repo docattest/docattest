@@ -42,7 +42,10 @@ export interface Project {
   check(options?: CheckOptions): Promise<Report>;
   /** Pages, lines and claims that attest a symbol. Parsing only. */
   where(symbol: string): Promise<Reference[]>;
-  /** Exports of a surface that no attestation against it references. */
+  /**
+   * Exports of a surface that no attestation against it references, less those the config's
+   * `undocumented` says are not meant to be documented.
+   */
   uncovered(surface?: string): Promise<string[]>;
   /** The whole symbol → references map. Parsing only. */
   index(): Promise<Record<string, Reference[]>>;

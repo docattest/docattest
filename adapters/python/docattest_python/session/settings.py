@@ -25,5 +25,7 @@ class SessionSettings:
     snapshots: Snapshots
     #: The data of each manifest the facts name, by the path as they write it.
     manifests: dict[str, object]
+    #: The text of each file the facts read with ``file``, by the path as they write it.
+    texts: dict[str, str]
     #: Every example the session may be asked about, in page order.
     examples: list[Example]

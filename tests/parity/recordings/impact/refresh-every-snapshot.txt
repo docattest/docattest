@@ -1,5 +1,5 @@
 # refresh every snapshot
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === refresh
 exit 1
 stdout empty
@@ -58,7 +58,7 @@ file docs/.snapshots/scalar.json 5 lines
 exit 0
 stdout 7 lines
 results: 0 pass, 0 fail, 0 error, 0 skipped
-coverage: 1 living page, 0 covered (0 attestations, 0 weak), 1 uncovered, 0 frozen
+coverage: 1 living page, 0 covered (0 attestations: 0 proofs, 0 of them weak, and 0 citations), 1 uncovered, 0 frozen
   uncovered: docs/a.md
 surface default: 1 symbol, 0 attested, 1 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)

@@ -9,6 +9,8 @@ const SURFACE = [
   "export const ROUTES = [{ method: 'GET', path: '/a' }, { method: 'POST', path: '/b' }];",
   'export const SHAPE = `export interface Point { x: number; y: number }`;',
   "export const VERSION = '1.2.3-rc.1';",
+  'export const STRICT = true;',
+  'export const RATIO = 1.0;',
 ].join('\n');
 
 const CONFIG = JSON.stringify({

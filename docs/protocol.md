@@ -14,8 +14,8 @@ starts the built server, sends it requests and reads what it wrote, the way a co
 
 The answer to `hello` names the protocol version, the adapter, the info-string languages
 whose fenced blocks it runs, the project files that are its source files, the names that
-are never the project's own, and the optional methods it implements. The TypeScript adapter implements all three: `tests`, `observables`
-and `affected`. A protocol version it does not speak is a `user` error, and the server keeps
+are never the project's own, and the optional methods it implements. The TypeScript adapter implements all four: `tests`, `observables`,
+`affected` and `display`. A protocol version it does not speak is a `user` error, and the server keeps
 running.
 
 The source files are given as globs, `include` minus `exclude`, which the core applies to
@@ -60,7 +60,7 @@ assert.deepEqual(hello.sourceFiles, {
 assert.deepEqual(hello.ignoredNames, ['node_modules']);
 assert.equal(hello.vocabulary.untitled, '(computed title)');
 assert.equal(hello.infoWords, undefined);
-assert.deepEqual(hello.capabilities, ['tests', 'observables', 'affected']);
+assert.deepEqual(hello.capabilities, ['tests', 'observables', 'affected', 'display']);
 assert.deepEqual(warm.of(1)?.result, hello);
 
 assert.deepEqual(run.of(2)?.error, {
@@ -79,6 +79,8 @@ order. `assertions` says whether each example asserts anything: one that does no
 `mentions` says which of some symbols each inline code span names: `retry(fn)` names
 `retry`, and `retry.ts` is a file. `expressions` gives each fact expression's shape and its
 names, so the core can tell a rename (the same shape, other names) from another expression.
+`display` shows the values of a data block that `field=` facts read as the language shows a
+fact's value, so a JSON `1.0` is TypeScript's `1` and `1e21` its `1e+21`.
 
 ```ts check
 import { spawnSync } from 'node:child_process';
@@ -99,6 +101,7 @@ const run = talk(
   { id: 3, method: 'docProse', params: { files: [{ page: 'src/a.ts', text: source }, { page: 'docs/a.md', text: source }] } },
   { id: 4, method: 'mentions', params: { spans: ['retry(fn)', 'new Client()', 'retry.ts'], symbols: ['retry', 'Client'] } },
   { id: 5, method: 'expressions', params: { expressions: ['Math.min(LIMIT, 3)', 'Math.min(MAX_TRIES, 3)', 'LIMIT + 3'] } },
+  '{"id": 6, "method": "display", "params": {"values": [true, null, 1.0, 1e21, "a b"]}}',
 );
 
 assert.deepEqual(run.of(2)?.result, [true, false]);
@@ -108,6 +111,7 @@ const [before, renamed, other] = run.of(5)?.result;
 assert.deepEqual(before.names, ['Math', 'min', 'LIMIT']);
 assert.equal(renamed.shape, before.shape);
 assert.notEqual(other.shape, before.shape);
+assert.deepEqual(run.of(6)?.result, ['true', 'null', '1', '1e+21', 'a b']);
 assert.equal(run.status, 0);
 ```
 

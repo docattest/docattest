@@ -1,8 +1,8 @@
 # frozen page and an orphan elsewhere
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 1
-stdout 77 lines
+stdout 78 lines
 {
   "results": [],
   "coverage": {
@@ -15,6 +15,7 @@ stdout 77 lines
       "docs/retry.md"
     ],
     "attestations": 0,
+    "proofs": 0,
     "weak": 0,
     "cited": 0
   },
@@ -85,7 +86,7 @@ stderr empty
 exit 1
 stdout 13 lines
 results: 0 pass, 0 fail, 0 error, 0 skipped
-coverage: 1 living page, 0 covered (0 attestations, 0 weak), 1 uncovered, 1 frozen
+coverage: 1 living page, 0 covered (0 attestations: 0 proofs, 0 of them weak, and 0 citations), 1 uncovered, 1 frozen
   uncovered: docs/b.md
 warning: "setup" is "docs/docattest.setup.ts", which nothing reads: no living page has a cases table or a fact
 surface default: 4 symbols, 0 attested, 4 not attested by any page

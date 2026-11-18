@@ -2,6 +2,8 @@
 //! `<!-- test: <file> > "<title>" -->`. Other comments are ordinary comments and are ignored.
 
 use super::citation::{Citation, parse_citation};
+use super::field::{FieldPath, parse_field_path};
+use super::quoted::{first_outside_quotes, unquoted};
 use crate::config::DEFAULT_SURFACE;
 use crate::markdown::model::Keyword;
 use crate::text::{is_js_space, is_word, trim, words};
@@ -13,6 +15,7 @@ pub struct FactDirective {
     pub surface: String,
     pub ordered: bool,
     pub column: Option<String>,
+    pub field: Option<FieldPath>,
 }
 
 /// A parsed directive, or a docattest directive that is malformed.
@@ -75,7 +78,10 @@ fn parse_cases(text: &str, line: usize) -> Directive {
 
 fn parse_fact(rest: &str, line: usize) -> Directive {
     let invalid = |message: String| Directive::Invalid { as_kind: Keyword::Fact, message };
-    let (column, remainder) = take_column(rest);
+    let (column, field, remainder) = match take_selectors(rest) {
+        Ok(taken) => taken,
+        Err(why) => return invalid(format!("fact at L{line}: {why}")),
+    };
     let bare_column = column.as_ref().filter(|c| !c.quoted).map(|c| c.name.as_str());
     let Some(colon) = remainder.find(':') else {
         return invalid(format!("fact at L{line} has no expression; expected <!-- fact: <expression> -->"));
@@ -101,7 +107,22 @@ fn parse_fact(rest: &str, line: usize) -> Directive {
         return invalid(format!("fact at L{line} has no expression"));
     }
     let column = column.map(|c| c.name).filter(|name| !name.is_empty());
-    Directive::Fact(FactDirective { expression: expression.to_string(), surface, ordered, column })
+    Directive::Fact(FactDirective { expression: expression.to_string(), surface, ordered, column, field })
+}
+
+/// `column=` and `field=`, which pick what a fact binds; at most one of them.
+fn take_selectors(rest: &str) -> Result<(Option<ColumnName>, Option<FieldPath>, String), String> {
+    let (field, remainder) = take_value(rest, "field=");
+    let (column, remainder) = take_value(&remainder, "column=");
+    let field = field.as_deref().map(parse_field_path).transpose()?;
+    if column.is_some() && field.is_some() {
+        return Err("column= and field= cannot both be given".into());
+    }
+    let column = column.map(|written| match unquoted(&written) {
+        Some(name) => ColumnName { name: name.to_string(), quoted: true },
+        None => ColumnName { name: written, quoted: false },
+    });
+    Ok((column, field, remainder))
 }
 
 /// `@<surface>` or `ordered`.
@@ -123,44 +144,31 @@ struct ColumnName {
     quoted: bool,
 }
 
-// column= may quote its value, and only counts when it comes before the expression's colon.
-// `/\bcolumn=(?:"([^"]*)"|'([^']*)'|([^\s:]+))/`
-fn take_column(rest: &str) -> (Option<ColumnName>, String) {
+// `column=` and `field=` count only before the expression's colon. A value runs to the first
+// space or colon outside quotes.
+fn take_value(rest: &str, key: &str) -> (Option<String>, String) {
     let colon = rest.find(':');
     let mut from = 0;
-    while let Some(found) = rest.get(from..).and_then(|r| r.find("column=")) {
+    while let Some(found) = rest.get(from..).and_then(|r| r.find(key)) {
         let at = from + found;
         from = at + 1;
         if rest[..at].chars().next_back().is_some_and(is_word) {
             continue;
         }
-        let value_start = at + "column=".len();
-        let Some((value, end)) = column_value(rest, value_start) else {
+        let value_start = at + key.len();
+        let tail = &rest[value_start..];
+        let length = first_outside_quotes(tail, |c| is_js_space(c) || c == ':').unwrap_or(tail.len());
+        if length == 0 {
             continue;
-        };
-        // The first `column=` decides: after the colon, or with no colon at all, there is
-        // no column.
+        }
+        // The first one decides: after the colon, or with no colon at all, there is none.
         if colon.is_none_or(|c| at > c) {
             return (None, rest.to_string());
         }
-        let remainder = format!("{}{}", &rest[..at], &rest[end..]);
-        return (Some(value), remainder);
+        let remainder = format!("{}{}", &rest[..at], &rest[value_start + length..]);
+        return (Some(tail[..length].to_string()), remainder);
     }
     (None, rest.to_string())
-}
-
-fn column_value(rest: &str, start: usize) -> Option<(ColumnName, usize)> {
-    let tail = &rest[start..];
-    for quote in ['"', '\''] {
-        if let Some(inner) = tail.strip_prefix(quote)
-            && let Some(close) = inner.find(quote)
-        {
-            let name = ColumnName { name: inner[..close].to_string(), quoted: true };
-            return Some((name, start + 1 + close + 1));
-        }
-    }
-    let end = tail.find(|c: char| is_js_space(c) || c == ':').unwrap_or(tail.len());
-    (end > 0).then(|| (ColumnName { name: tail[..end].to_string(), quoted: false }, start + end))
 }
 
 #[cfg(test)]
@@ -173,6 +181,7 @@ mod tests {
             surface: s.into(),
             ordered: o,
             column: c.map(Into::into),
+            field: None,
         })
     }
 
@@ -233,5 +242,22 @@ mod tests {
         assert!(message("case: t", 2).contains("did you mean \"cases\""));
         assert_eq!(parse_directive("cases: run", 1), Some(Directive::Cases { runner: "run".into() }));
         assert_eq!(parse_directive("fact2: x", 1), None);
+    }
+
+    #[test]
+    fn a_field_path_may_quote_a_key() {
+        let field = |body: &str| match parse_directive(body, 1) {
+            Some(Directive::Fact(f)) => f.field.map(|path| path.written),
+            other => panic!("{other:?}"),
+        };
+        assert_eq!(field("fact field=ports.0.port: PORT"), Some("ports.0.port".into()));
+        assert_eq!(
+            field("fact field=servers.\"eu west\".port ordered: P"),
+            Some("servers.\"eu west\".port".into())
+        );
+        assert_eq!(field("fact @api field='a:b': P"), Some("'a:b'".into()));
+        assert_eq!(field("fact: f(\"field=x\")"), None);
+        assert_eq!(message("fact field=a..b: P", 4), "fact at L4: field=a..b has an empty key");
+        assert!(message("fact column=k field=a: P", 4).contains("column= and field= cannot both be given"));
     }
 }

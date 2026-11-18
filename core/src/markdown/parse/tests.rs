@@ -62,6 +62,26 @@ fn inline_comments_with_the_leaves_before_them() {
 }
 
 #[test]
+fn the_first_sentence_of_each_paragraph_and_heading_as_a_comment_at_its_end_would_see_it() {
+    let page = parse_page("Port **`80`**, said\nthe docs. Then `81`.\n\nA \\*star\\*. More.\n\n## No end\n");
+    let found: Vec<_> = page.first_sentences.iter().map(|s| (s.line, s.ends_line, s.lead.as_str())).collect();
+    assert_eq!(
+        found,
+        vec![(2, false, "Port **`80`**, said the docs."), (4, false, "A \\*star\\*."), (6, true, "No end")]
+    );
+    let leaves: Vec<_> = page.first_sentences[0].before.iter().map(|l| (l.kind, l.value.as_str())).collect();
+    assert_eq!(
+        leaves,
+        vec![
+            (LeafKind::Text, "Port "),
+            (LeafKind::Code, "80"),
+            (LeafKind::Text, ", said"),
+            (LeafKind::Text, "the docs.")
+        ]
+    );
+}
+
+#[test]
 fn own_line_and_multi_line_comments_in_html_blocks() {
     let page = parse_page("<!-- a --> <!-- b -->\n\n<!--\n fact: X\n-->\n- item\n");
     let found: Vec<_> =
@@ -70,6 +90,9 @@ fn own_line_and_multi_line_comments_in_html_blocks() {
         found,
         vec![("a".into(), 1, 1, false), ("b".into(), 1, 1, true), ("fact: X".into(), 3, 5, true)]
     );
+    assert!(page.comments.iter().all(|c| c.alone));
+    assert!(!parse_page("<!-- a --> <b>x</b>\n").comments[0].alone);
+    assert!(!parse_page("Text <!-- a -->\n").comments[0].alone);
 }
 
 #[test]

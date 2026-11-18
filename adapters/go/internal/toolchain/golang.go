@@ -51,6 +51,23 @@ func GoCommand() string {
 	return "go"
 }
 
+// PutChosenGoFirst puts the directory of DOCATTEST_GO first on this process's PATH. The
+// package loader runs the `go` it finds on the PATH, and has to run the go command
+// everything else runs; so DOCATTEST_GO names a file called go.
+func PutChosenGoFirst() error {
+	chosen := os.Getenv("DOCATTEST_GO")
+	if chosen == "" {
+		return nil
+	}
+	if name := strings.TrimSuffix(filepath.Base(chosen), ".exe"); name != "go" {
+		return fmt.Errorf("DOCATTEST_GO names %s, not a file called go: the package loader runs the first go on the PATH", chosen)
+	}
+	if filepath.Base(chosen) == chosen {
+		return nil
+	}
+	return os.Setenv("PATH", filepath.Dir(chosen)+string(os.PathListSeparator)+os.Getenv("PATH"))
+}
+
 // Executable is the file name of a program built on this platform.
 func Executable(name string) string {
 	return platform.Executable(runtime.GOOS, name)
@@ -82,23 +99,30 @@ func (g *Go) overlayFile() (string, error) {
 // run runs `go <verb>` in the module with the overlay, and reads what it complains of.
 // The problems are empty exactly when the command succeeded.
 func (g *Go) run(verb string, args ...string) []Problem {
+	_, problems := g.output(verb, args...)
+	return problems
+}
+
+// output runs `go <verb>` as run does, and is also what it wrote to its standard output.
+// Every command runs with the same flags, so that what one builds the next finds cached.
+func (g *Go) output(verb string, args ...string) (string, []Problem) {
 	overlay, err := g.overlayFile()
 	if err != nil {
-		return []Problem{{Message: err.Error()}}
+		return "", []Problem{{Message: err.Error()}}
 	}
 	full := append([]string{verb, "-trimpath", "-overlay", overlay}, args...)
 	outcome := Run(Command{Path: GoCommand(), Args: full, Dir: g.Module})
 	if outcome.Err != nil {
-		return []Problem{{Message: fmt.Sprintf("the go command could not be run: %v", outcome.Err)}}
+		return "", []Problem{{Message: fmt.Sprintf("the go command could not be run: %v", outcome.Err)}}
 	}
 	if outcome.Code == 0 {
-		return nil
+		return outcome.Stdout, nil
 	}
 	problems := problemsIn(outcome.Stderr + outcome.Stdout)
 	if len(problems) == 0 {
 		problems = []Problem{{Message: fmt.Sprintf("go %s failed with status %d", verb, outcome.Code)}}
 	}
-	return problems
+	return "", problems
 }
 
 // Build builds packages of the module, given by their directories relative to it, and

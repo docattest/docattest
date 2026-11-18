@@ -2,8 +2,10 @@ package toolchain
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -64,5 +66,17 @@ func TestGoCommandCanBeChosen(t *testing.T) {
 	os.Unsetenv("DOCATTEST_GO")
 	if GoCommand() != "go" {
 		t.Fatal(GoCommand())
+	}
+}
+
+func TestTheChosenGoIsFirstOnThePath(t *testing.T) {
+	t.Setenv("PATH", "/usr/bin")
+	t.Setenv("DOCATTEST_GO", filepath.FromSlash("/opt/go/bin/go"))
+	if err := PutChosenGoFirst(); err != nil || os.Getenv("PATH") != filepath.FromSlash("/opt/go/bin")+string(os.PathListSeparator)+"/usr/bin" {
+		t.Fatalf("got %q, %v", os.Getenv("PATH"), err)
+	}
+	t.Setenv("DOCATTEST_GO", filepath.FromSlash("/opt/go/bin/go1.21.0"))
+	if err := PutChosenGoFirst(); err == nil || !strings.Contains(err.Error(), "not a file called go") {
+		t.Fatalf("got %v", err)
 	}
 }

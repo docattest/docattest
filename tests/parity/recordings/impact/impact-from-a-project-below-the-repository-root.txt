@@ -1,9 +1,9 @@
 # impact from a project below the repository root
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact --root pkg/app
 exit 0
 stdout 16 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
@@ -132,7 +132,7 @@ stderr empty
 === impact
 exit 0
 stdout 16 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?

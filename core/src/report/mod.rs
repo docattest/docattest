@@ -20,9 +20,20 @@ pub struct Coverage {
     pub covered: usize,
     pub uncovered: Vec<String>,
     pub frozen: Vec<String>,
+    /// The results the living pages produce: one for each attestation, one for each row of a
+    /// cases table.
     pub attestations: usize,
+    /// `check` examples that assert nothing: proofs, never citations.
     pub weak: usize,
+    /// `test` citations, broken ones too: each names a test, and proves nothing itself.
     pub cited: usize,
+}
+
+impl Coverage {
+    /// The attestations that are not citations: what docattest itself runs or evaluates.
+    pub fn proofs(&self) -> usize {
+        self.attestations - self.cited
+    }
 }
 
 /// One surface in the report: symbol coverage and resolution.
@@ -30,7 +41,11 @@ pub struct Coverage {
 pub struct SurfaceCoverage {
     pub symbols: usize,
     pub attested: usize,
+    /// Neither attested nor matched by an `undocumented` glob.
     pub unattested: Vec<String>,
+    /// Not attested, and matched by an `undocumented` glob; `None` when the config gives the
+    /// surface no such glob.
+    pub undocumented: Option<Vec<String>>,
     /// As the adapter described it; absent when the surface could not be resolved.
     pub resolution: Option<Value>,
     pub warnings: Vec<String>,
@@ -83,7 +98,8 @@ pub fn exit_code_for(results: &[Outcome]) -> i32 {
     i32::from(results.iter().any(Outcome::is_failure))
 }
 
-/// Page coverage from the number of results each living page produced.
+/// Page coverage from the number of results each page produced. Results on other files (a
+/// broken snapshot file) are not attestations, and are left out of the count.
 pub fn coverage_for(
     living: &[String],
     frozen: &[String],
@@ -101,7 +117,7 @@ pub fn coverage_for(
         covered: living.len() - uncovered.len(),
         uncovered,
         frozen,
-        attestations: counts.values().sum(),
+        attestations: living.iter().filter_map(|p| counts.get(p)).sum(),
         weak,
         cited,
     }
@@ -122,6 +138,9 @@ impl Report {
             m.insert("symbols".into(), json!(s.symbols));
             m.insert("attested".into(), json!(s.attested));
             m.insert("unattested".into(), json!(s.unattested));
+            if let Some(undocumented) = &s.undocumented {
+                m.insert("undocumented".into(), json!(undocumented));
+            }
             if let Some(resolution) = &s.resolution {
                 m.insert("resolution".into(), resolution.clone());
             }
@@ -140,7 +159,8 @@ impl Report {
             "results": self.results.iter().map(Outcome::to_json).collect::<Vec<_>>(),
             "coverage": {
                 "living": c.living, "covered": c.covered, "uncovered": c.uncovered,
-                "frozen": c.frozen, "attestations": c.attestations, "weak": c.weak, "cited": c.cited,
+                "frozen": c.frozen, "attestations": c.attestations, "proofs": c.proofs(),
+                "weak": c.weak, "cited": c.cited,
             },
             "surfaces": surfaces,
             "snapshots": snapshots,
@@ -201,16 +221,19 @@ impl Report {
     }
 
     /// The coverage line, then the uncovered pages by name unless only some pages were run.
-    /// Frozen pages are counted, never named: freezing them was the config's decision.
+    /// Proofs and citations are always counted apart, and summed: a citation only says where
+    /// to look, so a total alone would make coverage look stronger than it is. Frozen pages
+    /// are counted, never named: freezing them was the config's decision.
     fn coverage_lines(&self, detail: Detail) -> Vec<String> {
         let c = &self.coverage;
-        let cited = if c.cited > 0 { format!(", {} cited", c.cited) } else { String::new() };
         let mut lines = vec![format!(
-            "coverage: {}, {} covered ({}, {} weak{cited}), {} uncovered, {} frozen",
+            "coverage: {}, {} covered ({}: {}, {} of them weak, and {}), {} uncovered, {} frozen",
             counted(c.living, "living page"),
             c.covered,
             counted(c.attestations, "attestation"),
+            counted(c.proofs(), "proof"),
             c.weak,
+            counted(c.cited, "citation"),
             c.uncovered.len(),
             c.frozen.len()
         )];
@@ -228,8 +251,12 @@ impl Report {
     fn surface_lines(&self) -> Vec<String> {
         let mut lines = Vec::new();
         for (name, s) in &self.surfaces {
+            let undocumented = s
+                .undocumented
+                .as_ref()
+                .map_or_else(String::new, |names| format!(", {} not meant to be documented", names.len()));
             lines.push(format!(
-                "surface {name}: {}, {} attested, {} not attested by any page",
+                "surface {name}: {}, {} attested, {} not attested by any page{undocumented}",
                 counted(s.symbols, "symbol"),
                 s.attested,
                 s.unattested.len()
@@ -309,63 +336,4 @@ fn resolution_line(r: &Value) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn pages(n: usize) -> Vec<String> {
-        (1..=n).map(|k| format!("docs/guide/page-{k:02}.md")).collect()
-    }
-
-    fn report(uncovered: Vec<String>, frozen: Vec<String>) -> Report {
-        let living = uncovered.len() + 1;
-        let coverage = Coverage { living, covered: 1, uncovered, frozen, attestations: 1, weak: 0, cited: 0 };
-        let (surfaces, snapshots, warnings) = (Vec::new(), Vec::new(), Vec::new());
-        Report { results: Vec::new(), coverage, surfaces, snapshots, warnings, exit_code: 0, changes: None }
-    }
-
-    #[test]
-    fn a_long_list_goes_on_over_lines_that_fit_and_a_short_one_stays_on_one() {
-        assert_eq!(
-            wrapped("  uncovered: ", &pages(2)),
-            ["  uncovered: docs/guide/page-01.md, docs/guide/page-02.md"]
-        );
-        let lines = wrapped("  uncovered: ", &pages(9));
-        assert_eq!(lines.len(), 3);
-        assert!(lines.iter().all(|line| line.chars().count() <= TEXT_WIDTH), "{lines:#?}");
-        assert!(lines[1].starts_with("             docs/guide/page-04.md,"), "{lines:#?}");
-        assert!(lines[2].ends_with("docs/guide/page-09.md"), "{lines:#?}");
-        assert_eq!(
-            lines.join(" ").split_whitespace().skip(1).collect::<Vec<_>>().join(" "),
-            pages(9).join(", ")
-        );
-    }
-
-    #[test]
-    fn frozen_pages_are_counted_and_uncovered_ones_named_only_when_every_page_ran() {
-        let both = report(pages(1), vec!["docs/old.md".into()]);
-        let full = both.format(Detail::Full);
-        assert!(full.contains("1 uncovered, 1 frozen"), "{full}");
-        assert!(full.contains("\n  uncovered: docs/guide/page-01.md\n"), "{full}");
-        assert!(!full.contains("docs/old.md"), "{full}");
-        let named = both.format(Detail::Pages);
-        assert!(!named.contains("page-01") && named.contains("1 uncovered, 1 frozen"), "{named}");
-        assert_eq!(both.to_json()["coverage"]["frozen"], json!(["docs/old.md"]));
-    }
-
-    #[test]
-    fn the_configs_warnings_are_printed_and_kept_in_the_json_only_when_there_are_some() {
-        let mut warned = report(Vec::new(), Vec::new());
-        assert!(warned.to_json().get("warnings").is_none());
-        warned.warnings.push("\"pages\" has \"guide/*.md\", which matches no file".into());
-        assert!(
-            warned
-                .format(Detail::Full)
-                .contains("\nwarning: \"pages\" has \"guide/*.md\", which matches no file\n")
-        );
-        assert_eq!(
-            warned.to_json()["warnings"],
-            json!(["\"pages\" has \"guide/*.md\", which matches no file"])
-        );
-        assert_eq!(warned.exit_code, 0);
-    }
-}
+mod tests;

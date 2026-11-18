@@ -23,6 +23,7 @@ fn open(examples: &[Value]) -> Arc<dyn Session> {
         "workers": 4,
         "snapshots": { "dir": "docs/.snapshots", "data": { "regions": ["NL", "DE"] } },
         "manifests": { "Cargo.toml": { "package": { "name": "shop", "rust-version": "1.80" } } },
+        "texts": { "Dockerfile": "FROM rust:1.80\nUSER 10001\n" },
         "examples": examples,
     });
     project::open_session(Path::new(FIXTURE), surfaces, told)
@@ -130,6 +131,11 @@ fn facts_show_values_as_rust_prints_them() {
         fact("standard", "DEFAULT_CURRENCY.to_lowercase()", "default"),
         fact("snapshot", "snapshot(\"regions\")", "default"),
         fact("manifest", "manifest(\"Cargo.toml\")[\"package\"][\"rust-version\"]", "default"),
+        fact(
+            "file",
+            "file(\"Dockerfile\").lines().find_map(|l| l.strip_prefix(\"USER \")).unwrap()",
+            "default"
+        ),
         fact("plain", "1 + 1", "default"),
         fact("elsewhere", "CARRIERS", "shipping"),
     ]);
@@ -142,6 +148,7 @@ fn facts_show_values_as_rust_prints_them() {
         ("plain", "2"),
         ("snapshot", "[\"NL\",\"DE\"]"),
         ("manifest", "1.80"),
+        ("file", "10001"),
     ];
     for (id, text) in texts {
         assert_eq!(
@@ -162,11 +169,13 @@ fn a_fact_without_a_value_says_why_and_costs_the_others_nothing() {
     let facts = json!([
         fact("missing", "snapshot(\"none\")", "default"),
         fact("unread", "manifest(\"Cargo.lock\")", "default"),
+        fact("unread_file", "file(\"Dockerfile.dev\")", "default"),
         fact("private", "round(50)", "default"),
         fact("syntax", "MAX_DISCOUNT +", "default"),
         fact("panics", "TAX_RATES[7]", "default"),
         fact("typed", "MAX_DISCOUNT + \"x\"", "default"),
         fact("fine", "MAX_DISCOUNT", "default"),
+        fact("undeclared", "nowhere(1)", "default"),
         fact("unknown", "X", "nowhere"),
         fact("unresolved", "X", "gone"),
     ]);
@@ -178,8 +187,16 @@ fn a_fact_without_a_value_says_why_and_costs_the_others_nothing() {
             "panicked: manifest \"Cargo.lock\" was not read: name it in the fact itself, as manifest(\"Cargo.lock\")",
         ),
         (
+            "unread_file",
+            "panicked: file \"Dockerfile.dev\" was not read: name it in the fact itself, as file(\"Dockerfile.dev\")",
+        ),
+        (
             "private",
-            "fact `round(50)`: round is not exported by surface \"default\" (cannot find function `round` in this scope)",
+            "fact `round(50)`: round is a function that surface \"default\" does not export; of its unexported names, a fact reads only constants",
+        ),
+        (
+            "undeclared",
+            "fact `nowhere(1)`: nowhere is not exported by surface \"default\" (cannot find function `nowhere` in this scope)",
         ),
         ("syntax", "cannot parse fact expression `MAX_DISCOUNT +`"),
         ("typed", "fact `MAX_DISCOUNT + \"x\"`: "),

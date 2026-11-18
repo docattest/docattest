@@ -167,3 +167,12 @@ func TestMentionsAndShape(t *testing.T) {
 		t.Fatalf("qualifiers: %v", Qualifiers("strings.ToUpper(a.b.c) + x"))
 	}
 }
+
+func TestDisplayShowsADataBlocksValuesAsGoDoes(t *testing.T) {
+	values := `{"values": [true, null, 3, 1048576, 1.0, 1.5, 1e21, 3000000.0, "a b", {"ratio": 1.0, "size": 1048576}]}`
+	shown, err := display([]byte(values))
+	want := []string{"true", "<nil>", "3", "1048576", "1", "1.5", "1e+21", "3e+06", "a b", "map[ratio:1 size:1048576]"}
+	if err != nil || !reflect.DeepEqual(shown, want) {
+		t.Fatalf("display = %q, %v; want %q", shown, err, want)
+	}
+}

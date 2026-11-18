@@ -11,8 +11,6 @@ import type { FactEvaluator } from '../run/facts.js';
 
 const PAGE = '__docattest_audit__';
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
-/** Evaluates only if the surface loads: its failure is the surface's. */
-const SENTINEL = '0';
 /** The surface a fact without `@` reads (PROTOCOL.md: `observables`). */
 const DEFAULT_SURFACE = 'default';
 
@@ -31,14 +29,15 @@ export async function surfaceObservables(
     surface === DEFAULT_SURFACE
       ? evaluator.helperNames.filter((n) => IDENTIFIER.test(n) && !names.includes(n))
       : [];
-  const [loaded, ...probes] = await evaluateAll(evaluator, surface, [
-    SENTINEL,
-    ...exported.map(probeExpression),
-    ...helpers.map(helperProbeExpression),
+  // A surface whose module does not load offers nothing, even the constants it declares.
+  const [failure, probes] = await Promise.all([
+    evaluator.loadFailure(surface),
+    evaluateAll(evaluator, surface, [
+      ...exported.map(probeExpression),
+      ...helpers.map(helperProbeExpression),
+    ]),
   ]);
-  if (!loaded?.ok) {
-    throw new UserError(loaded?.message ?? `surface "${surface}" did not evaluate`);
-  }
+  if (failure !== undefined) throw new UserError(failure);
   const ofExports = exported.flatMap((name, k) => {
     const probe = probes[k];
     const nodes = probe?.ok ? parseProbe(probe.value.text) : undefined;

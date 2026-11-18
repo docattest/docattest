@@ -1,6 +1,7 @@
 package running
 
 import (
+	"cmp"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -21,7 +22,12 @@ type opening struct {
 	surfaces []protocol.ConfiguredSurface
 	noSetup  bool
 	network  bool
+	// timeoutMs is how long a row or a block may run; defaultTestTimeoutMs when zero.
+	timeoutMs float64
 }
+
+// defaultTestTimeoutMs is how long a row or a block of a test may run, unless it says.
+const defaultTestTimeoutMs = 2000
 
 func open(t *testing.T, how opening) *Runner {
 	t.Helper()
@@ -35,14 +41,15 @@ func open(t *testing.T, how opening) *Runner {
 	if how.noSetup {
 		config.Setup = ""
 	}
-	project, err := analysis.Read(config, analysis.Disk{})
+	project, err := analysis.Read(config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	options := Options{
-		Work: t.TempDir(), TimeoutMs: 2000, Workers: 4, Network: how.network,
-		Snapshots: Snapshots{Dir: "docs/.snapshots", Data: json.RawMessage(`{"regions": ["NL", "DE"]}`)},
-		Manifests: json.RawMessage(`{"go.mod": {"module": "example.com/shop", "go": "1.23"}}`),
+		Work: t.TempDir(), TimeoutMs: cmp.Or(how.timeoutMs, defaultTestTimeoutMs), Workers: 4, Network: how.network,
+		Snapshots: Snapshots{Dir: "docs/.snapshots", Data: json.RawMessage(`{"regions": ["NL", "DE"], "sizes": [3000000, 1.5]}`)},
+		Manifests: json.RawMessage(`{"go.mod": {"module": "example.com/shop", "go": "1.23"}, "config.json": {"limits": {"bytes": 1048576}, "ratio": 1.0}}`),
+		Texts:     json.RawMessage(`{"Dockerfile": "FROM golang:1.23\nUSER 10001\n"}`),
 	}
 	runner := New(project, options, nil)
 	t.Cleanup(runner.Wait)
@@ -189,9 +196,10 @@ func TestEvaluateShowsValuesAsGoPrintsThem(t *testing.T) {
 		fact("scalar", "MaxDiscount"), fact("text", "DefaultCurrency"), fact("keys", "TaxRates"),
 		fact("call", `Rates("NL")`), fact("standard", "strings.ToLower(DefaultCurrency)"),
 		fact("snapshot", `snapshot("regions")`), fact("manifest", `manifest("go.mod")["go"]`), fact("plain", "1 + 1"), elsewhere,
+		fact("file", "regexp.MustCompile(`USER (\\d+)`).FindStringSubmatch(file(\"Dockerfile\"))[1]"),
 	})
 	values := map[string]string{"scalar": "50", "text": "EUR", "keys": "map[DE:19 FR:20 NL:21]", "call": "[21%]",
-		"standard": "eur", "snapshot": "[NL DE]", "manifest": "1.23", "plain": "2", "elsewhere": "[post courier drone]"}
+		"standard": "eur", "snapshot": "[NL DE]", "manifest": "1.23", "plain": "2", "elsewhere": "[post courier drone]", "file": "10001"}
 	for id, text := range values {
 		if !got[id].OK || got[id].Value.Text != text {
 			t.Errorf("%s: got %+v", id, got[id])
@@ -202,29 +210,48 @@ func TestEvaluateShowsValuesAsGoPrintsThem(t *testing.T) {
 	}
 }
 
+func TestNumbersOfSnapshotsAndManifestsAreAsGoHoldsThem(t *testing.T) {
+	r := open(t, opening{})
+	got := r.Evaluate([]protocol.Fact{
+		fact("integer", `manifest("config.json")["limits"].(map[string]any)["bytes"]`),
+		fact("integerType", `fmt.Sprintf("%T", manifest("config.json")["limits"].(map[string]any)["bytes"])`),
+		fact("float", `manifest("config.json")["ratio"]`),
+		fact("floatType", `fmt.Sprintf("%T", manifest("config.json")["ratio"])`),
+		fact("snapshot", `snapshot("sizes")`),
+	})
+	values := map[string]string{"integer": "1048576", "integerType": "int64", "float": "1", "floatType": "float64", "snapshot": "[3000000 1.5]"}
+	for id, text := range values {
+		if !got[id].OK || got[id].Value.Text != text {
+			t.Errorf("%s: got %+v", id, got[id])
+		}
+	}
+}
+
 func TestEvaluateSaysWhyAFactHasNoValue(t *testing.T) {
 	r := open(t, opening{})
 	unknown := fact("unknown", "X")
 	unknown.Surface = "nowhere"
 	got := r.Evaluate([]protocol.Fact{
-		fact("missing", `snapshot("none")`), fact("unread", `manifest("go.sum")`), fact("private", "round(50)"), fact("syntax", "MaxDiscount +"),
+		fact("missing", `snapshot("none")`), fact("unread", `manifest("go.sum")`), fact("unreadFile", `file("Dockerfile.dev")`),
+		fact("private", "round(50)"), fact("syntax", "MaxDiscount +"),
 		fact("panics", `TaxRates["NL"] / TaxRates["XX"]`), fact("typed", `MaxDiscount + "x"`), fact("fine", "MaxDiscount"), unknown,
 	})
 	messages := map[string]string{
-		"missing": "fact `snapshot(\"none\")` panicked: snapshot \"none\" not found in docs/.snapshots",
-		"unread":  "panicked: manifest \"go.sum\" was not read: name it in the fact itself, as manifest(\"go.sum\")",
-		"private": "fact `round(50)`: round is not exported by surface \"default\" (undefined: round)",
-		"syntax":  "cannot parse fact expression `MaxDiscount +`",
-		"panics":  "panicked: runtime error: integer divide by zero",
-		"typed":   "fact `MaxDiscount + \"x\"`: ",
-		"unknown": `unknown surface "nowhere" (configured: default, shipping, gone)`,
+		"missing":    "fact `snapshot(\"none\")` panicked: snapshot \"none\" not found in docs/.snapshots",
+		"unread":     "panicked: manifest \"go.sum\" was not read: name it in the fact itself, as manifest(\"go.sum\")",
+		"unreadFile": "panicked: file \"Dockerfile.dev\" was not read: name it in the fact itself, as file(\"Dockerfile.dev\")",
+		"private":    "fact `round(50)`: round is a function that surface \"default\" does not export; of its unexported names, a fact reads only constants",
+		"syntax":     "cannot parse fact expression `MaxDiscount +`",
+		"panics":     "panicked: runtime error: integer divide by zero",
+		"typed":      "fact `MaxDiscount + \"x\"`: ",
+		"unknown":    `unknown surface "nowhere" (configured: default, shipping, gone)`,
 	}
 	for id, message := range messages {
 		if got[id].OK || !strings.Contains(got[id].Message, message) {
 			t.Errorf("%s: got %+v", id, got[id])
 		}
 	}
-	if !got["fine"].OK || len(got) != 8 {
+	if !got["fine"].OK || len(got) != 9 {
 		t.Errorf("one wrong fact costs the others nothing: got %+v", got)
 	}
 }

@@ -172,4 +172,31 @@ mod tests {
         assert_eq!(without_comments("  <!-- a -->  a  "), "a  ");
         assert_eq!(prose("is `acme` <!-- fact: USER --> , always."), "is `acme`, always.");
     }
+
+    /// protocol/test-data/code-spans.json is the contract every language's cell helper is tested
+    /// against; this holds the core to it, so the table cannot drift from what a fact over a
+    /// column compares. It is read at run time: the crate as published carries no protocol/.
+    #[test]
+    fn a_cells_code_spans_are_the_shared_tables() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../protocol/test-data/code-spans.json");
+        let table: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        for case in table["cases"].as_array().unwrap() {
+            let cell = case["cell"].as_str().unwrap().replace('|', "\\|");
+            let (_, tree) =
+                crate::markdown::parse::parse_tree(&format!("| c |\n|---|\n| {cell} |\n")).unwrap();
+            let got: Vec<&str> =
+                first_body_cell(&tree).map(code_spans).unwrap_or_default().into_iter().map(trim).collect();
+            let want: Vec<&str> =
+                case["spans"].as_array().unwrap().iter().map(|s| s.as_str().unwrap()).collect();
+            assert_eq!(got, want, "{}: {:?}", case["name"], case["cell"]);
+        }
+    }
+
+    /// The first cell of the table's second row: its body, below the header.
+    fn first_body_cell(node: &Node) -> Option<&Node> {
+        if let Node::Table(table) = node {
+            return table.children.get(1)?.children()?.first();
+        }
+        node.children()?.iter().find_map(first_body_cell)
+    }
 }

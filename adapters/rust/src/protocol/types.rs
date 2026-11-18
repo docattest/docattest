@@ -38,6 +38,7 @@ pub enum Capability {
     Tests,
     Observables,
     Affected,
+    Display,
 }
 
 /// The language's words for what the core's sentences name.

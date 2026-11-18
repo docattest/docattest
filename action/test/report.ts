@@ -11,6 +11,7 @@ export function report(fields: Partial<Report>): Report {
       uncovered: [],
       frozen: [],
       attestations: 0,
+      proofs: 0,
       weak: 0,
       cited: 0,
     },

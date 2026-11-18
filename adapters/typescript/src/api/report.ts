@@ -21,10 +21,13 @@ export interface Coverage {
   covered: number;
   uncovered: string[];
   frozen: string[];
+  /** Results on living pages, one per attestation or row of a cases table: `proofs + cited`. */
   attestations: number;
-  /** `check` examples that assert nothing. */
+  /** The attestations docattest runs or evaluates itself: every one that is not a citation. */
+  proofs: number;
+  /** Proofs that are `check` examples asserting nothing. */
   weak: number;
-  /** Well-formed `test` citations: sentences tied to a test that docattest does not run. */
+  /** `test` citations, broken ones too: sentences tied to a test that docattest does not run. */
   cited: number;
 }
 
@@ -45,8 +48,16 @@ export interface SurfaceResolution {
 export interface SurfaceCoverage {
   symbols: number;
   attested: number;
-  /** Exported names no attestation against this surface references. */
+  /**
+   * Exported names no attestation against this surface references, less those an
+   * `undocumented` glob matches.
+   */
   unattested: string[];
+  /**
+   * Exported names no attestation references that an `undocumented` glob matches. Only when
+   * the config gives the surface such a glob.
+   */
+  undocumented?: string[];
   /** Absent when the surface could not be resolved. */
   resolution?: SurfaceResolution;
   /** Problems worth a look that never change the exit code. */

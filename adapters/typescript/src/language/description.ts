@@ -2,6 +2,7 @@ import type { LanguageDescription } from '../api/adapter.js';
 import { BLOCK_LANGUAGES, IGNORED_NAMES, isSourceFile, SOURCE_FILES } from './languages.js';
 import { docCommentProse } from './syntax/doc-prose.js';
 import { asserts, expressionShape, mentioned } from './syntax/lexical.js';
+import { observe } from './worker/observe.js';
 
 /**
  * What TypeScript and JavaScript say of themselves without the compiler: this module and
@@ -23,4 +24,5 @@ export const description: LanguageDescription = {
     return Promise.resolve(spans.map((span) => mentioned(span, wanted)));
   },
   expressions: (expressions) => Promise.resolve(expressions.map(expressionShape)),
+  display: (values) => Promise.resolve(values.map((value) => observe(value).text)),
 };

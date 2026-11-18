@@ -1,9 +1,9 @@
 # impact mention only
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 4 lines
-docattest impact: changes since HEAD affect 1 exported symbol
+docattest impact: changes since HEAD affect 1 symbol
 n
   docs/n.md:1 mention (unproven)  Use `n`.
 next: re-read docs/n.md and correct any sentence above that the change made untrue

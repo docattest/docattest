@@ -139,7 +139,8 @@ assert.equal(report.exitCode, 0);
 `docattest check` without `--json` prints the report as text: failures by page and line,
 then one summary line each for results, page coverage, surfaces and snapshots. A surface
 symbol that no page attests is counted as not attested by any page, which is normal for
-helpers and types; it is a backlog, not a failure. A count is followed by its noun in the
+helpers and types; it is a backlog, not a failure. The ones the config says are not meant to
+be documented are counted apart ([duality](duality.md#symbols-not-meant-to-be-documented-are-counted-apart)). A count is followed by its noun in the
 singular for one and the plural otherwise (`1 living page`, `2 symbols`). The text is the
 command line's; the programmatic API returns the report object it is printed from. The
 coverage line counts the frozen pages and names the uncovered ones, as many to a line as fit
@@ -153,10 +154,38 @@ $ docattest check
 docs/a.md
   ✗ L3 fact: expected 4, got 3 from N
 results: 0 pass, 1 fail, 0 error, 0 skipped
-coverage: 1 living page, 1 covered (1 attestation, 0 weak), 0 uncovered, 0 frozen
+coverage: 1 living page, 1 covered (1 attestation: 1 proof, 0 of them weak, and 0 citations), 0 uncovered, 0 frozen
 surface default: 2 symbols, 1 attested, 1 not attested by any page
   shop → src/index.ts (shop)
 snapshots: none
 FAILED
 [exit 1]
+```
+
+## Coverage counts proofs and citations apart
+
+The coverage line gives the number of attestations on the living pages, a cases table
+counting one for each row, and then splits it in two. Proofs are what
+docattest runs or evaluates itself: examples, facts and table rows. A weak example, a
+`check` block that asserts nothing, is still a proof, so the weak ones are counted among
+the proofs. Citations only check that the test they name still exists: they say where to
+look, not that the sentence holds ([citations](citations.md#what-a-citation-does-not-prove)).
+All three counts are always printed, `0` too, and the report object carries them as
+`attestations`, `proofs`, `weak` and `cited`, with `proofs` and `cited` adding up to
+`attestations`.
+
+```ts check
+import { createProject } from 'docattest';
+
+const report = await createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': `export const N = 3;`,
+    'test/n.test.ts': "it('is three', () => {});",
+    'docs/a.md': 'N is `3`. <!-- fact: N -->\n\n```ts check\nconst n = 3;\n```\n\nIt is tested. <!-- test: test/n.test.ts > "is three" -->',
+  },
+}).check();
+
+const { attestations, proofs, weak, cited } = report.coverage;
+assert.deepEqual({ attestations, proofs, weak, cited }, { attestations: 3, proofs: 2, weak: 1, cited: 1 });
 ```

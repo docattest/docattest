@@ -1,8 +1,8 @@
 # page filter glob
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === check docs/*.md --json
 exit 1
-stdout 59 lines
+stdout 60 lines
 {
   "results": [
     {
@@ -36,6 +36,7 @@ stdout 59 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 2,
+    "proofs": 2,
     "weak": 0,
     "cited": 0
   },

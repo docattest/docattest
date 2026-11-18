@@ -68,6 +68,7 @@ class Session:
             "aliases": {s.import_name: s.file for s in self.workspace.surfaces if s.alias and s.file},
             "snapshots": settings.snapshots,
             "manifests": settings.manifests,
+            "texts": settings.texts,
             "preload": ["doctest"] if sessions else [],
             "no_fork": bool(os.environ.get("DOCATTEST_PYTHON_NO_FORK")),
         }

@@ -7,6 +7,8 @@
 //! a unit through the paths it writes, in the working tree or at the base. It is read
 //! from syntax, which errs towards too much: a path stands for any unit of that name, a
 //! method is found through its type, and a trait is not followed to what implements it.
+//! A constant a fact reads from source is listed as an export is, since the fact attests
+//! it.
 //!
 //! What a macro writes has no declaration to read. So the macro calls of a module are
 //! one unit, and a name that nothing declares stands for it: an export only the
@@ -15,6 +17,7 @@
 //! macro calls affects all the module declares.
 
 use super::Analysis;
+use super::constants::Constants;
 use super::modules::{Crate, Module, calls_macro, use_leaves};
 use super::surfaces::Located;
 use crate::language::doc::{impl_owner, named};
@@ -23,7 +26,7 @@ use crate::protocol::SymbolRef;
 use proc_macro2::{TokenStream, TokenTree};
 use quote::ToTokens;
 use std::collections::{HashMap, HashSet};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use syn::Item;
 
 /// A unit: a module's path below its crate's root, and a name it declares.
@@ -192,16 +195,14 @@ impl Analysis {
         let read_now = |path: &Path| std::fs::read_to_string(path).ok();
         let read_was = |path: &Path| was.get(path).cloned().unwrap_or_else(|| read_now(path));
         let mut out: Vec<SymbolRef> = Vec::new();
-        let mut crates: HashMap<String, (Crate, Crate, Changes)> = HashMap::new();
+        let mut crates: HashMap<PathBuf, (Crate, Crate, Changes)> = HashMap::new();
         for surface in &self.surfaces {
-            let Some(Located { package, module, .. }) = surface.located() else {
+            let Some(Located { owner, module, .. }) = surface.located() else {
                 continue;
             };
-            let (now, before, changes) = crates.entry(package.lib.clone()).or_insert_with(|| {
-                let (now, before) = (
-                    Crate::load(&package.lib, &package.root, &read_now),
-                    Crate::load(&package.lib, &package.root, &read_was),
-                );
+            let (name, root) = (owner.name(), owner.root());
+            let (now, before, changes) = crates.entry(root.to_path_buf()).or_insert_with(|| {
+                let (now, before) = (Crate::load(name, root, &read_now), Crate::load(name, root, &read_was));
                 let changes = Changes::between(&now, &before);
                 (now, before, changes)
             });
@@ -216,6 +217,7 @@ impl Analysis {
                     let unit = krate.origin(module, &export.name);
                     (export.name, unit)
                 }));
+                exports.extend(read_from_source(krate, module));
             }
             let from = out.len();
             for (name, unit) in exports {
@@ -226,6 +228,14 @@ impl Analysis {
         }
         out
     }
+}
+
+/// The constants of a module a fact may read from source, each its own unit: a fact
+/// attests them as it attests an export.
+fn read_from_source(krate: &Crate, module: &[String]) -> Vec<(String, Key)> {
+    let Some(items) = krate.module(module).map(|module| &module.items) else { return Vec::new() };
+    let constants = Constants::of(items);
+    constants.names().map(|name| (name.to_string(), (module.to_vec(), name.to_string()))).collect()
 }
 
 /// What a change did to a crate's units.

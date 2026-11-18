@@ -56,11 +56,16 @@ pub fn doc_comment_units(prose: Vec<DocProse>) -> Vec<Unit> {
 }
 
 /// The prose an attestation defends: the unit holding its directive (the sentence carrying
-/// the literal), else the unit its claim names, nearest before it. Headings are never claims
-/// here: a heading names a topic, and deleting one proof under it orphans nothing.
-pub fn claim_unit(a: &Attestation, units: &[Unit]) -> Option<Located> {
+/// the literal), else the unit a directive alone on the line above attests (`from_above`: the
+/// line a directive is written on and the first line of that unit), else the unit its claim
+/// names, nearest before it. Headings are never claims here: a heading names a topic, and
+/// deleting one proof under it orphans nothing.
+pub fn claim_unit(a: &Attestation, units: &[Unit], from_above: &[(usize, usize)]) -> Option<Located> {
     if let Some(inside) = units.iter().position(|u| u.start <= a.line && a.line <= u.end) {
         return Some(Located { unit: inside, offset: a.line - units[inside].start });
+    }
+    if let Some(&(_, start)) = from_above.iter().find(|&&(line, _)| line == a.line) {
+        return units.iter().position(|u| u.start == start).map(|unit| Located { unit, offset: 0 });
     }
     if a.claim.is_empty() {
         return None;

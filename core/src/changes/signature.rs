@@ -5,6 +5,7 @@ use serde_json::{Map, Value};
 
 use super::text::squash;
 use crate::api::attestation::{Attestation, Body, FactTarget, target_json};
+use crate::api::field::as_json_writes;
 use crate::text::compare_utf16;
 
 // Where it is, what it says, how it ran, and the page side of a fact: none of these is the
@@ -23,8 +24,9 @@ pub fn proof_of(a: &Attestation) -> String {
 pub fn target_of(a: &Attestation) -> String {
     let Body::Fact(fact) = &a.body else { return String::new() };
     let Ok(target) = &fact.target else { return String::new() };
-    let mut value = target_json(target);
-    if let FactTarget::Set { items, .. } = target
+    let target = target.spelled(as_json_writes);
+    let mut value = target_json(&target);
+    if let FactTarget::Set { items, .. } = &target
         && !fact.ordered
     {
         // Sorted as written, before squashing: an unordered set compares in the order of its
@@ -79,6 +81,7 @@ mod tests {
             surface: "default".into(),
             ordered,
             column: None,
+            field: None,
             target,
         })
     }

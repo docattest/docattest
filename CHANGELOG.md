@@ -4,6 +4,104 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- A directive may sit alone on the line directly above the sentence it attests, as
+  `// @ts-expect-error` sits above its line: a line that holds only directives applies each
+  of them to the line below it. A citation there defends the sentence that starts on that
+  line, and `where`, `impact`, `audit` and `check --base` read that sentence as its claim; a
+  fact there binds what it would bind at the end of that sentence. A directive at the end of
+  a line, after text, still applies to what is before it, and one above a list, table or
+  fenced block binds it as before. A directive alone on a line, then a blank line, then
+  prose, with no prose directly above it, is an error that says to put it directly above the
+  sentence or at its end. One alone on a line between two lines of prose now attests the
+  line below it, not the paragraph above.
+- `<!-- fact field=<path>: … -->` before a fenced JSON, TOML or YAML block compares one value
+  in it (`field=ports.0.port`), or a list in it as a set, instead of the whole block. Several
+  such facts may sit above one block. The block's value is compared with the fact's as the
+  same value, displayed as the project's language displays it (`True` and `None` in Python,
+  `<nil>` in Go, `None` in Rust, `1` for `1.0` in TypeScript, Go and Rust), through the adapter protocol's
+  new optional capability `display`; with an adapter that does not list it, as JSON writes
+  it. The protocol stays at version 1.
+- `file("path")` in a fact gives a project file's text, in every language, so a fact can read
+  a file that is not a manifest (`USER` in a `Dockerfile`). Like `manifest`, its path is
+  written out in the fact, it reaches `impact` when the file changes, and the file must be
+  UTF-8. The adapter protocol's `open` gains an optional `texts`.
+- A fact reads a constant of its surface from source, exported or not, in every language,
+  and a fact that reads only constants runs nothing of the surface. So a surface may be a
+  program that nothing imports: a Go `package main`, a Rust binary crate (named by its root
+  file, a module's file or the directory of a package with no library), a Python
+  `__main__.py`, of each of which a fact reads only constants, or a TypeScript command's
+  entry script. A constant is, in TypeScript, a `const` written in literals that the module
+  never changes; in Python, a name assigned once at the top level to a literal, an earlier
+  constant, or arithmetic and concatenation of these; in Go, any constant, with the value
+  the type checker gives it; in Rust, a `const` or `static` of primitive types and
+  `Duration`, whose declaration is copied into the fact's program so that it keeps its type,
+  and a binary is never built. `where` credits a fact with the constants it reads,
+  `uncovered` still lists only exports, and `impact` lists a change to such a constant with
+  the facts that read it. Go export data is never read, so a project whose go command is
+  newer than the adapter's Go works too.
+- The cases of a table-driven test can be cited, in every language, by the name its runner
+  prints: TypeScript's `it.each`, `describe.each`, `test.for`, template-literal tables, and
+  `for … of` or `.forEach` over a table the file writes; Python's `@pytest.mark.parametrize`
+  cases and `with self.subTest(...)` subtests, by the ids pytest and unittest print
+  (`"test_total" > "big discount"`); Go's subtests of `t.Run` over a table that is a
+  composite literal in the test function; Rust's named cases of rstest (`#[case::name]`)
+  and test-case (`#[test_case(… ; "name")]`), as `"tests" > "function" > "name"`, where
+  `#[rstest]` and `#[test_case]` functions are tests.
+- Each language gives a cases runner the code spans of a cell, as a fact over the cell's
+  column reads them: `codeSpans` from `docattest` in TypeScript, `docattest.cells.code_spans`
+  in Python, `cells.CodeSpans` in Go, and `docattest_blocks::cells::code_spans` in Rust. The
+  Go package `github.com/docattest/docattest/adapters/go/cells` imports only the standard
+  library, so a module that uses it downloads none of the cores; the Rust helper is in the
+  crate docattest generates, so nothing is added to a project's build. The core and the
+  four helpers are tested against one table, `protocol/test-data/code-spans.json`.
+- `undocumented` in the config names, by surface, globs of the symbols that are not meant to
+  be documented (`{ "default": ["internal*"] }`). `uncovered` leaves them out, the surface
+  line counts them apart (`1 not attested by any page, 2 not meant to be documented`), the
+  JSON report lists them in the surface's `undocumented`, and a glob that matches no symbol
+  is a warning. One a page attests anyway counts as attested.
+
+### Changed
+
+- Rust: a JSON null in a manifest or a snapshot shows as `None`, as a typed `Option::None`
+  constant does, where it showed `null`; a null inside an array or object is still written
+  as JSON writes it.
+- The coverage line counts proofs and citations apart, and their sum:
+  `(41 attestations: 38 proofs, 2 of them weak, and 3 citations)`. The JSON report's
+  coverage gains `proofs`. A broken citation now counts as a citation, and errors on a
+  snapshot file are no longer counted as attestations.
+- `impact` counts the symbols a change affects, not "exported symbols", since they include
+  the constants facts read from source (`changes since HEAD affect 2 symbols`), and so does
+  the brief of `impact --hook`. The protocol's `affected` answers those constants too.
+- A fact over a function, type or variable that a surface declares and does not export
+  says so, in every language (`round is a function that surface "default" does not export;
+  of its unexported names, a fact reads only constants`).
+- A fact that reads only constants no longer loads its surface: in TypeScript it passes
+  even when the module throws on import, and in Python its value is the one the source
+  assigns even when importing the module changes it. Python's `_PRIVATE` constants, and
+  names left out of `__all__`, can now be read.
+- The agent skill states fact binding as the core does it: a fact binds the code spans of the
+  sentence it ends, which may wrap over lines. It names, for each language, the constants a
+  fact reads, the cases a citation can name and the cell helper, and says to name plumbing
+  in `undocumented`.
+- Every guide says how cases rows run: one after another in one process per table (in
+  TypeScript, one worker thread), with tables side by side.
+- Go: the adapter loads a project with `golang.org/x/tools/go/packages` and type-checks it
+  from source, as gopls does, where it read syntax before. `where`, `uncovered`, `impact` and
+  the helpers a cases runner reaches (methods included) follow what names resolve to: a
+  local name that shadows an export is not a use of it, a method or field selected on a
+  value is a use of the type that declares it, and a method called through an interface is
+  the interface's, not its implementations'. A test behind a build constraint names what it
+  uses. Installing still needs Go 1.23; `cells` still imports only the standard library.
+- Go: `DOCATTEST_GO` names a file called `go`; the adapter puts its directory first on its
+  `PATH`, since the package loader runs the first `go` there.
+- Go: the guide is split into pages: `adapters/go/docs/examples.md`, `facts.md`, `cases.md`
+  and `citations.md`; the README keeps install, configuration, a page, the commands and the
+  limits. The Go archive carries the pages beside the README.
+
 ## [0.1.5] - 2026-11-18
 
 ### Changed

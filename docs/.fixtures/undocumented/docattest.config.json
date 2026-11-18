@@ -1,0 +1,6 @@
+{
+  "pages": ["docs/**/*.md"],
+  "surfaces": { "default": "./src/index.ts" },
+  "adapter": "typescript",
+  "undocumented": { "default": ["internal*", "Program*", "debug*"] }
+}

@@ -1,8 +1,8 @@
 # cite-03
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --json
 exit 1
-stdout 46 lines
+stdout 47 lines
 {
   "results": [
     {
@@ -20,6 +20,7 @@ stdout 46 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 1,
+    "proofs": 0,
     "weak": 0,
     "cited": 1
   },

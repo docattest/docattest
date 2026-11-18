@@ -66,6 +66,14 @@
       "expression": "manifest(\"meta.json\")[\"version\"]"
     }
   },
+  "display": [
+    { "value": true, "expression": "true" },
+    { "value": null, "expression": "manifest(\"meta.json\")[\"absent\"]" },
+    { "value": 1.0, "expression": "1.0" },
+    { "value": 1048576, "expression": "1048576" },
+    { "value": 1e21, "expression": "1e21" },
+    { "value": "a b", "expression": "\"a b\"" }
+  ],
   "exports": ["N", "KEYS", "add"],
   "expressions": {
     "one": "LIMITS[0].1",

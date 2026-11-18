@@ -1,9 +1,9 @@
 # impact names from Object.prototype
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 6 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 hasOwnProperty
   docs/a.md:1 mention (unproven)  See `other` and `hasOwnProperty`.
 other

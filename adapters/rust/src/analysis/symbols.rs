@@ -46,8 +46,15 @@ struct Refs<'a> {
 impl Refs<'_> {
     /// Records a name of a surface, when the surface exports it.
     fn add(&mut self, name: &str, surface: &Surface) {
+        if self.analysis.exported(surface, name) {
+            self.record(name, surface);
+        }
+    }
+
+    /// Records a name of a surface, once.
+    fn record(&mut self, name: &str, surface: &Surface) {
         let found = SymbolRef { name: name.to_string(), surface: surface.name.clone() };
-        if self.analysis.exported(surface, name) && !self.found.contains(&found) {
+        if !self.found.contains(&found) {
             self.found.push(found);
         }
     }
@@ -115,10 +122,16 @@ impl Analysis {
                 );
             }
             "fact" => {
+                // A fact attests the constants it reads from source too, which no one can
+                // import.
                 if let Some(surface) = self.surface(&attestation.surface) {
-                    text::identifiers(&attestation.expression)
-                        .into_iter()
-                        .for_each(|name| refs.add(name, surface));
+                    for name in text::identifiers(&attestation.expression) {
+                        if self.read_from_source(surface, name) {
+                            refs.record(name, surface);
+                        } else {
+                            refs.add(name, surface);
+                        }
+                    }
                 }
                 refs.collect(&attestation.expression, None, None);
             }

@@ -122,6 +122,41 @@ pub struct Comment {
     pub before: Vec<Leaf>,
     /// The table whose cell holds it.
     pub table: Option<usize>,
+    /// It sits on a line of its own: in an HTML block that holds nothing but comments.
+    pub alone: bool,
+}
+
+/// Where the first sentence of a paragraph or heading ends, as a comment written there would
+/// see it: a directive alone on the line above the block takes effect there.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FirstSentence {
+    /// Index into [`Page::flow`] of the paragraph or heading.
+    pub block: usize,
+    /// The line the sentence ends on.
+    pub line: usize,
+    /// Nothing but whitespace follows the sentence on that line.
+    pub ends_line: bool,
+    /// Prose from the start of the block to the sentence's end, as [`Comment::lead`].
+    pub lead: String,
+    /// Leaves of the sentence since the previous comment, as [`Comment::before`].
+    pub before: Vec<Leaf>,
+}
+
+impl FirstSentence {
+    /// The comment with `body`, as if it were written at the end of this sentence.
+    pub fn as_comment(&self, body: &str) -> Comment {
+        Comment {
+            body: body.to_string(),
+            line: self.line,
+            end_line: self.line,
+            ends_line: self.ends_line,
+            block: self.block,
+            lead: self.lead.clone(),
+            before: self.before.clone(),
+            table: None,
+            alone: false,
+        }
+    }
 }
 
 /// The directive keyword of an opening that never closes.
@@ -173,6 +208,8 @@ pub struct Page {
     pub code: Vec<CodeRef>,
     pub comments: Vec<Comment>,
     pub unclosed: Vec<Unclosed>,
+    /// The first sentence of every paragraph and heading, in block order.
+    pub first_sentences: Vec<FirstSentence>,
 }
 
 impl Page {
@@ -181,5 +218,15 @@ impl Page {
     pub fn is_only_comments(&self, index: usize) -> bool {
         self.flow.get(index).is_some_and(|b| matches!(b.kind, BlockKind::Other))
             && self.comments.iter().any(|c| c.block == index)
+    }
+
+    /// Whether the block at `index` is lines of their own holding only comments.
+    pub fn is_alone_comments(&self, index: usize) -> bool {
+        self.comments.iter().any(|c| c.block == index && c.alone)
+    }
+
+    /// The first sentence of the paragraph or heading at `index`.
+    pub fn first_sentence(&self, index: usize) -> Option<&FirstSentence> {
+        self.first_sentences.iter().find(|s| s.block == index)
     }
 }

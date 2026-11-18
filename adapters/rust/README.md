@@ -87,10 +87,15 @@ To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher:
   - a path, `"."` (the package there, by its root module) or `"./src/shipping.rs"` (the
     module that file is);
   - both, `{ "import": "shop::shipping", "path": "src/shipping.rs" }`.
+
+  A surface may be a binary crate, which nothing imports, by a path: its root file
+  (`"./src/bin/shopd.rs"`, `"./src/main.rs"`), the file of one of its modules, or the
+  directory of a package that has no library and one binary. Facts read only its
+  constants (see [Facts](#facts)). <!-- test: tests/constants.rs > "a_fact_reads_constants_from_source" -->
 - **What a surface exports** is every `pub` item its module declares, except modules, and
   what it re-exports with `pub use` (a glob's by the exports of the module it names). <!-- test: src/analysis/modules.rs > "tests" > "exports_are_public_items_and_what_is_reexported" -->
   `uncovered` lists the exports no page attests. A crate whose root only declares modules
-  exports nothing at its root: name the modules as surfaces.
+  exports nothing at its root: name the modules as surfaces. A binary exports nothing.
 - **`sources`** are the Rust files whose doc-comment examples are checked (see below).
 - **`setup`** is one Rust file with the runners of cases tables and what facts may use by
   name.
@@ -148,7 +153,7 @@ docs/broken.md
   ! L27 example: example at L27: unknown tag "chekc"; did you mean "check"?
   ✗ L31 fact: expected 60, got 50 from MAX_DISCOUNT
   ✗ L33 fact: missing: DE, FR; unexpected: BE (2 items on the page, 3 in TAX_RATES)
-  ! L37 fact: fact `round(50)`: round is not exported by surface "default" (cannot find function `round` in this scope)
+  ! L37 fact: fact `round(50)`: round is a function that surface "default" does not export; of its unexported names, a fact reads only constants
   ✗ L42 cases: docs/broken.md:42 wrong on purpose: expected 800, got 750
   ✗ L43 cases: docs/broken.md:43 overflows: panicked: attempt to multiply with overflow
   ✗ L44 cases: docs/broken.md:44 too much: The discount is outside the allowed range
@@ -188,14 +193,11 @@ depends on your crates.
   may use what a doc test may use; it carries your workspace's `[patch]` tables and starts
   from your `Cargo.lock`. What cargo built there is still there the next time: the first
   run of a project compiles its dependencies once more, for this crate, and later runs
-  build only what changed. Deleting `target/docattest` costs nothing but that time.
-  In the fixture:
+  build only what changed. Deleting `target/docattest` costs nothing but that time. In a
+  copy of the fixture, so that its other examples keep theirs:
 
   ```console check cwd=tests/fixture
-  $ rm -rf target/docattest
-  $ docattest check --quiet docs/pricing.md
-  ...
-  $ ls target/docattest/crate
+  $ d="$(mktemp -d)" && cp -R . "$d" && cd "$d" && rm -rf target/docattest && docattest check --quiet docs/pricing.md > /dev/null && ls target/docattest/crate && rm -rf "$d"
   Cargo.lock
   Cargo.toml
   src
@@ -302,11 +304,12 @@ The carriers: <!-- fact @shipping: CARRIERS -->
 ```
 
 It may use the surface's exports, the `pub` items of the setup file, `snapshot("name")`,
-`manifest("path")`, and by its path anything of `std`, of your crates or of what they
-depend on (`shop::shipping::CARRIERS`). A bare name the surface does not export is an error
-(`round is not exported by surface "default"`), which is what keeps a page honest about
-what a user can see.
-<!-- test: tests/session.rs > "a_fact_without_a_value_says_why_and_costs_the_others_nothing" -->
+`manifest("path")`, `file("path")`, and by its path anything of `std`, of your crates or of
+what they depend on (`shop::shipping::CARRIERS`). A bare name the surface's module does
+not declare is an error (`nowhere is not exported by surface "default"`), and so is a
+function, a type or a variable it declares and does not export (`round is a function that
+surface "default" does not export; of its unexported names, a fact reads only constants`),
+which is what keeps a page honest about what a user can see. <!-- test: tests/session.rs > "a_fact_without_a_value_says_why_and_costs_the_others_nothing" -->
 A path through a surface's module names that surface's export, as it does in an example,
 so `where`, `uncovered` and `impact` find the fact. <!-- test: tests/workspace.rs > "a_fact_names_the_surface_exports_its_crate_paths_reach" -->
 
@@ -320,6 +323,56 @@ written: `<!-- fact: TAX_RATES -->` above a list checks the keys of
 `pub const TAX_RATES: [(&str, u32); 3]`.
 <!-- test: src/harness/observe.rs > "tests" > "maps_and_lists_of_pairs_show_their_keys" -->
 
+Constants are read from source instead, since a service's most documented values, its
+port or its default timeout, are often private or in its binary. A fact may name any
+`const`, or `static` that is not `mut`, declared at the top level of its surface's
+module, exported or not, and a surface may be a binary crate, of which only constants can
+be read. Here `shopd` is the fixture's `./src/bin/shopd.rs`:
+
+```rust
+// src/bin/shopd.rs
+use std::time::Duration;
+
+const LISTEN_PORT: u16 = 8080;
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+const REGION: &str = "nl";
+```
+
+```md check fixture=tests/fixture
+The server listens on port `8080`. <!-- fact @shopd: LISTEN_PORT -->
+A request is cancelled after `30s`, <!-- fact @shopd: REQUEST_TIMEOUT -->
+which is `30` seconds. <!-- fact @shopd: REQUEST_TIMEOUT.as_secs() -->
+A basket that names no region is taxed as `NL`. <!-- fact @shopd: REGION.to_uppercase() -->
+Germany is served in `2` days. <!-- fact @shipping: DAYS[1].1 -->
+```
+
+The constant's declaration is copied into the fact's program, with those of the other
+constants of its module it reads, and the compiler gives it its value there: it is not
+taken from a build of the crate, and nothing of the crate runs. A binary is never built,
+so one whose code does not compile still has its constants read. <!-- test: tests/constants.rs > "a_fact_reads_constants_from_source" -->
+A constant is copied when what it is written with means the same in any program: its type
+is made of primitive types (`u16`, `f64`, `&str`, `char`) and `std::time::Duration`, in
+references, slices, arrays and tuples, and its value of literals, operators, casts,
+arrays, tuples, references, fields and indexes, the module's other such constants by
+their names, and the constants and functions of std (`u32::MAX`, `Duration::from_secs(30)`).
+A constant keeps its type, so `REQUEST_TIMEOUT` is a `Duration` and shows as one. <!-- test: src/analysis/constants/literal.rs > "tests" > "literal_values_of_std_types_are_reproduced" -->
+Any other constant, of a type the crate declares, that calls a function of the crate or
+is declared under `#[cfg]`, is an error that says why (`LEVEL is a constant that surface
+"default" does not export, and it cannot be read from source: its type `Level` is not made
+of primitive types and Duration`). <!-- test: tests/constants.rs > "only_constants_are_read_from_source" -->
+A fact attests the constants it reads, exported or not, as `where` shows; `uncovered` lists
+only exports. So `impact` lists a change to such a constant as it lists a change to an
+export, with the facts that read it: a private constant, or any constant of a binary. <!-- test: tests/endtoend.rs > "impact_of_a_constant_read_from_source" -->
+
+A fact with `field=` checks one value of a JSON, TOML or YAML block
+([facts](../../docs/facts.md#a-fact-can-check-one-field-of-a-data-block)), which is
+written as its format writes values. The adapter shows the block's value as Rust displays
+it, so it compares with the fact's as the same value: a number written as an integer as
+that integer, any other as an `f64` (`1.0` is `1`), and `null` as the `Option::None` it
+stands for, `None`, as a typed `None` constant shows. <!-- test: src/language/display.rs > "tests" > "a_data_blocks_values_show_as_rust_shows_them" -->
+A null in a manifest or a snapshot shows the same, so a fact over JSON data agrees with one
+over a typed constant; a null inside an array or an object is written as JSON writes it. <!-- test: src/harness/json.rs > "tests" > "values_are_written_as_json_and_shown_as_a_page_states_them" -->
+
 `snapshot("name")` is the snapshot's data as a small JSON value: index it with a key or a
 position, iterate an array, and `to_string()` a member:
 `snapshot("regions").iter().map(|r| r["code"].to_string()).collect::<Vec<_>>()`.
@@ -329,6 +382,9 @@ TOML, YAML and `go.mod`; see [manifests](../../docs/manifests.md)), as the same 
 is. <!-- test: tests/session.rs > "facts_show_values_as_rust_prints_them" --> The path is
 relative to the project root and written out in the fact: a path built at run time is
 never read.
+
+`file("path")` is the text of any other project file, a `String`, read by the same rules,
+for the methods of `str`: this crate is released under the `MIT` license. <!-- fact: file("LICENSE").split_whitespace().next().unwrap() -->
 
 ### Cases tables and named facts: the setup file
 
@@ -354,7 +410,36 @@ The setup file is no part of your crates. docattest compiles it, as a module of 
 of its own that depends on them, so it imports your crate by its name, as a page does, and
 `cargo build` never sees it.
 
-A runner that panics fails its row, and the next row still runs:
+A runner gets each cell's text as the page writes it, code spans included: a cell
+`` `FOO=1` `` reaches it with its backticks
+([docs/cases.md](../../docs/cases.md#a-runner-receives-each-cell-as-written)).
+`docattest_blocks::cells::code_spans` takes the code out: it gives the content of every
+code span in a cell, in order, as a fact over the cell's column compares it. <!-- test: tests/cells.rs > "code_spans_are_what_a_column_fact_compares" -->
+
+```rust check
+let code_spans = docattest_blocks::cells::code_spans;
+assert_eq!(code_spans("`FOO=1` `BAR=2`"), ["FOO=1", "BAR=2"]);
+assert_eq!(code_spans("``a`b`` or `` `c` ``"), ["a`b", "`c`"]);
+assert!(code_spans("no code").is_empty());
+```
+
+A span opens with a run of backticks and closes at the next run of as many, and the white
+space around its content is dropped. As CommonMark has it, a backtick escaped with a
+backslash opens no span, and neither does one inside an HTML tag or comment, an autolink,
+or a link's destination or title. <!-- test: src/harness/cells/mod.rs > "tests" > "a_cells_code_spans_are_the_shared_tables" -->
+`docattest_blocks` is the crate docattest generates, whose programs your examples, facts
+and setup file are compiled into, so a setup file calls it with nothing added to your
+build: it is written with only `std`. <!-- test: tests/cells.rs > "a_setup_file_reads_its_cells_with_code_spans" -->
+
+```rust
+fn spans(row: &Row) -> Result<(), String> {
+    let got = docattest_blocks::cells::code_spans(&row["cell"]).join(",");
+    if got == row["spans"] { Ok(()) } else { Err(format!("got {got}")) }
+}
+```
+
+A row is named by the page, its line and its first cell. A runner that panics fails its
+row, and the next row still runs:
 
 ```console check cwd=tests/fixture
 $ docattest check docs/broken.md | grep ' cases: '
@@ -364,14 +449,36 @@ $ docattest check docs/broken.md | grep ' cases: '
   ! L46 cases: cases runner "nope" at L46 is not in CASES of docs/docattest_setup.rs (known: delivery, discount)
 ```
 
+A table's rows run one after another, in the page's order, in one process, each on a
+thread of its own. Statics, and anything a row starts and does not stop (threads,
+servers), are still there for the rows after it, so a runner stops what it starts before
+it returns. After a row that panics, the next row runs in the same process. A row that runs out of
+time or ends the process (`std::process::exit`) is the last of its process: the next row
+starts a fresh one. <!-- test: tests/cases.rs > "a_tables_rows_share_its_process" -->
+Tables never share a process, and run side by side, with each other and with blocks:
+`runtime.workers` processes at once in all. <!-- test: tests/cases.rs > "tables_run_side_by_side" -->
+
 ### Citations
 
 `<!-- test: src/lib.rs > "tests" > "rejects_big_discounts" -->` ties a sentence to a test.
-A test is a function with a `#[test]` attribute (or one that ends in `test`, such as
-`#[tokio::test]`), titled by its name, with the modules written around it named first,
-outermost first. Citing a module is an error that says so
+A test is a function with an attribute whose name ends in `test` (`#[test]`,
+`#[tokio::test]`, `#[rstest]`) or is `test_case`, titled by its name, with the modules
+written around it named first, outermost first. Citing a module is an error that says so
 (`"tests" in src/lib.rs is a module, not a test`). <!-- test: tests/statics.rs > "tests_are_listed_with_the_modules_around_them" -->
 The file is read, never run.
+
+The cases of a parametrized test can be cited too, by the names its source writes, with
+the function named around them: rstest's `#[case::quarter(1000, 25, 750)]` is
+`"tests" > "discount" > "quarter"`, and test-case's
+`#[test_case(1000, 25 => 750 ; "a quarter off")]` is `"tests" > "rounds" > "a quarter off"`.
+`cargo test` runs each case in a module named after the function, which is why the function
+is a level of its own, and prints a name that begins with the case's position
+(`tests::discount::case_1_quarter`, and `test_case_1_a_quarter_off` from test-case 3.4 on):
+a citation does not use that name, since a case added above shifts it. A case its source
+gives no name (`#[case(999, 50, 500)]`, `#[test_case(999, 50 => 500)]`) is named only by
+its position or its values, and cannot be cited; neither can an argument of `#[values(…)]`. <!-- test: src/analysis/tests/mod.rs > "listing" > "the_named_cases_of_parametrized_tests_are_tests" -->
+The function itself is cited for all its cases. A loop over a table inside a `#[test]` is
+one test: Rust's test harness has no subtests, so its rows have no names to cite.
 
 ## What is never your project's own
 
@@ -410,8 +517,9 @@ a warning and the surface keeps the exports its source declares.
   a crate of your workspace, not of a dependency.
 - `audit` and `inventory` see a surface's exports that are values, and not what lies
   below them (the fields of a struct, the values of a map), and on the default surface
-  what the setup module's `pub` functions that take no arguments return. In the fixture,
-  `Money` is a struct and `rates` takes the regions:
+  what the setup module's `pub` functions that take no arguments return. They do not see
+  the constants a fact reads from source, so nothing of the binary `shopd`. In the
+  fixture, `Money` is a struct and `rates` takes the regions:
 
   ```console check cwd=tests/fixture
   $ docattest inventory

@@ -252,9 +252,10 @@ class Static(unittest.TestCase):
             ),
             [],
         )
-        # A file that is not code affects nothing; an export that did not exist appeared.
+        # A file that is not code affects nothing; an export that did not exist appeared,
+        # and so did a constant, which a fact reads from source although it is not exported.
         self.assertEqual(self.affected({"README.md": None}), [])
-        self.assertEqual(self.affected({"src/kit/extra.py": None}), [("extra", "shown")])
+        self.assertEqual(self.affected({"src/kit/extra.py": None}), [("extra", "hidden"), ("extra", "shown")])
         self.assertEqual(
             self.affected(
                 {"src/kit/__init__.py": self.PACKAGE["src/kit/__init__.py"].replace('VERSION = "1"\n', "")}

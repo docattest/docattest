@@ -64,13 +64,7 @@ func (s *Session) onSymbols(raw json.RawMessage) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := map[string][]protocol.SymbolRef{}
-	for _, attestation := range params.Attestations {
-		if out[attestation.ID], err = s.project.Symbols(attestation); err != nil {
-			return nil, err
-		}
-	}
-	return out, nil
+	return s.project.Symbols(params.Attestations)
 }
 
 func (s *Session) onExports(raw json.RawMessage) (any, error) {

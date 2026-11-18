@@ -1,5 +1,5 @@
 //! JSON, as far as a generated program needs it: reading what the adapter tells it and
-//! a project's snapshots and manifests, and writing its results.
+//! a project's snapshots, manifests and the files facts read, and writing its results.
 
 use std::fmt;
 use std::ops::Index;
@@ -87,12 +87,17 @@ pub fn quote(text: &str) -> String {
     out
 }
 
-/// A value as a page states it: a string as its text, a number as Rust prints it, and
-/// anything with parts as JSON.
+/// How a null is shown: as Rust shows the absent value it stands for, `Option::None`, so a
+/// fact over JSON data and one over a typed constant agree.
+pub const NULL_SHOWN: &str = "None";
+
+/// A value as a page states it: a string as its text, a number as Rust prints it, null as
+/// [`NULL_SHOWN`], and anything with parts as JSON.
 impl fmt::Display for Json {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Json::String(text) => f.write_str(text),
+            Json::Null => f.write_str(NULL_SHOWN),
             other => f.write_str(&other.to_json()),
         }
     }
@@ -293,6 +298,8 @@ mod tests {
         assert_eq!(value.to_json(), r#"{"k":["x",1,null]}"#);
         assert_eq!(Json::String("EUR".into()).to_string(), "EUR");
         assert_eq!(Json::Number(1.5).to_string(), "1.5");
+        assert_eq!(Json::Null.to_string(), "None");
+        assert_eq!(value["k"].to_string(), r#"["x",1,null]"#);
     }
 
     #[test]

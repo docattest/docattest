@@ -39,6 +39,8 @@ pub(crate) struct Runner {
     snapshots: Snapshots,
     /// The data of each manifest the facts name, by the path as they write it.
     manifests: Value,
+    /// The text of each file the facts read with `file`, by the path as they write it.
+    texts: Value,
     slots: Slots,
     blocks: Blocks,
     /// The program that runs the rows of any table: the same for every table.
@@ -53,6 +55,7 @@ impl Runner {
         limits: Limits,
         snapshots: Snapshots,
         manifests: Value,
+        texts: Value,
     ) -> Self {
         Runner {
             analysis,
@@ -60,6 +63,7 @@ impl Runner {
             limits,
             snapshots,
             manifests,
+            texts,
             blocks: Blocks::default(),
             cases: OnceLock::new(),
             building: Mutex::new(()),

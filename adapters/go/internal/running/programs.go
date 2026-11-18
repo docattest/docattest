@@ -97,6 +97,7 @@ type job struct {
 	TimeoutMs float64         `json:"timeoutMs"`
 	Snapshots Snapshots       `json:"snapshots"`
 	Manifests json.RawMessage `json:"manifests"`
+	Texts     json.RawMessage `json:"texts"`
 	Cases     *casesJob       `json:"cases,omitempty"`
 }
 
@@ -104,7 +105,8 @@ type job struct {
 // answers in order; `failed` is why the program served none. A program ends at an item
 // that runs out of time or ends the process, and is started again at the item after it.
 func (r *Runner) serve(binary string, cases *casesJob, count int) (answers []line, failed string) {
-	jobFile, results, err := r.writeJob(job{TimeoutMs: r.options.TimeoutMs, Snapshots: r.options.Snapshots, Manifests: r.options.Manifests, Cases: cases})
+	told := job{TimeoutMs: r.options.TimeoutMs, Snapshots: r.options.Snapshots, Manifests: r.options.Manifests, Texts: r.options.Texts, Cases: cases}
+	jobFile, results, err := r.writeJob(told)
 	if err != nil {
 		return nil, err.Error()
 	}

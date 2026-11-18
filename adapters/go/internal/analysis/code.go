@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/docattest/docattest/adapters/go/internal/language"
@@ -41,23 +42,23 @@ func (p *Project) code(files []string) ([]string, error) {
 		if of.Dir == "" {
 			continue
 		}
-		names, err := p.files.List(of.Dir)
+		entries, err := os.ReadDir(of.Dir)
 		if err != nil {
 			return nil, fmt.Errorf("cannot list the files of surface %q: %w", of.Name, err)
 		}
-		for _, name := range names {
-			if language.IsSource(name) {
-				paths[filepath.Join(of.Dir, name)] = true
+		for _, entry := range entries {
+			if !entry.IsDir() && language.IsSource(entry.Name()) {
+				paths[filepath.Join(of.Dir, entry.Name())] = true
 			}
 		}
 	}
 	texts := []string{}
 	for _, path := range sortedKeys(paths) {
-		text, err := p.files.Read(path)
+		text, err := os.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("cannot read %s: %w", p.rel(path), err)
 		}
-		texts = append(texts, text)
+		texts = append(texts, string(text))
 	}
 	return texts, nil
 }

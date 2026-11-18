@@ -6,6 +6,7 @@ import (
 	"go/ast"
 	"go/token"
 	"io/fs"
+	"os"
 	"strconv"
 
 	"github.com/docattest/docattest/adapters/go/internal/language"
@@ -13,7 +14,7 @@ import (
 )
 
 // declaredTest is something a test file declares: a test (a Test, Fuzz or Example
-// function, or a subtest with a literal name), or a benchmark, which is not one.
+// function, or a subtest whose name is known), or a benchmark, which is not one.
 type declaredTest struct {
 	Title string
 	// Describes are the names that enclose it, outermost first; nil where one is computed.
@@ -41,37 +42,57 @@ func declaredIn(fset *token.FileSet, file *ast.File) []declaredTest {
 			out = append(out, top)
 		case language.HasTestPrefix(name, "Test"), language.HasTestPrefix(name, "Fuzz"), language.IsExample(fn):
 			out = append(out, top)
-			out = append(out, subtests(fset, fn.Body, []*string{&name})...)
+			in := testFunction{fset: fset, tables: tablesIn(fn.Body)}
+			out = append(out, in.subtests(fn.Body, []*string{&name}, nil)...)
 		}
 	}
 	return out
 }
 
-// subtests are the subtests a body starts with `Run(name, func…)`, and theirs.
-func subtests(fset *token.FileSet, body ast.Node, enclosing []*string) []declaredTest {
+// testFunction is what the subtests of one test function are read with: its file's
+// positions, and the tables its table-driven subtests range over.
+type testFunction struct {
+	fset   *token.FileSet
+	tables map[string]*ast.CompositeLit
+}
+
+// subtests are the subtests a body starts with `Run(name, func…)`, and theirs. The
+// loops are the range statements around the body in the same function, innermost last.
+func (in testFunction) subtests(body *ast.BlockStmt, enclosing []*string, loops []*ast.RangeStmt) []declaredTest {
 	out := []declaredTest{}
 	if body == nil {
 		return out
 	}
 	ast.Inspect(body, func(node ast.Node) bool {
-		call, ok := node.(*ast.CallExpr)
-		if !ok {
-			return true
+		switch n := node.(type) {
+		case *ast.RangeStmt:
+			out = append(out, in.subtests(n.Body, enclosing, append(loops[:len(loops):len(loops)], n))...)
+			return false
+		case *ast.CallExpr:
+			literal, isRun := subtestBody(n)
+			if !isRun {
+				return true
+			}
+			out = append(out, in.run(n, literal, enclosing, loops)...)
+			return false
 		}
-		literal, isRun := subtestBody(call)
-		if !isRun {
-			return true
-		}
-		title := literalName(call.Args[0])
+		return true
+	})
+	return out
+}
+
+// run is the subtest a `Run` call starts under each name it can have, and the subtests
+// below each. Every name has the same code: the function literal.
+func (in testFunction) run(call *ast.CallExpr, literal *ast.FuncLit, enclosing []*string, loops []*ast.RangeStmt) []declaredTest {
+	out := []declaredTest{}
+	line := in.fset.Position(call.Pos()).Line
+	for _, title := range in.subtestNames(call.Args[0], loops) {
 		if title != nil {
-			out = append(out, declaredTest{
-				Title: *title, Describes: enclosing, Line: fset.Position(call.Pos()).Line, Node: literal,
-			})
+			out = append(out, declaredTest{Title: *title, Describes: enclosing, Line: line, Node: literal})
 		}
 		below := append(append([]*string{}, enclosing...), title)
-		out = append(out, subtests(fset, literal.Body, below)...)
-		return false
-	})
+		out = append(out, in.subtests(literal.Body, below, nil)...)
+	}
 	return out
 }
 
@@ -100,14 +121,14 @@ func literalName(arg ast.Expr) *string {
 
 // ListTests answers `tests`: what a test file declares, read and never run.
 func (p *Project) ListTests(file string) protocol.TestListing {
-	text, err := p.files.Read(p.Abs(file))
+	text, err := os.ReadFile(p.Abs(file))
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
 		return protocol.TestListing{Message: fmt.Sprintf("%s does not exist", file)}
 	case err != nil:
 		return protocol.TestListing{Message: fmt.Sprintf("%s cannot be read: %v", file, err)}
 	}
-	fset, parsed := language.ParseSource(text)
+	fset, parsed := language.ParseSource(string(text))
 	if parsed == nil {
 		return protocol.TestListing{Message: fmt.Sprintf("%s does not parse as Go", file)}
 	}

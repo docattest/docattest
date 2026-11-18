@@ -1,9 +1,9 @@
 # impact a constant with a fact
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 10 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 RETRY_DEFAULTS
   docs/retry.md:3 proven fact  A call is tried at most `3` times.
   docs/retry.md:12 mention (unproven)  See `retry.ts` and `RETRY_DEFAULTS.maxAttempts`.

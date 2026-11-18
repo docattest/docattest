@@ -1,8 +1,8 @@
 # cases table
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === check --json
 exit 1
-stdout 63 lines
+stdout 64 lines
 {
   "results": [
     {
@@ -40,6 +40,7 @@ stdout 63 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 3,
+    "proofs": 3,
     "weak": 0,
     "cited": 0
   },

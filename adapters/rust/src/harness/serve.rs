@@ -129,6 +129,17 @@ pub fn manifest(path: &str) -> Json {
     manifests[path].clone()
 }
 
+/// The text of a file of the project, by the path a fact writes, so that a fact reads it
+/// with the methods of `str`: `file("Dockerfile").lines().find_map(|l| l.strip_prefix("USER "))`.
+/// A fact expression calls it by this name. The core reads a file only when a fact writes
+/// its path out, as it does a manifest.
+pub fn file(path: &str) -> String {
+    let Some(text) = job()["texts"][path].as_str() else {
+        panic!("file \"{path}\" was not read: name it in the fact itself, as file(\"{path}\")");
+    };
+    text.to_string()
+}
+
 /// Serves the rows of the job's table with the runner the setup module names for it:
 /// each item is "" for a row that holds, else why it does not. `columns` are the columns
 /// each runner says its table must have.

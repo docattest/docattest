@@ -6,6 +6,7 @@ import { surfaceObservables } from './inventory/observables.js';
 import { affectedExports } from './impact/affected.js';
 import { FactEvaluator } from './run/facts.js';
 import { Runner } from './run/runner.js';
+import { SurfaceDeclarations } from './surfaces/declarations.js';
 import { resolveSurfaces, type ResolvedSurface } from './surfaces/resolve.js';
 import { surfaceSpecs } from './surfaces/specs.js';
 import { workspaceBuildWarnings } from './surfaces/workspace-builds.js';
@@ -20,9 +21,11 @@ export function createSession(ctx: AdapterContext): AdapterSession {
   const specs = surfaceSpecs(ctx.surfaces, ctx.files);
   const surfaces = resolveSurfaces(ctx.files, specs);
   const compiler = new Compiler(ctx.files, surfaces, ctx.examples);
-  const symbols = new SymbolResolver(ctx.files, surfaces, compiler, ctx.setup);
+  const declarations = new SurfaceDeclarations(ctx.files, surfaces);
+  const symbols = new SymbolResolver(ctx.files, surfaces, compiler, ctx.setup, declarations);
   const runner = new Runner(ctx, surfaces);
-  const facts = new FactEvaluator(ctx, surfaces, runner, (name) => compiler.exports(name));
+  const exportsOf = (name: string) => compiler.exports(name);
+  const facts = new FactEvaluator(ctx, surfaces, runner, exportsOf, declarations);
   return {
     compile: (examples) => Promise.resolve(compiler.compile(examples)),
     evaluate: async (list) => facts.evaluate(list),

@@ -58,6 +58,7 @@ mod tests {
             symbols: 2,
             attested: 1,
             unattested: vec!["M".into()],
+            undocumented: None,
             resolution: None,
             warnings: vec![],
         };

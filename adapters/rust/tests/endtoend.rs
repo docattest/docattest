@@ -142,9 +142,10 @@ fn copy(from: &Path, to: &Path) {
     }
 }
 
-#[test]
-fn impact_names_the_prose_a_change_touches() {
-    let root = std::env::temp_dir().join(format!("docattest-rust-impact-{}", std::process::id()));
+/// A copy of the fixture committed to a git repository of its own, named for its test;
+/// `None` when git cannot make one.
+fn committed_fixture(test: &str) -> Option<PathBuf> {
+    let root = std::env::temp_dir().join(format!("docattest-rust-{test}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&root);
     copy(&fixture(), &root);
     let git = |args: &[&str]| {
@@ -156,15 +157,50 @@ fn impact_names_the_prose_a_change_touches() {
             .output()
             .is_ok_and(|ran| ran.status.success())
     };
-    if !(git(&["init", "-q", "-b", "main"]) && git(&["add", "-A"]) && git(&["commit", "-q", "-m", "base"])) {
+    let made =
+        git(&["init", "-q", "-b", "main"]) && git(&["add", "-A"]) && git(&["commit", "-q", "-m", "base"]);
+    made.then_some(root)
+}
+
+/// Replaces the first occurrence of some text in a file of a project.
+fn edit(root: &Path, file: &str, from: &str, to: &str) {
+    let path = root.join(file);
+    let text = std::fs::read_to_string(&path).unwrap();
+    assert!(text.contains(from), "{file} does not hold {from:?}");
+    std::fs::write(&path, text.replacen(from, to, 1)).unwrap();
+}
+
+#[test]
+fn impact_names_the_prose_a_change_touches() {
+    let Some(root) = committed_fixture("impact") else {
         return eprintln!("impact was not tried: git could not make a repository");
-    }
-    let shipping = root.join("src/shipping.rs");
-    let text = std::fs::read_to_string(&shipping).unwrap();
-    std::fs::write(&shipping, text.replacen("(\"DE\", 2)", "(\"DE\", 3)", 1)).unwrap();
+    };
+    edit(&root, "src/shipping.rs", "(\"DE\", 2)", "(\"DE\", 3)");
     let said = docattest(&root, &["impact"], &[]).0;
-    for want in ["affect 1 exported symbol", "quote", "docs/shipping.md:10 proven example"] {
+    let _ = std::fs::remove_dir_all(&root);
+    for want in ["affect 2 symbols", "DAYS", "quote", "docs/shipping.md:10 proven example"] {
         assert!(said.contains(want), "no {want:?} in {said}");
     }
+}
+
+#[test]
+fn impact_of_a_constant_read_from_source() {
+    let Some(root) = committed_fixture("impact-constants") else {
+        return eprintln!("impact was not tried: git could not make a repository");
+    };
+    let page = "Germany is served in `2` days. <!-- fact @shipping: DAYS[1].1 -->\n\nThe port is `8080`. <!-- fact @shopd: LISTEN_PORT -->\n";
+    std::fs::write(root.join("docs/constants.md"), page).unwrap();
+    edit(&root, "src/shipping.rs", "(\"DE\", 2)", "(\"DE\", 3)");
+    edit(&root, "src/bin/shopd.rs", "LISTEN_PORT: u16 = 8080", "LISTEN_PORT: u16 = 8081");
+    let said = docattest(&root, &["impact", "--json"], &[]).0;
     let _ = std::fs::remove_dir_all(&root);
+    let impact: Value = serde_json::from_str(&said).unwrap_or_else(|_| panic!("not JSON: {said}"));
+    let references = impact["references"].as_array().unwrap().iter();
+    let facts: Vec<String> = references
+        .filter(|reference| reference["page"] == "docs/constants.md")
+        .map(|reference| {
+            format!("{} {}", reference["symbol"].as_str().unwrap(), reference["kind"].as_str().unwrap())
+        })
+        .collect();
+    assert_eq!(facts, ["DAYS fact", "LISTEN_PORT fact"], "{said}");
 }

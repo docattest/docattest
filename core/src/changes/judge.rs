@@ -183,6 +183,7 @@ mod tests {
                 surface: surface.into(),
                 ordered: false,
                 column: None,
+                field: None,
                 target: Ok(FactTarget::Scalar("3".into())),
             }),
         }

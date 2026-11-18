@@ -143,7 +143,13 @@ assert.match(missing.results[0].message, /cases at L1 has no table/);
 A runner gets each cell's text as the page writes it, code spans included: a cell
 `` `3` `` reaches the runner as `` `3` ``, backticks and all, and only the `\|` escape is
 undone. That is not what a fact compares: a fact over a table column takes the code spans
-in a cell, `3`. A runner whose cells hold code strips the backticks itself.
+in a cell, `3`. A runner whose cells hold code takes the code out with its language's
+helper, which gives the content of every code span in a cell, in order, as a fact over the
+cell's column compares it: `codeSpans` from `docattest` in TypeScript,
+`docattest.cells.code_spans` in Python, `cells.CodeSpans` from
+`github.com/docattest/docattest/adapters/go/cells` in Go, and
+`docattest_blocks::cells::code_spans` in Rust. The core and the four helpers are tested
+against one table of cells, `protocol/test-data/code-spans.json`.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -164,6 +170,52 @@ const report = await createProject({
 }).check();
 
 assert.deepEqual(report.results.map((r) => r.status), ['pass']);
+```
+
+```ts check
+import { codeSpans } from 'docattest';
+
+assert.deepEqual(codeSpans('`3`'), ['3']);
+assert.deepEqual(codeSpans('`FOO=1` and `BAR=2`'), ['FOO=1', 'BAR=2']);
+```
+
+## A table's rows run one after another
+
+A table's rows run in the page's order, one after another, sharing one process (in
+TypeScript, one worker thread), so what a row leaves behind is still there for the rows
+after it: a runner stops what it starts before it returns. A row that throws, raises or
+panics fails, and the next row runs in the same process. A row that runs out of time or
+ends the process is the last of its process, and the next row starts a fresh one. Tables run side by side, with each other and with
+blocks, `runtime.workers` at once. Each guide says what a row shares in its language:
+
+| language | a table's rows share | guide |
+|---|---|---|
+| TypeScript | a worker thread, and the setup module loaded once for the table; a worker runs other tables and blocks too | [cases tables](../adapters/typescript/README.md#cases-tables-the-setup-module) |
+| Python | a process of its own, which runs the setup module once | [cases tables](../adapters/python/README.md#cases-tables-and-named-facts-the-setup-module) |
+| Go | a process of its own, with the setup package's state | [cases tables](../adapters/go/docs/cases.md) |
+| Rust | a process of its own, each row on a thread of its own | [cases tables](../adapters/rust/README.md#cases-tables-and-named-facts-the-setup-file) |
+
+```ts check
+import { createProject } from 'docattest';
+
+const report = await createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, setup: 'docs/docattest.setup.ts', adapter: 'typescript' }),
+    'src/index.ts': `export const x = 1;`,
+    'docs/docattest.setup.ts': [
+      "import assert from 'node:assert/strict';",
+      'const seen: string[] = [];',
+      'export const cases = { order: (row: Record<string, string>) => {',
+      "  if (row.case === 'throws') throw new Error('on purpose');",
+      '  seen.push(row.case);',
+      "  assert.equal(seen.join(' '), row.seen);",
+      '} };',
+    ].join('\n'),
+    'docs/t.md': '<!-- cases: order -->\n| case | seen |\n|---|---|\n| a | a |\n| throws | - |\n| b | a b |\n',
+  },
+}).check();
+
+assert.deepEqual(report.results.map((r) => r.status), ['pass', 'fail', 'pass']);
 ```
 
 ## A comment in a cell is row data, never a directive

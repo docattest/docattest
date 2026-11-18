@@ -6,41 +6,54 @@ from __future__ import annotations
 import ast
 import builtins
 import sys
-from typing import cast
+from typing import NamedTuple, cast
 
 from .asserts import run_code
 from .channel import Channel
-from .environment import Environment, surface_namespace
+from .environment import Environment, source_constants, surface_namespace
 from .failures import failure_message
-from .jobs import FactsJob, FactToEvaluate, SetupModule
+from .jobs import FactsJob, FactToEvaluate, SetupModule, SurfaceToLoad
 from .messages import Evaluation
 from .values import observe
 
 #: What every fact expression may call besides the surface: methods of the environment, by
 #: the names facts call them.
-FACT_FUNCTIONS = ("snapshot", "manifest")
+FACT_FUNCTIONS = ("snapshot", "manifest", "file")
 
 
 def run_facts(job: FactsJob, env: Environment, channel: Channel, start: int) -> None:
-    surface = job["surface"]
+    """Each fact from ``start``. The surface is imported only when a fact reads a name that
+    nothing else gives, so a failure to import it fails only those facts."""
     env.enter(False)
-    try:
-        namespace = surface_namespace(surface)
-    except BaseException as err:  # noqa: BLE001
-        reason = failure_message(err)
-        channel.post(
-            {
-                "t": "failed",
-                "message": 'surface "%s" failed to load: %s' % (surface["name"], reason),
-                "internal": None,
-            }
-        )
-        return
+    facts = job["facts"][start:]
+    imported, failure = _imported(job["surface"], facts)
     channel.post({"t": "ready"})
+    namespace = {**imported, **source_constants(job["surface"])}
+    surface = _Surface(job["surface"]["name"], job["refused"])
     helpers = _Helpers(env, job["setup"], namespace)
-    for fact in job["facts"][start:]:
-        evaluation = evaluate(fact, surface["name"], namespace, helpers, env)
+    for fact in facts:
+        if fact["imports"] and failure is not None:
+            evaluation: Evaluation = {"ok": False, "message": failure}
+        else:
+            evaluation = evaluate(fact, surface, helpers, env)
         channel.post({"t": "evaluation", "evaluation": evaluation})
+
+
+def _imported(surface: SurfaceToLoad, facts: list[FactToEvaluate]) -> tuple[dict[str, object], str | None]:
+    """The surface's exports when a fact needs them imported, or why they could not be."""
+    if not any(fact["imports"] for fact in facts):
+        return {}, None
+    try:
+        return surface_namespace(surface), None
+    except BaseException as err:  # noqa: BLE001
+        return {}, 'surface "%s" failed to load: %s' % (surface["name"], failure_message(err))
+
+
+class _Surface(NamedTuple):
+    """A fact's surface: its name, and the names of it a fact may not read, each with why."""
+
+    name: str
+    refused: dict[str, str]
 
 
 def ambiguous(name: str, surface: str) -> str:
@@ -106,12 +119,10 @@ def _stdlib(name: str) -> bool:
     return name in getattr(sys, "stdlib_module_names", ()) and not name.startswith("_")
 
 
-def evaluate(
-    fact: FactToEvaluate, surface_name: str, namespace: dict[str, object], helpers: _Helpers, env: Environment
-) -> Evaluation:
+def evaluate(fact: FactToEvaluate, surface: _Surface, helpers: _Helpers, env: Environment) -> Evaluation:
     expression = fact["expression"]
     label = "fact `%s`" % expression
-    bindings = helpers.bindings(fact, surface_name)
+    bindings = helpers.bindings(fact, surface.name)
     if isinstance(bindings, str):
         return {"ok": False, "message": "%s: %s" % (label, bindings)}
     scope = _scope(fact, bindings, env)
@@ -123,8 +134,10 @@ def evaluate(
         return {"ok": True, "value": observe(value)}
     except NameError as err:
         name = getattr(err, "name", None)
+        if name in surface.refused:
+            return {"ok": False, "message": "%s: %s" % (label, surface.refused[name])}
         if name and name not in scope:
-            where = 'surface "%s"' % surface_name
+            where = 'surface "%s"' % surface.name
             return {
                 "ok": False,
                 "message": "%s: %s is not exported by %s (NameError: %s)" % (label, name, where, err),

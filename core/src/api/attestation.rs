@@ -2,6 +2,7 @@
 
 use serde_json::{Map, Value, json};
 
+use super::field::{FieldValue, as_json_writes};
 use crate::console::transcript::Step;
 
 /// What an attestation is, and what a result is about.
@@ -43,6 +44,10 @@ pub enum SetFrom {
     /// The code spans of the sentence the directive ends. A value that is not a list is
     /// compared with the last of them, as a scalar.
     Sentence,
+    /// The list at the path of a fenced block's data that `field=` names.
+    Field {
+        path: String,
+    },
 }
 
 impl SetFrom {
@@ -51,16 +56,42 @@ impl SetFrom {
             SetFrom::List => "list",
             SetFrom::Table { .. } => "table",
             SetFrom::Sentence => "sentence",
+            SetFrom::Field { .. } => "field",
         }
     }
 }
 
-/// What a fact compares its value with: the literal, list, column or block on the page.
+/// What a fact compares its value with: the literal, list, column, block or field of a block
+/// on the page.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FactTarget {
     Scalar(String),
-    Set { items: Vec<String>, from: SetFrom },
+    Set {
+        items: Vec<String>,
+        from: SetFrom,
+    },
     Text(String),
+    /// What `field=` found at `path` in a data block, as the block holds it.
+    Field {
+        path: String,
+        value: FieldValue,
+    },
+}
+
+impl FactTarget {
+    /// The target as it is compared, a field's scalars written by `spell` in order: a field
+    /// that holds a scalar is that scalar, one that holds a list the set of its items. Any
+    /// other target is already written as the page writes it.
+    pub fn spelled(&self, mut spell: impl FnMut(&Value) -> String) -> FactTarget {
+        let FactTarget::Field { path, value } = self else { return self.clone() };
+        match value {
+            FieldValue::Scalar(scalar) => FactTarget::Scalar(spell(scalar)),
+            FieldValue::List(items) => FactTarget::Set {
+                items: items.iter().map(spell).collect(),
+                from: SetFrom::Field { path: path.clone() },
+            },
+        }
+    }
 }
 
 /// `check` runs an example; `compile` only type-checks it.
@@ -113,6 +144,8 @@ pub struct Fact {
     pub surface: String,
     pub ordered: bool,
     pub column: Option<String>,
+    /// The path `field=` names, as written.
+    pub field: Option<String>,
     /// The literal the fact defends on its page, or why none could be bound to it.
     pub target: Result<FactTarget, String>,
 }
@@ -260,6 +293,9 @@ fn fact_json(f: &Fact, m: &mut Map<String, Value>) {
     if let Some(column) = &f.column {
         m.insert("column".into(), json!(column));
     }
+    if let Some(field) = &f.field {
+        m.insert("field".into(), json!(field));
+    }
     if let Ok(target) = &f.target {
         m.insert("target".into(), target_json(target));
     }
@@ -282,6 +318,7 @@ fn cases_json(c: &Cases, m: &mut Map<String, Value>) {
     m.insert("rows".into(), Value::Array(rows));
 }
 
+/// A target as the protocol and the report carry it: a field's values as JSON writes them.
 pub fn target_json(target: &FactTarget) -> Value {
     match target {
         FactTarget::Scalar(value) => json!({ "kind": "scalar", "value": value }),
@@ -289,6 +326,7 @@ pub fn target_json(target: &FactTarget) -> Value {
             json!({ "kind": "set", "items": items, "from": from.as_str() })
         }
         FactTarget::Text(text) => json!({ "kind": "text", "text": text }),
+        FactTarget::Field { .. } => target_json(&target.spelled(as_json_writes)),
     }
 }
 

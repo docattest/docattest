@@ -6,10 +6,14 @@ title: Citations
 
 A citation ties a sentence to a test the project already has. It is the cheap way to
 defend a sentence when the behaviour needs too much setup for an example on the page and
-a test elsewhere already covers it. Put it after the sentence it defends, on the same line:
+a test elsewhere already covers it. Put it after the sentence it defends, on the same line,
+or alone on the line directly above that sentence:
 
 ```md
 A call that keeps failing throws the last error. <!-- test: test/retry.test.ts > "throws the last error" -->
+
+<!-- test: test/retry.test.ts > "gives up after the last attempt" -->
+A call is given up after its last attempt.
 ```
 
 The file is relative to the project root. The title is the test's own title, in double or
@@ -76,6 +80,7 @@ assert.equal(report.results[0].line, 3);
 assert.match(report.results[0].message, /test\/retry\.test\.ts:4 declares "retry" > "throws the last error"/);
 assert.deepEqual(report.coverage.uncovered, []);
 assert.equal(report.coverage.cited, 1);
+assert.equal(report.coverage.proofs, 0);
 assert.equal(report.exitCode, 0);
 ```
 
@@ -139,7 +144,8 @@ assert.match(suite.message, /"retry" in test\/a\.test\.ts is a describe block, n
 ## Only a declared test counts
 
 `it` and `test` calls count, with their `.only`, `.skip`, `.concurrent` and `.each` forms,
-when the title is a string literal. The same words in a comment or a string do not.
+when the file's own literals write the title. The same words in a comment or a string do
+not.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -163,8 +169,56 @@ const statuses = async (titles: string[]) => {
   return report.results.map((r) => r.status);
 };
 
-assert.deepEqual(await statuses(['only', 'concurrent', 'each %i']), ['pass', 'pass', 'pass']);
+assert.deepEqual(await statuses(['only', 'concurrent', 'each %i', 'each 1']), ['pass', 'pass', 'pass', 'pass']);
 assert.deepEqual(await statuses(['in a comment', 'in a string']), ['error', 'error']);
+```
+
+## The cases of a table-driven test are cited by the names their runner prints
+
+A table-driven test runs one case for each row of a table, and its runner prints a name for
+each. When the test file writes the table in literals, each case can be cited by that name,
+as a test inside its test. A citation never runs the test, so the name is read from the
+file as the runner would print it:
+
+- TypeScript: the rows of `it.each`, `describe.each` and `test.for`, and the tests of a
+  `for … of` loop or a `.forEach` over a table the file writes, by the title the runner
+  prints for each row; the title as written, `"each %i"`, still cites the test as a whole
+  ([TypeScript guide](../adapters/typescript/README.md#citations-of-table-driven-tests)).
+- Python: the cases of `@pytest.mark.parametrize`, by the id pytest prints, so
+  `test_total[big discount]` is `"test_total" > "big discount"`, and the subtests of
+  `with self.subTest(...)`, by what unittest prints, so `subTest(region="NL")` is
+  `"region='NL'"` ([Python guide](../adapters/python/README.md#citations)).
+- Go: the subtests that `t.Run` starts in a loop over a table written as a composite
+  literal in the test function, by the names the table writes
+  ([Go guide](../adapters/go/docs/citations.md)).
+- Rust: the named cases of rstest (`#[case::quarter(…)]`) and of test-case
+  (`#[test_case(… ; "a quarter off")]`), with the function named around them:
+  `"tests" > "discount" > "quarter"` ([Rust guide](../adapters/rust/README.md#citations)).
+
+A name the file does not write, such as one a function makes, or a row of a table built by
+a call or changed after it is written, cannot be cited; the test itself still can. A
+citation of a case that is not there lists the cases that are.
+
+```ts check
+import { createProject } from 'docattest';
+
+const cite = async (title: string) => {
+  const report = await createProject({
+    files: {
+      'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+      'src/index.ts': `export const N = 3;`,
+      'test/a.test.ts': "it.each([[1, 2], [3, 4]])('adds %i and %i', () => {});",
+      'docs/a.md': `It adds. <!-- test: test/a.test.ts > "${title}" -->`,
+    },
+  }).check();
+  return report.results[0];
+};
+
+assert.equal((await cite('adds 3 and 4')).status, 'pass');
+assert.equal((await cite('adds %i and %i')).status, 'pass');
+const missing = await cite('adds 5 and 6');
+assert.equal(missing.status, 'error');
+assert.equal(missing.message, 'test/a.test.ts declares no test "adds 5 and 6"; tests there: "adds %i and %i", "adds 1 and 2", "adds 3 and 4"');
 ```
 
 ## A malformed citation fails closed; an ordinary comment is left alone
@@ -202,10 +256,51 @@ assert.deepEqual(ordinary.results, []);
 assert.equal(ordinary.exitCode, 0);
 ```
 
+## A citation on the line above a sentence defends that sentence
+
+A line that holds only directives applies each of them to the line directly below it, as
+`// @ts-expect-error` does: citations there defend the sentence that starts on that line,
+and `where` shows that sentence as their claim. With a blank line between such a line and
+the prose below, a citation is an error at its line that says to put it directly above
+the sentence or at its end.
+
+```ts check
+import { createProject } from 'docattest';
+
+const page = (gap: string) => [
+  '# Launching', '',
+  '<!-- test: test/launch.test.ts > "runs a Python script" --> <!-- test: test/launch.test.ts > "runs a Node.js script" -->',
+  `${gap}Python and Node.js scripts run the same way. Other scripts do not.`,
+].join('\n');
+const project = (gap: string) => createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': `export const launch = (script: string) => script;`,
+    'test/launch.test.ts': [
+      "import { launch } from '../src/index.js';",
+      "it('runs a Python script', () => { launch('a.py'); });",
+      "it('runs a Node.js script', () => { launch('a.js'); });",
+    ].join('\n'),
+    'docs/launch.md': page(gap),
+  },
+});
+
+const above = project('');
+const report = await above.check();
+assert.deepEqual(report.results.map((r) => [r.line, r.status]), [[3, 'pass'], [3, 'pass']]);
+const claim = 'Python and Node.js scripts run the same way.';
+assert.deepEqual((await above.where('launch')).map((r) => [r.line, r.claim]), [[3, claim], [3, claim]]);
+
+const apart = await project('\n').check();
+assert.deepEqual(apart.results.map((r) => r.status), ['error', 'error']);
+assert.match(apart.results[0].message, /test at L3 must sit directly above the sentence it attests/);
+```
+
 ## A citation on its own line defends the paragraph just before it
 
-On a line of its own, a citation defends the paragraph immediately before it in the same
-container: in a list item, the item's own sentence, not the prose before the list.
+On a line of its own with no prose directly below it, a citation defends the paragraph
+immediately before it in the same container: in a list item, the item's own sentence, not
+the prose before the list.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -260,7 +355,14 @@ assert.deepEqual(report.results[0].symbols, ['retry']);
 assert.deepEqual(report.surfaces.default.unattested, ['wait']);
 ```
 
-## The text report counts citations on the coverage line
+## The coverage line counts proofs and citations apart
+
+A citation says where to look; it is not a proof. So the coverage line never gives a total
+alone: it gives the attestations, then how many of them are proofs, which docattest runs
+or evaluates itself (examples, facts and the rows of cases tables, weak examples among
+them), and how many are citations. A broken citation, one that names no file, still counts
+as a citation, never as a proof. The report object has the same counts: `proofs` and
+`cited`, which add up to `attestations`.
 
 ```ts check
 import { spawnSync } from 'node:child_process';
@@ -275,10 +377,12 @@ const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { 
 put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
 put('src/index.ts', `export const N = 3;`);
 put('test/a.test.ts', "it('works', () => {});");
-put('docs/a.md', 'N is `3`. <!-- fact: N -->\n\nIt works. <!-- test: test/a.test.ts > "works" -->');
+put('docs/a.md', 'N is `3`. <!-- fact: N -->\n\nIt works. <!-- test: test/a.test.ts > "works" -->\n\nIt is tested. <!-- test: -->');
 // ---cut---
-const lines = spawnSync(process.execPath, [cli, 'check'], { cwd: root, encoding: 'utf8' }).stdout.split('\n');
-assert.ok(lines.includes('coverage: 1 living page, 1 covered (2 attestations, 0 weak, 1 cited), 0 uncovered, 0 frozen'));
+const check = (...args: string[]) => spawnSync(process.execPath, [cli, 'check', ...args], { cwd: root, encoding: 'utf8' }).stdout;
+assert.ok(check().split('\n').includes('coverage: 1 living page, 1 covered (3 attestations: 1 proof, 0 of them weak, and 2 citations), 0 uncovered, 0 frozen'));
+const { attestations, proofs, weak, cited } = JSON.parse(check('--json')).coverage;
+assert.deepEqual({ attestations, proofs, weak, cited }, { attestations: 3, proofs: 1, weak: 0, cited: 2 });
 ```
 
 This page cites one of docattest's own tests: the npm launcher names platforms the way

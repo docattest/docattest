@@ -94,6 +94,7 @@ are checked by the conformance suite, so you find out early.
 | `tests` | `hello.capabilities` | citations (`<!-- test: file > "title" -->`); without it every citation is an error on its line |
 | `observables` | `hello.capabilities` | `audit` and `inventory`; without it `inventory` is a user error and `audit` finds nothing |
 | `affected` | `hello.capabilities` | `impact`, `impact --file` and the agents' `impact --hook`; without it `impact` is a user error |
+| `display` | `hello.capabilities` | `field=` facts compared in your language's spelling (`True`, `None`); without it a data block's values are compared as JSON writes them |
 | `ignoredMarkers` | `hello` | leave out directories marked by a file inside them (Python: a virtualenv's `pyvenv.cfg`) |
 | `infoWords` | `hello` | words of your own on a code fence, passed to you in `tags` (Python: `continue`) |
 | `vocabulary` | `hello` | your language's words in two of the core's sentences about citations |
@@ -160,8 +161,8 @@ Use your ecosystem's own mechanism for platform-specific artifacts. Then:
 **Conformance.** Write a *kit*, `adapters/<name>/conformance.json`: a small project in
 memory and labelled pieces of code in your language (§5). Copy
 [python/conformance.json](python/conformance.json) (or [go/conformance.json](go/conformance.json),
-for a compiled language) and translate every value; `cases` and
-`affected` may be left out, every other key is read. Its shape is
+for a compiled language) and translate every value; `cases`, `affected` and `display`
+may be left out, every other key is read. Its shape is
 [protocol/schema/kit.json](../protocol/schema/kit.json). Then:
 
 ```sh

@@ -1,5 +1,5 @@
 // Package session is the one project `open` creates: it reads what `open` says, hands
-// the project to the analysis, which reads it from syntax, and to the runner, which
+// the project to the analysis, which loads and type-checks it, and to the runner, which
 // builds and runs its attested code, and answers each method from one of them.
 package session
 
@@ -25,6 +25,7 @@ type params struct {
 	Network   bool                         `json:"network"`
 	Snapshots running.Snapshots            `json:"snapshots"`
 	Manifests json.RawMessage              `json:"manifests"`
+	Texts     json.RawMessage              `json:"texts"`
 	Examples  []protocol.Example           `json:"examples"`
 }
 
@@ -66,7 +67,7 @@ func open(told params, temp string) (*Session, error) {
 		}
 	}
 	config := analysis.Config{Root: root, InMemory: told.Files != nil, Surfaces: told.Surfaces, Setup: told.Setup}
-	project, err := analysis.Read(config, analysis.Disk{})
+	project, err := analysis.Read(config)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +78,7 @@ func open(told params, temp string) (*Session, error) {
 		Network:   told.Network,
 		Snapshots: told.Snapshots,
 		Manifests: told.Manifests,
+		Texts:     told.Texts,
 	}
 	return &Session{project: project, runner: running.New(project, options, told.Examples), temp: temp}, nil
 }

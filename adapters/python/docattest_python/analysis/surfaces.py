@@ -75,6 +75,12 @@ class Surface:
         self.alias = False
         self.module: Module | None = None
 
+    @property
+    def is_program(self) -> bool:
+        """Whether it is a program, which Python runs rather than imports: a ``__main__.py``.
+        Importing one would run it."""
+        return self.file is not None and os.path.basename(self.file) == "__main__.py"
+
 
 def is_path(entry: str) -> bool:
     return entry.startswith((".", "/")) or "/" in entry or "\\" in entry or entry.endswith(".py")

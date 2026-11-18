@@ -1,5 +1,7 @@
 //! Binding facts and cases tables to their targets.
 
+use super::directives::FactDirective;
+use super::field::bind_field;
 use super::literals::literals;
 use crate::api::attestation::{CasesRow, FactTarget, SetFrom};
 use crate::markdown::model::{Block, BlockKind, Comment, Leaf, LeafKind, Page};
@@ -11,19 +13,25 @@ fn next_block<'p>(page: &'p Page, comment: &Comment) -> Option<&'p Block> {
     page.flow.iter().find(|b| b.start > comment.end_line)
 }
 
-/// Bind a fact to its target, positionally and strictly. A directive that ends its line binds
-/// the list, table (with `column=`) or fenced block that starts on the next line; `column=`
-/// binds the next table across blank lines. Otherwise it binds what is before it in its
-/// sentence (see [`bind_inline`]); when nothing there is a target, a directive that ends its
-/// block binds the list or fenced block right after that block, across blank lines. Anything
-/// else is an error.
+/// Bind a fact written on line `written` to its target, positionally and strictly, from
+/// `comment`, the place it takes effect ([`super::placement`]). A directive that ends its line
+/// binds the list, table (with `column=`) or fenced block that starts on the next line;
+/// `column=` binds the next table, and `field=` a value in the next fenced block, across blank
+/// lines. Otherwise it binds what is before it in its sentence (see [`bind_inline`]); when
+/// nothing there is a target, a directive that ends its block binds the list or fenced block
+/// right after that block, across blank lines. Anything else is an error.
 pub fn bind_fact(
-    ordered: bool,
-    column: Option<&str>,
+    fact: &FactDirective,
+    written: usize,
     comment: &Comment,
     page: &Page,
 ) -> Result<FactTarget, String> {
-    let at = format!("fact at L{}", comment.line);
+    let (ordered, column) = (fact.ordered, fact.column.as_deref());
+    let at = format!("fact at L{written}");
+    if let Some(field) = &fact.field {
+        let next = next_past_comments(page, comment).filter(|_| comment.ends_line);
+        return bind_field(&at, field, ordered, next);
+    }
     let next = next_block(page, comment);
     if let Some(column) = column.filter(|c| !c.is_empty())
         && comment.ends_line
@@ -52,7 +60,7 @@ fn ends_its_block(comment: &Comment, page: &Page) -> bool {
 }
 
 /// The first block after the comment's own that is not an HTML block of comments, so that
-/// the facts stacked above a table, one per column, all reach it.
+/// the facts stacked above a table or a block, one per column or field, all reach it.
 fn next_past_comments<'p>(page: &'p Page, comment: &Comment) -> Option<&'p Block> {
     (comment.block + 1..page.flow.len())
         .find(|&index| !page.is_only_comments(index))
@@ -221,12 +229,24 @@ pub fn bind_cases(comment: &Comment, page: &Page) -> Result<(usize, Vec<String>,
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::api::field::as_json_writes;
+    use crate::attestations::field::parse_field_path;
     use crate::markdown::parse::parse_page;
+
+    fn directive(ordered: bool, column: Option<&str>, field: Option<&str>) -> FactDirective {
+        FactDirective {
+            expression: "E".into(),
+            surface: "default".into(),
+            ordered,
+            column: column.map(Into::into),
+            field: field.map(|written| parse_field_path(written).expect("a path")),
+        }
+    }
 
     fn bound(text: &str, ordered: bool) -> Result<FactTarget, String> {
         let page = parse_page(text).unwrap_or_default();
         let last = page.comments.last().expect("a comment");
-        bind_fact(ordered, None, last, &page)
+        bind_fact(&directive(ordered, None, None), last.line, last, &page)
     }
 
     fn sentence(items: &[&str]) -> Result<FactTarget, String> {
@@ -289,8 +309,33 @@ mod tests {
         for gap in ["\n", "\n\n"] {
             let page = parse_page(&format!("<!-- f -->{gap}<!-- g -->\n{table}")).unwrap_or_default();
             let [first, second] = &page.comments[..] else { panic!("two comments") };
-            assert_eq!(bind_fact(false, Some("method"), first, &page), column(&["GET"], "method"));
-            assert_eq!(bind_fact(false, Some("path"), second, &page), column(&["/a"], "path"));
+            assert_eq!(
+                bind_fact(&directive(false, Some("method"), None), first.line, first, &page),
+                column(&["GET"], "method")
+            );
+            assert_eq!(
+                bind_fact(&directive(false, Some("path"), None), second.line, second, &page),
+                column(&["/a"], "path")
+            );
         }
+    }
+
+    #[test]
+    fn field_facts_stacked_above_one_block_each_bind_it() {
+        let block = "```json\n{\"port\": 2222, \"hosts\": [\"a\", \"b\"]}\n```";
+        for gap in ["\n", "\n\n"] {
+            let page =
+                parse_page(&format!("The job: <!-- f -->{gap}<!-- g -->\n{block}")).unwrap_or_default();
+            let [first, second] = &page.comments[..] else { panic!("two comments") };
+            let spelled = |target: Result<FactTarget, String>| target.map(|t| t.spelled(as_json_writes));
+            let port = spelled(bind_fact(&directive(false, None, Some("port")), first.line, first, &page));
+            assert_eq!(port, Ok(FactTarget::Scalar("2222".into())));
+            let hosts = spelled(bind_fact(&directive(true, None, Some("hosts")), second.line, second, &page));
+            let items = vec!["a".to_string(), "b".to_string()];
+            assert_eq!(hosts, Ok(FactTarget::Set { items, from: SetFrom::Field { path: "hosts".into() } }));
+        }
+        let page = parse_page(&format!("Port `1` <!-- f --> here.\n{block}")).unwrap_or_default();
+        let inline = bind_fact(&directive(false, None, Some("port")), 1, &page.comments[0], &page);
+        assert_eq!(inline, Err("fact at L1 has field=port but no fenced block follows it".into()));
     }
 }

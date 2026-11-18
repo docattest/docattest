@@ -1,9 +1,9 @@
 # impact --file in a project inside another
-# recorded from: impact --hook gives the agent a brief, not the whole report
+# recorded from: what adopting it in a Go service found
 === impact --file packages/inner/src/index.ts
 exit 0
 stdout 5 lines
-docattest impact: changes since HEAD affect 1 exported symbol
+docattest impact: changes since HEAD affect 1 symbol
 inner
   docs/inner.md:1 proven fact  It is `1`.
   docs/inner.md:3 mention (unproven)  Use `inner`.
@@ -12,7 +12,7 @@ stderr empty
 === impact --file src/parse.ts
 exit 0
 stdout 16 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
@@ -32,7 +32,7 @@ stderr empty
 === impact --file ../../src/parse.ts
 exit 0
 stdout 16 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
@@ -52,7 +52,7 @@ stderr empty
 === impact --file src/index.ts
 exit 0
 stdout 5 lines
-docattest impact: changes since HEAD affect 1 exported symbol
+docattest impact: changes since HEAD affect 1 symbol
 inner
   docs/inner.md:1 proven fact  It is `1`.
   docs/inner.md:3 mention (unproven)  Use `inner`.
@@ -65,7 +65,7 @@ stderr empty
 === impact --hook
 exit 0
 stdout 1 line
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 1 exported symbol. Nothing checks these places; re-read them:\n  docs/inner.md:3 inner \"Use `inner`.\"\ndocattest check covers 1 other place."}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 1 symbol. Nothing checks these places; re-read them:\n  docs/inner.md:3 inner \"Use `inner`.\"\ndocattest check covers 1 other place."}}
 stderr empty
 === impact --hook --root __ROOT__
 exit 0

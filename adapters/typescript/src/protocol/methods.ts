@@ -15,7 +15,7 @@ export interface AdapterInfo {
 }
 
 /** The optional protocol methods (PROTOCOL.md §3): this adapter implements every one. */
-const CAPABILITIES: readonly string[] = ['tests', 'observables', 'affected'];
+const CAPABILITIES: readonly string[] = ['tests', 'observables', 'affected', 'display'];
 
 type Handler = (params: Params) => unknown;
 interface Opened {
@@ -73,6 +73,7 @@ export class Methods {
       ['docProse', (p) => description.docProse(sourcesOf('docProse', p))],
       ['mentions', (p) => description.mentions(p.strings('spans'), p.strings('symbols'))],
       ['expressions', (p) => description.expressions(p.strings('expressions'))],
+      ['display', (p) => description.display(p.list('values'))],
       ['open', (p) => this.open(p)],
       ['close', () => this.close()],
     ]);

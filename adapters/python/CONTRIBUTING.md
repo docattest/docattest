@@ -1,7 +1,8 @@
 # Working on the Python package
 
 The distribution holds two import packages. `docattest/` is the launcher: it finds the
-core, hands it what it needs in the environment and `exec`s it. `docattest_python/` is the
+core, hands it what it needs in the environment and `exec`s it. Beside it is `cells`, the
+helper a setup module imports to read the code spans of a table's cells. `docattest_python/` is the
 adapter, and its subpackages follow the path of a request: <!-- fact: [p.split(".")[1] + "/" for p in manifest("pyproject.toml")["tool"]["setuptools"]["packages"] if p.count(".") == 1] -->
 - `server/` reads the core's requests and answers them. Every request's params are read
   into typed values there, so a field that is missing or of the wrong type is refused
@@ -10,8 +11,10 @@ adapter, and its subpackages follow the path of a request: <!-- fact: [p.split("
   about it: a workspace (the project's files, modules, surfaces and setup module), what
   `compile` reports, the symbols and tests of attestations, and the work sent to the pool.
 - `analysis/` reads Python modules without importing them: what a module binds and
-  exports, which names a piece of code uses, what a configured surface resolves to, and
-  which exports a change affects. It knows nothing of sessions or processes.
+  exports, the values of its constants, which names a piece of code uses, what a
+  configured surface resolves to and what a fact may read of it, and which exports a change
+  affects. Its `declared_tests/` reads the tests a test file declares, with the cases that
+  `parametrize` and `subTest` write. It knows nothing of sessions or processes.
 - `workers/` is where attested code runs: the interpreter it runs on, the pool of worker
   processes, and the worker itself. The worker (`worker.py`, started by its path, and its
   parts in `docattest_worker/`) uses only the standard library and may run on the

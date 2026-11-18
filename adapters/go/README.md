@@ -16,9 +16,11 @@ This package is what a Go user installs. It provides two commands:
   Go. You do not run it yourself. It speaks [the adapter protocol](../../protocol/PROTOCOL.md),
   version `1`. <!-- fact: Hello().Protocol -->
 
-Both are Go programs with no dependencies beyond the standard library. Your project needs
-a `go` command (1.21 or later) on the `PATH`, as it does to be built: examples and facts
-are compiled by it. Node and Python are never needed.
+Both are Go programs. Beyond the standard library they import one module,
+`golang.org/x/tools`, <!-- fact: regexp.MustCompile(`(?m)^require (\S+) `).FindStringSubmatch(file("go.mod"))[1] -->
+whose `go/packages` lists your project's packages, as gopls does; `go/types` checks them. Your project needs a
+`go` command (1.21 or later) on the `PATH`, as it does to be built: packages are listed
+and examples and facts compiled by it. Node and Python are never needed.
 
 On recent macOS, use Go 1.23 or later, or set `CGO_ENABLED=0`. Every program docattest
 builds imports `net` (to keep examples off the network), and an earlier Go links such a
@@ -111,8 +113,10 @@ A bare core, run without the launcher, finds the adapter as `docattest-adapter-g
 `PATH`, or through a variable, `DOCATTEST_ADAPTER_GO`: <!-- fact @launcher: AdapterVariable -->
 a JSON array (`["/path/to/docattest-adapter-go"]`) or a command line split on spaces.
 `DOCATTEST_GO` names the `go` command the adapter runs, when it is not the one on the
-`PATH`. When that command cannot be run, every proof that needs it says why, as on this page
-of the package's fixture:
+`PATH`. It is a file called `go`: the adapter puts its directory first on its own `PATH`,
+since the package loader runs the first `go` there. <!-- test: internal/toolchain/toolchain_test.go > "TestTheChosenGoIsFirstOnThePath" -->
+When that command cannot be run, every proof that needs it says why, as on this page of
+the package's fixture:
 
 ```console check cwd=testdata/fixture
 $ DOCATTEST_GO=/no/such/go docattest check --quiet docs/shipping.md
@@ -136,8 +140,8 @@ docs/shipping.md
 }
 ```
 
-- **`surfaces`** name what pages are allowed to observe. A surface is one Go package. An
-  entry is
+- **`surfaces`** name what pages are allowed to observe. A surface is one Go package, a
+  `package main` included (its constants are what [facts](docs/facts.md) can read). An entry is
   - a path, `"."` or `"./shipping"` (or a file of the package, `"./shipping/quote.go"`):
     the package in that directory of the project, imported under its import path in the
     module;
@@ -148,9 +152,16 @@ docs/shipping.md
 - **What a surface exports** is every exported name its package declares at the top
   level: functions, types, variables and constants. Methods and fields belong to their
   type. `uncovered` lists the exports no page attests.
+- **What an attestation uses** (what `where` and `uncovered` count) is read as `go/types`
+  resolves its names. A local name that shadows an export is not a use of it, and a method
+  or field selected on a value is a use of the type that declares it, which for one
+  promoted from an embedded type is that type. A method called through an interface is a
+  use of the interface, not of the types that implement it: which method runs is known only
+  when the program runs, and the code that made the value names its type where it made it. <!-- test: internal/analysis/symbols_test.go > "TestSymbolsAreResolvedByType" -->
 - **The module** is the nearest `go.mod` at or above the first surface that names a path,
   else at or above the project root. One project is one module.
-- **`sources`** are the Go files whose testable examples are checked (see below).
+- **`sources`** are the Go files whose testable examples are checked
+  ([examples](docs/examples.md#testable-examples-in-source-files)).
 - **`setup`** is a package of the module, named by its directory or one of its files, with
   the runners of cases tables and what facts may use by name.
 
@@ -206,7 +217,7 @@ docattest impact         # after an edit: the exports it affects and the prose t
 `testdata/fixture`, has a page on which every proof fails in its own way: a block that
 prints something other than what it states, one that does not compile, one that panics
 and one that runs out of time, each error at its line in the block; facts whose values
-differ, and one over a name the surface does not export; rows of cases tables, one of
+differ, and one over a function the surface does not export; rows of cases tables, one of
 them failed by a runner that panics, after which the next row still runs; citations of a
 test that is not there and of a benchmark, which name the tests the file has. A network
 block, on another page, is skipped:
@@ -221,7 +232,7 @@ docs/broken.md
 ...
   ✗ L48 fact: expected 60, got 50 from MaxDiscount
   ✗ L50 fact: missing: DE, FR; unexpected: BE (2 items on the page, 3 in TaxRates)
-  ! L54 fact: fact `round(50)`: round is not exported by surface "default" (undefined: round)
+  ! L54 fact: fact `round(50)`: round is a function that surface "default" does not export; of its unexported names, a fact reads only constants
   ✗ L59 cases: docs/broken.md:59 wrong on purpose: expected 800, got 750
   ✗ L60 cases: docs/broken.md:60 too much: The discount is outside the allowed range
   ! L62 cases: cases runner "nope" at L62 is not in Cases of docs/docattest_setup.go (known: delivery, discount, total)
@@ -240,189 +251,27 @@ docs/shipping.md
 
 ## What each attestation means in Go
 
-### Examples: `go check`, `go compile`
+Each kind of attestation has a page of its own.
 
-Blocks tagged `go` or `golang` are the adapter's. <!-- fact: Hello().BlockLanguages -->
-A block is compiled as a program of its own, inside your module, so it imports your
-packages by their import paths and uses your module's dependencies. Nothing is written into
-your project: generated files reach the go command through a build overlay.
+### Examples
 
-- **What a block is.** One of three things, told apart by what parses:
-  - *a whole file*, when it begins with a package clause. To run, it must be
-    `package main` with a `func main`;
-  - *declarations*: imports, then functions, types, variables. It is given an empty
-    `main` when it declares none;
-  - *statements*: imports, then statements, which become the body of `main`. This is the
-    usual shape of a snippet in prose.
-- **`check`** builds the block and runs it. The proof is what proves a testable example in
-  Go: a last comment `// Output:` (or `// Unordered output:`), which what the block prints
-  must match, compared as `go test` compares it. A block also fails when it panics or
-  exits with a failure, so `if got != want { panic(…) }` is an assertion too; the report
-  gives the panic and the line of the block it came from. <!-- test: internal/running/running_test.go > "TestBlocksCompileAndRun" -->
-  A block that states no output and calls nothing that ends the program runs, but is
-  counted as *weak*.
-- **`compile`** builds the block and never runs it. The diagnostics are the Go compiler's
-  own, at the lines of the block: an undefined name, a wrong argument, an unused variable
-  or import. `check` blocks pass through the same build before they run.
-- **Isolation.** Every block is its own package and its own process, started in the
-  project root. Blocks share nothing, so each imports what it uses.
-- **Time.** A block that outlives `runtime.timeoutMs` is killed with everything it
-  started. `runtime.workers` is the number of blocks that run at once. Building is not
-  counted: the blocks of a run are built together, once, before any of them runs.
-- **Output.** What a block prints is compared or dropped; it never reaches the report.
-- **Network.** Host names do not resolve unless the block is tagged `check network`
-  (which runs only with `DOCATTEST_NETWORK=1`), so reaching the internet by name fails
-  with an error that says why. Names in your hosts file (`localhost`) still resolve, and
-  an address written as numbers is dialled as before: the guard replaces
-  `net.DefaultResolver`, and code that carries its own resolver is not stopped.
-
-The calls that end a program, which make a block that states no output an assertion:
-
-<!-- cases: weak -->
-| block               | weak |
-|---------------------|------|
-| `fmt.Println(1)`    | yes  |
-| `panic("no")`       | no   |
-| `log.Fatalf("no")`  | no   |
-| `log.Panicln("no")` | no   |
-| `os.Exit(1)`        | no   |
-
-### Testable examples in source files
-
-Go already has examples that are checked: the `Example` functions of a `_test.go` file.
-Every one in a `sources` file is an attestation, run as `go test` runs it, by its name, in
-its package's test program. <!-- test: internal/running/running_test.go > "TestDocExamplesRunAsGoTestRunsThem" -->
-
-```go
-// A discount is taken off the price in whole cents.
-func ExampleApplyDiscount() {
-	price, _ := ApplyDiscount(EUR(999), 50)
-	fmt.Println(price)
-	// Output: 5.00 EUR
-}
-```
-
-The claim it defends is its own doc comment. `ExampleApplyDiscount` attests the export
-`ApplyDiscount`, and `ExampleMoney_String` attests `Money`. An example that states no
-output is compiled and not run, which is what `go test` does with it. The fixture's
-`shop_test.go` has the example above, and one that states no output:
-
-```console check cwd=testdata/fixture
-$ docattest check shop_test.go
-shop_test.go
-  ✓ L10 example: printed the output it states
-  ✓ L17 example: compiles
-...
-```
+[Examples](docs/examples.md): what a block tagged `go` is, how it is built and run, and
+the testable examples of source files.
 
 ### Facts
 
-A fact expression is a Go expression over the surface's exports, by their own names:
+[Facts](docs/facts.md): what a fact expression may use, how its value is compared with the
+page, and the constants it reads from source, unexported or in a `package main`.
 
-```markdown
-A discount is at most `50` percent. <!-- fact: MaxDiscount -->
-The carriers: <!-- fact @shipping: Carriers -->
-```
+### Cases tables
 
-It may use the surface's exports, the exported names of the setup package, the builtins,
-`snapshot("name")`, `manifest("path")`, and any package of the standard library that is
-imported by one word (`strings.ToUpper(DefaultCurrency)`, `len(TaxRates)`): a fact cannot
-`import`. An expression has one value; put a function that returns a value and an error
-behind a helper in the setup package. A name the surface does not export is an error
-(`round is not exported by surface "default"`), which is what keeps a page honest about
-what a user can see. <!-- test: internal/running/running_test.go > "TestEvaluateSaysWhyAFactHasNoValue" -->
-
-A fact runs in a program that imports the surface, so it cannot read a `package main`
-(`import "example.com/svc" is a program, not an importable package`) or a value that is
-not exported. A service's most documented values, its default timeout or port, often live
-in exactly those places. Move such a value to a package of the module, export it, and have
-`main` use it from there; the package is then a surface:
-
-```go
-// internal/defaults/defaults.go
-package defaults
-
-import "time"
-
-// RequestTimeout is how long a request may take before it is cancelled.
-const RequestTimeout = 30 * time.Second
-```
-
-```markdown
-Requests time out after `30s`. <!-- fact @defaults: RequestTimeout -->
-```
-
-with `"defaults": "./internal/defaults"` among the `surfaces`. A value that should stay
-unexported is attested by a test of its own package instead, which can read it, cited
-from the page (`<!-- test: main_test.go > "TestDefaults" -->`, see [Citations](#citations)).
-
-The page's literal is compared with `fmt.Sprint(value)`: a value is displayed as its
-language displays it. So write values the way Go prints them: `true`, `<nil>`, `1.5`,
-`[a b]`. <!-- fact: []any{true, nil, 1.5, []string{"a", "b"}} -->
-A list on the page is compared with the items of a slice or an array, each through
-`fmt.Sprint`. A map's items are its keys, in the order `fmt` prints them:
-`<!-- fact: TaxRates -->` above a list checks the keys. <!-- test: internal/running/running_test.go > "TestEvaluateShowsValuesAsGoPrintsThem" -->
-`snapshot("name")` is the snapshot's data as `encoding/json` reads JSON into an `any`.
-
-`manifest("go.mod")` is the data of a project file, a manifest, read by the core and given
-to the adapter (the [manifests](../../docs/manifests.md) page has the formats, `go.mod`
-among them). It is a `map[string]any`, so a field is one index away, as the version at the
-top of this page reads it: `manifest("go.mod")["go"]`. <!-- test: internal/running/running_test.go > "TestEvaluateShowsValuesAsGoPrintsThem" -->
-A deeper field needs a type assertion (`.(map[string]any)`). The path is relative to the
-project root and written out in the fact: a path built at run time is never read.
-
-### Cases tables and named facts: the setup package
-
-```go
-// docs/docattest_setup.go
-package docs
-
-// Cases are the runners of cases tables, by name. A runner is called once per row with
-// the row's cells by column; it returns nil when the row holds, else why it does not.
-var Cases = map[string]func(row map[string]string) error{
-	"discount": discount,
-}
-
-// Columns (optional) are the columns each runner's table must have.
-var Columns = map[string][]string{
-	"discount": {"price", "percent", "result"},
-}
-
-// ErrorMessages is something a fact may use: <!-- fact: ErrorMessages() -->
-func ErrorMessages() []string { … }
-```
-
-A runner gets each cell's text as the page writes it, code spans included: a cell
-`` `fmt.Println(1)` `` reaches it with its backticks, and a runner whose cells hold code
-strips them itself, as this guide's `weak` runner does
-([docs/cases.md](../../docs/cases.md#a-runner-receives-each-cell-as-written)):
-
-```go
-block := strings.Trim(row["block"], "`")
-```
-
-A row is named by the page, its line and its first cell. A runner that panics fails its
-row, and the next row still runs. A table attests the exports its runner names (what
-`where` and `uncovered` count): in the runner's own code, and in the setup package's
-functions, variables and constants it reaches by name, at any depth. <!-- test: internal/analysis/analysis_test.go > "TestARunnerNamesWhatItsHelpersUse" -->
-
-The setup package is an ordinary package of your module: `go build ./...` and
-`go vet ./...` see it too, and a build constraint cannot hide it, since the adapter reads
-the package as the go command builds it by default (a file behind a tag such as
-`//go:build docattest` is left out, and a setup package with no other file is not found). <!-- test: internal/analysis/analysis_test.go > "TestASetupFileBehindABuildTagIsLeftOut" -->
-No program of yours links it unless one imports it, so it changes no binary. A CI rule
-that rebuilds on any change to `**/*.go` still fires on a change made for the pages only:
-keep the setup package beside the pages (`docs/`) and leave that directory out of such
-rules (`paths-ignore: ["docs/**"]` in a GitHub Actions workflow).
+[Cases tables and the setup package](docs/cases.md): the runners of cases tables, the
+`cells` package that reads their cells, and how their rows run.
 
 ### Citations
 
-`<!-- test: shop_test.go > "TestTotals" > "rejects big discounts" -->` ties a sentence to
-a test. A test is a `Test`, `Fuzz` or `Example` function, titled by its name, or a subtest
-started with `t.Run("a literal name", …)`, titled by that name, with the functions and
-subtests that enclose it named first, outermost first. A subtest whose name is computed
-(a table-driven test's `t.Run(tc.name, …)`) cannot be cited. <!-- test: internal/analysis/analysis_test.go > "TestSubtestsWithComputedNames" -->
-Citing a benchmark is an error that says so. The file is read, never run.
+[Citations](docs/citations.md): what a test is in a Go test file, and the subtests of a
+table-driven test that can be cited.
 
 ## What is never your project's own
 
@@ -433,12 +282,12 @@ directories are left out by the core itself.
 ## Limits
 
 - One module per project: the generated programs are compiled in it.
-- Exports, the index (`where`, `uncovered`) and `impact` are read from syntax, with no
-  type information: a method is found through its type, an interface is not followed to
-  what implements it, and a name shadowed by a local variable still counts as a use.
+- A method called through an interface counts for the interface, in the index and in
+  `impact`, and not for what implements it: a change to an implementation affects the
+  exports that make a value of its type, not those that only call through the interface. <!-- test: internal/analysis/affected_test.go > "TestAffectedFollowsWhatNamesResolveTo" -->
 - `impact` cuts a package into its top-level names. The constants of one `const (…)`
   declaration are one unit, since `iota` ties them together.
-- A fact has one value (see above), and a block cannot mix top-level function
+- A fact has one value ([facts](docs/facts.md)), and a block cannot mix top-level function
   declarations with loose statements: write a whole file, or use function literals.
 - Windows has no process groups here: a block that overruns is killed, and a program it
   started may live on. This path has not been run on Windows.
@@ -446,7 +295,7 @@ directories are left out by the core itself.
 ## Working on this package
 
 [CONTRIBUTING.md](CONTRIBUTING.md) maps the package's sources, says how its tests run, and
-how this guide is checked.
+how the guide is checked.
 
 ## License
 

@@ -31,14 +31,25 @@ describe('findTests', () => {
       "describe.each([1])('g', () => { it('h', () => {}); });",
       "test.describe('pw', () => { test('i', () => {}); });",
     ].join('\n');
-    expect(titles(code)).toEqual(['a', 'b', 'c', 'd %i', 'e', 'f', 'g > h', 'pw > i']);
+    expect(titles(code)).toEqual([
+      'a',
+      'b',
+      'c',
+      'd %i',
+      'd 1',
+      'd 2',
+      'e',
+      'f',
+      'g > h',
+      'pw > i',
+    ]);
   });
 
   it('ignores titles in comments, strings, computed titles, todos and other calls', () => {
     const code = [
       "// it('in a comment', () => {});",
       'const s = "test(\'in a string\', () => {})";',
-      'it(name, () => {}); it(`t${1}`, () => {});',
+      'it(name, () => {}); it(`t${n}`, () => {});',
       "it.todo('later');",
       "t.test('subtest', () => {}); other('x', () => {}); it.each('x');",
     ].join('\n');

@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from typing import Literal, NamedTuple, cast
 
 from .channel import Channel
-from .environment import Environment, surface_namespace
+from .environment import Environment, source_constants, surface_namespace
 from .failures import failure_message
 from .jobs import ObservablesJob
 from .messages import Observable, Observation
@@ -347,11 +347,12 @@ def run_observables(job: ObservablesJob, env: Environment, channel: Channel) -> 
     surface = job["surface"]
     env.enter(False)
     try:
-        namespace = surface_namespace(surface)
+        namespace = surface_namespace(surface) if job["imports"] else {}
     except BaseException as err:  # noqa: BLE001
         message = 'surface "%s" failed to load: %s' % (surface["name"], failure_message(err))
         channel.post({"t": "failed", "message": message, "internal": None})
         return
+    namespace.update(source_constants(surface))
     channel.post({"t": "ready"})
     names = surface["exports"] or sorted(namespace)
     roots = [(name, namespace[name]) for name in names if name in namespace and name.isidentifier()]

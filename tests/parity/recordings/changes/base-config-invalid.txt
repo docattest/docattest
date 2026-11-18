@@ -1,12 +1,12 @@
 # base config invalid
-# recorded from: impact --file answers for the edited file's change alone; config key commands
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 1
 stdout empty
 stderr 1 line
-docattest: the base "HEAD" cannot be read: invalid docattest.config.json: unknown key "extra" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands); "pages" must be an array of globs; "surfaces" must name a "default" surface
+docattest: the base "HEAD" cannot be read: invalid docattest.config.json: unknown key "extra" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); "pages" must be an array of globs; "surfaces" must name a "default" surface
 === check --base HEAD
 exit 1
 stdout empty
 stderr 1 line
-docattest: the base "HEAD" cannot be read: invalid docattest.config.json: unknown key "extra" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands); "pages" must be an array of globs; "surfaces" must name a "default" surface
+docattest: the base "HEAD" cannot be read: invalid docattest.config.json: unknown key "extra" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); "pages" must be an array of globs; "surfaces" must name a "default" surface

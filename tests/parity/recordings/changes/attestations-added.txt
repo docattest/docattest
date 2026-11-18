@@ -1,8 +1,8 @@
 # attestations added
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 0
-stdout 100 lines
+stdout 101 lines
 {
   "results": [
     {
@@ -58,6 +58,7 @@ stdout 100 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 4,
+    "proofs": 4,
     "weak": 0,
     "cited": 0
   },
@@ -113,7 +114,7 @@ docs/retry.md
   ✓ L12 fact: 2 items match KEYS
   ✓ L16 fact: LIMIT is 3
 results: 4 pass, 0 fail, 0 error, 0 skipped
-coverage: 1 living page, 1 covered (4 attestations, 0 weak), 0 uncovered, 0 frozen
+coverage: 1 living page, 1 covered (4 attestations: 4 proofs, 0 of them weak, and 0 citations), 0 uncovered, 0 frozen
 surface default: 4 symbols, 2 attested, 2 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 surface extra: 2 symbols, 0 attested, 2 not attested by any page

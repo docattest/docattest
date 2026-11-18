@@ -61,7 +61,7 @@ export const adder =
 export type Verdict = { met: true } | { met: false; thrown: string | undefined };
 
 /** Judge an outcome by the scenario's own expectation; one that throws is not met. */
-export function judge(scenario: Scenario, out: Outcome): Verdict {
+export function judge(scenario: Pick<ScenarioBody, 'expect'>, out: Outcome): Verdict {
   try {
     return scenario.expect(out) ? { met: true } : { met: false, thrown: undefined };
   } catch (error) {

@@ -1,8 +1,8 @@
 # guard-03
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 1
-stdout 56 lines
+stdout 57 lines
 {
   "results": [
     {
@@ -22,6 +22,7 @@ stdout 56 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 1,
+    "proofs": 1,
     "weak": 0,
     "cited": 0
   },

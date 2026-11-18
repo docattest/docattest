@@ -1,0 +1,155 @@
+{
+  "$comment": "The code spans of a table cell as the core reads them (what a fact over the cell's column compares). The cell is as a runner receives it: the page's text with \\| undone. Every language's cell helper is tested against this table, and so is the core.",
+  "cases": [
+    {
+      "name": "a backslash in a span is kept",
+      "cell": "`x\\`y`",
+      "spans": ["x\\"]
+    },
+    {
+      "name": "a less-than sign alone is text",
+      "cell": "a < b `c`",
+      "spans": ["c"]
+    },
+    {
+      "name": "a link holds no link",
+      "cell": "[[a](b)](`c`)",
+      "spans": ["c"]
+    },
+    {
+      "name": "a link's destination holds none",
+      "cell": "[a](`b`) `c`",
+      "spans": ["c"]
+    },
+    {
+      "name": "a link's text holds spans",
+      "cell": "[`a`](b)",
+      "spans": ["a"]
+    },
+    {
+      "name": "a link's title holds none",
+      "cell": "[a](u \"`t`\") `c`",
+      "spans": ["c"]
+    },
+    {
+      "name": "a longer run does not close",
+      "cell": "`a`` `b`",
+      "spans": ["a``"]
+    },
+    {
+      "name": "a pipe the core unescaped",
+      "cell": "`a|b`",
+      "spans": ["a|b"]
+    },
+    {
+      "name": "a run closes only on as many",
+      "cell": "``a` `b`",
+      "spans": [""]
+    },
+    {
+      "name": "a shorter run inside a longer one",
+      "cell": "```a``b```",
+      "spans": ["a``b"]
+    },
+    {
+      "name": "a span holds what looks like HTML",
+      "cell": "`<!--` `-->`",
+      "spans": ["<!--", "-->"]
+    },
+    {
+      "name": "a span of spaces is empty",
+      "cell": "`  `",
+      "spans": [""]
+    },
+    {
+      "name": "an HTML attribute holds no span",
+      "cell": "<span title=\"`\">`x`</span>",
+      "spans": ["x"]
+    },
+    {
+      "name": "an HTML comment holds no span",
+      "cell": "`a` <!-- `b` --> `c`",
+      "spans": ["a", "c"]
+    },
+    {
+      "name": "an autolink holds no span",
+      "cell": "<https://example.com/`a`> `b`",
+      "spans": ["b"]
+    },
+    {
+      "name": "an escaped backslash escapes none",
+      "cell": "\\\\`x`",
+      "spans": ["x"]
+    },
+    {
+      "name": "an escaped backtick opens nothing",
+      "cell": "\\`x` `y`",
+      "spans": [""]
+    },
+    {
+      "name": "an image may hold a link",
+      "cell": "![[a](b)](`c`) `z`",
+      "spans": ["z"]
+    },
+    {
+      "name": "an unclosed run is text",
+      "cell": "`a",
+      "spans": []
+    },
+    {
+      "name": "brackets that make no link are text",
+      "cell": "[a] (`b`)",
+      "spans": ["b"]
+    },
+    {
+      "name": "double backticks hold a backtick",
+      "cell": "``a`b``",
+      "spans": ["a`b"]
+    },
+    {
+      "name": "emphasis around a span is not kept",
+      "cell": "**`bold`**",
+      "spans": ["bold"]
+    },
+    {
+      "name": "no code span",
+      "cell": "plain text",
+      "spans": []
+    },
+    {
+      "name": "no-break spaces and tabs go too",
+      "cell": "`\u00a0\tx\t\u00a0`",
+      "spans": ["x"]
+    },
+    {
+      "name": "one span",
+      "cell": "`fmt.Println(1)`",
+      "spans": ["fmt.Println(1)"]
+    },
+    {
+      "name": "several spans, in order",
+      "cell": "`FOO=1` `BAR=2`",
+      "spans": ["FOO=1", "BAR=2"]
+    },
+    {
+      "name": "spaces around the content go",
+      "cell": "`  padded  `",
+      "spans": ["padded"]
+    },
+    {
+      "name": "spaces let a span hold backticks",
+      "cell": "`` `x` ``",
+      "spans": ["`x`"]
+    },
+    {
+      "name": "spans among text",
+      "cell": "set `a`, then `b`.",
+      "spans": ["a", "b"]
+    },
+    {
+      "name": "the core's white space: no-break space and BOM go, U+0085 stays",
+      "cell": "`\ufeffx\u0085`",
+      "spans": ["x\u0085"]
+    }
+  ]
+}

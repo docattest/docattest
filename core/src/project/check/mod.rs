@@ -1,20 +1,25 @@
 //! Running a check through the adapter, and the parsing-only queries.
 
 mod checker;
+mod display;
+mod exports_split;
 mod sample;
 
 use std::collections::{HashMap, HashSet};
 
 use serde_json::{Map, Value, json};
 
+use super::config_warnings::undocumented_warnings;
 use super::state::State;
 use crate::adapter::Pending;
 use crate::api::attestation::{Attestation, Body, Kind};
 use crate::api::errors::{Error, Result};
+use crate::fact_files::calls::Reader;
 use crate::report::order::by_page_and_line;
 use crate::report::{Outcome, Report, SurfaceCoverage, coverage_for, exit_code_for, order_results};
 use crate::text::compare_utf16;
 use checker::Checker;
+use exports_split::split_exports;
 
 /// A surface symbol an attestation exercises; `surface` is None when none exports it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -73,7 +78,13 @@ pub(crate) fn open(state: &State, network: Network, examples: &[&Attestation]) -
     params.insert("workers".into(), json!(state.config.workers));
     params.insert("network".into(), json!(network == Network::Allowed));
     params.insert("snapshots".into(), Value::Object(snapshots));
-    params.insert("manifests".into(), state.manifests.to_json());
+    params.insert("manifests".into(), Value::Object(state.fact_files.read_with(Reader::Manifest)));
+    // Only when a fact reads a file as text: an adapter that predates `file` is then sent
+    // nothing new for a project that does not use it.
+    let texts = state.fact_files.read_with(Reader::File);
+    if !texts.is_empty() {
+        params.insert("texts".into(), Value::Object(texts));
+    }
     params.insert("examples".into(), examples.iter().map(|a| a.to_json()).collect());
     state.adapter.send("open", Value::Object(params))
 }
@@ -126,12 +137,9 @@ fn attested_by_surface(symbols: &Symbols) -> HashMap<&str, HashSet<&str>> {
     out
 }
 
-/// The answer to `exports`: the names, or none when the surface cannot be resolved.
-fn export_names(value: Value) -> Vec<String> {
-    value
-        .as_array()
-        .map(|a| a.iter().filter_map(Value::as_str).map(str::to_string).collect())
-        .unwrap_or_default()
+/// The answer to `exports`: the names, or `None` when the surface cannot be resolved.
+fn export_names(value: Value) -> Option<Vec<String>> {
+    value.as_array().map(|a| a.iter().filter_map(Value::as_str).map(str::to_string).collect())
 }
 
 /// Run the attestations on the selected pages; coverage still covers every living page.
@@ -167,16 +175,19 @@ pub fn run_check(state: &State, network: Network, selected: &HashSet<String>) ->
         &state.frozen,
         &result_counts(state, &results, selected),
         state.attestations.iter().filter(|a| matches!(&a.body, Body::Example(e) if e.weak) && a.ok()).count(),
-        state.attestations.iter().filter(|a| a.kind() == Kind::Test && a.ok()).count(),
+        // A broken citation is still a citation: its error is counted among the attestations,
+        // and must not be counted as a proof.
+        state.attestations.iter().filter(|a| a.kind() == Kind::Test).count(),
     );
-    let surfaces = surface_reports(state, &checker.symbols, described, exported)?;
+    let SurfaceReports { surfaces, warnings } =
+        surface_reports(state, &checker.symbols, described, exported)?;
     let exit_code = exit_code_for(&results);
     Ok(Report {
         results,
         coverage,
         surfaces,
         snapshots: state.snapshots.statuses.clone(),
-        warnings: state.warnings.clone(),
+        warnings: [state.warnings.clone(), warnings].concat(),
         exit_code,
         changes: None,
     })
@@ -201,42 +212,54 @@ fn result_counts(state: &State, results: &[Outcome], selected: &HashSet<String>)
     counts
 }
 
+/// Each surface's coverage, and the config's warnings that only its exports can tell.
+struct SurfaceReports {
+    surfaces: Vec<(String, SurfaceCoverage)>,
+    warnings: Vec<String>,
+}
+
 fn surface_reports(
     state: &State,
     symbols: &Symbols,
     described: Pending,
     exported: Vec<Pending>,
-) -> Result<Vec<(String, SurfaceCoverage)>> {
+) -> Result<SurfaceReports> {
     let described = described.wait()?;
     let attested = attested_by_surface(symbols);
-    let mut out = Vec::new();
+    let mut reports = SurfaceReports { surfaces: Vec::new(), warnings: Vec::new() };
     for ((name, _), exports) in state.config.surfaces.iter().zip(exported) {
         let names = export_names(exports.wait()?);
-        let mine = attested.get(name.as_str());
-        let missing: Vec<String> =
-            names.iter().filter(|n| !mine.is_some_and(|m| m.contains(n.as_str()))).cloned().collect();
-        let description = described.get(name);
-        let resolution = description.and_then(|d| d.get("resolution")).filter(|r| truthy(r)).cloned();
-        if let Some(resolution) = &resolution {
-            resolved(name, resolution)?;
+        if let Some(names) = &names {
+            reports.warnings.extend(undocumented_warnings(&state.config, name, names)?);
         }
-        let warnings = description
-            .and_then(|d| d.get("warnings"))
-            .and_then(Value::as_array)
-            .map(|a| a.iter().map(|w| w.as_str().map_or_else(|| w.to_string(), str::to_string)).collect())
-            .unwrap_or_default();
-        out.push((
-            name.clone(),
-            SurfaceCoverage {
-                symbols: names.len(),
-                attested: names.len() - missing.len(),
-                unattested: missing,
-                resolution,
-                warnings,
-            },
-        ));
+        let globs = state.config.undocumented_globs(name);
+        let split = split_exports(names.unwrap_or_default(), attested.get(name.as_str()), globs)?;
+        let (resolution, warnings) = description_of(name, described.get(name))?;
+        let coverage = SurfaceCoverage {
+            symbols: split.attested + split.unattested.len() + split.undocumented.len(),
+            attested: split.attested,
+            unattested: split.unattested,
+            undocumented: (!globs.is_empty()).then_some(split.undocumented),
+            resolution,
+            warnings,
+        };
+        reports.surfaces.push((name.clone(), coverage));
     }
-    Ok(out)
+    Ok(reports)
+}
+
+/// The resolution and the warnings `describeSurfaces` gave a surface.
+fn description_of(surface: &str, description: Option<&Value>) -> Result<(Option<Value>, Vec<String>)> {
+    let resolution = description.and_then(|d| d.get("resolution")).filter(|r| truthy(r)).cloned();
+    if let Some(resolution) = &resolution {
+        resolved(surface, resolution)?;
+    }
+    let warnings = description
+        .and_then(|d| d.get("warnings"))
+        .and_then(Value::as_array)
+        .map(|a| a.iter().map(|w| w.as_str().map_or_else(|| w.to_string(), str::to_string)).collect())
+        .unwrap_or_default();
+    Ok((resolution, warnings))
 }
 
 /// A resolution names what is imported and the entry it is read from; a package, when it
@@ -297,7 +320,8 @@ pub fn build_index(attestations: &[Attestation], symbols: &Symbols) -> Vec<(Stri
     index
 }
 
-/// Exports of a surface that no attestation against it references.
+/// Exports of a surface that no attestation against it references, less those the config
+/// says are not meant to be documented.
 pub fn uncovered(state: &State, network: Network, surface: &str) -> Result<Vec<String>> {
     if !state.config.surfaces.iter().any(|(name, _)| name == surface) {
         let configured: Vec<&str> = state.config.surfaces.iter().map(|(name, _)| name.as_str()).collect();
@@ -311,8 +335,8 @@ pub fn uncovered(state: &State, network: Network, surface: &str) -> Result<Vec<S
     let exported = state.adapter.send("exports", json!({ "surface": surface }));
     opened.wait()?;
     let symbols = parse_symbols(symbols.wait()?)?;
-    let names = export_names(exported.wait()?);
+    let names = export_names(exported.wait()?).unwrap_or_default();
     let attested = attested_by_surface(&symbols);
-    let mine = attested.get(surface);
-    Ok(names.into_iter().filter(|n| !mine.is_some_and(|m| m.contains(n.as_str()))).collect())
+    let split = split_exports(names, attested.get(surface), state.config.undocumented_globs(surface))?;
+    Ok(split.unattested)
 }

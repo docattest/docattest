@@ -10,6 +10,7 @@ import process from 'node:process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { ROOT } from './lib/repository.ts';
+import { proseLines } from './links/prose-lines.ts';
 
 /** Not the repository's own Markdown: installed, built, vendored, or recorded output. */
 const SKIPPED = new Set<string>([
@@ -29,25 +30,6 @@ function markdownFiles(dir = ROOT): string[] {
     if (SKIPPED.has(rel) || SKIPPED.has(entry.name)) return [];
     if (entry.isDirectory()) return markdownFiles(path);
     return entry.name.endsWith('.md') ? [rel] : [];
-  });
-}
-
-/** The lines of a page that are prose: fenced code is blanked, and so are code spans. */
-function proseLines(text: string): string[] {
-  let fence: string | undefined;
-  return text.split('\n').map((line) => {
-    const marker = /^\s*(`{3,}|~{3,})/.exec(line)?.[1];
-    if (fence !== undefined) {
-      if (marker?.startsWith(fence.charAt(0)) && marker.length >= fence.length) {
-        fence = undefined;
-      }
-      return '';
-    }
-    if (marker !== undefined) {
-      fence = marker;
-      return '';
-    }
-    return line.replace(/(`+)[^`]*?\1/g, '');
   });
 }
 

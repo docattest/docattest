@@ -19,10 +19,23 @@ pub(crate) struct Package {
     pub(crate) dependencies: Vec<Dependency>,
 }
 
+/// One binary crate of the workspace (`src/main.rs`, `src/bin/shopd.rs`). Nothing can
+/// import it: a fact reads only its constants, from source.
+#[derive(Clone, Debug)]
+pub(crate) struct Binary {
+    /// The binary's name, as `cargo run --bin` takes it.
+    pub(crate) name: String,
+    /// The directory of its package.
+    pub(crate) dir: PathBuf,
+    /// The binary's root file.
+    pub(crate) root: PathBuf,
+}
+
 /// A project's cargo workspace.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Project {
     pub(crate) packages: Vec<Package>,
+    pub(crate) binaries: Vec<Binary>,
     /// The workspace's root, where its manifest and lock file are.
     pub(crate) workspace: PathBuf,
     /// Where the adapter's own crate is generated and built: beside the project's builds.
@@ -40,13 +53,14 @@ impl Project {
             Err(error) => return Project { error: Some(error), ..Project::default() },
         };
         let packages = metadata.packages.iter().filter_map(package).collect();
+        let binaries = metadata.packages.iter().flat_map(binaries).collect();
         // A project in memory is written somewhere new each time; its builds are kept in
         // one place for the project it stands for, so that they are not started over.
         let work = match in_memory {
             Some(root) => std::env::temp_dir().join("docattest-rust").join(format!("{:016x}", hash(root))),
             None => metadata.target_directory.join("docattest"),
         };
-        Project { packages, workspace: metadata.workspace_root, work, error: None }
+        Project { packages, binaries, workspace: metadata.workspace_root, work, error: None }
     }
 
     /// The package whose library is imported by a name.
@@ -73,6 +87,15 @@ fn package(found: &cargo::Package) -> Option<Package> {
         edition: found.edition.clone(),
         dependencies: found.dependencies.clone(),
     })
+}
+
+/// The binaries of a package of cargo's.
+fn binaries(found: &cargo::Package) -> Vec<Binary> {
+    let dir = found.manifest_path.parent().map(Path::to_path_buf).unwrap_or_default();
+    let programs = found.targets.iter().filter(|target| target.kind.iter().any(|kind| kind == "bin"));
+    programs
+        .map(|target| Binary { name: target.name.clone(), dir: dir.clone(), root: target.src_path.clone() })
+        .collect()
 }
 
 /// Writes a project that exists only in memory to a directory: cargo reads files.

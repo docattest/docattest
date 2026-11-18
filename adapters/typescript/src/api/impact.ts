@@ -43,6 +43,11 @@ export interface Impact {
    */
   manifests?: string[];
   /**
+   * Files that facts read with `file("<path>")` and the change touched, sorted; only when
+   * there are any. A reference to one has its call as its `symbol`.
+   */
+  files?: string[];
+  /**
    * Commands built from a changed file (the config's `commands`), sorted; only when there are
    * any. A reference to one, a block that runs it, has its call as its `symbol`: `$ mytool`.
    */

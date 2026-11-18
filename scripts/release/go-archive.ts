@@ -7,13 +7,14 @@
 //
 // writes <directory>/docattest-go-<version>-<platform>.tar.gz, which unpacks to one
 // directory holding the launcher (`docattest`), the Go adapter (`docattest-adapter-go`) and
-// the core beside them (`docattest-core`), where the launcher looks for it. `go install`
+// the core beside them (`docattest-core`), where the launcher looks for it, with the
+// license and the guide (`README.md` and its pages, `docs/`). `go install`
 // cannot bring the core, which is not written in Go; this archive is how the Go package
 // delivers it. The two Go programs are cross-compiled here, so any runner makes every
 // platform's archive. The core is refused when its header says it was built for another
 // platform.
 import process from 'node:process';
-import { chmodSync, copyFileSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { chmodSync, copyFileSync, cpSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { commandLine } from '../lib/command-line.ts';
 import { version } from '../lib/core-pin.ts';
@@ -60,6 +61,8 @@ const core = join(stage, entry.binary.replace('docattest', 'docattest-core'));
 copyFileSync(args.core, core);
 chmodSync(core, 0o755);
 for (const file of ['LICENSE', 'README.md']) copyFileSync(join(PACKAGE, file), join(stage, file));
+// The README links to the guide's pages, one for each kind of proof.
+cpSync(join(PACKAGE, 'docs'), join(stage, 'docs'), { recursive: true });
 run('tar', ['-czf', `${name}.tar.gz`, name], { cwd: out });
 rmSync(stage, { recursive: true });
 process.stdout.write(`${join(out, `${name}.tar.gz`)}\n`);

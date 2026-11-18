@@ -1,5 +1,6 @@
 // The public API: `createProject`, a thin client of the docattest core (it runs the core
-// that the `docattest` launcher runs), and the shapes it returns.
+// that the `docattest` launcher runs), the shapes it returns, and `codeSpans`, which reads a
+// cell of a cases table as the core does.
 export {
   CHANGE_TYPES,
   COMMANDS,
@@ -41,4 +42,5 @@ export type {
   TestAttestation,
 } from './api/attestation.js';
 export { InternalError, UserError } from './api/errors.js';
+export { codeSpans } from './cells/code-spans.js';
 export { createProject } from './client/project.js';

@@ -35,6 +35,7 @@ const ctx: WorkerContext = {
   strays,
   snapshot,
   manifest,
+  file,
   post,
 };
 
@@ -79,4 +80,13 @@ function manifest(path: string): unknown {
     );
   }
   return structuredClone(data.manifests[path]);
+}
+
+// The core reads a file only when a fact writes its path out, as it does a manifest.
+function file(path: string): string {
+  const text = Object.hasOwn(data.texts, path) ? data.texts[path] : undefined;
+  if (text === undefined) {
+    throw new Error(`file "${path}" was not read: name it in the fact itself, as file("${path}")`);
+  }
+  return text;
 }

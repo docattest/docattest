@@ -1,9 +1,9 @@
 # impact --hook after a source edit
-# recorded from: impact --hook gives the agent a brief, not the whole report
+# recorded from: what adopting it in a Go service found
 === impact --hook
 exit 0
 stdout 1 line
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 2 exported symbols. Nothing checks these places; re-read them:\n  docs/guide.md:3 parse \"Read the input with `parse` before you retry anything.\"\n  docs/guide.md:5 parse \"`parse` first\"\n  docs/guide.md:6 Client \"then `new Client()` reads; `new Client-x` does not\"\n  docs/guide.md:11 parse \"`parse`\"\n  docs/guide.md:12 Client, parse \"see `Client.read` or `await parse(x)`?\"\n  +4 more: docattest impact --file src/parse.ts\ndocattest check covers 1 other place."}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 2 symbols. Nothing checks these places; re-read them:\n  docs/guide.md:3 parse \"Read the input with `parse` before you retry anything.\"\n  docs/guide.md:5 parse \"`parse` first\"\n  docs/guide.md:6 Client \"then `new Client()` reads; `new Client-x` does not\"\n  docs/guide.md:11 parse \"`parse`\"\n  docs/guide.md:12 Client, parse \"see `Client.read` or `await parse(x)`?\"\n  +4 more: docattest impact --file src/parse.ts\ndocattest check covers 1 other place."}}
 stderr empty
 === impact --hook --json
 exit 0
@@ -12,12 +12,12 @@ stderr empty
 === impact --hook
 exit 0
 stdout 1 line
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 2 exported symbols. Nothing checks these places; re-read them:\n  docs/guide.md:3 parse \"Read the input with `parse` before you retry anything.\"\n  docs/guide.md:5 parse \"`parse` first\"\n  docs/guide.md:6 Client \"then `new Client()` reads; `new Client-x` does not\"\n  docs/guide.md:11 parse \"`parse`\"\n  docs/guide.md:12 Client, parse \"see `Client.read` or `await parse(x)`?\"\n  +4 more: docattest impact --file src/parse.ts\ndocattest check covers 1 other place."}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 2 symbols. Nothing checks these places; re-read them:\n  docs/guide.md:3 parse \"Read the input with `parse` before you retry anything.\"\n  docs/guide.md:5 parse \"`parse` first\"\n  docs/guide.md:6 Client \"then `new Client()` reads; `new Client-x` does not\"\n  docs/guide.md:11 parse \"`parse`\"\n  docs/guide.md:12 Client, parse \"see `Client.read` or `await parse(x)`?\"\n  +4 more: docattest impact --file src/parse.ts\ndocattest check covers 1 other place."}}
 stderr empty
 === impact --hook
 exit 0
 stdout 1 line
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 2 exported symbols. Nothing checks these places; re-read them:\n  docs/guide.md:3 parse \"Read the input with `parse` before you retry anything.\"\n  docs/guide.md:5 parse \"`parse` first\"\n  docs/guide.md:6 Client \"then `new Client()` reads; `new Client-x` does not\"\n  docs/guide.md:11 parse \"`parse`\"\n  docs/guide.md:12 Client, parse \"see `Client.read` or `await parse(x)`?\"\n  +4 more: docattest impact --file src/parse.ts\ndocattest check covers 1 other place."}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 2 symbols. Nothing checks these places; re-read them:\n  docs/guide.md:3 parse \"Read the input with `parse` before you retry anything.\"\n  docs/guide.md:5 parse \"`parse` first\"\n  docs/guide.md:6 Client \"then `new Client()` reads; `new Client-x` does not\"\n  docs/guide.md:11 parse \"`parse`\"\n  docs/guide.md:12 Client, parse \"see `Client.read` or `await parse(x)`?\"\n  +4 more: docattest impact --file src/parse.ts\ndocattest check covers 1 other place."}}
 stderr empty
 === impact --hook
 exit 0
@@ -30,7 +30,7 @@ stderr empty
 === impact --hook --base HEAD
 exit 0
 stdout 1 line
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 2 exported symbols. Nothing checks these places; re-read them:\n  docs/guide.md:3 parse \"Read the input with `parse` before you retry anything.\"\n  docs/guide.md:5 parse \"`parse` first\"\n  docs/guide.md:6 Client \"then `new Client()` reads; `new Client-x` does not\"\n  docs/guide.md:11 parse \"`parse`\"\n  docs/guide.md:12 Client, parse \"see `Client.read` or `await parse(x)`?\"\n  +4 more: docattest impact --file src/parse.ts\ndocattest check covers 1 other place."}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 2 symbols. Nothing checks these places; re-read them:\n  docs/guide.md:3 parse \"Read the input with `parse` before you retry anything.\"\n  docs/guide.md:5 parse \"`parse` first\"\n  docs/guide.md:6 Client \"then `new Client()` reads; `new Client-x` does not\"\n  docs/guide.md:11 parse \"`parse`\"\n  docs/guide.md:12 Client, parse \"see `Client.read` or `await parse(x)`?\"\n  +4 more: docattest impact --file src/parse.ts\ndocattest check covers 1 other place."}}
 stderr empty
 === impact --hook --base nope
 exit 1

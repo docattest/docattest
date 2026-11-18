@@ -1,8 +1,8 @@
 # inventory --json
-# recorded from: impact --file answers for the edited file's change alone; config key commands
+# recorded from: what adopting it in a Go service found
 === inventory --json
 exit 0
-stdout 84 lines
+stdout 85 lines
 [
   {
     "surface": "default",
@@ -37,7 +37,7 @@ stdout 84 lines
   {
     "surface": "default",
     "expression": "CONFIG_KEYS",
-    "value": "$schema,pages,frozen,sources,surfaces,setup,snapshots,adapter,runtime,ignoreTags,members,commands",
+    "value": "$schema,pages,frozen,sources,surfaces,setup,snapshots,adapter,runtime,ignoreTags,members,commands,undocumented",
     "items": [
       "$schema",
       "pages",
@@ -50,7 +50,8 @@ stdout 84 lines
       "runtime",
       "ignoreTags",
       "members",
-      "commands"
+      "commands",
+      "undocumented"
     ]
   },
   {

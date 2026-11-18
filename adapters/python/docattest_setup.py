@@ -5,20 +5,19 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 import tempfile
 from collections.abc import Callable
 from typing import cast
 from unittest import mock
 
+from docattest.cells import code_spans
 from docattest.launcher import cache_directory
 from docattest_python.workers.interpreter import choose_interpreter
 
 Row = dict[str, str]
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_CODE_SPAN = re.compile(r"`([^`]*)`")
 _SYSTEMS = {"macOS": "darwin", "Linux": "linux", "Windows": "win32"}
 _ANY_SYSTEM = "any system"
 _HOME = "~"
@@ -32,10 +31,6 @@ def platforms() -> dict[str, dict[str, object]]:
 
 
 facts = {"platforms": platforms}
-
-
-def code_spans(cell: str) -> list[str]:
-    return _CODE_SPAN.findall(cell)
 
 
 def wheel_tags(row: Row) -> None:

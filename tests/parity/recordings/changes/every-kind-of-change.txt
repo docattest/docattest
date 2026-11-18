@@ -1,8 +1,8 @@
 # every kind of change
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 1
-stdout 110 lines
+stdout 111 lines
 {
   "results": [
     {
@@ -38,6 +38,7 @@ stdout 110 lines
       "docs/z.md"
     ],
     "attestations": 2,
+    "proofs": 2,
     "weak": 0,
     "cited": 0
   },
@@ -121,7 +122,7 @@ docs/retry.md
   ✓ L3 fact: Math.min(LIMIT, 3) is 3
   ✓ L7 example: compiles
 results: 2 pass, 0 fail, 0 error, 0 skipped
-coverage: 2 living pages, 1 covered (2 attestations, 0 weak), 1 uncovered, 1 frozen
+coverage: 2 living pages, 1 covered (2 attestations: 2 proofs, 0 of them weak, and 0 citations), 1 uncovered, 1 frozen
   uncovered: docs/k.md
 surface default: 4 symbols, 1 attested, 3 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)

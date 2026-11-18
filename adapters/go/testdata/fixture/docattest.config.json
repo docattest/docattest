@@ -1,7 +1,7 @@
 {
   "pages": ["docs/**/*.md"],
   "sources": ["**/*.go"],
-  "surfaces": { "default": ".", "shipping": "./shipping" },
+  "surfaces": { "default": ".", "shipping": "./shipping", "shopd": "./cmd/shopd" },
   "setup": "docs/docattest_setup.go",
   "snapshots": { "dir": "docs/.snapshots", "maxAgeDays": 100000 },
   "adapter": "go",

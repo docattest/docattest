@@ -27,6 +27,9 @@ type Options struct {
 	// Manifests are the data of each manifest the facts name, by the path as they write
 	// it, as `open` gives them and generated programs are told them.
 	Manifests json.RawMessage
+	// Texts are the text of each file the facts read with `file`, by the path as they
+	// write it, as `open` gives them and generated programs are told them.
+	Texts json.RawMessage
 }
 
 // Snapshots are the project's snapshots, as `open` gives them and generated programs

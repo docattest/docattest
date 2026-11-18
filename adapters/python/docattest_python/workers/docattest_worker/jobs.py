@@ -28,6 +28,8 @@ class Settings(TypedDict):
     snapshots: Snapshots
     #: The data of each manifest the facts name, by the path as they write it.
     manifests: dict[str, object]
+    #: The text of each file the facts read with ``file``, by the path as they write it.
+    texts: dict[str, str]
     #: Modules imported once, before any job is forked.
     preload: list[str]
     #: Run every job in a fresh process, even where ``os.fork`` exists.
@@ -61,6 +63,8 @@ class SurfaceToLoad(TypedDict):
     import_name: str
     #: What the surface exports, as read from its syntax; None when it could not be read.
     exports: list[str] | None
+    #: The constants the job reads, read from source: each as Python writes its value.
+    constants: dict[str, str]
 
 
 class SetupModule(TypedDict):
@@ -73,6 +77,8 @@ class FactToEvaluate(TypedDict):
     expression: str
     #: The names the expression reads and does not bind.
     names: list[str]
+    #: Whether it reads a name that only importing the surface gives.
+    imports: bool
 
 
 class FactsJob(TypedDict):
@@ -80,6 +86,8 @@ class FactsJob(TypedDict):
     surface: SurfaceToLoad
     setup: SetupModule | None
     facts: list[FactToEvaluate]
+    #: Names of the surface the facts read that a fact cannot read, each with why.
+    refused: dict[str, str]
 
 
 class CasesRow(TypedDict):
@@ -103,6 +111,8 @@ class ObservablesJob(TypedDict):
     surface: SurfaceToLoad
     #: The setup module whose named facts are offered too: only on the default surface.
     setup: SetupModule | None
+    #: Whether the surface is imported; a program's constants are all it offers.
+    imports: bool
 
 
 Job = BlockJob | FactsJob | CasesJob | ObservablesJob
@@ -122,6 +132,7 @@ def read_settings(value: object) -> Settings:
         "aliases": fields.string_map("aliases"),
         "snapshots": {"dir": snapshots.optional_string("dir"), "data": snapshots.json_object("data")},
         "manifests": fields.json_object("manifests"),
+        "texts": fields.string_map("texts"),
         "preload": fields.strings("preload"),
         "no_fork": fields.boolean("no_fork"),
     }
@@ -142,9 +153,14 @@ def _read_job(fields: Fields) -> Job:
             "surface": _read_surface(fields.object("surface")),
             "setup": None if fields.is_null("setup") else _read_setup(fields.object("setup")),
             "facts": [
-                {"expression": f.string("expression"), "names": f.strings("names")}
+                {
+                    "expression": f.string("expression"),
+                    "names": f.strings("names"),
+                    "imports": f.boolean("imports"),
+                }
                 for f in fields.objects("facts")
             ],
+            "refused": fields.string_map("refused"),
         }
     if kind == "cases":
         return _read_cases(fields)
@@ -153,6 +169,7 @@ def _read_job(fields: Fields) -> Job:
             "type": "observables",
             "surface": _read_surface(fields.object("surface")),
             "setup": None if fields.is_null("setup") else _read_setup(fields.object("setup")),
+            "imports": fields.boolean("imports"),
         }
     raise MalformedMessage(f'{fields.where}: unknown job type "{kind}"')
 
@@ -194,7 +211,12 @@ def _read_cases(fields: Fields) -> CasesJob:
 
 def _read_surface(fields: Fields) -> SurfaceToLoad:
     exports = None if fields.is_null("exports") else fields.strings("exports")
-    return {"name": fields.string("name"), "import_name": fields.string("import_name"), "exports": exports}
+    return {
+        "name": fields.string("name"),
+        "import_name": fields.string("import_name"),
+        "exports": exports,
+        "constants": fields.string_map("constants"),
+    }
 
 
 def _read_setup(fields: Fields) -> SetupModule:

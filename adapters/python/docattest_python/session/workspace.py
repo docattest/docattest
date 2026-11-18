@@ -11,6 +11,7 @@ from ..analysis import surfaces as surface_rules
 from ..analysis.modules import Module
 from ..analysis.names import dict_entries
 from ..analysis.project import Project
+from ..analysis.readable import UNREAD, Readable, readable
 from ..analysis.surfaces import ConfiguredSurface, FindInstalled, Surface
 
 _WORD = re.compile(r"[A-Za-z_]\w*")
@@ -28,6 +29,7 @@ class Workspace:
         self.setup = setup
         self._texts: dict[str, str | None] = {}
         self._setup_module: Module | None = None
+        self._readable: dict[str, Readable] = {}
         self.project = Project(root, self.read, surface_rules.search_dirs(root))
         self.surfaces = surface_rules.resolve(self.project, root, configured, installed)
         for s in self.surfaces:
@@ -73,6 +75,18 @@ class Workspace:
         if surface is None or surface.module is None:
             return None
         return self.project.exports(surface.module)
+
+    def readable(self, name: str) -> Readable:
+        """What facts read of a configured surface: its constants from source, its other
+        exports by importing it."""
+        if name not in self._readable:
+            surface = self.by_name[name]
+            module = surface.module
+            if module is None or module.error is not None:
+                self._readable[name] = UNREAD
+            else:
+                self._readable[name] = readable(surface, module, self.project.exports(module))
+        return self._readable[name]
 
     def origin(self, surface: Surface, name: str) -> tuple[str, str] | None:
         """(file, name) of the declaration an export of a surface refers to."""

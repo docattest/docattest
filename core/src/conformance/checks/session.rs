@@ -6,9 +6,10 @@ use serde_json::{Value, json};
 use super::answer::{items, sorted_keys};
 use crate::conformance::expect::{Checked, all_hold, ensure, same};
 use crate::conformance::kit::{Facts, Kit};
-use crate::conformance::requests::{MANIFEST, MANIFEST_VERSION};
+use crate::conformance::requests::{MANIFEST, MANIFEST_VERSION, TEXT, TEXT_FILE};
 use crate::conformance::suite::{Check, Suite};
 use crate::conformance::talk::Conversation;
+use crate::fact_files::calls::Reader;
 
 pub const CHECKS: [Check; 3] = [
     Check {
@@ -94,6 +95,8 @@ fn evaluates(suite: &Suite) -> Checked<Conversation> {
         requests.fact("invalid", &facts.invalid),
         requests.fact("manifest", &facts.manifest),
         requests.fact("unread", &facts.manifest.replace(MANIFEST, UNREAD)),
+        requests.fact("file", &Reader::File.call(TEXT_FILE)),
+        requests.fact("unread-file", &Reader::File.call(UNREAD_TEXT)),
     ]);
     let t = suite.session(
         &[("evaluate", json!({ "facts": asked })), ("evaluate", json!({ "facts": [] }))],
@@ -106,30 +109,21 @@ fn evaluates(suite: &Suite) -> Checked<Conversation> {
     Ok(t)
 }
 
-/// A manifest the session was not opened with.
+/// A manifest and a file the session was not opened with.
 const UNREAD: &str = "unread.json";
+const UNREAD_TEXT: &str = "unread.txt";
 
 /// A value for every fact, each displayed as the kit says; none for the invalid one, nor for
-/// a manifest the session does not have.
+/// a file the session does not have.
 fn expect_values(values: &Value, facts: &Facts) -> Checked {
     let (scalar, text, invalid) = (&values["scalar"]["value"], &values["text"]["value"], &values["invalid"]);
-    let (manifest, unread) = (&values["manifest"]["value"], &values["unread"]);
     all_hold([
         same(
             &json!(sorted_keys(values)),
-            &json!(["invalid", "list", "manifest", "scalar", "text", "unread"]),
+            &json!(["file", "invalid", "list", "manifest", "scalar", "text", "unread", "unread-file"]),
             "a value for every fact",
         ),
-        same(
-            &json!([manifest["text"], manifest["kind"]]),
-            &json!([MANIFEST_VERSION, "text"]),
-            "a manifest's field",
-        ),
-        same(&unread["ok"], &json!(false), "a manifest the session was not opened with"),
-        ensure(
-            unread["message"].as_str().is_some_and(|m| m.contains(UNREAD)),
-            "a manifest that cannot be read is named in the message",
-        ),
+        expect_files_read(values),
         same(&scalar["text"], &json!(facts.scalar.text), "the scalar's text"),
         ensure(scalar.get("kind").is_none(), "only text says what kind it is"),
         same(&values["list"]["value"]["items"], &json!(facts.list.items), "the list's items"),
@@ -140,6 +134,26 @@ fn expect_values(values: &Value, facts: &Facts) -> Checked {
         ),
         same(&invalid["ok"], &json!(false), "an expression that does not evaluate"),
         ensure(invalid["message"].as_str().is_some_and(|m| !m.is_empty()), "a failed evaluation says why"),
+    ])
+}
+
+/// A manifest's field and a file's text, as the session was opened with them; a failure that
+/// names the file for each it was not.
+fn expect_files_read(values: &Value) -> Checked {
+    let (manifest, unread) = (&values["manifest"]["value"], &values["unread"]);
+    let (file, unread_file) = (&values["file"]["value"], &values["unread-file"]);
+    let names = |failure: &Value, file: &str| failure["message"].as_str().is_some_and(|m| m.contains(file));
+    all_hold([
+        same(
+            &json!([manifest["text"], manifest["kind"]]),
+            &json!([MANIFEST_VERSION, "text"]),
+            "a manifest's field",
+        ),
+        same(&unread["ok"], &json!(false), "a manifest the session was not opened with"),
+        ensure(names(unread, UNREAD), "a manifest that cannot be read is named in the message"),
+        same(&json!([file["text"], file["kind"]]), &json!([TEXT, "text"]), "a file's text, which is text"),
+        same(&unread_file["ok"], &json!(false), "a file the session was not opened with"),
+        ensure(names(unread_file, UNREAD_TEXT), "a file that cannot be read is named in the message"),
     ])
 }
 

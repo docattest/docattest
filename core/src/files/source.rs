@@ -115,7 +115,11 @@ impl DiskFiles {
 impl ProjectFiles for DiskFiles {
     /// The text of a project file, decoded as UTF-8 with replacement.
     fn read(&self, file: &str) -> Result<String, String> {
-        fs::read(self.path(file)).map(text_file::decode).map_err(|e| text_file::failure("read", file, &e))
+        self.read_bytes(file).map(text_file::decode)
+    }
+
+    fn read_bytes(&self, file: &str) -> Result<Vec<u8>, String> {
+        fs::read(self.path(file)).map_err(|e| text_file::failure("read", file, &e))
     }
 
     fn exists(&self, file: &str) -> bool {

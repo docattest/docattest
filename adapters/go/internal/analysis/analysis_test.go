@@ -54,7 +54,7 @@ func written(t *testing.T, files map[string]string) string {
 
 func read(t *testing.T, config Config) *Project {
 	t.Helper()
-	project, err := Read(config, Disk{})
+	project, err := Read(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,6 +69,13 @@ func entries(pairs ...string) []protocol.ConfiguredSurface {
 		out = append(out, protocol.ConfiguredSurface{Name: pairs[k], Entry: entry})
 	}
 	return out
+}
+
+// symbolsOf are the symbols one attestation uses.
+func symbolsOf(p *Project, a protocol.Attestation) ([]protocol.SymbolRef, error) {
+	a.ID = "only"
+	found, err := p.Symbols([]protocol.Attestation{a})
+	return found["only"], err
 }
 
 func names(refs []protocol.SymbolRef) string {
@@ -95,6 +102,9 @@ func TestSymbols(t *testing.T) {
 		{"a fact names the exports its expression reads",
 			protocol.Attestation{Kind: protocol.KindFact, Surface: "default", Expression: "len(TaxRates) + MaxDiscount + x.Total"},
 			"default:TaxRates default:MaxDiscount"},
+		{"a fact names the constants it reads from source, and no other unexported name",
+			protocol.Attestation{Kind: protocol.KindFact, Surface: "shipping", Expression: `fmt.Sprintf(unserved, days["XX"]) + Carriers[0]`},
+			"shipping:unserved shipping:Carriers"},
 		{"a citation names what the cited test uses",
 			protocol.Attestation{Kind: protocol.KindTest, File: "shop_test.go", Title: "rejects big discounts", Describes: []string{"TestTotals"}},
 			"default:ApplyDiscount default:EUR default:ErrBadDiscount"},
@@ -105,64 +115,17 @@ func TestSymbols(t *testing.T) {
 			protocol.Attestation{Kind: protocol.KindFact, Surface: "gone", Expression: "X"}, ""},
 	}
 	for _, c := range cases {
-		found, err := p.Symbols(c.a)
+		found, err := symbolsOf(p, c.a)
 		if got := names(found); err != nil || got != c.want {
 			t.Errorf("%s: got %q, %v", c.name, got, err)
 		}
 	}
 }
 
-func TestARunnerNamesWhatItsHelpersUse(t *testing.T) {
-	root := written(t, map[string]string{
-		"go.mod":       "module example.com/tool\n\ngo 1.21\n",
-		"exit/exit.go": "package exit\n\nconst (\n\tExitOK       = 0\n\tExitTimedOut = 124\n)\n\nfunc Unused() {}\n",
-		"docs/setup.go": `package docs
-
-import "fmt"
-
-var Cases = map[string]func(row map[string]string) error{
-	"exit": func(row map[string]string) error { return expect(row["status"], row["code"]) },
-}
-
-func expect(status, code string) error {
-	if fmt.Sprint(codes[status]) != code {
-		return fmt.Errorf("expected %s", code)
-	}
-	return nil
-}
-`,
-		"docs/codes.go": "package docs\n\nimport \"example.com/tool/exit\"\n\nvar codes = map[string]int{\"ok\": exit.ExitOK, \"timed out\": exit.ExitTimedOut}\n",
-	})
-	p := read(t, Config{Root: root, InMemory: true, Surfaces: entries("exit", "./exit"), Setup: "docs/setup.go"})
-	found, err := p.Symbols(protocol.Attestation{Kind: protocol.KindCases, Runner: "exit"})
-	if got := names(found); err != nil || got != "exit:ExitOK exit:ExitTimedOut" {
-		t.Fatalf("got %q, %v", got, err)
-	}
-}
-
-func TestASetupFileBehindABuildTagIsLeftOut(t *testing.T) {
-	root := written(t, map[string]string{
-		"go.mod":        "module example.com/tool\n\ngo 1.21\n",
-		"tool.go":       "package tool\n",
-		"docs/setup.go": "//go:build docattest\n\npackage docs\n\nfunc Helper() int { return 1 }\n",
-	})
-	p := read(t, Config{Root: root, InMemory: true, Surfaces: entries("default", "."), Setup: "docs/setup.go"})
-	if p.SetupFound() {
-		t.Fatal("a setup file behind a build tag was read")
-	}
-}
-
 func TestListTests(t *testing.T) {
 	p := readFixture(t)
 	listing := p.ListTests("shop_test.go")
-	got := []string{}
-	for _, test := range *listing.Tests {
-		path := []string{}
-		for _, name := range test.Describes {
-			path = append(path, *name)
-		}
-		got = append(got, strings.Join(append(path, test.Title), " > "))
-	}
+	got := testPaths(*listing.Tests)
 	want := []string{"ExampleApplyDiscount", "ExampleTotal", "TestTotals", "TestTotals > adds tax", "TestTotals > rejects big discounts"}
 	if !listing.OK || !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %v", got)
@@ -172,6 +135,95 @@ func TestListTests(t *testing.T) {
 	}
 	if missing := p.ListTests("no/such_test.go"); missing.OK || missing.Message != "no/such_test.go does not exist" {
 		t.Fatalf("got %+v", missing)
+	}
+}
+
+// testPaths are listed tests as their names and the names that enclose them, with "?"
+// for a computed one.
+func testPaths(tests []protocol.DeclaredTest) []string {
+	out := []string{}
+	for _, test := range tests {
+		path := []string{}
+		for _, name := range test.Describes {
+			if name == nil {
+				path = append(path, "?")
+			} else {
+				path = append(path, *name)
+			}
+		}
+		out = append(out, strings.Join(append(path, test.Title), " > "))
+	}
+	return out
+}
+
+func TestSubtestsOfTableDrivenTests(t *testing.T) {
+	files := map[string]string{
+		"go.mod": "module example.com/m\n\ngo 1.21\n",
+		"m.go":   "package m\n",
+		"m_test.go": `package m
+
+import "testing"
+
+func TestKeyed(t *testing.T) {
+	tests := []struct {
+		name string
+		in   int
+	}{
+		{name: "zero", in: 0},
+		{in: 1, name: "one"},
+		{name: "zero", in: 2},
+		{name: "computed " + "name", in: 3},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Run("inner", func(t *testing.T) {})
+		})
+	}
+}
+
+func TestPositional(t *testing.T) {
+	for _, tc := range []*struct {
+		in         int
+		name, want string
+	}{{1, "first", "a"}, {2, "second", "b"}} {
+		t.Run(tc.name, func(t *testing.T) {})
+	}
+}
+
+func TestMap(t *testing.T) {
+	cases := map[string]struct{ label string }{"by key": {"by field"}}
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {})
+		t.Run(c.label, func(t *testing.T) {})
+	}
+}
+
+func TestNotTables(t *testing.T) {
+	grown := []struct{ name string }{{"grown"}}
+	grown = append(grown, struct{ name string }{"more"})
+	for _, tc := range grown {
+		t.Run(tc.name, func(t *testing.T) {})
+	}
+	for i := range []string{"index"} {
+		t.Run(string(rune(i)), func(t *testing.T) {})
+	}
+	for _, tc := range cases() {
+		t.Run(tc.name, func(t *testing.T) {})
+	}
+}
+
+func cases() []struct{ name string } { return nil }
+`,
+	}
+	got := testPaths(*readWritten(t, files).ListTests("m_test.go").Tests)
+	want := []string{
+		"TestKeyed", "TestKeyed > zero", "TestKeyed > zero > inner", "TestKeyed > one", "TestKeyed > one > inner", "TestKeyed > ? > inner",
+		"TestPositional", "TestPositional > first", "TestPositional > second",
+		"TestMap", "TestMap > by key", "TestMap > by field",
+		"TestNotTables",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %q", got)
 	}
 }
 
@@ -221,14 +273,32 @@ func TestAffected(t *testing.T) {
 		{"layout and comments change nothing", "shop.go", "// round divides", "//   round    divides", ""},
 		{"an unexported variable of another surface", "shipping/shipping.go", `"DE": 2`, `"DE": 3`, "shipping:Quote"},
 		{"an export that was not there at the base", "shipping/shipping.go", "// Quote is", "func Old() {}\n\n// Quote is", "shipping:Old"},
+		// A fact reads an unexported constant from source, so a change to it is listed.
+		{"an unexported constant", "shipping/shipping.go", "serves %q", "delivers to %q", "shipping:unserved shipping:Quote"},
+		{"an unexported constant that is gone", "shipping/shipping.go", "// Quote is", "const gone = 1\n\n// Quote is", "shipping:gone"},
 	}
 	for _, c := range cases {
 		if got := change(c.path, c.now, c.was); got != c.want {
 			t.Errorf("%s: got %q", c.name, got)
 		}
 	}
-	if found, err := p.Affected(map[string]*string{"shipping/shipping.go": nil}); err != nil || names(found) != "shipping:Carriers shipping:Quote" {
+	if found, err := p.Affected(map[string]*string{"shipping/shipping.go": nil}); err != nil || names(found) != "shipping:Carriers shipping:unserved shipping:Quote" {
 		t.Errorf("a file the base did not have: got %q, %v", names(found), err)
+	}
+}
+
+func TestAffectedListsTheConstantsOfAPackageMain(t *testing.T) {
+	p := readFixture(t, entries("shopd", "./cmd/shopd")...)
+	text, err := os.ReadFile(fixture(t) + "/cmd/shopd/main.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	was := strings.Replace(string(text), "listenPort = 8080", "listenPort = 80", 1)
+	was = strings.Replace(was, "time.Now()", "time.Unix(0, 0)", 1)
+	found, err := p.Affected(map[string]*string{"cmd/shopd/main.go": &was})
+	// started is a variable, which no fact reads: it is not listed.
+	if err != nil || names(found) != "shopd:listenPort" {
+		t.Fatalf("got %q, %v", names(found), err)
 	}
 }
 
@@ -280,7 +350,7 @@ func TestSurfaces(t *testing.T) {
 }
 
 func TestAnEntryOfTheWrongShapeIsRefused(t *testing.T) {
-	_, err := Read(Config{Root: fixture(t), Surfaces: []protocol.ConfiguredSurface{{Name: "odd", Entry: json.RawMessage("7")}}}, Disk{})
+	_, err := Read(Config{Root: fixture(t), Surfaces: []protocol.ConfiguredSurface{{Name: "odd", Entry: json.RawMessage("7")}}})
 	if err == nil || !strings.Contains(err.Error(), `surface "odd": the entry 7 is neither a string nor an import and a path`) {
 		t.Fatalf("got %v", err)
 	}

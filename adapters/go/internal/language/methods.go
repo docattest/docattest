@@ -14,6 +14,7 @@ func Methods() map[string]protocol.Handler {
 		"docProse":    docProse,
 		"mentions":    mentions,
 		"expressions": expressions,
+		"display":     display,
 	}
 }
 

@@ -102,4 +102,10 @@ describe('the adapter server, asked about text', () => {
     expect(c.shape).toBe(a.shape);
     expect(d).toEqual({ shape: '', names: [] });
   });
+
+  it('displays the values of a data block as String displays them', () => {
+    const values = [true, null, 3, 1.0, 1.5, 1e21, 'a b'];
+    const x = exchange([HELLO, { id: 1, method: 'display', params: { values } }]);
+    expect(byId(x, 1)?.result).toEqual(['true', 'null', '3', '1', '1.5', '1e+21', 'a b']);
+  });
 });

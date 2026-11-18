@@ -25,7 +25,7 @@ pub const USAGE: &str = r#"usage: docattest <command> [options]
   skill install                   install the agent skill where the agent looks for it
                                   --agent, --global for the home directory instead of the
                                   project, --force to replace a changed file
-  impact [--base <ref>]           exported symbols the diff from <ref> (default HEAD) affects,
+  impact [--base <ref>]           symbols the diff from <ref> (default HEAD) affects,
                                   and the pages, lines and sentences that name them. --json
                                   --file <path>: asked after editing that file; prints
                                   nothing unless it is a source file and something is affected;

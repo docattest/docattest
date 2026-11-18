@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use serde_json::{Value, json};
 
+use super::display::{Displayed, send_display};
 use super::sample::check_sample;
 use super::{Network, Symbols, symbol_names};
 use crate::adapter::Pending;
@@ -19,6 +20,7 @@ use crate::report::{Outcome, Status};
 /// Requests sent before compiling.
 pub(super) struct Started {
     evaluated: Pending,
+    displayed: Option<Pending>,
     listings: Vec<(String, Pending)>,
     tables: Vec<Pending>,
 }
@@ -49,10 +51,12 @@ impl<'s> Checker<'s> {
     /// Send what needs no compiling: facts, citations, tables.
     pub(super) fn start(&self, attestations: &[&Attestation]) -> Started {
         let adapter = &self.state.adapter;
-        let ok = |kind: Kind| -> Vec<Value> {
-            attestations.iter().filter(|a| a.ok() && a.kind() == kind).map(|a| a.to_json()).collect()
+        let of = |kind: Kind| -> Vec<&Attestation> {
+            attestations.iter().copied().filter(|a| a.ok() && a.kind() == kind).collect()
         };
+        let ok = |kind: Kind| -> Vec<Value> { of(kind).iter().map(|a| a.to_json()).collect() };
         let evaluated = adapter.send("evaluate", json!({ "facts": ok(Kind::Fact) }));
+        let displayed = send_display(adapter, &of(Kind::Fact));
         let mut listings: Vec<(String, Pending)> = Vec::new();
         for c in attestations.iter().filter(|a| a.ok()) {
             if let Body::Test(t) = &c.body
@@ -65,7 +69,7 @@ impl<'s> Checker<'s> {
             .into_iter()
             .map(|c| adapter.send("run", json!({ "examples": [], "cases": [c] })))
             .collect();
-        Started { evaluated, listings, tables }
+        Started { evaluated, displayed, listings, tables }
     }
 
     pub(super) fn check(
@@ -81,7 +85,7 @@ impl<'s> Checker<'s> {
         let examples: Vec<&Attestation> =
             ok.iter().copied().filter(|a| matches!(a.body, Body::Example(_))).collect();
         let (facts, cases, citations) = (of(Kind::Fact), of(Kind::Cases), of(Kind::Test));
-        let Started { evaluated, listings, tables } = started;
+        let Started { evaluated, displayed, listings, tables } = started;
         let runnable = self.compile(&examples, compiled)?;
         let runs: Vec<Pending> = runnable
             .iter()
@@ -89,7 +93,7 @@ impl<'s> Checker<'s> {
             .collect();
         // The adapter works on what it was sent while the core runs its own blocks.
         self.run_by_core(&ok)?;
-        self.evaluate(&facts, evaluated)?;
+        self.evaluate(&facts, evaluated, displayed)?;
         self.cite(&citations, listings)?;
         self.emit_runs(&runnable, runs)?;
         self.emit_runs(&cases, tables)?;
@@ -166,8 +170,14 @@ impl<'s> Checker<'s> {
         Ok(())
     }
 
-    fn evaluate(&mut self, facts: &[&Attestation], evaluated: Pending) -> Result<()> {
+    fn evaluate(
+        &mut self,
+        facts: &[&Attestation],
+        evaluated: Pending,
+        displayed: Option<Pending>,
+    ) -> Result<()> {
         let values = evaluated.wait()?;
+        let displayed = Displayed::wait(displayed, facts)?;
         for fact in facts {
             let Body::Fact(f) = &fact.body else { continue };
             let value = values.get(&fact.id);
@@ -183,7 +193,7 @@ impl<'s> Checker<'s> {
                 continue;
             }
             let observed = observation(value.get("value"))?;
-            let c = compare_fact(&f.expression, f.ordered, target, &observed);
+            let c = compare_fact(&f.expression, f.ordered, displayed.target(fact, target), &observed);
             let outcome = Outcome::new(&fact.page, fact.line, Kind::Fact, c.status, &c.message)
                 .with_comparison(&c.expected, &c.actual);
             self.emit(fact, vec![outcome])?;

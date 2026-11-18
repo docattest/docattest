@@ -129,6 +129,10 @@
         "column": {
           "type": "string"
         },
+        "field": {
+          "description": "The path `field=` names in a fenced block's data, as written.",
+          "type": "string"
+        },
         "target": {
           "$ref": "#/$defs/FactTarget"
         },
@@ -169,7 +173,7 @@
               }
             },
             "from": {
-              "enum": ["list", "table", "sentence"]
+              "enum": ["list", "table", "sentence", "field"]
             }
           },
           "required": ["kind", "items", "from"],

@@ -8,10 +8,12 @@ title: Impact: from a diff to the prose it touches
 asks by exported name. `impact` answers the question an agent actually has after an edit:
 "what documentation does my current diff touch?". It compares the working tree with a
 base revision, declaration by declaration, finds the surface exports whose code changed or
-uses code that changed, and lists every page and line that names them: the attestations
+uses code that changed, and the constants facts read from source that changed, and lists
+every page and line that names them: the attestations
 `where` would list, and the pages that only mention a symbol in a code span, which prove
 nothing and are the likeliest to go stale. Nothing runs and nothing is written. A changed
-manifest reaches the facts that read it ([manifests](manifests.md)).
+manifest, or another file a fact reads, reaches the facts that read it
+([manifests](manifests.md)).
 
 From code, `impact({ base })` takes a git revision for a project on disk, and an
 in-memory project takes its base as files, `impact({ baseFiles })`, which are committed
@@ -360,7 +362,7 @@ put('src/index.ts', 'export const LIMIT = 5;\nexport function retry(times = 1) {
 const brief = JSON.parse(hook('src/index.ts').stdout).hookSpecificOutput.additionalContext;
 assert.equal(
   brief,
-  'docattest: this edit affects 2 exported symbols. Nothing checks these places; re-read them:\n' +
+  'docattest: this edit affects 2 symbols. Nothing checks these places; re-read them:\n' +
     '  docs/limit.md:3 LIMIT, retry "Call `retry` after `LIMIT` calls fail."\n' +
     'docattest check covers 1 other place.',
 );

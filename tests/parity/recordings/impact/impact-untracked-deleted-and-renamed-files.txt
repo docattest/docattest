@@ -1,9 +1,9 @@
 # impact untracked, deleted and renamed files
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 9 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 fresh
   docs/fresh.md:1 mention (unproven)  Call `fresh()` now.
 retry

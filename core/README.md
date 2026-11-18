@@ -72,8 +72,9 @@ the page model, the blocks, tables and code spans that claims are made of. `atte
 reads the directives on a page, binds each to its claim and plans what must run, and
 `project` then runs the check: `compare` judges facts against the values the adapter reads,
 the adapter runs examples, citations are judged against the tests it lists, and
-`snapshots` supplies recorded values and their age, and `manifests` the project files facts
-read with `manifest("<path>")`, parsed. `report` orders the results, counts
+`snapshots` supplies recorded values and their age, and `fact_files` the project files facts
+read with `manifest("<path>")`, parsed by `manifests`, and with `file("<path>")`, as text.
+`report` orders the results, counts
 coverage and prints the text or JSON report.
 
 The other commands reuse that pipeline and add one concern each. `changes` is `check

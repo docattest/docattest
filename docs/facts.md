@@ -17,6 +17,7 @@ export const KEYS = ['A', 'B', 'C'];
 export const ROUTES = [{ method: 'GET', path: '/a' }, { method: 'POST', path: '/b' }];
 export const SHAPE = `export interface Point { x: number; y: number }`;
 export const VERSION = '1.2.3-rc.1';
+export const STRICT = true;
 ```
 
 ## How a fact finds its target
@@ -37,9 +38,21 @@ either, a fact that ends its paragraph binds the list or fenced block right afte
 paragraph, across blank lines, as after a lead-in like `The keys are:`. A fact with
 `column=` names a table column, so it binds the next table even across blank lines and the
 other directives stacked above it, one fact per column; a column
-name with spaces is quoted, as in `column="route path"` or `column='route path'`. A
+name with spaces is quoted, as in `column="route path"` or `column='route path'`. A fact
+with `field=` binds one value of the next fenced block in the same way
+([below](#a-fact-can-check-one-field-of-a-data-block)). A
 directive may span lines; it binds from the line where it ends. Inside a table cell it binds
 the same way, within that cell. Anything else is an error, not a silent skip.
+
+A fact may also sit alone on the line directly above a sentence, as `// @ts-expect-error`
+sits above the line it applies to: a line that holds only directives applies each of them
+to the line below it. There a fact binds what it would bind at the end of the sentence that
+starts on that line, which may wrap over lines: a code span or number on the sentence's
+last line, else the sentence's code spans, else, when the sentence is a lead-in that ends
+its paragraph, the list or fenced block after that paragraph. A fact alone on a line with a
+blank line, then prose, below it is an error, never a bind to something further away; with
+no prose directly above it either, the error says to put it directly above the sentence or
+at its end. A fact written after text on its line binds what is before it.
 
 A set failure leads with what differs: `missing:` the values the expression has and the
 page does not, `unexpected:` those the page has and the expression does not, an empty one as
@@ -89,7 +102,12 @@ line of the block that differs.
 | fenced block, spaced differently       | <!-- fact: SHAPE -->¶```ts¶export interface Point{x:number;¶y : number }¶```  | pass                          |
 | fenced block, words run together       | <!-- fact: SHAPE -->¶```ts¶exportinterface Point { x: number; y: number }¶```  | fail: at line 1 (whitespace ignored): expected "exportinterface Point { x: number; y: number }" |
 | fenced block differing on one line     | <!-- fact: SHAPE -->¶```ts¶export interface Point {¶  x: number;¶  z: number¶}¶```  | fail: at line 3 (whitespace ignored): expected "z: number", got "y: number }" |
-| no target                              | <!-- fact: N -->¶¶Just a paragraph.                                     | error: no target              |
+| line above a sentence                  | <!-- fact: N -->¶At most `3` tries. Then `4` more.                      | pass                          |
+| line above a sentence, mismatch        | <!-- fact: N -->¶At most `4` tries.                                     | fail: expected 4, got 3       |
+| line above a wrapped sentence          | <!-- fact: KEYS -->¶Keys are `C`, `A`¶and `B`.                          | pass                          |
+| line above a lead-in to a list         | <!-- fact: KEYS -->¶The keys are:¶¶- `C`¶- `A`¶- `B`                    | pass                          |
+| line above, then a blank line          | <!-- fact: N -->¶¶At most `3` tries.                                    | error: must sit directly above the sentence it attests |
+| no target                              | Just a paragraph. <!-- fact: N -->                                      | error: no target              |
 | expression throws                      | At most `3` tries. <!-- fact: N.missing.deeper -->                      | error: Cannot read            |
 | unknown surface                        | At most `3` tries. <!-- fact @nope: N -->                               | error: unknown surface        |
 | directive spanning two lines           | <!-- fact:¶  KEYS -->¶- `A`¶- `B`¶- `C`                                 | pass                          |
@@ -97,6 +115,77 @@ line of the block that differs.
 | unclosed directive                     | At most `3` tries. <!-- fact: N                                         | error: not closed             |
 
 In the `page` column `¶` stands for a line break and `\|` for a literal pipe.
+
+## A fact can check one field of a data block
+
+A fact with `field=<path>` before a fenced block of JSON, TOML or YAML (`json`, `toml`,
+`yaml` or `yml`) compares one value in the block, not the whole block. The block is read as
+a manifest of its format is ([manifests](manifests.md)), so it holds an object at the top.
+A path is keys parted by dots, and a key of digits picks a list's item by its index, counted
+from 0: `field=jobs.0.retries`. A key with a dot or a space in it is quoted:
+`field=limits."max retries"`. The block is written as its format writes values, and the
+fact's value as the project's language displays it, so the two are compared as the same
+value, not as the same spelling: the adapter displays the block's value as its language
+displays a fact's. A JSON `1.0` is a TypeScript `1`, and in a Python project the block's
+`true` is Python's `True`
+([the Python guide](../adapters/python/README.md#facts)).
+A string is its text, and a list of scalars compares as a list does, in order with
+`fact ordered:`. A field that holds an object, or a list of objects, is an error that says
+so. So is a block in another language, a block that does not parse, with the parser's
+message and its lines counted from the line after the fence, and a path that is not there,
+with the keys found where it stops.
+
+<!-- cases: factBinding -->
+| case                                | page                                                                            | result                                         |
+|-------------------------------------|---------------------------------------------------------------------------------|------------------------------------------------|
+| field of a JSON block               | <!-- fact field=retries: N -->¶```json¶{ "retries": 3, "region": "eu" }¶```     | pass                                           |
+| field mismatch                      | <!-- fact field=retries: N -->¶```json¶{ "retries": 4 }¶```                     | fail: expected 4, got 3                        |
+| list item by its index              | <!-- fact field=jobs.0.retries: N -->¶```yaml¶jobs:¶  - retries: 3¶```          | pass                                           |
+| string field                        | <!-- fact field=release.version: VERSION -->¶```toml¶[release]¶version = "1.2.3-rc.1"¶``` | pass                         |
+| boolean field                       | <!-- fact field=strict: STRICT -->¶```yaml¶strict: true¶```                     | pass                                           |
+| float field, as the language shows it | <!-- fact field=ratio: RATIO -->¶```json¶{ "ratio": 1.0 }¶```                 | pass                                           |
+| float field mismatch                | <!-- fact field=ratio: RATIO -->¶```toml¶ratio = 1.5¶```                        | fail: expected 1.5, got 1                      |
+| list of mixed scalars               | <!-- fact field=flags ordered: ['a', RATIO, STRICT] -->¶```yaml¶flags: [a, 1.0, true]¶``` | pass                                 |
+| list field, any order               | <!-- fact field=keys: KEYS -->¶```toml¶keys = ["C", "A", "B"]¶```               | pass                                           |
+| ordered list field, wrong order     | <!-- fact field=keys ordered: KEYS -->¶```toml¶keys = ["C", "A", "B"]¶```       | fail: order                                    |
+| list field missing an item          | <!-- fact field=keys: KEYS -->¶```yml¶keys: [A, B]¶```                          | fail: missing: C                               |
+| key with spaces, quoted             | <!-- fact field=limits."max retries": N -->¶```json¶{ "limits": { "max retries": 3 } }¶``` | pass                                |
+| key with a dot, quoted              | <!-- fact field="retries.max": N -->¶```yaml¶retries.max: 3¶```                 | pass                                           |
+| path that is not there              | <!-- fact field=retry: N -->¶```json¶{ "retries": 3, "region": "eu" }¶```       | error: has no retry: the top level has keys retries, region |
+| index past the end of a list        | <!-- fact field=jobs.1.retries: N -->¶```yaml¶jobs:¶  - retries: 3¶```          | error: has no jobs.1.retries: jobs is a list of 1 item |
+| field holding an object             | <!-- fact field=limits: N -->¶```json¶{ "limits": { "retries": 3 } }¶```        | error: limits in the json block at L2 has keys retries; name a field inside it |
+| field holding a list of objects     | <!-- fact field=jobs: N -->¶```yaml¶jobs:¶  - retries: 3¶```                    | error: jobs in the yaml block at L2 is a list of objects or lists |
+| block in another language           | <!-- fact field=retries: N -->¶```ts¶const retries = 3;¶```                     | error: the block after it is ts, not json, toml or yaml |
+| block that does not parse           | <!-- fact field=retries: N -->¶```json¶{¶  "retries": 3,¶}¶```                  | error: the json block at L2 cannot be read: not valid JSON: trailing comma at line 3 |
+| field= with no block below          | <!-- fact field=retries: N -->¶¶Just a paragraph.                               | error: no fenced block follows it              |
+
+Like `column=`, `field=` binds the next fenced block across blank lines and the other
+directives stacked above it, so several facts may each check one field of the same block.
+
+```ts check
+import { createProject } from 'docattest';
+
+const check = (port: number) => createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': `export const SSH = { port: ${port}, image: 'app:1' };`,
+    'docs/job.md': [
+      'The job listens on port 2222: <!-- fact field=ports.0.port: SSH.port -->',
+      '<!-- fact field=image: SSH.image -->',
+      '',
+      '```json',
+      '{ "image": "app:1", "ports": [{ "port": 2222 }], "replicas": 3 }',
+      '```',
+      '',
+    ].join('\n'),
+  },
+}).check();
+
+assert.deepEqual((await check(2222)).results.map((r) => r.status), ['pass', 'pass']);
+const [moved] = (await check(2223)).results;
+assert.equal(moved.status, 'fail');
+assert.match(moved.message, /expected 2222, got 2223/);
+```
 
 ## A failure names both sides and the line
 
@@ -123,25 +212,48 @@ assert.equal(report.exitCode, 1);
 
 ## Facts observe the surface, not the source
 
-An expression may only use what the surface exports. A fact over an unexported name is
-an error, which is how a page is kept honest about what a user can observe. What a
-package declares rather than exports, such as the Node it needs, is read from its manifest
-with `manifest("package.json")` ([manifests](manifests.md)).
+An expression may use what the surface exports, and the constants its module declares at
+the top level, exported or not. A fact over any other name the module does not export, a
+function, a type or a variable, is an error that says only constants can be read there,
+which is how a page is kept honest about what a user can observe.
+
+Constants are read from the source, since a program's most documented values, its port or
+its default timeout, are often unexported, or in a program that nothing imports. A fact
+that reads only constants runs nothing of the surface. So a surface may be a program: a Go
+`package main`, a Rust binary crate or a Python `__main__.py`, of which a fact reads only
+constants, or a TypeScript command's entry script, which a fact that names anything else
+of it loads. A fact attests the constants it reads, as `where` shows, while `uncovered`
+lists only exports, and `impact` lists a change to such a constant with the facts that read
+it.
+
+What a constant is differs by language: a `const` written in literals in TypeScript, a name
+assigned once to literals in Python, any top-level `const` in Go, and a `const` or `static`
+of primitive types in Rust. Each guide says it exactly:
+[TypeScript](../adapters/typescript/README.md#facts-read-constants-from-source),
+[Python](../adapters/python/README.md#facts), [Go](../adapters/go/docs/facts.md) and
+[Rust](../adapters/rust/README.md#facts).
 
 ```ts check
 import { createProject } from 'docattest';
 
-const report = await createProject({
+const project = createProject({
   files: {
     'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
-    'src/index.ts': `const INTERNAL = 7;\nexport const PUBLIC = INTERNAL + 1;`,
-    'docs/x.md': 'Internally `7`. <!-- fact: INTERNAL -->',
+    'src/index.ts': `const INTERNAL = 7;\nfunction secret() { return INTERNAL; }\nexport const PUBLIC = secret() + 1;`,
+    'docs/x.md': 'Internally `7`. <!-- fact: INTERNAL -->\n\nSecretly `7`. <!-- fact: secret() -->',
   },
-}).check();
+});
+const report = await project.check();
 
-assert.equal(report.results[0].status, 'error');
-assert.match(report.results[0].message, /INTERNAL/);
+assert.deepEqual(report.results.map((r) => r.status), ['pass', 'error']);
+assert.match(report.results[1].message, /secret is a function that surface "default" does not export; of its unexported names, a fact reads only constants/);
+assert.deepEqual(await project.where('INTERNAL'), [{ page: 'docs/x.md', line: 1, kind: 'fact', claim: 'Internally `7`.' }]);
+assert.deepEqual(await project.uncovered(), ['PUBLIC']);
 ```
+
+What a package declares rather than exports, such as the Node it needs, is read from its
+manifest with `manifest("package.json")`, and what any other file says with
+`file("<path>")` ([manifests](manifests.md)).
 
 ## Facts may await
 

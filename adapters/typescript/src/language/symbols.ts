@@ -14,6 +14,7 @@ import { blockFile, isSourceFile, pagePath } from './languages.js';
 import { expressionIdentifiers } from './syntax/expression.js';
 import { helperSymbols, objectKeys } from './syntax/setup-module.js';
 import { dedupe, importedSymbols, type SurfaceOf } from './syntax/imports.js';
+import type { SurfaceDeclarations } from './surfaces/declarations.js';
 import type { ResolvedSurface } from './surfaces/resolve.js';
 
 const stem = (file: string) => file.replace(/\.[mc]?[jt]sx?$/, '');
@@ -27,6 +28,7 @@ export class SymbolResolver {
     private readonly surfaces: readonly ResolvedSurface[],
     private readonly compiler: Compiler,
     private readonly setup: string | undefined,
+    private readonly declarations: SurfaceDeclarations,
   ) {
     this.byImport = new Map(surfaces.map((s) => [s.spec.import, s.spec.name]));
   }
@@ -67,8 +69,10 @@ export class SymbolResolver {
   private fact(f: FactAttestation): SymbolRef[] {
     const identifiers = expressionIdentifiers(f.expression);
     const exported = new Set(this.compiler.exports(f.surface) ?? []);
+    // A constant a fact reads from source is attested as an export is, exported or not.
+    const declared = this.declarations.of(f.surface);
     const direct = identifiers
-      .filter((n) => exported.has(n))
+      .filter((n) => exported.has(n) || declared.get(n)?.kind === 'constant')
       .map((name) => ({ name, surface: f.surface }));
     const helpers = this.setupKeys('facts').filter(
       (k) => identifiers.includes(k) && !exported.has(k),

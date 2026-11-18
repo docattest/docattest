@@ -1,110 +1,198 @@
 import ts from '../ts.cjs';
 import type { DeclaredTest } from '../../api/adapter.js';
+import { mutatedNames } from '../syntax/mutations.js';
 import { parseSource } from '../syntax/parse.js';
+import { runnerOf, tableRows, type TestRunner } from './each-titles.js';
+import { declarationOf, type TestDeclaration } from './test-calls.js';
+import { TestScope } from './test-scope.js';
 
 /** A test or describe call in a test file, with the call itself for symbol lookup. */
 interface FoundTest extends DeclaredTest {
   call: ts.CallExpression;
 }
 
-/** Every test and describe block in a file whose title is a literal. */
+/** Every test and describe block in a file whose title the file's own literals write. */
 interface FoundTests {
   tests: FoundTest[];
   suites: FoundTest[];
 }
 
-// Vitest, Jest, Mocha, node:test and Playwright spellings. `todo` is not a test: it has no body.
-const TESTS = new Set(['it', 'test', 'fit', 'xit', 'xtest', 'specify']);
-const SUITES = new Set(['describe', 'suite', 'context', 'fdescribe', 'xdescribe']);
-const MODIFIERS = new Set([
-  'only',
-  'skip',
-  'concurrent',
-  'sequential',
-  'fails',
-  'failing',
-  'shuffle',
-  'serial',
-  'parallel',
-  'fixme',
-]);
-/** Modifiers that take arguments and return the function that declares the test. */
-const FACTORIES = new Set(['each', 'for', 'skipIf', 'runIf']);
+/** A title a call declares, and the scope its callback runs in for it. */
+interface Titled {
+  title: string | undefined;
+  scope: TestScope;
+}
 
 /**
- * Calls to `it` and `test` (and their `.only`, `.skip`, `.each`, `.concurrent` forms) with
- * a string-literal title, each with the titles of the describe blocks around it. Titles in
- * comments, strings or computed expressions are not declarations.
+ * Calls to `it` and `test` (and their `.only`, `.skip`, `.each`, `.concurrent` forms) and
+ * the describe blocks around them, each with a title the file's own literals write: a
+ * string, or an expression of constants ({@link TestScope}). A table the file writes gives
+ * one title for each row, as the runner prints it: `.each(rows)`, a `.each` template literal
+ * and `.for(rows)` by their title's placeholders, and a `for … of` loop or a `.forEach` over
+ * one by the titles its body computes. Titles in comments or strings, and computed from
+ * anything else, are not declarations.
  */
 export function findTests(fileName: string, code: string): FoundTests {
   const source = parseSource(fileName, code);
-  const found: FoundTests = { tests: [], suites: [] };
-  const lineOf = (node: ts.Node) =>
-    source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
-  const visit = (node: ts.Node, describes: (string | null)[]) => {
-    const role = ts.isCallExpression(node) ? roleOf(node.expression) : undefined;
-    if (role && ts.isCallExpression(node)) {
-      const title = literalTitle(node.arguments[0]);
-      const entry = { title: title ?? '', describes, line: lineOf(node), call: node };
-      if (title !== undefined) found[role === 'suite' ? 'suites' : 'tests'].push(entry);
-      if (role === 'suite') {
-        const inner = [...describes, title ?? null];
-        for (const arg of node.arguments) visit(arg, inner);
-        return;
-      }
+  const finder = new TestFinder(source, runnerOf(source));
+  finder.visit(source, [], new TestScope(mutatedNames(source)));
+  return { tests: distinct(finder.found.tests), suites: distinct(finder.found.suites) };
+}
+
+class TestFinder {
+  readonly found: FoundTests = { tests: [], suites: [] };
+
+  constructor(
+    private readonly source: ts.SourceFile,
+    private readonly runner: TestRunner | undefined,
+  ) {}
+
+  visit(node: ts.Node, describes: (string | null)[], scope: TestScope): void {
+    if (ts.isForOfStatement(node)) {
+      this.loop(node, describes, scope);
+      return;
+    }
+    const declaration = ts.isCallExpression(node) ? declarationOf(node) : undefined;
+    if (declaration && ts.isCallExpression(node)) {
+      this.declared(node, declaration, describes, scope);
+      return;
+    }
+    if (ts.isCallExpression(node) && isForEach(node)) {
+      this.forEach(node, describes, scope);
+      return;
     }
     ts.forEachChild(node, (child) => {
-      visit(child, describes);
+      this.visit(child, describes, scope);
     });
-  };
-  visit(source, []);
-  return found;
-}
-
-/** Whether a callee declares a test or a suite: `it`, `describe.only`, `it.each(rows)`... */
-function roleOf(callee: ts.Expression): 'test' | 'suite' | undefined {
-  if (ts.isPropertyAccessExpression(callee) && FACTORIES.has(callee.name.text)) return undefined;
-  const declaring = declaringName(callee);
-  if (!declaring) return undefined;
-  if (declaring.viaDescribe) return declaring.name === 'test' ? 'suite' : undefined;
-  if (TESTS.has(declaring.name)) return 'test';
-  return SUITES.has(declaring.name) ? 'suite' : undefined;
-}
-
-/**
- * The name a callee declares through, past modifiers (`.only`) and factories (`.each(rows)`),
- * and whether a `.describe` was on the way (`test.describe`); undefined when anything else is.
- */
-function declaringName(callee: ts.Expression): { name: string; viaDescribe: boolean } | undefined {
-  let current: ts.Expression | undefined = callee;
-  let viaDescribe = false;
-  while (current !== undefined && !ts.isIdentifier(current)) {
-    viaDescribe ||= ts.isPropertyAccessExpression(current) && current.name.text === 'describe';
-    current = innerCallee(current);
   }
-  return current === undefined ? undefined : { name: current.text, viaDescribe };
+
+  private declared(
+    call: ts.CallExpression,
+    declaration: TestDeclaration,
+    describes: (string | null)[],
+    scope: TestScope,
+  ): void {
+    const line = this.source.getLineAndCharacterOfPosition(call.getStart(this.source)).line + 1;
+    const callback = call.arguments.find(
+      (a) => ts.isArrowFunction(a) || ts.isFunctionExpression(a),
+    );
+    for (const { title, scope: inner } of this.titles(call, declaration, callback, scope)) {
+      const entry = { title: title ?? '', describes, line, call };
+      if (title !== undefined) {
+        this.found[declaration.role === 'suite' ? 'suites' : 'tests'].push(entry);
+      }
+      const within = declaration.role === 'suite' ? [...describes, title ?? null] : describes;
+      for (const arg of call.arguments) this.visit(arg, within, inner);
+    }
+  }
+
+  // The title as written, with the callback's parameters unknown; then one for each row of
+  // a table the file writes, with the parameters bound to that row.
+  private titles(
+    call: ts.CallExpression,
+    declaration: TestDeclaration,
+    callback: ts.Expression | undefined,
+    scope: TestScope,
+  ): Titled[] {
+    const first = call.arguments[0];
+    const folded = first && scope.fold(first);
+    const title = typeof folded?.value === 'string' ? folded.value : undefined;
+    const written = [{ title, scope: withParameters(callback, undefined, scope) }];
+    if (!declaration.table || title === undefined) return written;
+    const rows = tableRows(declaration.table, title, this.runner, scope) ?? [];
+    const each = rows.map((row) => ({
+      title: row.title,
+      scope: withParameters(callback, row.args, scope),
+    }));
+    return [...written, ...each];
+  }
+
+  private loop(loop: ts.ForOfStatement, describes: (string | null)[], scope: TestScope): void {
+    const list = loop.initializer;
+    const variable = ts.isVariableDeclarationList(list) ? list.declarations[0] : undefined;
+    const items = loop.awaitModifier ? undefined : iterated(loop.expression, scope);
+    if (!variable) this.visit(loop.statement, describes, scope);
+    else if (!items) this.visit(loop.statement, describes, scope.binding(variable.name, undefined));
+    else {
+      for (const item of items) {
+        this.visit(loop.statement, describes, scope.binding(variable.name, { value: item }));
+      }
+    }
+  }
+
+  private forEach(call: ts.CallExpression, describes: (string | null)[], scope: TestScope): void {
+    const callback = call.arguments[0];
+    const receiver = (call.expression as ts.PropertyAccessExpression).expression;
+    const items = iterated(receiver, scope);
+    if (!callback || (!ts.isArrowFunction(callback) && !ts.isFunctionExpression(callback))) {
+      ts.forEachChild(call, (child) => {
+        this.visit(child, describes, scope);
+      });
+      return;
+    }
+    if (!items) this.visit(callback.body, describes, withParameters(callback, undefined, scope));
+    items?.forEach((item, index) => {
+      const bound = withParameters(callback, [item, index, items], scope);
+      this.visit(callback.body, describes, bound);
+    });
+  }
 }
 
-/** One step into a callee: what a factory's call, a tagged template or a modifier applies to. */
-function innerCallee(callee: ts.Expression): ts.Expression | undefined {
-  if (ts.isCallExpression(callee)) return factoryOf(callee.expression);
-  if (ts.isTaggedTemplateExpression(callee)) return factoryOf(callee.tag);
-  if (!ts.isPropertyAccessExpression(callee)) return undefined;
-  const name = callee.name.text;
-  return name === 'describe' || MODIFIERS.has(name) ? callee.expression : undefined;
+function isForEach(call: ts.CallExpression): boolean {
+  return ts.isPropertyAccessExpression(call.expression) && call.expression.name.text === 'forEach';
 }
 
-// `it.each(rows)` and `it.skipIf(cond)` return the declaring function; any other call in
-// callee position is not a test API.
-function factoryOf(expression: ts.Expression): ts.Expression | undefined {
-  return ts.isPropertyAccessExpression(expression) && FACTORIES.has(expression.name.text)
-    ? expression.expression
-    : undefined;
+// What `Object.entries(x)`, `Object.keys(x)` and `Object.values(x)` make of a folded object.
+const OBJECT_FUNCTIONS = new Map<string, (value: object) => unknown[]>([
+  ['entries', Object.entries],
+  ['keys', Object.keys],
+  ['values', Object.values],
+]);
+
+/** What a loop goes over, when the file writes it: an array, or `Object.entries` of one. */
+function iterated(expression: ts.Expression, scope: TestScope): unknown[] | undefined {
+  const call = objectFunction(expression);
+  const folded = scope.fold(call ? call.argument : expression)?.value;
+  if (!call) return Array.isArray(folded) ? folded : undefined;
+  return typeof folded === 'object' && folded !== null ? call.apply(folded) : undefined;
 }
 
-function literalTitle(node: ts.Expression | undefined): string | undefined {
-  if (!node) return undefined;
-  return ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)
-    ? node.text
-    : undefined;
+function objectFunction(
+  expression: ts.Expression,
+): { apply: (value: object) => unknown[]; argument: ts.Expression } | undefined {
+  if (!ts.isCallExpression(expression) || !ts.isPropertyAccessExpression(expression.expression)) {
+    return undefined;
+  }
+  const { expression: object, name } = expression.expression;
+  const [argument] = expression.arguments;
+  const apply = OBJECT_FUNCTIONS.get(name.text);
+  const isObject = ts.isIdentifier(object) && object.text === 'Object';
+  return isObject && apply && argument ? { apply, argument } : undefined;
+}
+
+// A callback's scope: each parameter bound to its argument, or unknown without arguments.
+function withParameters(
+  callback: ts.Expression | undefined,
+  args: readonly unknown[] | undefined,
+  scope: TestScope,
+): TestScope {
+  if (!callback || (!ts.isArrowFunction(callback) && !ts.isFunctionExpression(callback))) {
+    return scope;
+  }
+  return callback.parameters.reduce(
+    (inner, parameter, k) =>
+      inner.binding(parameter.name, args && k < args.length ? { value: args[k] } : undefined),
+    scope,
+  );
+}
+
+// A loop whose rows give one title twice declares that test once, at its first row.
+function distinct(found: readonly FoundTest[]): FoundTest[] {
+  const seen = new Set<string>();
+  return found.filter((test) => {
+    const key = JSON.stringify([test.describes, test.title]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

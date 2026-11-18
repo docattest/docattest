@@ -1,6 +1,8 @@
 import * as path from 'node:path';
 import type { SurfaceSpec } from '../surfaces/specs.js';
 import type { FileSource } from '../../files/source.js';
+import type ts from '../ts.cjs';
+import { moduleNames } from '../syntax/module-names.js';
 import { fingerprint } from './fingerprint.js';
 import { DependencyGraph } from './graph.js';
 import { UnitLookup } from './lookup.js';
@@ -44,19 +46,34 @@ export class Revision {
     return unit && fingerprint(unit, this.lookup, renamed);
   }
 
-  /** `surface\0name` → the units each export of each surface stands for. */
+  /**
+   * `surface\0name` → the units each export of each surface stands for, and each constant
+   * of its module a fact may read from source (exported or not) for its own unit.
+   */
   exports(): Map<string, Set<string>> {
     const out = new Map<string, Set<string>>();
     const { program, checker } = this.lookup;
     for (const [surface, entry] of this.entries) {
       const source = program.getSourceFile(entry);
-      const module = source && checker.getSymbolAtLocation(source);
+      if (!source) continue;
+      const module = checker.getSymbolAtLocation(source);
       for (const symbol of module ? checker.getExportsOfModule(module) : []) {
         const keys = this.lookup.keysOfSymbol(this.lookup.resolveAlias(symbol));
         out.set(`${surface}\0${symbol.name}`, new Set(keys));
       }
+      for (const [name, key] of this.constantUnits(source)) {
+        out.set(`${surface}\0${name}`, new Set([key]));
+      }
     }
     return out;
+  }
+
+  private constantUnits(source: ts.SourceFile): [string, string][] {
+    const { owner } = this.lookup.units(source);
+    return [...moduleNames(source)].flatMap(([name, declared]) => {
+      const key = declared.kind === 'constant' ? owner.get(declared.declaration) : undefined;
+      return key === undefined ? [] : [[name, key] as [string, string]];
+    });
   }
 
   /** Exports that are, or depend on, a changed unit. */

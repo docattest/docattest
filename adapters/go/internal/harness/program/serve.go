@@ -1,6 +1,7 @@
 package program
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,6 +17,7 @@ type docattestJob struct {
 		Data map[string]any `json:"data"`
 	} `json:"snapshots"`
 	Manifests map[string]map[string]any `json:"manifests"`
+	Texts     map[string]string         `json:"texts"`
 	Cases     docattestTable            `json:"cases"`
 }
 
@@ -42,10 +44,7 @@ func docattestStart() int {
 	if len(os.Args) != 4 {
 		docattestStop("usage: <job.json> <results> <first item>")
 	}
-	text, err := os.ReadFile(os.Args[1])
-	if err == nil {
-		err = json.Unmarshal(text, &docattestTold)
-	}
+	err := docattestReadJob(os.Args[1])
 	if err != nil {
 		docattestStop(err.Error())
 	}
@@ -56,6 +55,31 @@ func docattestStart() int {
 	docattestRefuseNetwork()
 	first, _ := strconv.Atoi(os.Args[3])
 	return first
+}
+
+// docattestReadJob reads the job, the numbers of its snapshots and manifests as
+// DocattestNumbers reads them.
+func docattestReadJob(path string) error {
+	text, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(text))
+	decoder.UseNumber()
+	if err := decoder.Decode(&docattestTold); err != nil {
+		return err
+	}
+	for name, data := range docattestTold.Snapshots.Data {
+		if docattestTold.Snapshots.Data[name], err = DocattestNumbers(data); err != nil {
+			return fmt.Errorf("snapshot %q: %w", name, err)
+		}
+	}
+	for name, data := range docattestTold.Manifests {
+		if _, err := DocattestNumbers(data); err != nil {
+			return fmt.Errorf("manifest %q: %w", name, err)
+		}
+	}
+	return nil
 }
 
 func docattestStop(why string) {
@@ -101,7 +125,8 @@ func docattestGuarded(k int, item func(k int) any) (line docattestLine) {
 }
 
 // snapshot is the data of a snapshot of the project, as encoding/json reads JSON into
-// an `any`. A fact expression calls it by this name.
+// an `any` but for its numbers, which are as DocattestNumbers reads them. A fact
+// expression calls it by this name.
 func snapshot(name string) any {
 	data, found := docattestTold.Snapshots.Data[name]
 	if !found {
@@ -115,13 +140,26 @@ func snapshot(name string) any {
 }
 
 // manifest is the data of a manifest of the project, as encoding/json reads a JSON object
-// into a map, so that a fact indexes it at once: manifest("go.mod")["go"]. A fact
-// expression calls it by this name. The core reads a manifest only when a fact writes its
-// path out; one built at run time was never read.
+// into a map, so that a fact indexes it at once: manifest("go.mod")["go"]; its numbers
+// are as DocattestNumbers reads them. A fact expression calls it by this name. The core
+// reads a manifest only when a fact writes its path out; one built at run time was never
+// read.
 func manifest(path string) map[string]any {
 	data, found := docattestTold.Manifests[path]
 	if !found {
 		panic(fmt.Sprintf("manifest %q was not read: name it in the fact itself, as manifest(%q)", path, path))
 	}
 	return data
+}
+
+// file is the text of a file of the project, so that a fact reads it with the strings and
+// regexp packages: regexp.MustCompile(`USER (\d+)`).FindStringSubmatch(file("Dockerfile"))[1].
+// A fact expression calls it by this name. The core reads a file only when a fact writes
+// its path out, as it does a manifest.
+func file(path string) string {
+	text, found := docattestTold.Texts[path]
+	if !found {
+		panic(fmt.Sprintf("file %q was not read: name it in the fact itself, as file(%q)", path, path))
+	}
+	return text
 }

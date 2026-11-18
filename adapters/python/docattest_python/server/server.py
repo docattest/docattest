@@ -251,6 +251,7 @@ TEXT_METHODS: dict[str, Callable[[ModuleType, Params], object]] = {
     "docProse": lambda language, p: language.doc_prose(p.sources("files")),
     "mentions": lambda language, p: language.mentions(p.strings("spans"), p.strings("symbols")),
     "expressions": lambda language, p: language.expressions(p.strings("expressions")),
+    "display": lambda language, p: language.display(p.array("values")),
 }
 
 #: The questions about the project, answered by the session ``open`` created.

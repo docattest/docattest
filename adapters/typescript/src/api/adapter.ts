@@ -119,6 +119,8 @@ export interface AdapterContext {
   snapshots: { dir: string | undefined; data: ReadonlyMap<string, unknown> };
   /** The data of each manifest the facts name, by the path as they write it. */
   manifests: ReadonlyMap<string, unknown>;
+  /** The text of each file the facts read with `file`, by the path as they write it. */
+  texts: ReadonlyMap<string, string>;
   /** The examples this session will compile; the program is built around them. */
   examples: readonly ExampleAttestation[];
 }
@@ -231,6 +233,11 @@ export interface LanguageDescription {
   mentions(spans: readonly string[], symbols: readonly string[]): Promise<(string | null)[]>;
   /** The shape and the names of each fact expression. */
   expressions(expressions: readonly string[]): Promise<ExpressionShape[]>;
+  /**
+   * Each value of a data block, as JSON holds it, displayed as a fact's value of the same value
+   * is: what a `field=` fact compares.
+   */
+  display(values: readonly unknown[]): Promise<string[]>;
 }
 
 /** The whole language: its description, how to find its examples, and its sessions. */

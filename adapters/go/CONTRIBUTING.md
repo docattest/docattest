@@ -1,9 +1,12 @@
 # Working on the Go package
 
-The two commands are thin `main`s under `cmd/`. Everything else is in `internal/`, one
-package per responsibility, and dependencies point one way: from the commands, through the
-session, to the analysis and the runner, and from there to the protocol's types and the go
-command. The packages: <!-- fact: Packages() -->
+The two commands are thin `main`s under `cmd/`, and `cells` is the one package a user's
+code imports: the setup package of a user's pages reads the code spans of a cases table's
+cells with it ([cases tables](docs/cases.md)). It
+imports only the standard library. <!-- test: endtoend/cells_test.go > "TestCellsImportsOnlyTheStandardLibrary" -->
+Everything else is in `internal/`, one package per responsibility, and dependencies point
+one way: from the commands, through the session, to the analysis and the runner, and from
+there to the protocol's types and the go command. The packages: <!-- fact: Packages() -->
 - **`launcher`** finds the core, works out the hand-over (how to start the adapter, what
   command runs docattest) and becomes the core.
 - **`bundled`** is the core a launcher carries inside itself: nothing in a checkout; a
@@ -22,10 +25,11 @@ command. The packages: <!-- fact: Packages() -->
   testable examples.
 - **`session`** is the project `open` creates. It answers each method from one of the two
   packages that follow.
-- **`analysis`** reads the project from syntax and never compiles or runs it: its module
-  and surfaces, `symbols`, `tests`, `affected` and `inCode`. It reads files through an
-  interface it is given, so the project at a base revision is read by the same code as the
-  working tree.
+- **`analysis`** loads the project with `golang.org/x/tools/go/packages` and type-checks it
+  from source, and never compiles or runs it: its module and surfaces, `symbols`,
+  `affected` and `inCode`, and the constants facts read from source; `tests` it reads from
+  syntax. The project at a base revision is the working tree with the changed files put
+  back through the loader's overlay, so it is read by the same code.
 - **`running`** builds and runs attested code: blocks of pages, testable examples of source
   files, and the programs it generates for facts, cases tables and `observables`. What it
   knows of the project it asks the analysis.
@@ -33,17 +37,18 @@ command. The packages: <!-- fact: Packages() -->
 - **`harness`** is the Go source compiled into generated programs: `program/` is an
   ordinary package, tested here, whose files are embedded as text and written beside a
   generated `main`.
-- **`guide`** is the setup of the [guide](README.md) and this page, which docattest checks
-  with this adapter ([docattest.config.json](docattest.config.json)): the runners of the
-  guide's cases tables, and what the facts of this page read by name. The facts read the
-  internal packages as their surfaces, and `go.mod` as a manifest.
+- **`guide`** is the setup of the guide ([README.md](README.md) and the pages of
+  [docs/](docs/examples.md)) and this page, which docattest checks with this adapter
+  ([docattest.config.json](docattest.config.json)): the runners of the guide's cases
+  tables, and what the facts of these pages read by name. The facts read the internal
+  packages as their surfaces, and `go.mod` as a manifest.
 
 `conformance.json` is this adapter's kit for the protocol's conformance suite,
 `endtoend/` tests the two commands as built, and `testdata/fixture/` is a small Go project
-the tests and the smoke test check. `endtoend/` also checks the guide and this page; the
-page the guide shows under "A page" is an `md check` block, checked as a page of the
-fixture. <!-- test: endtoend/guide_test.go > "TestTheGuideHolds" --> This directory is one of the `members` of the repository's root config, so the
-one `docattest check` at the root checks both pages too.
+the tests and the smoke test check. `endtoend/` also checks the guide's pages and this
+one; the page the guide shows under "A page" is an `md check` block, checked as a page of
+the fixture. <!-- test: endtoend/guide_test.go > "TestTheGuideHolds" --> This directory is one of the `members` of the repository's root config, so the
+one `docattest check` at the root checks these pages too.
 
 ## Tests
 
@@ -58,6 +63,8 @@ builds both commands and runs the core's conformance suite with this adapter's k
 real core on the fixture through the launcher (both skipped unless a core is found:
 `DOCATTEST_CORE`, <!-- fact @launcher: CoreVariable --> or `core/target/release/docattest`
 of this repository). It also builds a launcher with a core inside it, from a stand-in core module, and runs it where there is no other core. <!-- test: endtoend/carried_test.go > "TestALauncherBuiltWithItsCoreNeedsNothingElse" -->
+And it holds `cells` to the core: each of a list of cells is a table whose column fact
+lists what `CodeSpans` gives for it, so a cell the two read differently fails. <!-- test: endtoend/cells_test.go > "TestCodeSpansAreWhatAColumnFactCompares" -->
 `internal/protocoldata` fails when the package's copy of the protocol data differs from
 `protocol/` at the root of the repository, <!-- test: internal/protocoldata/protocoldata_test.go > "TestTheCopyIsTheSource" -->
 and `internal/platform` when its names disagree with the platforms listed there. <!-- test: internal/platform/platform_test.go > "TestThePlatformsOfTheCore" -->

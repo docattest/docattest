@@ -17,7 +17,7 @@ describe('the adapter server', () => {
         exclude: ['**/*.d.{ts,mts,cts}'],
       },
       ignoredNames: ['node_modules'],
-      capabilities: ['tests', 'observables', 'affected'],
+      capabilities: ['tests', 'observables', 'affected', 'display'],
     });
     expect(byId(x, 1)?.error).toEqual({
       kind: 'user',

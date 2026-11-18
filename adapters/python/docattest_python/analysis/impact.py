@@ -1,4 +1,5 @@
-"""``affected``: the surface exports a change to the code affects.
+"""``affected``: the surface exports a change to the code affects, and the constants a
+fact reads from source, which are attested as exports are.
 
 A module is cut into units: each top-level function, class and assigned name is one, and
 the statements that are none of these form one more, the module's side effects at import.
@@ -23,6 +24,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from . import surfaces as surface_rules
+from .constants import constants
 from .modules import TOP_LEVEL, Declaration, Module, ModuleImport
 from .names import chains
 from .project import Project
@@ -153,7 +155,8 @@ class Revision:
         return out
 
     def exports(self) -> dict[str, str | None]:
-        """Each surface export → the key of the unit it refers to."""
+        """Each surface export, and each constant of a surface that a fact reads from
+        source, exported or not → the key of the unit it refers to."""
         out: dict[str, str | None] = {}
         for s in self.surfaces:
             if s.module is None:
@@ -161,6 +164,8 @@ class Revision:
             for name in self.project.exports(s.module):
                 target, declared = self.project.origin(s.module, name)
                 out[f"{s.name}\0{name}"] = self.key(target, declared) if target is not None else None
+            for name in constants(s.module):
+                out[f"{s.name}\0{name}"] = self.key(s.module, name)
         return out
 
     def reaching(self, exports: dict[str, str | None], changed: set[str]) -> set[str]:

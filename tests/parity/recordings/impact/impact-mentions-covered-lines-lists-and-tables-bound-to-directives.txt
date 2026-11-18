@@ -1,9 +1,9 @@
 # impact mentions: covered lines, lists and tables bound to directives
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 17 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 KEYS
   docs/a.md:3 proven fact  The `KEYS` are these:
   docs/a.md:7 mention (unproven)  Later `KEYS` again, and `add`.

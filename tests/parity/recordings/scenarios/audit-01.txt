@@ -1,5 +1,5 @@
 # audit-01
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === audit --json
 exit 0
 stdout 19 lines
@@ -25,7 +25,7 @@ stdout 19 lines
 stderr empty
 === check --json
 exit 0
-stdout 38 lines
+stdout 39 lines
 {
   "results": [],
   "coverage": {
@@ -36,6 +36,7 @@ stdout 38 lines
     ],
     "frozen": [],
     "attestations": 0,
+    "proofs": 0,
     "weak": 0,
     "cited": 0
   },

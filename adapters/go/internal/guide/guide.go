@@ -1,6 +1,6 @@
-// Package guide is the setup of this package's README and CONTRIBUTING, which docattest
-// checks with this adapter (../../docattest.config.json): the runners of the README's cases
-// tables, and what a fact of either reads by name.
+// Package guide is the setup of this package's guide (its README and the pages of docs/)
+// and CONTRIBUTING, which docattest checks with this adapter (../../docattest.config.json):
+// the runners of the guide's cases tables, and what a fact of any of them reads by name.
 package guide
 
 import (
@@ -10,13 +10,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/docattest/docattest/adapters/go/cells"
 	"github.com/docattest/docattest/adapters/go/internal/language"
 	"github.com/docattest/docattest/adapters/go/internal/launcher"
 	"github.com/docattest/docattest/adapters/go/internal/platform"
 	"github.com/docattest/docattest/adapters/go/internal/protocoldata"
 )
 
-// Cases are the runners of the README's cases tables, by name.
+// Cases are the runners of the guide's cases tables, by name.
 var Cases = map[string]func(row map[string]string) error{
 	"cache": cache,
 	"weak":  weak,
@@ -110,8 +111,11 @@ func weak(row map[string]string) error {
 	if !ok {
 		return fmt.Errorf("weak is yes or no, not %q", row["weak"])
 	}
-	block := strings.Trim(row["block"], "`")
-	if got := !language.Asserts(block); got != want {
+	spans := cells.CodeSpans(row["block"])
+	if len(spans) != 1 {
+		return fmt.Errorf("a block is one code span, not %q", row["block"])
+	}
+	if got := !language.Asserts(spans[0]); got != want {
 		return fmt.Errorf("expected weak %v, got %v", want, got)
 	}
 	return nil

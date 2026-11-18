@@ -2,7 +2,7 @@
 // a fresh directory, and its `docattest` checks the Go fixture with nothing told to it: the
 // core is the one beside the launcher, and the adapter the one beside it too.
 import process from 'node:process';
-import { cpSync, mkdirSync, readdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, sep } from 'node:path';
 import { expect } from './expect.ts';
 import { PLATFORM, WINDOWS } from './machine.ts';
@@ -40,6 +40,7 @@ export function goProject(
   installed: string,
   { fixture, version, steps, env, from }: StepContext & { fixture: string; version: string },
 ): void {
+  expect(existsSync(join(installed, 'docs', 'facts.md')), "the guide's pages are beside it");
   cpSync(fixture, project, { recursive: true });
   const active = pathFirst(env, installed);
   const docattest = join(installed, WINDOWS ? 'docattest.exe' : 'docattest');

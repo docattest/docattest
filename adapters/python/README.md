@@ -102,8 +102,7 @@ python3 -m docattest check --root adapters/python/tests/fixture
 `docattest hooks install`, `hooks install --git` and `agents install` write down a command
 that runs docattest without Node: the virtualenv's own script when the virtualenv is inside
 the project, else `docattest` when that is the script the `PATH` finds, else the script by
-its full path, else this interpreter by its full path (`python -m docattest`).
-<!-- test: tests/test_launcher.py > "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" -->
+its full path, else this interpreter by its full path (`python -m docattest`). <!-- test: tests/test_launcher.py > "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" -->
 The launcher knows no coding agent. For a virtualenv inside the project it says
 `{root}/.venv/bin/docattest`, and the core writes the root as the reader of the command
 names it: `"$CLAUDE_PROJECT_DIR"/.venv/bin/docattest impact --hook` in a hook of Claude
@@ -145,6 +144,10 @@ split on spaces.
     `shoplib.shipping`: the path from the first directory without an `__init__.py`);
   - both, `{ "import": "shoplib", "path": "build/lib/shoplib/__init__.py" }`: examples
     import `import`, and it is read from `path`.
+
+  A surface may be a program, a `__main__.py` (`"shopd": "./src/shopd/__main__.py"`):
+  importing it would run it, so its constants are all that facts read of it (see
+  [Facts](#facts), below).
 - **What a surface exports** is its `__all__` when that is written out as a list. Otherwise
   it is the module's public names: every function, class and assigned name that does not
   start with `_`, and, in a package's `__init__.py`, what it imports from its own package
@@ -322,18 +325,50 @@ def apply_discount(price: Money, percent: int) -> Money:
 
 ### Facts
 
-A fact expression is a Python expression over the surface's exports:
+A fact expression is a Python expression over the surface's exports and constants:
 
 ```markdown
 At most `3` attempts. <!-- fact: RETRY_DEFAULTS["max_attempts"] -->
 The rates: <!-- fact column=rate: [f"{r}%" for r in TAX_RATES.values()] -->
 ```
 
-It may use the exports, the builtins, `snapshot("name")`, `manifest("path")`, the named
-facts of the setup module, and any standard-library module by its name (`math.pi`,
-`inspect.signature(f).parameters`): a fact cannot `import`. It may `await`. A name the
-surface does not export is an error, which is what keeps a page honest about what a user
-can see.
+It may use the exports, the constants (below), the builtins, `snapshot("name")`,
+`manifest("path")`, `file("path")`, the named facts of the setup module, and any
+standard-library module by its name (`math.pi`, `inspect.signature(f).parameters`): a fact
+cannot `import`. It may `await`.
+
+A fact reads a constant from the source of its surface's module, exported or not
+(`_PORT`, a name left out of `__all__`), since a module's most documented values, its port
+or its default timeout, are often private, or in a script that runs when it is imported. <!-- test: tests/test_constants.py > "Constants" > "test_a_fact_reads_constants_from_source" -->
+A constant is a name the module assigns once, in a statement of its own top level (not
+inside an `if`, `try` or `with`), to a constant expression: a literal as `ast.literal_eval`
+reads one, the name of a constant assigned before it, `+` or `-` before a number,
+`+ - * / // %` between numbers, or `+` between two strings, two bytes, two tuples or two
+lists. Its value is the one that assignment writes; nothing that changes it later runs. <!-- test: tests/test_constants.py > "Constants" > "test_what_is_a_constant" -->
+
+```python
+# src/shopd/server.py
+import os
+
+PORT = 8080                         # a constant
+_TIMEOUT = 30 * 60                  # a constant: 1800
+_BASE = "https://" + "shop.example" # a constant
+_STARTED = os.getpid()              # a variable: it calls something
+```
+
+A fact that reads only constants does not import its surface, so nothing of the module
+runs. A fact that reads any other export imports it, and when that import fails, only such
+facts fail. <!-- test: tests/test_constants.py > "Constants" > "test_nothing_of_the_module_runs_unless_a_fact_reads_something_else" -->
+A function, class or variable that the module declares and does not export is an error that
+says only constants are read there (`_STARTED is a variable that surface "default" does
+not export; of its unexported names, a fact reads only constants`), and so is a name the
+surface does not have (`_round is not exported by surface "default"` in the report above):
+that is what keeps a page honest about what a user can see. Of a program, a `__main__.py`,
+a fact reads only constants, exported or not, and `audit` offers its exported constants. <!-- test: tests/test_constants.py > "Constants" > "test_only_constants_are_read_from_source" --> <!-- test: tests/test_constants.py > "Constants" > "test_a_program_offers_its_exported_constants_without_running" -->
+A fact attests the constants it reads, exported or not, as `where` shows; `uncovered`
+lists only exports. <!-- test: tests/test_constants.py > "Constants" > "test_a_fact_attests_the_constants_it_reads" -->
+So `impact` lists a change to a constant as it lists a change to an export, with the facts
+that read it. <!-- test: tests/test_constants.py > "ImpactOfConstants" > "test_impact_lists_a_constant_with_the_facts_that_read_it" -->
 
 `manifest("pyproject.toml")` is the data of a project file, read and parsed by the core
 (JSON, TOML, YAML and `go.mod`; the [manifests](../../docs/manifests.md) page has the details),
@@ -342,12 +377,34 @@ and the Python version at the top of this page are read so, on any Python the pa
 supports, `tomllib` or not. The path is relative to the project root and written out in
 the fact: a path built at run time is never read.
 
+`file("path")` is the text of any other project file, a `str`, read by the same rules, for
+the methods of `str` and for `re`: the script that runs the adapter from a checkout names
+its interpreter `python3`. <!-- fact: re.match(r"#!/usr/bin/env (\S+)", file("bin/docattest-adapter-python"))[1] -->
+
 The page's literal is compared with `str(value)`: a value is displayed as its language
 displays it, and the core knows no spelling of its own. So write values the way Python
 prints them: `True`, `None`, `1.0`, `('a', 1)`. A list on the page is compared with the items of
 any iterable, each through `str`. A dict's items are its keys, as iterating it gives them:
 `<!-- fact: TAX_RATES -->` above a list checks the keys. A set has no order, so do not
 combine one with `fact ordered`.
+
+A fact with `field=` checks one value of a JSON, TOML or YAML block
+([facts](../../docs/facts.md#a-fact-can-check-one-field-of-a-data-block)), which is
+written as its format writes values. The adapter shows the block's value as Python shows
+what `json` reads it as, so it compares with the fact's as the same value: `true` is
+`True`, `null` is `None`, `1` is an `int` and `1.0` a `float`.
+
+~~~~markdown check fixture=tests/fixture
+The shop's settings, which match the library's defaults:
+
+<!-- fact field=currency: DEFAULT_CURRENCY -->
+<!-- fact field=maxDiscount: MAX_DISCOUNT -->
+<!-- fact field=taxed: "NL" in TAX_RATES -->
+
+```json
+{ "currency": "EUR", "maxDiscount": 50, "taxed": true }
+```
+~~~~
 
 ### Cases tables and named facts: the setup module
 
@@ -371,6 +428,38 @@ facts = {"error_messages": lambda: list(ERROR_CODES.values())}
 expression may use (`<!-- fact: error_messages() -->`). A runner may be `async`. Asserts
 in the setup module report both sides, like asserts in a block.
 
+A runner gets each cell's text as the page writes it, code spans included: a cell
+`` `print(1)` `` reaches it with its backticks
+([docs/cases.md](../../docs/cases.md#a-runner-receives-each-cell-as-written)).
+`docattest.cells.code_spans` takes the code out: the content of every code span in a cell,
+in order, as a fact over the cell's column compares it. <!-- test: tests/test_cells.py > "CodeSpans" > "test_code_spans_are_what_a_column_fact_compares" -->
+
+```python check
+from docattest.cells import code_spans
+
+assert code_spans("`FOO=1` `BAR=2`") == ["FOO=1", "BAR=2"]
+assert code_spans("``a`b`` or `` `c` ``") == ["a`b", "`c`"]
+assert code_spans("no code") == []
+```
+
+A span opens with a run of backticks and closes at the next run of as many, and the white
+space around its content is dropped. As CommonMark has it, a backtick escaped with a
+backslash opens no span, and neither does one inside an HTML tag or comment, an autolink,
+or a link's destination or title. <!-- test: tests/test_cells.py > "CodeSpans" > "test_code_spans" -->
+The module is part of the `docattest` distribution, so a setup module imports it from the
+environment its code runs in: install `docattest` there, as you do to run it. This guide's
+runners read their cells so ([docattest_setup.py](docattest_setup.py)).
+
+A row is named by the page, its line and its first cell. A table's rows run one after
+another, in the page's order, in one process, which runs the setup module once. Module
+globals, and anything a row starts and does not stop (threads, and the servers they run;
+signal handlers), are still there for the rows after it, so a runner stops what it starts
+before it returns. A row that raises fails, `SystemExit` too, and the next row runs in the
+same process. A row that runs out of time or ends the process (`os._exit`) is the last of
+its process: the next row starts a fresh one, which runs the setup module again. <!-- test: tests/test_cases_rows.py > "CasesRows" > "test_a_tables_rows_share_its_process" -->
+Tables never share a process, and run side by side, with each other and with blocks:
+`runtime.workers` processes at once in all. <!-- test: tests/test_cases_rows.py > "CasesRows" > "test_tables_run_side_by_side_and_never_share_a_process" -->
+
 ### Citations
 
 `<!-- test: tests/test_pricing.py > "TestTotals" > "test_rejects_big_discounts" -->` ties
@@ -379,6 +468,36 @@ name starts with `test`, as pytest and unittest find them. <!-- test: tests/test
 first, outermost first. Citing a class itself is an error that says so
 (`"TestTotals" in tests/test_pricing.py is a class, not a test`). The file is read, never
 run.
+
+The cases of a parametrized test, and the subtests of a test, can be cited too: each is a
+test inside its test, titled by the id its runner prints for it, so the case that pytest
+reports as `test_total[big discount]` is cited as `"test_total" > "big discount"`, the way
+a test inside a class is.
+
+- **`@pytest.mark.parametrize`.** A case's id is the one written out, in `ids=[...]` or in
+  `pytest.param(..., id="...")`, or else the one pytest makes of a literal value: a string
+  or bytes with what is not printable ASCII escaped; a number, `True`, `False` or `None` as
+  `str` writes it; `<argname><index>` for a tuple, list, set or dict. A row's ids are joined
+  with `-`, and so are those of stacked decorators, the one nearest the function first,
+  then those on its classes. The rows are a list or tuple written in the decorator or
+  assigned once to a name of the module. <!-- test: tests/test_citations.py > "Citations" > "test_the_cases_of_parametrized_tests" -->
+- **`with self.subTest(...)`.** A case is titled by what unittest prints for it: its
+  message (`subTest("big discount")`), its parameters as unittest writes them
+  (`subTest(region="NL")` is `region='NL'`), or both (`NL (rate=21)`). Each argument is a
+  literal, or comes from the row of a `for` loop over a literal table, written in the loop
+  or assigned once to a name of the method or of the module: one of the loop's names, an
+  item of one (`case["name"]`, `case[0]`), or a key of a literal dict's `.items()`. <!-- test: tests/test_citations.py > "Citations" > "test_the_cases_of_subtests" -->
+  This guide cites one of this package's own:
+  `code_spans` reads two spans from a cell that holds a backtick. <!-- test: tests/test_cells.py > "CodeSpans" > "test_what_a_runner_reads_of_a_cell" > "a longer run holds a backtick" -->
+
+What cannot be read so cannot be cited: a value that is not a literal, ids a function
+makes, a table changed after it is assigned (`CASES.append(…)`), a subtest inside another,
+and ids that repeat, which pytest renames by rules that change between its versions. No case
+of a test under a `pytestmark` that parametrizes can be cited. <!-- test: tests/test_citations.py > "Citations" > "test_a_pytestmark_that_parametrizes_hides_the_cases" -->
+The test itself still can, and a citation of a case that is not there names the ones that
+are (`tests/test_p.py declares no test "test_named" > "large"; tests there: "test_named",
+"test_named" > "small", …`). <!-- test: tests/test_citations.py > "Citations" > "test_a_case_is_cited_by_its_id" -->
+A case attests what its test uses. <!-- test: tests/test_citations.py > "Citations" > "test_a_case_attests_what_its_test_uses" -->
 
 ## Which Python runs your code
 

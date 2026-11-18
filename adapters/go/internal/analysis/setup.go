@@ -3,6 +3,7 @@ package analysis
 import (
 	"go/ast"
 	"go/token"
+	"go/types"
 )
 
 // The setup of a Go project is a package of its module, named in the config by its
@@ -19,7 +20,7 @@ func (p *Project) setupPackage() *goPackage {
 	if p.Setup == "" {
 		return nil
 	}
-	return p.packages.at(p.packageDir(p.Setup))
+	return p.tree().at(p.packageDir(p.Setup))
 }
 
 // SetupImport is the import path of the setup package; empty when it is in no module.
@@ -80,33 +81,35 @@ func callableAlone(f *ast.FuncDecl) bool {
 	return len(params) == 1 && len(params[0].Names) <= 1 && variadic
 }
 
-// reached is a piece of code and the package's top-level functions, variables and
-// constants it names, at any depth, in the order they are first named: a runner's work is
-// also in the helpers it calls and the tables it reads. The declaration named `skip` is
+// reached is a piece of code and the package's top-level functions, methods, variables
+// and constants it uses, at any depth, in the order they are first used: a runner's work
+// is also in the helpers it calls and the tables it reads. The declaration of `skip` is
 // never followed (the Cases table, which names every runner).
-func (pkg *goPackage) reached(start code, skip string) []code {
-	seen := map[ast.Node]bool{start.node: true}
-	if decl, found := pkg.topLevel[skip]; found {
-		seen[decl.node] = true
-	}
-	out := []code{start}
-	var visit func(ast.Node) bool
-	visit = func(n ast.Node) bool {
-		switch x := n.(type) {
-		case *ast.SelectorExpr:
-			// `pkg.Name` and `value.Field` name nothing of this package after the dot.
-			ast.Inspect(x.X, visit)
-			return false
-		case *ast.Ident:
-			if decl, found := pkg.topLevel[x.Name]; found && !seen[decl.node] {
-				seen[decl.node] = true
+func (pkg *goPackage) reached(start ast.Node, skip types.Object) []ast.Node {
+	seen := map[ast.Node]bool{start: true, pkg.declaredBy[skip]: true}
+	out := []ast.Node{start}
+	visit := func(n ast.Node) bool {
+		if name, isName := n.(*ast.Ident); isName {
+			if decl := pkg.declaredBy[origin(pkg.Info.Uses[name])]; decl != nil && !seen[decl] {
+				seen[decl] = true
 				out = append(out, decl)
 			}
 		}
 		return true
 	}
 	for k := 0; k < len(out); k++ {
-		ast.Inspect(out[k].node, visit)
+		ast.Inspect(out[k], visit)
 	}
 	return out
+}
+
+// origin is the object a generic one was instantiated from, or the object itself.
+func origin(object types.Object) types.Object {
+	switch generic := object.(type) {
+	case *types.Func:
+		return generic.Origin()
+	case *types.Var:
+		return generic.Origin()
+	}
+	return object
 }

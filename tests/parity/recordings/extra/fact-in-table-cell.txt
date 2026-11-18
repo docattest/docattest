@@ -1,8 +1,8 @@
 # fact in table cell
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === check --json
 exit 0
-stdout 47 lines
+stdout 48 lines
 {
   "results": [
     {
@@ -24,6 +24,7 @@ stdout 47 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 1,
+    "proofs": 1,
     "weak": 0,
     "cited": 0
   },

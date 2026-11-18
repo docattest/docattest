@@ -13,8 +13,9 @@ change will affect.
 ## `where` lists the pages, lines and claims for a symbol
 
 The claim is the prose the attestation defends: for a directive that ends a sentence, that
-sentence's paragraph, list item or heading up to the directive; for a fenced block or a
-directive on its own line, the paragraph or heading immediately before it.
+sentence's paragraph, list item or heading up to the directive; for a directive alone on the
+line directly above a sentence, that sentence; for a fenced block or any other directive on
+its own line, the paragraph or heading immediately before it.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -30,7 +31,9 @@ const project = createProject({
       "import { retry } from 'docattest-fixture';",
       "assert.equal(await retry(async () => 'ok'), 'ok');",
       '```', '',
-      'A call is retried at most `3` times. <!-- fact: RETRY_DEFAULTS.maxAttempts -->',
+      'A call is retried at most `3` times. <!-- fact: RETRY_DEFAULTS.maxAttempts -->', '',
+      '<!-- fact: RETRY_DEFAULTS.maxAttempts -->',
+      'It gives up after `3` attempts. Then it throws.',
     ].join('\n'),
   },
 });
@@ -46,6 +49,8 @@ const defaults = await project.where('RETRY_DEFAULTS');
 assert.equal(defaults[0].kind, 'fact');
 assert.equal(defaults[0].line, 10);
 assert.equal(defaults[0].claim, 'A call is retried at most `3` times.');
+assert.equal(defaults[1].line, 12);
+assert.equal(defaults[1].claim, 'It gives up after `3` attempts.');
 ```
 
 ## The claim comes from the attestation's own container
@@ -136,6 +141,88 @@ const report = await project.check();
 assert.equal(report.surfaces.default.symbols, 3);
 assert.equal(report.surfaces.default.attested, 1);
 assert.deepEqual(report.surfaces.default.unattested, ['Shape', 'b']);
+```
+
+## Symbols not meant to be documented are counted apart
+
+Some exports are plumbing that readers never call. The config's `undocumented` names them,
+by surface, as globs over the names `uncovered` prints, and `uncovered` leaves out those no
+page attests. The surface line counts them after the ones left to attest, and a glob that
+matches no symbol the surface exports is a warning, so the list cannot go stale unseen. A
+symbol a glob matches that a page attests anyway is counted as attested, like any other.
+Here it is for [docs/.fixtures/undocumented](.fixtures/undocumented), whose config gives
+`["internal*", "Program*", "debug*"]` for its `default` surface, and whose page attests
+`RATE` and `ProgramName`:
+
+```console check cwd=docs/.fixtures/undocumented
+$ docattest uncovered
+quote
+$ docattest check
+docs/shipping.md
+  ✓ L3 fact: RATE is 3
+  ✓ L5 fact: ProgramName is shop
+results: 2 pass, 0 fail, 0 error, 0 skipped
+coverage: 1 living page, 1 covered (2 attestations: 2 proofs, 0 of them weak, and 0 citations), 0 uncovered, 0 frozen
+warning: "undocumented.default" has "debug*", which matches no symbol
+surface default: 4 symbols, 2 attested, 1 not attested by any page, 1 not meant to be documented
+  shop → src/index.ts (shop)
+snapshots: none
+ok
+```
+
+When no symbol is left to attest, `uncovered` says so, and, when the config gives the
+surface a glob, says that the rest are not meant to be documented:
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-undocumented-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('src/index.ts', 'export const a = 1;\nexport const internalB = 2;');
+put('docs/a.md', 'a is `1`. <!-- fact: a -->');
+const uncovered = (undocumented: Record<string, string[]>) => {
+  put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript', undocumented }));
+  return spawnSync(process.execPath, [cli, 'uncovered'], { cwd: root, encoding: 'utf8' }).stdout;
+};
+// ---cut---
+assert.equal(uncovered({ default: ['internal*'] }), 'every public symbol is attested or not meant to be documented\n');
+assert.equal(uncovered({}), 'internalB\n');
+put('docs/b.md', 'b is `2`. <!-- fact: internalB -->');
+assert.equal(uncovered({}), 'every public symbol is attested\n');
+```
+
+The report object lists them in the surface's `undocumented`, which is there only when the
+config gives that surface a glob; `unattested` holds the rest. A name in `undocumented` that
+is not one of the config's surfaces is a config error.
+
+```ts check
+import { createProject } from 'docattest';
+
+const files = (undocumented: Record<string, string[]>) => ({
+  'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript', undocumented }),
+  'src/index.ts': `export const a = 1;\nexport const b = 2;\nexport const internalC = 3;`,
+  'docs/a.md': 'a is `1`. <!-- fact: a -->',
+});
+
+const report = await createProject({ files: files({ default: ['internal*'] }) }).check();
+assert.equal(report.surfaces.default.symbols, 3);
+assert.equal(report.surfaces.default.attested, 1);
+assert.deepEqual(report.surfaces.default.unattested, ['b']);
+assert.deepEqual(report.surfaces.default.undocumented, ['internalC']);
+assert.equal(report.warnings, undefined);
+
+const none = await createProject({ files: files({}) }).check();
+assert.equal(none.surfaces.default.undocumented, undefined);
+
+await assert.rejects(
+  createProject({ files: files({ server: ['internal*'] }) }).check(),
+  /"undocumented" has "server", which is not a surface \(configured: default\)/,
+);
 ```
 
 ## The index is the whole map and is never written to disk

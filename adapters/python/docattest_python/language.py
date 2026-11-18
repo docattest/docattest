@@ -1,5 +1,6 @@
 """What Python says of itself without a project: the data of ``hello`` and the questions
-about text (``assertions``, ``docProse``, ``docComments``, ``mentions``, ``expressions``).
+about text (``assertions``, ``docProse``, ``docComments``, ``mentions``, ``expressions``,
+``display``).
 
 Nothing here imports project code, starts a process or reads a file.
 """
@@ -10,6 +11,7 @@ import re
 from typing import TYPE_CHECKING, NamedTuple, cast
 
 from . import __version__
+from .workers.docattest_worker.values import safe_str
 
 if TYPE_CHECKING:
     # Imported where they are used: ``hello`` is answered before either is loaded.
@@ -30,7 +32,7 @@ IGNORED_MARKERS = ["pyvenv.cfg"]
 #: Info-string words of this adapter's own; the core passes them on in an example's tags.
 CONTINUE = "continue"
 INFO_WORDS = [CONTINUE]
-CAPABILITIES = ["tests", "observables", "affected"]
+CAPABILITIES = ["tests", "observables", "affected", "display"]
 
 
 class SourceText(NamedTuple):
@@ -346,3 +348,9 @@ def expressions(items: list[str]) -> list[dict[str, object]]:
 
 def assertions(examples: list[Snippet]) -> list[bool]:
     return [asserts(e.lang, e.code) for e in examples]
+
+
+def display(values: list[object]) -> list[str]:
+    """Values of a data block, as ``json`` reads them (``1`` an int, ``1.0`` a float, ``null``
+    None), each shown as a fact's value is: ``True``, ``None``, ``1.0``."""
+    return [safe_str(value) for value in values]

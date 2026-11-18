@@ -1,9 +1,9 @@
 # impact --file after an edit that affects exports
-# recorded from: impact --file answers for the edited file's change alone; config key commands
+# recorded from: what adopting it in a Go service found
 === impact --file src/parse.ts
 exit 0
 stdout 16 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
@@ -23,7 +23,7 @@ stderr empty
 === impact --file __ROOT__/src/parse.ts
 exit 0
 stdout 16 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
@@ -156,7 +156,7 @@ stderr empty
 === impact --file=src/parse.ts --base HEAD
 exit 0
 stdout 16 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
@@ -181,7 +181,7 @@ docattest: "nope" is not a commit in this repository
 === impact --file parse.ts
 exit 0
 stdout 16 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?

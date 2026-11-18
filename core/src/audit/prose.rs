@@ -37,8 +37,9 @@ pub struct SentenceCandidate {
 }
 
 /// The unbound sentences of a page's paragraphs, in order, except in paragraphs that start
-/// inside one of `skipped` (line ranges of blocks a directive binds).
-pub fn sentences_of(text: &str, skipped: &[(usize, usize)]) -> Vec<SentenceCandidate> {
+/// inside one of `skipped` (line ranges of blocks a directive binds), and except the first
+/// sentence of a paragraph that starts on a line of `opened` (a directive above attests it).
+pub fn sentences_of(text: &str, skipped: &[(usize, usize)], opened: &[usize]) -> Vec<SentenceCandidate> {
     let Some((source, tree)) = parse_tree(text) else {
         return Vec::new();
     };
@@ -50,7 +51,10 @@ pub fn sentences_of(text: &str, skipped: &[(usize, usize)]) -> Vec<SentenceCandi
             let line = line_of(paragraph);
             !skipped.iter().any(|(start, end)| (*start..=*end).contains(&line))
         })
-        .flat_map(|paragraph| sentences_in(paragraph, &source))
+        .flat_map(|paragraph| {
+            let opening = Reading { bound: opened.contains(&line_of(paragraph)), ..Reading::default() };
+            sentences_in(paragraph, &source, opening)
+        })
         .collect()
 }
 
@@ -125,13 +129,14 @@ struct Reading {
     bound: bool,
 }
 
-fn sentences_in(paragraph: &Node, source: &str) -> Vec<SentenceCandidate> {
+/// The sentences of a paragraph, read from `opening`, the state its first sentence starts in.
+fn sentences_in(paragraph: &Node, source: &str, opening: Reading) -> Vec<SentenceCandidate> {
     let mut found = Vec::new();
     for child in paragraph.children().into_iter().flatten() {
         tokens(child, source, &mut found);
     }
     let mut done: Vec<Reading> = Vec::new();
-    let mut current = Reading::default();
+    let mut current = opening;
     for (k, token) in found.iter().enumerate() {
         match token {
             Token::Text { value, line } => {
@@ -204,7 +209,7 @@ mod tests {
     use super::*;
 
     fn read(text: &str) -> Vec<SentenceCandidate> {
-        sentences_of(text, &[])
+        sentences_of(text, &[], &[])
     }
 
     fn literal(line: usize, value: &str, written: &str) -> Literal {
@@ -249,7 +254,7 @@ mod tests {
     fn reads_inside_emphasis_links_and_list_items_but_not_skipped_lines() {
         let text = "- **Use `a`** and [`b`](u).\n\n<!-- fact: X -->\n- `c` and `d`.\n";
         assert_eq!(spans(&read(text)), [vec!["a", "b"], vec!["c", "d"]]);
-        assert_eq!(spans(&sentences_of(text, &[(4, 4)])), [vec!["a", "b"]]);
+        assert_eq!(spans(&sentences_of(text, &[(4, 4)], &[])), [vec!["a", "b"]]);
     }
 
     #[test]

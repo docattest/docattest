@@ -18,8 +18,11 @@ pub(super) const CRATE: &str = "docattest_blocks";
 
 /// The files of the generated crate's `harness` module, by name: the modules of this
 /// crate's own `harness`, as text.
-const HARNESS: [(&str, &str); 4] = [
+const HARNESS: [(&str, &str); 7] = [
     ("mod.rs", include_str!("../harness/mod.rs")),
+    ("cells/mod.rs", include_str!("../harness/cells/mod.rs")),
+    ("cells/links.rs", include_str!("../harness/cells/links.rs")),
+    ("cells/raw.rs", include_str!("../harness/cells/raw.rs")),
     ("json.rs", include_str!("../harness/json.rs")),
     ("observe.rs", include_str!("../harness/observe.rs")),
     ("serve.rs", include_str!("../harness/serve.rs")),
@@ -150,7 +153,7 @@ impl Runner {
         }
         let dir = self.crate_dir();
         write_if_changed(&dir.join("Cargo.toml"), &self.manifest()?)?;
-        write_if_changed(&dir.join("src/lib.rs"), "pub mod harness;\n")?;
+        write_if_changed(&dir.join("src/lib.rs"), "pub mod harness;\npub use harness::cells;\n")?;
         for (name, text) in HARNESS {
             write_if_changed(&dir.join("src/harness").join(name), text)?;
         }

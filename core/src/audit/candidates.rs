@@ -7,6 +7,7 @@ use std::collections::HashSet;
 use super::prose::{SentenceCandidate, sentences_of};
 use super::{Target, distinct};
 use crate::attestations::directives::{Directive, parse_directive};
+use crate::attestations::placement::{attested_from_above, place};
 use crate::markdown::model::{Block, BlockKind, Page};
 use crate::markdown::parse::{Positionless, parse_page};
 use crate::text::is_word;
@@ -53,7 +54,7 @@ pub fn candidates_of(text: &str) -> Result<PageCandidates, Positionless> {
     let bound_lines: Vec<(usize, usize)> =
         bound.iter().filter_map(|at| page.flow.get(*at)).map(|b| (b.start, b.end)).collect();
     Ok(PageCandidates {
-        sentences: sentences_of(text, &bound_lines),
+        sentences: sentences_of(text, &bound_lines, &opened_from_above(&page)),
         attested: attested(&page),
         ..blocks_of(&page, &bound)
     })
@@ -67,6 +68,16 @@ fn attested(page: &Page) -> HashSet<(String, String)> {
             Some(Directive::Fact(fact)) => Some((fact.surface, fact.expression)),
             _ => None,
         })
+        .collect()
+}
+
+/// The first lines of the paragraphs whose first sentence a directive on the line above
+/// attests.
+fn opened_from_above(page: &Page) -> Vec<usize> {
+    attested_from_above(page)
+        .into_iter()
+        .filter_map(|(_, block)| page.flow.get(block))
+        .map(|b| b.start)
         .collect()
 }
 
@@ -141,17 +152,19 @@ fn block_sets(page: &Page, block: &Block) -> Option<Vec<SetCandidate>> {
     }
 }
 
-// Conservative on purpose: a list, table or block right after any docattest directive is
-// treated as bound, and so is a table holding a directive in a cell. Blocks are named by
-// their index in `page.flow`.
+// Conservative on purpose: a list, table or block right after any docattest directive, where
+// it takes effect, is treated as bound, and so is a table holding a directive in a cell.
+// Blocks are named by their index in `page.flow`.
 fn bound_blocks(page: &Page) -> HashSet<usize> {
     let table_block =
         |table: usize| page.flow.iter().position(|b| matches!(b.kind, BlockKind::Table(t) if t == table));
     let mut blocks = HashSet::new();
-    for comment in &page.comments {
-        if parse_directive(&comment.body, comment.line).is_none() {
+    for written in &page.comments {
+        let Some(directive) = parse_directive(&written.body, written.line) else {
             continue;
-        }
+        };
+        let placed = place(page, written, &directive);
+        let comment = placed.comment().unwrap_or(written);
         if let Some(at) = comment.table.and_then(table_block) {
             blocks.insert(at);
         }
@@ -262,6 +275,22 @@ mod tests {
         ]);
         assert_eq!(found.sets, Vec::<Vec<SetCandidate>>::new());
         assert_eq!(found.blocks, Vec::new());
+    }
+
+    #[test]
+    fn leaves_out_the_sentence_a_directive_on_the_line_above_attests() {
+        let found = found(&[
+            "<!-- fact: PORT -->",
+            "Port `8080`. Also `9090`.",
+            "",
+            "<!-- fact: KEYS -->",
+            "Keys:",
+            "- `a`",
+            "- `b`",
+        ]);
+        let spans: Vec<&[String]> = found.sentences.iter().map(|s| s.spans.as_slice()).collect();
+        assert_eq!(spans, [["9090".to_string()]]);
+        assert_eq!(found.sets, Vec::<Vec<SetCandidate>>::new());
     }
 
     #[test]

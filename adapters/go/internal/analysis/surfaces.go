@@ -3,6 +3,7 @@ package analysis
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -86,15 +87,16 @@ func (p *Project) moduleStart(entries []entry) string {
 			continue
 		}
 		// Only a directory can be listed.
-		if dir := p.packageDir(written.Path); p.listable(dir) {
+		if dir := p.packageDir(written.Path); listable(dir) {
 			return dir
 		}
 	}
 	return p.Root
 }
 
-func (p *Project) listable(dir string) bool {
-	_, err := p.files.List(dir)
+// listable says whether a path is a directory that can be listed.
+func listable(dir string) bool {
+	_, err := os.ReadDir(dir)
 	return err == nil
 }
 
@@ -110,9 +112,6 @@ func (p *Project) resolve(name string, written entry) *Surface {
 		found.Dir = p.Module.directory(written.Import)
 	default:
 		found.Dir = p.installed(written.Import)
-	}
-	if found.Dir != "" && p.packages.at(found.Dir) == nil {
-		found.Dir = ""
 	}
 	return found
 }
@@ -149,7 +148,7 @@ func (p *Project) ExportsOf(found *Surface) (names []string, ok bool) {
 		return nil, false
 	}
 	names = []string{}
-	for _, d := range p.packages.at(found.Dir).exported() {
+	for _, d := range p.tree().at(found.Dir).exported() {
 		names = append(names, d.Name)
 	}
 	return names, true
@@ -159,8 +158,8 @@ func (p *Project) ExportsOf(found *Surface) (names []string, ok bool) {
 // in the order of its files.
 func (p *Project) ExportedValues(found *Surface) []string {
 	names := []string{}
-	for _, d := range p.packages.at(found.Dir).exported() {
-		if d.Value {
+	for _, d := range p.tree().at(found.Dir).exported() {
+		if d.isValue() {
 			names = append(names, d.Name)
 		}
 	}
@@ -189,7 +188,7 @@ func (p *Project) DescribeSurfaces() map[string]protocol.SurfaceDescription {
 
 func (p *Project) describe(found *Surface) protocol.SurfaceDescription {
 	if found.Dir == "" {
-		return protocol.SurfaceDescription{Warnings: []string{unresolved(found)}}
+		return protocol.SurfaceDescription{Warnings: []string{p.unresolved(found)}}
 	}
 	resolution := &protocol.SurfaceResolution{Import: found.Import, Entry: p.rel(found.Dir)}
 	if p.Module.Path != "" {
@@ -204,11 +203,14 @@ func (p *Project) describe(found *Surface) protocol.SurfaceDescription {
 }
 
 // unresolved says why a surface has no package.
-func unresolved(found *Surface) string {
+func (p *Project) unresolved(found *Surface) string {
 	what := found.Import
 	why := "no package of the module or of its dependencies has that import path"
 	if found.Written != "" {
 		what, why = found.Written, "no Go package is there"
+	}
+	if p.treeFailed != nil {
+		why = p.treeFailed.Error()
 	}
 	return fmt.Sprintf("%q did not resolve (%s); examples and facts that use it fail", what, why)
 }

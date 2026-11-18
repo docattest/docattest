@@ -146,6 +146,47 @@ func TestTheIndexAndTheAudit(t *testing.T) {
 }
 
 func TestImpactOfAChange(t *testing.T) {
+	root := committedFixture(t)
+	edit(t, root, "shipping/shipping.go", `"DE": 2`, `"DE": 3`)
+	out, _ := docattest(t, root, "impact")
+	for _, want := range []string{"affect 1 symbol", "Quote", "docs/shipping.md:10 proven example"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("impact: no %q in %q", want, out)
+		}
+	}
+}
+
+func TestImpactOfAConstantReadFromSource(t *testing.T) {
+	root := committedFixture(t)
+	page := "Refused: `no carrier serves \"XX\"`. <!-- fact @shipping: fmt.Sprintf(unserved, \"XX\") -->\n\n" +
+		"The port is `8080`. <!-- fact @shopd: listenPort -->\n"
+	if err := os.WriteFile(filepath.Join(root, "docs", "constants.md"), []byte(page), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	edit(t, root, "shipping/shipping.go", "serves %q", "delivers to %q")
+	edit(t, root, "cmd/shopd/main.go", "listenPort = 8080", "listenPort = 8081")
+	out, _ := docattest(t, root, "impact", "--json")
+	var impact struct {
+		Symbols    []string
+		References []struct{ Symbol, Page, Kind string }
+	}
+	if err := json.Unmarshal([]byte(out), &impact); err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	facts := []string{}
+	for _, r := range impact.References {
+		if r.Page == "docs/constants.md" {
+			facts = append(facts, r.Symbol+" "+r.Kind)
+		}
+	}
+	if got := strings.Join(facts, ", "); got != "listenPort fact, unserved fact" {
+		t.Errorf("got %q in %s", got, out)
+	}
+}
+
+// committedFixture is a copy of the fixture, committed to a git repository of its own.
+func committedFixture(t *testing.T) string {
+	t.Helper()
 	root := t.TempDir()
 	if err := os.CopyFS(root, os.DirFS("../testdata/fixture")); err != nil {
 		t.Fatal(err)
@@ -160,15 +201,18 @@ func TestImpactOfAChange(t *testing.T) {
 	git("init", "-q", "-b", "main")
 	git("add", "-A")
 	git("commit", "-q", "-m", "base")
-	shop := filepath.Join(root, "shipping", "shipping.go")
-	text, _ := os.ReadFile(shop)
-	if err := os.WriteFile(shop, []byte(strings.Replace(string(text), `"DE": 2`, `"DE": 3`, 1)), 0o600); err != nil {
+	return root
+}
+
+// edit replaces the first `was` in a file of the project with `now`.
+func edit(t *testing.T, root, file, was, now string) {
+	t.Helper()
+	path := filepath.Join(root, file)
+	text, err := os.ReadFile(path)
+	if err != nil {
 		t.Fatal(err)
 	}
-	out, _ := docattest(t, root, "impact")
-	for _, want := range []string{"affect 1 exported symbol", "Quote", "docs/shipping.md:10 proven example"} {
-		if !strings.Contains(out, want) {
-			t.Errorf("impact: no %q in %q", want, out)
-		}
+	if err := os.WriteFile(path, []byte(strings.Replace(string(text), was, now, 1)), 0o600); err != nil {
+		t.Fatal(err)
 	}
 }

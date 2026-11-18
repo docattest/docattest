@@ -1,5 +1,5 @@
-"""The environment attested code runs in: the import path, the surfaces, the snapshots and
-manifests, no network unless a block asks for it."""
+"""The environment attested code runs in: the import path, the surfaces, the snapshots, the
+manifests and the files facts read, no network unless a block asks for it."""
 
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ SETUP_MODULE = "docattest_setup"
 
 
 class Environment:
-    """What a job's child process is given: the import path, the surfaces, the snapshots and
-    manifests."""
+    """What a job's child process is given: the import path, the surfaces, the snapshots, the
+    manifests and the files facts read."""
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
@@ -70,6 +70,15 @@ class Environment:
                 'manifest "%s" was not read: name it in the fact itself, as manifest("%s")' % (path, path)
             )
         return copy.deepcopy(manifests[path])
+
+    def file(self, path: str) -> str:
+        # The core reads a file only when a fact writes its path out, as it does a manifest.
+        texts = self.settings["texts"]
+        if path not in texts:
+            raise LookupError(
+                'file "%s" was not read: name it in the fact itself, as file("%s")' % (path, path)
+            )
+        return texts[path]
 
     def fresh_main(self, filename: str) -> dict[str, object]:
         main = types.ModuleType("__main__")
@@ -164,8 +173,15 @@ def guard_network() -> None:
     socket.gethostbyname = refuse
 
 
+def source_constants(surface: SurfaceToLoad) -> dict[str, object]:
+    """The constants the adapter read from the surface's source, without running it."""
+    import ast
+
+    return {name: ast.literal_eval(text) for name, text in surface["constants"].items()}
+
+
 def surface_namespace(surface: SurfaceToLoad) -> dict[str, object]:
-    """The names a fact may use: the surface's exports, and nothing else of the module."""
+    """The surface's exports, by importing it, and nothing else of the module."""
     import importlib
 
     module = importlib.import_module(surface["import_name"])

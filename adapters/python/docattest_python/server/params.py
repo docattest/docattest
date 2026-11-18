@@ -57,6 +57,7 @@ class Params(Fields):
             network=self.boolean("network"),
             snapshots={"dir": snapshots.optional_string("dir"), "data": snapshots.json_object("data")},
             manifests=self.json_object("manifests"),
+            texts=self.string_map("texts") if self.has("texts") else {},
             examples=self.examples("examples"),
         )
 

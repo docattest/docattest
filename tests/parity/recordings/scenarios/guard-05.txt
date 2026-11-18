@@ -1,8 +1,8 @@
 # guard-05
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 0
-stdout 48 lines
+stdout 49 lines
 {
   "results": [],
   "coverage": {
@@ -13,6 +13,7 @@ stdout 48 lines
       "docs/retry.md"
     ],
     "attestations": 0,
+    "proofs": 0,
     "weak": 0,
     "cited": 0
   },

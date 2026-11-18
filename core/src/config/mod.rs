@@ -13,6 +13,7 @@ use serde_json::{Map, Value};
 
 mod commands;
 mod members;
+mod undocumented;
 pub use commands::Command;
 pub use members::Member;
 
@@ -21,7 +22,7 @@ pub const CONFIG_FILE: &str = "docattest.config.json";
 /// The surface every config must name, and the one a fact or an import uses unless it names another.
 pub const DEFAULT_SURFACE: &str = "default";
 
-const KEYS: [&str; 12] = [
+const KEYS: [&str; 13] = [
     "$schema",
     "pages",
     "frozen",
@@ -34,11 +35,14 @@ const KEYS: [&str; 12] = [
     "ignoreTags",
     "members",
     "commands",
+    "undocumented",
 ];
 const RESERVED_TAGS: [&str; 3] = ["check", "compile", "network"];
 /// What an entry may be. What a string names, or what is imported from which file, is the
 /// adapter's to say, and it says so when it opens the project.
 const SHAPE: &str = "a string, or { \"import\": \"<name>\", \"path\": \"<file>\" }";
+/// Why a glob of files cannot start with `!`.
+const FILE_NEGATION: &str = "a glob starting with \"!\" matches every file but the ones it names, so it cannot leave files out; \"frozen\" leaves pages out of the check";
 
 /// Time budget for one block, one fact or one table row, in milliseconds.
 pub const DEFAULT_TIMEOUT_MS: u64 = 10_000;
@@ -82,6 +86,8 @@ pub struct ProjectConfig {
     pub members: Vec<Member>,
     /// The programs the console blocks run, with the files each is built from.
     pub commands: Vec<Command>,
+    /// By surface, in the config's order: globs of the symbols not meant to be documented.
+    pub undocumented: Vec<(String, Vec<String>)>,
 }
 
 /// Read and validate the project's config.
@@ -133,19 +139,20 @@ impl Fields<'_> {
     /// Globs the config must give.
     fn required_globs(&mut self, key: &str) -> Vec<String> {
         let value = self.object.get(key);
-        self.globs(key, value)
+        self.globs(key, value, FILE_NEGATION)
     }
 
     /// Globs the config may give: none when it does not.
     fn optional_globs(&mut self, key: &str) -> Vec<String> {
         match self.object.get(key) {
             None => Vec::new(),
-            value => self.globs(key, value),
+            value => self.globs(key, value, FILE_NEGATION),
         }
     }
 
-    /// An array of globs that each compile, or nothing and a problem saying why not.
-    fn globs(&mut self, key: &str, value: Option<&Value>) -> Vec<String> {
+    /// An array of globs that each compile, none starting with `!` (`negation` says why
+    /// not), or nothing and a problem saying why not.
+    fn globs(&mut self, key: &str, value: Option<&Value>, negation: &str) -> Vec<String> {
         let Some(globs) = value.and_then(string_array) else {
             self.problems.push(format!("\"{}{key}\" must be an array of globs", self.prefix));
             return Vec::new();
@@ -155,10 +162,7 @@ impl Fields<'_> {
             return Vec::new();
         }
         for negated in globs.iter().filter(|glob| is_negation(glob)) {
-            self.problems.push(format!(
-                "\"{}{key}\" has {negated:?}: a glob starting with \"!\" matches every file but the ones it names, so it cannot leave files out; \"frozen\" leaves pages out of the check",
-                self.prefix
-            ));
+            self.problems.push(format!("\"{}{key}\" has {negated:?}: {negation}", self.prefix));
         }
         globs
     }
@@ -222,6 +226,7 @@ fn read_config(fields: &mut Fields) -> ProjectConfig {
     let ignore_tags = read_ignore_tags(fields);
     let members = members::read_members(fields);
     let commands = commands::read_commands(fields);
+    let undocumented = undocumented::read_undocumented(fields, &surfaces);
     let (timeout_ms, workers) = runtime.unwrap_or((None, None));
     ProjectConfig {
         pages,
@@ -237,6 +242,7 @@ fn read_config(fields: &mut Fields) -> ProjectConfig {
         ignore_tags,
         members,
         commands,
+        undocumented,
     }
 }
 
@@ -369,7 +375,7 @@ mod tests {
     fn every_problem_at_once_in_order() {
         assert_eq!(
             problem(r#"{"pagez":[],"surfaces":{},"adapter":"Python 3","runtime":{"timeoutMs":0}}"#),
-            "docattest: invalid docattest.config.json: unknown key \"pagez\" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands); \"pages\" must be an array of globs; \"surfaces\" must name a \"default\" surface; \"adapter\" must name a language adapter, such as \"typescript\", in lower-case letters, digits and \"_\" (got \"Python 3\"); \"runtime.timeoutMs\" must be a positive integer"
+            "docattest: invalid docattest.config.json: unknown key \"pagez\" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); \"pages\" must be an array of globs; \"surfaces\" must name a \"default\" surface; \"adapter\" must name a language adapter, such as \"typescript\", in lower-case letters, digits and \"_\" (got \"Python 3\"); \"runtime.timeoutMs\" must be a positive integer"
         );
         assert!(problem("[]").ends_with("must contain a JSON object"));
         assert!(problem("{").starts_with("docattest: docattest.config.json is not valid JSON: "));

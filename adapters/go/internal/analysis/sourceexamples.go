@@ -1,8 +1,12 @@
 package analysis
 
 import (
+	"errors"
+	"fmt"
 	"go/ast"
 	"go/token"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -39,6 +43,20 @@ func (p *Project) SourceExampleAt(page string, line int) (*SourceExample, error)
 		First:   fset.Position(fn.Pos()).Line,
 		Last:    fset.Position(fn.End()).Line,
 	}, nil
+}
+
+// parse reads a source file of the project; the file is nil when it is not there or
+// cannot be read, and the error says why when it is there.
+func (p *Project) parse(page string) (*token.FileSet, *ast.File, error) {
+	text, err := os.ReadFile(p.Abs(page))
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return nil, nil, nil
+	case err != nil:
+		return nil, nil, fmt.Errorf("cannot read %s: %w", page, err)
+	}
+	fset, file := language.ParseSource(string(text))
+	return fset, file, nil
 }
 
 // exampleAt is the example function declared at a line of a file.

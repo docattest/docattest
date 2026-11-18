@@ -1,29 +1,30 @@
 package analysis
 
 import (
-	"errors"
 	"fmt"
 	"go/ast"
 	"go/token"
-	"io/fs"
-	"path"
-	"path/filepath"
-	"strconv"
+	"go/types"
+	"os"
 	"strings"
 
 	"github.com/docattest/docattest/adapters/go/internal/language"
 	"github.com/docattest/docattest/adapters/go/internal/protocol"
 )
 
-// `affected`: the surface exports a change to the code affects.
+// `affected`: the surface exports a change to the code affects, and the constants a
+// fact reads from source (see SourceOnly), which are attested as exports are.
 //
-// A package is cut into units, one for each name it declares at its top level; a
-// type's methods are part of the type's unit, and the constants of one declaration are
-// one unit, since `iota` ties them together. A unit's fingerprint is its tokens, so
-// reformatting and comments change nothing. An export is affected when its unit
-// changed, appeared or disappeared, or reaches such a unit through the names it uses,
-// in the working tree or at the base. It is read from syntax: a method is found through
-// its type, and an interface is not followed to what implements it.
+// A package of the module is cut into units, one for each name it declares at its top
+// level; a type's methods are part of the type's unit, and the constants of one
+// declaration are one unit, since `iota` ties them together. A unit's fingerprint is
+// its tokens, so reformatting and comments change nothing. A unit uses what the names in
+// its code resolve to, as the type checker resolved them: a top-level name of a package
+// of the module, and the type that declares a method or a field the code selects, so a
+// method called through an interface is the interface's use (see collect). An export is
+// affected when its unit changed, appeared or disappeared, or reaches such a unit
+// through what it uses, in the working tree or at the base. The base is the working
+// tree loaded with the changed files as they were.
 
 // unitKey names a unit: a package's directory and a top-level name.
 type unitKey struct{ dir, name string }
@@ -34,103 +35,67 @@ type unit struct {
 	uses        []unitKey
 }
 
-// revision is the module's code at one revision, as its Files read it.
+// revision is the module's code at one revision, as one load typed it.
 type revision struct {
-	module Module
-	files  Files
-	units  map[unitKey]*unit
-	// names are the top-level names of each package read so far, in order.
+	units map[unitKey]*unit
+	// names are the top-level names of each package of the module, in order.
 	names map[string][]string
+	// constants are the units of the names that declare constants.
+	constants map[unitKey]bool
+	// dirs are the directories of the module's packages, by import path.
+	dirs map[string]string
 }
 
-func newRevision(module Module, files Files) *revision {
-	return &revision{module: module, files: files, units: map[unitKey]*unit{}, names: map[string][]string{}}
-}
-
-// sources are the texts of a directory's Go files that are not tests, by name; none
-// when the directory is not there.
-func (r *revision) sources(dir string) (map[string]string, error) {
-	out := map[string]string{}
-	names, err := r.files.List(dir)
-	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		return out, nil
-	case err != nil:
-		return nil, err
-	}
-	for _, name := range names {
-		if !language.IsSource(name) || language.IsTestFile(name) {
-			continue
+// newRevision cuts the module's packages of a load into units. The overlay holds the
+// text of the files that differ from the disk.
+func newRevision(module Module, code *loaded, overlay map[string][]byte) (*revision, error) {
+	r := &revision{units: map[unitKey]*unit{}, names: map[string][]string{}, constants: map[unitKey]bool{}, dirs: map[string]string{}}
+	modulePackages := []*goPackage{}
+	for dir := range code.byDir {
+		if pkg := code.at(dir); pkg != nil && within(module.Dir, dir) {
+			modulePackages = append(modulePackages, pkg)
+			r.dirs[pkg.Path] = dir
 		}
-		text, err := r.files.Read(filepath.Join(dir, name))
-		if err != nil {
+	}
+	for _, pkg := range modulePackages {
+		if err := r.add(pkg, overlay); err != nil {
 			return nil, err
 		}
-		out[name] = text
 	}
-	return out, nil
+	return r, nil
 }
 
 // source is one file of a package as its units are read from it.
 type source struct {
-	fset    *token.FileSet
-	text    string
-	imports map[string]string
+	fset *token.FileSet
+	text string
+	info *types.Info
 }
 
-// load reads a package into units, and then the packages of the module it imports.
-func (r *revision) load(dir string) error {
-	if _, done := r.names[dir]; done {
-		return nil
-	}
-	r.names[dir] = []string{}
-	files := map[*ast.File]*source{}
-	order := []*ast.File{}
-	texts, err := r.sources(dir)
-	if err != nil {
-		return err
-	}
-	for _, name := range sortedKeys(texts) {
-		fset, file := language.ParseSource(texts[name])
-		if file == nil {
-			continue
-		}
-		files[file], order = &source{fset: fset, text: texts[name]}, append(order, file)
+// add reads a package into units.
+func (r *revision) add(pkg *goPackage, overlay map[string][]byte) error {
+	files := sorted(pkg.Files)
+	for _, file := range files {
 		for _, d := range declarations(file) {
-			r.names[dir] = append(r.names[dir], d.Name)
+			r.names[pkg.Dir] = append(r.names[pkg.Dir], d.Name)
+			r.constants[unitKey{pkg.Dir, d.Name}] = d.What == Constant
 		}
 	}
-	for _, file := range order {
-		if files[file].imports, err = r.imports(file); err != nil {
-			return err
+	for _, file := range files {
+		path := pkg.Fset.File(file.FileStart).Name()
+		text, over := overlay[path]
+		if !over {
+			var err error
+			if text, err = os.ReadFile(path); err != nil {
+				return fmt.Errorf("cannot read %s: %w", path, err)
+			}
 		}
+		in := &source{fset: pkg.Fset, text: string(text), info: pkg.Info}
 		for _, decl := range file.Decls {
-			r.addDecl(dir, decl, files[file])
+			r.addDecl(pkg.Dir, decl, in)
 		}
 	}
 	return nil
-}
-
-// imports maps the names a file imports packages of the module under to their
-// directories, reading each such package on the way.
-func (r *revision) imports(file *ast.File) (map[string]string, error) {
-	out := map[string]string{}
-	for _, spec := range file.Imports {
-		imported, _ := strconv.Unquote(spec.Path.Value)
-		dir := r.module.directory(imported)
-		if dir == "" {
-			continue
-		}
-		if err := r.load(dir); err != nil {
-			return nil, err
-		}
-		local := path.Base(imported)
-		if spec.Name != nil {
-			local = spec.Name.Name
-		}
-		out[local] = dir
-	}
-	return out, nil
 }
 
 // addDecl adds a declaration's code to the units of the names it declares.
@@ -146,10 +111,10 @@ func (r *revision) addDecl(dir string, decl ast.Decl, in *source) {
 	case *ast.GenDecl:
 		for _, spec := range d.Specs {
 			names := []string{}
-			for _, declared := range specNames(spec) {
+			for _, declared := range specNames(spec, d.Tok) {
 				names = append(names, declared.Name)
 			}
-			if d.Tok.String() == "const" {
+			if d.Tok == token.CONST {
 				owners, parts = append(owners, names...), append(parts, spec)
 				continue
 			}
@@ -181,7 +146,7 @@ func funcOwner(fn *ast.FuncDecl) string {
 	}
 }
 
-// addCode adds nodes to the unit of each owner: their tokens, and the units they name.
+// addCode adds nodes to the unit of each owner: their tokens, and the units they use.
 func (r *revision) addCode(dir string, owners []string, parts []ast.Node, in *source) {
 	for _, owner := range owners {
 		key := unitKey{dir, owner}
@@ -193,7 +158,7 @@ func (r *revision) addCode(dir string, owners []string, parts []ast.Node, in *so
 				continue
 			}
 			r.units[key].fingerprint += in.fingerprint(part) + "\n"
-			r.units[key].uses = append(r.units[key].uses, r.uses(dir, part, in.imports)...)
+			r.units[key].uses = append(r.units[key].uses, r.uses(part, in.info)...)
 		}
 	}
 }
@@ -205,29 +170,26 @@ func isNil(node ast.Node) bool {
 
 // fingerprint is a node's code as its tokens: neither layout nor comments are in it.
 func (in *source) fingerprint(node ast.Node) string {
-	from, to := in.fset.Position(node.Pos()).Offset, in.fset.Position(node.End()).Offset
+	file := in.fset.File(node.Pos())
+	from, to := file.Offset(node.Pos()), file.Offset(node.End())
 	return strings.Join(language.Spellings(in.text[from:to]), " ")
 }
 
-// uses are the units a node names: a top-level name of its own package, or a name
-// selected from an imported package of the module.
-func (r *revision) uses(dir string, node ast.Node, imports map[string]string) []unitKey {
-	own := map[string]bool{}
-	for _, name := range r.names[dir] {
-		own[name] = true
-	}
+// uses are the units a node's names resolve to.
+func (r *revision) uses(node ast.Node, info *types.Info) []unitKey {
 	out := []unitKey{}
 	ast.Inspect(node, func(n ast.Node) bool {
+		var used types.Object
 		switch x := n.(type) {
 		case *ast.SelectorExpr:
-			if base, ok := x.X.(*ast.Ident); ok && imports[base.Name] != "" {
-				out = append(out, unitKey{imports[base.Name], x.Sel.Name})
-				return false
+			if selection := info.Selections[x]; selection != nil {
+				used = owner(selection)
 			}
 		case *ast.Ident:
-			if own[x.Name] {
-				out = append(out, unitKey{dir, x.Name})
-			}
+			used = info.Uses[x]
+		}
+		if used != nil && used.Pkg() != nil && used.Parent() == used.Pkg().Scope() && r.dirs[used.Pkg().Path()] != "" {
+			out = append(out, unitKey{r.dirs[used.Pkg().Path()], used.Name()})
 		}
 		return true
 	})
@@ -237,32 +199,55 @@ func (r *revision) uses(dir string, node ast.Node, imports map[string]string) []
 // Affected answers `affected`. The base holds the text of every changed file as it was,
 // by project path; nil for a file the base did not have.
 func (p *Project) Affected(base map[string]*string) ([]protocol.SymbolRef, error) {
-	was := map[string]*string{}
-	for rel, text := range base {
-		was[p.Abs(rel)] = text
+	if p.treeFailed != nil {
+		return nil, fmt.Errorf("cannot load the code of the surfaces: %w", p.treeFailed)
 	}
-	now, before := newRevision(p.Module, p.files), newRevision(p.Module, atBase{tree: p.files, was: was})
-	for _, of := range p.surfaces {
-		if of.Dir == "" {
-			continue
-		}
-		for _, at := range []*revision{now, before} {
-			if err := at.load(of.Dir); err != nil {
-				return nil, fmt.Errorf("cannot read the code of surface %q: %w", of.Name, err)
-			}
-		}
+	overlay := p.baseOverlay(base)
+	listed, err := p.loader.relist(p.treeListing, p.treeRequest(overlay))
+	if err != nil {
+		return nil, fmt.Errorf("cannot load the code of the surfaces at the base: %w", err)
+	}
+	atBase := listed.check()
+	now, err := newRevision(p.Module, p.tree(), nil)
+	if err != nil {
+		return nil, err
+	}
+	before, err := newRevision(p.Module, atBase, overlay)
+	if err != nil {
+		return nil, err
 	}
 	differing := differingUnits(now, before)
 	touched := union(now.reaching(differing), before.reaching(differing))
 	out := []protocol.SymbolRef{}
 	for _, of := range p.surfaces {
 		for _, name := range unionInOrder(now.names[of.Dir], before.names[of.Dir]) {
-			if of.Dir != "" && ast.IsExported(name) && touched[unitKey{of.Dir, name}] {
+			key := unitKey{of.Dir, name}
+			if of.Dir != "" && touched[key] && (ast.IsExported(name) || now.constants[key] || before.constants[key]) {
 				out = append(out, protocol.SymbolRef{Name: name, Surface: of.Name})
 			}
 		}
 	}
 	return out, nil
+}
+
+// notAtBase is what a Go file the base did not have is at the base: a file no build
+// includes.
+const notAtBase = "//go:build ignore\n\npackage ignored\n"
+
+// baseOverlay is the overlay that makes the working tree the base: each changed Go file
+// as it was.
+func (p *Project) baseOverlay(base map[string]*string) map[string][]byte {
+	overlay := map[string][]byte{}
+	for rel, text := range base {
+		switch {
+		case !language.IsSource(rel):
+		case text == nil:
+			overlay[p.Abs(rel)] = []byte(notAtBase)
+		default:
+			overlay[p.Abs(rel)] = []byte(*text)
+		}
+	}
+	return overlay
 }
 
 // differingUnits are the units that are not the same code at two revisions, or are in

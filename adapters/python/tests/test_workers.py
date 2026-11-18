@@ -26,6 +26,7 @@ SETTINGS: Settings = {
     "aliases": {},
     "snapshots": {"dir": None, "data": {}},
     "manifests": {},
+    "texts": {},
     "preload": [],
     "no_fork": False,
 }

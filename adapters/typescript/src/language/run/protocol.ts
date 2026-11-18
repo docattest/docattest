@@ -19,6 +19,8 @@ export interface WorkerData {
   snapshots: { dir: string | undefined; data: Record<string, unknown> };
   /** Manifest data by the path facts write it. */
   manifests: Record<string, unknown>;
+  /** The text of each file facts read with `file`, by the path facts write it. */
+  texts: Record<string, string>;
 }
 
 /** Run one example block. */
@@ -45,7 +47,10 @@ export interface FactItem {
 export interface FactsJob {
   type: 'facts';
   surface: string;
-  file: string;
+  /** The surface's module, to load; undefined when every fact reads only its constants. */
+  file: string | undefined;
+  /** The constants of the surface's module the facts read, folded from its source. */
+  constants: [string, unknown][];
   setup: { file: string; label: string } | undefined;
   facts: FactItem[];
 }
@@ -152,7 +157,8 @@ export function isWorkerData(value: unknown): value is WorkerData {
     typeof value.root === 'string' &&
     value.signal instanceof Int32Array &&
     isObject(value.snapshots) &&
-    isObject(value.manifests)
+    isObject(value.manifests) &&
+    isObject(value.texts)
   );
 }
 

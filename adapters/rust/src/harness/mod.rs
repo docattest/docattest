@@ -7,6 +7,7 @@
 //! siblings through `super`. A generated program must build wherever the project builds,
 //! with no crate the project did not ask for.
 
+pub mod cells;
 pub mod json;
 pub mod observe;
 pub mod serve;

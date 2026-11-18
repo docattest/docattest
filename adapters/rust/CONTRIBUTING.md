@@ -14,7 +14,8 @@ with dependencies pointing one way, from the protocol loop down to cargo:
   reads what `open` says and routes each method either to the analysis or to the
   running side.
 - **The analysis** module answers from syntax: a crate's modules and exports, the
-  surfaces, `symbols`, `tests`, `affected`, and the names of the setup module. The one
+  surfaces, `symbols`, `tests`, `affected`, the names of the setup module, and which
+  constants a fact may read from source. The one
   thing it asks the compiler is what a module exports when a macro writes some of it.
 - **The running** module compiles and runs: the crate generated beside the project, its
   programs for examples, facts, `observables` and cases tables, and the slots that
@@ -23,7 +24,8 @@ with dependencies pointing one way, from the protocol loop down to cargo:
 - **The project** module asks cargo what the workspace is made of, and **the toolchain**
   module runs cargo, rustdoc and the programs cargo builds, with a time limit.
 - **The harness** is the Rust source compiled into every generated program: showing a
-  value of any type, a small JSON reader, and serving items one by one. Its modules are
+  value of any type, a small JSON reader, serving items one by one, and the code spans of
+  a table's cell, which setup files call. Its modules are
   modules of this crate, tested here, and are also embedded as text and written into
   the generated crate, so they use only `std`.
 
@@ -60,7 +62,10 @@ answers from syntax on `tests/fixture/`, and `tests/session.rs` compiles and run
 code against it with your cargo. `tests/compiled.rs` covers what the compiler is asked,
 and `tests/workspace.rs` a workspace whose names the generated programs must not confuse
 (a crate that declares a module of its own name, a private module) and the features they
-are built with; both write small projects to the temporary directory. What the tests
+are built with. `tests/constants.rs` covers the constants facts read from source, of a
+library and of a binary, `tests/cases.rs` how the rows of cases tables run, and
+`tests/cells.rs` the cell helper against the core. These write small projects to the
+temporary directory. What the tests
 share (opening a session, writing a project, running the `docattest` command) is in
 `tests/project/`. `tests/endtoend.rs` runs the conformance suite with this
 adapter's kit (through the `docattest` command, whose core carries it) and the `docattest`

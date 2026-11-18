@@ -1,9 +1,9 @@
 # impact --base
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 10 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 RETRY_DEFAULTS
   docs/retry.md:3 proven fact  A call is tried at most `3` times.
   docs/retry.md:12 mention (unproven)  See `retry.ts` and `RETRY_DEFAULTS.maxAttempts`.
@@ -17,7 +17,7 @@ stderr empty
 === impact --base HEAD
 exit 0
 stdout 10 lines
-docattest impact: changes since HEAD affect 2 exported symbols
+docattest impact: changes since HEAD affect 2 symbols
 RETRY_DEFAULTS
   docs/retry.md:3 proven fact  A call is tried at most `3` times.
   docs/retry.md:12 mention (unproven)  See `retry.ts` and `RETRY_DEFAULTS.maxAttempts`.
@@ -31,7 +31,7 @@ stderr empty
 === impact --base HEAD~1
 exit 0
 stdout 10 lines
-docattest impact: changes since HEAD~1 affect 2 exported symbols
+docattest impact: changes since HEAD~1 affect 2 symbols
 RETRY_DEFAULTS
   docs/retry.md:3 proven fact  A call is tried at most `3` times.
   docs/retry.md:12 mention (unproven)  See `retry.ts` and `RETRY_DEFAULTS.maxAttempts`.
@@ -204,7 +204,7 @@ stderr empty
 === impact --base=v1
 exit 0
 stdout 24 lines
-docattest impact: changes since v1 affect 4 exported symbols
+docattest impact: changes since v1 affect 4 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?
@@ -293,7 +293,7 @@ stderr empty
 === impact --base main
 exit 0
 stdout 10 lines
-docattest impact: changes since main affect 2 exported symbols
+docattest impact: changes since main affect 2 symbols
 RETRY_DEFAULTS
   docs/retry.md:3 proven fact  A call is tried at most `3` times.
   docs/retry.md:12 mention (unproven)  See `retry.ts` and `RETRY_DEFAULTS.maxAttempts`.

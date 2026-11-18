@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "docattest adapter protocol, version 1: the project as open describes it, its surfaces, snapshots and manifests",
+  "title": "docattest adapter protocol, version 1: the project as open describes it, its surfaces, snapshots, manifests and texts",
   "description": "Every value the protocol carries. Optional fields are omitted, never null, unless a type says null. Paths are relative to the project root, with / separators.",
   "$defs": {
     "ConfiguredSurface": {
@@ -107,6 +107,13 @@
       "type": "object",
       "additionalProperties": {
         "type": "object"
+      }
+    },
+    "Texts": {
+      "description": "The files fact expressions name in file(\"<path>\"): the text of each that could be read, by the path as the expression writes it. Absent when no fact reads one.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
       }
     }
   }

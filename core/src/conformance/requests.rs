@@ -15,6 +15,11 @@ const LINE_STEP: u64 = 10;
 pub const MANIFEST: &str = "meta.json";
 pub const MANIFEST_VERSION: &str = "1.2.0";
 
+/// The one file every session of the suite opens with as text, which a fact reads with
+/// `file`: its path, and its text.
+pub const TEXT_FILE: &str = "Dockerfile";
+pub const TEXT: &str = "FROM scratch\nUSER 10001\n";
+
 /// The greeting every conversation starts with.
 pub fn hello() -> Value {
     request(1, "hello", json!({ "protocol": crate::adapter::PROTOCOL }))
@@ -89,6 +94,7 @@ impl<'a> Requests<'a> {
             "network": false,
             "snapshots": { "data": {} },
             "manifests": { MANIFEST: { "version": MANIFEST_VERSION } },
+            "texts": { TEXT_FILE: TEXT },
             "examples": examples,
         });
         if let Some(setup) = &self.kit.setup {

@@ -25,6 +25,11 @@ export interface Config {
    * of the files each is built from: `impact` lists the blocks that run one whose files changed.
    */
   commands?: Record<string, string[]> | undefined;
+  /**
+   * By surface, globs of the symbol names that are not meant to be documented: `uncovered`
+   * leaves out those no page attests, and the report counts them apart.
+   */
+  undocumented?: Record<string, string[]> | undefined;
 }
 
 /**

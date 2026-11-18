@@ -1,5 +1,5 @@
 {
-  "pages": ["README.md", "CONTRIBUTING.md"],
+  "pages": ["README.md", "docs/*.md", "CONTRIBUTING.md"],
   "surfaces": {
     "default": "./internal/language",
     "launcher": "./internal/launcher",

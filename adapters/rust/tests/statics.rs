@@ -161,11 +161,11 @@ fn a_change_affects_the_exports_that_reach_it() {
             "",
         ),
         (
-            "a private constant of another module",
+            "a private constant, which a fact may read from source, and what reads it",
             "src/shipping.rs",
             "(\"DE\", 2)",
             "(\"DE\", 3)",
-            "shipping:quote",
+            "shipping:quote shipping:DAYS",
         ),
         (
             "an export that was not there at the base",
@@ -183,5 +183,5 @@ fn a_change_affects_the_exports_that_reach_it() {
         "affected",
         json!({ "base": { "src/shipping.rs": null }, "changed": ["src/shipping.rs"] }),
     );
-    assert_eq!(new.as_array().unwrap().len(), 2, "a file the base did not have: {new}");
+    assert_eq!(new.as_array().unwrap().len(), 3, "a file the base did not have: {new}");
 }

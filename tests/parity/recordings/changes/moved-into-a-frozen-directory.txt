@@ -1,8 +1,8 @@
 # moved into a frozen directory
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 0
-stdout 68 lines
+stdout 69 lines
 {
   "results": [],
   "coverage": {
@@ -13,6 +13,7 @@ stdout 68 lines
       "docs/old/retry.md"
     ],
     "attestations": 0,
+    "proofs": 0,
     "weak": 0,
     "cited": 0
   },
@@ -76,7 +77,7 @@ stderr empty
 exit 0
 stdout 11 lines
 results: 0 pass, 0 fail, 0 error, 0 skipped
-coverage: 0 living pages, 0 covered (0 attestations, 0 weak), 0 uncovered, 1 frozen
+coverage: 0 living pages, 0 covered (0 attestations: 0 proofs, 0 of them weak, and 0 citations), 0 uncovered, 1 frozen
 warning: "setup" is "docs/docattest.setup.ts", which nothing reads: no living page has a cases table or a fact
 surface default: 4 symbols, 0 attested, 4 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)

@@ -10,6 +10,7 @@ from concurrent.futures import Future
 from typing import TypeVar
 
 from .. import language
+from ..analysis.constants import literal
 from ..analysis.names import expression_names
 from ..analysis.surfaces import Surface
 from ..attestations import Cases, Example, Fact
@@ -19,6 +20,7 @@ from ..workers.docattest_worker.jobs import (
     CasesJob,
     ContinuedBlock,
     FactsJob,
+    FactToEvaluate,
     ObservablesJob,
     SetupModule,
     SurfaceToLoad,
@@ -89,11 +91,19 @@ class Running:
 
     def _submit_facts(self, group: list[Fact]) -> Future[JobResult]:
         """The facts of one page about one surface, as one job."""
+        surface = self.workspace.by_name[group[0].surface]
+        reading = self.workspace.readable(surface.name)
+        facts: list[FactToEvaluate] = []
+        for f in group:
+            names = expression_names(f.expression)
+            facts.append({"expression": f.expression, "names": names, "imports": reading.imports(names)})
+        read = {name for fact in facts for name in fact["names"]}
         job: FactsJob = {
             "type": "facts",
-            "surface": self._surface_job(self.workspace.by_name[group[0].surface]),
+            "surface": self._surface_job(surface, read),
             "setup": self._setup_job(),
-            "facts": [{"expression": f.expression, "names": expression_names(f.expression)} for f in group],
+            "facts": facts,
+            "refused": {name: why for name, why in reading.refused.items() if name in read},
         }
         return self.pool().submit(job, len(group))
 
@@ -140,11 +150,14 @@ class Running:
                 return f'fact `{expression}`: "{name}" is both an export of surface "{surface.name}" and a setup fact; rename the setup fact'
         return None
 
-    def _surface_job(self, surface: Surface) -> SurfaceToLoad:
+    def _surface_job(self, surface: Surface, read: set[str]) -> SurfaceToLoad:
+        """A surface as the worker loads it, with the constants among the names ``read``."""
+        reading = self.workspace.readable(surface.name)
         return {
             "name": surface.name,
             "import_name": surface.import_name,
             "exports": self.workspace.exports(surface.name),
+            "constants": {name: literal(value) for name, value in reading.constants.items() if name in read},
         }
 
     def _setup_job(self) -> SetupModule | None:
@@ -262,7 +275,15 @@ class Running:
         # The setup module's named facts are read with the default surface, as a fact
         # without `@` reads them.
         setup = self._setup_job() if name == DEFAULT_SURFACE else None
-        job: ObservablesJob = {"type": "observables", "surface": self._surface_job(surface), "setup": setup}
+        # A surface is imported even when its exports are all constants, so that one that
+        # cannot be imported is reported; a program is never imported, since that runs it.
+        exports = self.workspace.exports(name) or []
+        job: ObservablesJob = {
+            "type": "observables",
+            "surface": self._surface_job(surface, set(exports)),
+            "setup": setup,
+            "imports": not surface.is_program,
+        }
         future = self.pool().submit(job, 1)
         return gather([future], lambda results: _observables(name, results[0]))
 

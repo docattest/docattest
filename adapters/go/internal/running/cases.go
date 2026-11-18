@@ -7,8 +7,9 @@ import (
 	"github.com/docattest/docattest/adapters/go/internal/protocol"
 )
 
-// A cases table is run by a runner of the setup package (see analysis), row by row, in
-// one program that every table of the project shares.
+// A cases table is run by a runner of the setup package (see analysis), row by row, by
+// one program that every table of the project shares, built once; each table runs it
+// in a process of its own.
 
 // casesJob is a table as its program is told it (the harness's docattestTable).
 type casesJob struct {

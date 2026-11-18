@@ -124,6 +124,24 @@ def fact(expression, id="f", surface="default"):
     }
 
 
+def table(runner, header, rows):
+    """A cases table of ``docs/t.md`` at L5, its rows from L8."""
+    return {
+        "id": runner,
+        "kind": "cases",
+        "page": "docs/t.md",
+        "line": 5,
+        "claim": "",
+        "runner": runner,
+        "header": header,
+        "rows": [{"line": 8 + k, "name": r[0], "values": dict(zip(header, r))} for k, r in enumerate(rows)],
+    }
+
+
+def run_cases(request_id, case):
+    return {"id": request_id, "method": "run", "params": {"examples": [], "cases": [case]}}
+
+
 def run_one(code, files=None, **extra):
     e = example(code, **extra.pop("example", {}))
     talk = Talk(

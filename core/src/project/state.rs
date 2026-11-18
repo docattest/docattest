@@ -7,10 +7,10 @@ use crate::adapter::{Adapter, Launch, Start, Starting};
 use crate::api::attestation::Attestation;
 use crate::api::errors::{Error, Result};
 use crate::config::{ProjectConfig, load_config};
+use crate::fact_files::{FactFiles, load_fact_files};
 use crate::files::glob::{GlobMatcher, is_glob};
 use crate::files::source::{DiskFiles, normalise};
 use crate::git::ignored::ignored_by_git;
-use crate::manifests::{Manifests, load_manifests};
 use crate::project::launches::Launches;
 use crate::project::plan::{Plan, plan_project};
 use crate::snapshots::{LoadedSnapshots, load_snapshots};
@@ -28,8 +28,8 @@ pub struct State {
     /// What the config names that does nothing in the project.
     pub warnings: Vec<String>,
     pub snapshots: LoadedSnapshots,
-    /// The manifests the facts name.
-    pub manifests: Manifests,
+    /// The project files the facts read.
+    pub fact_files: FactFiles,
     /// The instant the project was loaded at, in ms since the epoch: the snapshots' age is
     /// counted to it, and a sample page's fixture is loaded at it too.
     pub now: f64,
@@ -117,8 +117,8 @@ impl Greeted {
         files.ignore_what_git_ignores(ignored_by_git);
         let Plan { living, frozen, mut attestations, warnings } = plan_project(&files, &config, &adapter)?;
         let snapshots = load_snapshots(&files, config.snapshots_dir.as_deref(), now, config.max_age_days);
-        let manifests = load_manifests(&files, &attestations);
-        manifests.refuse_unreadable(&mut attestations);
+        let fact_files = load_fact_files(&files, &attestations);
+        fact_files.refuse_unreadable(&mut attestations);
         let launches = Launches::of(&files, &config, launch);
         let state = State {
             files,
@@ -129,7 +129,7 @@ impl Greeted {
             attestations,
             warnings,
             snapshots,
-            manifests,
+            fact_files,
             now,
             launches,
         };

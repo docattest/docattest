@@ -29,7 +29,7 @@ fn command(entries: &mut Fields, name: String) -> Option<Command> {
         entries.problems.push(format!("\"commands\" has {name:?}, which is not a command's name: {why}"));
         return None;
     }
-    let files = entries.globs(&name, entries.object.get(&name));
+    let files = entries.globs(&name, entries.object.get(&name), super::FILE_NEGATION);
     Some(Command { name, files })
 }
 

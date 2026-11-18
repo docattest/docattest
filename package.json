@@ -20,6 +20,7 @@
     "format:check": "prettier --check .",
     "test": "npm test --workspace adapters/typescript",
     "test:action": "node --test 'action/test/**/*.test.ts'",
+    "test:scripts": "node --test 'scripts/**/*.test.ts'",
     "test:docs": "node scripts/with-core.ts node adapters/typescript/dist/launcher/main.js check",
     "bench": "node scripts/with-core.ts node tests/bench/run.ts",
     "versions": "node scripts/version.ts check",

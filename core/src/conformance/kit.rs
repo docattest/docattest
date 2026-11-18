@@ -37,6 +37,8 @@ pub struct Kit {
     pub test: KitTest,
     pub cases: Option<Cases>,
     pub affected: Option<Affected>,
+    /// Values of a data block, for the `display` capability; none when the kit gives none.
+    pub display: Vec<SameValue>,
 }
 
 /// A source file with doc comments: its text, how many examples they hold, one's prose.
@@ -138,6 +140,12 @@ pub struct Affected {
     pub names: Vec<String>,
 }
 
+/// A value of a data block as JSON holds it, and a fact expression of the same value.
+pub struct SameValue {
+    pub value: Value,
+    pub expression: String,
+}
+
 /// The schema a kit is held to: its definition, and the file that holds it.
 const KIT_DEFINITION: &str = "Kit";
 const KIT_FILE: &str = "kit.json";
@@ -194,7 +202,12 @@ fn read_fields(kit: &Value) -> Kit {
             changed: texts(&affected["changed"]),
             names: texts(&affected["names"]),
         }),
+        display: kit["display"].as_array().map_or(&[][..], Vec::as_slice).iter().map(same_value).collect(),
     }
+}
+
+fn same_value(field: &Value) -> SameValue {
+    SameValue { value: field["value"].clone(), expression: text(&field["expression"]) }
 }
 
 fn doc_comment(field: &Value) -> DocComment {

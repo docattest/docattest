@@ -154,6 +154,10 @@ There is no install script and nothing is downloaded when docattest runs.
    resolves to what its `package.json` exports, usually its built `dist`, as it does for
    your users.
 
+The [TypeScript guide](adapters/typescript/README.md) covers facts that read constants from
+source, a command's entry script included, citations of table-driven tests (`it.each`,
+`for … of`), and `codeSpans` for cases runners.
+
 ### Python
 
 1. Add `docattest.config.json` at the project root:
@@ -185,7 +189,9 @@ There is no install script and nothing is downloaded when docattest runs.
    ```
 
 The [Python guide](adapters/python/README.md) covers docstring examples, sessions that
-continue across blocks, and which interpreter runs your code.
+continue across blocks, facts that read constants from source (a `__main__.py`'s too),
+citations of `parametrize` cases and subtests, `docattest.cells.code_spans` for cases
+runners, and which interpreter runs your code.
 
 ### Go
 
@@ -224,8 +230,12 @@ continue across blocks, and which interpreter runs your code.
    docattest check
    ```
 
-The [Go guide](adapters/go/README.md) covers what a block may be (statements, declarations
-or a whole program), testable `Example` functions, and the setup package.
+The [Go guide](adapters/go/README.md) has a page for each kind of proof:
+[examples](adapters/go/docs/examples.md) (statements, declarations or a whole program, and
+testable `Example` functions), [facts](adapters/go/docs/facts.md) (constants read from
+source, a `package main`'s too), [cases](adapters/go/docs/cases.md) (the setup package and
+`cells.CodeSpans`) and [citations](adapters/go/docs/citations.md) (the subtests of a
+table-driven test).
 
 ### Rust
 
@@ -261,8 +271,9 @@ or a whole program), testable `Example` functions, and the setup package.
    docattest check
    ```
 
-The [Rust guide](adapters/rust/README.md) covers doc-comment examples, the setup file, and
-where blocks are built.
+The [Rust guide](adapters/rust/README.md) covers doc-comment examples, facts that read
+constants from source (a binary's too), citations of rstest and test-case cases, the setup
+file and `docattest_blocks::cells::code_spans`, and where blocks are built.
 
 The rest of this README writes commands as `npx docattest …`; in a Python, Go or Rust
 project drop the `npx`.
@@ -273,14 +284,15 @@ project drop the `npx`.
 | Proof | Reported | You write | It fails when |
 |---|---|---|---|
 | **Example** | `example` | a code block tagged `check` (runs) or `compile` (type-checks only); a `console check` block of commands and their output, or an `md check fixture=<dir>` sample page, which docattest runs itself | the code throws, an assertion fails, or it no longer compiles; a command prints or exits otherwise; a proof on the sample page fails |
-| **Fact** | `fact` | `<!-- fact: expression -->` after a value, or above a list, table column or code block | the page's value differs from what the expression gives |
+| **Fact** | `fact` | `<!-- fact: expression -->` after a value, or above a list, table column, code block or one field of a JSON, TOML or YAML block | the page's value differs from what the expression gives |
 | **Cases** | `cases` | `<!-- cases: runner -->` above a table | a row's expected result is not what the runner produces |
 | **Citation** | `test` | `<!-- test: file > "test name" -->` after a sentence | the test it names no longer exists |
 | **Snapshot** | `snapshot` | a fact that reads `snapshot("name")` | the pinned data from an outside system disagrees with the page, or is too old |
 
 A fact reads your code through the surface, and a project file such as `package.json`,
 `pyproject.toml` or `go.mod` through `manifest("path")`, so a claim like "Node 22.12 or
-later" is held to what the package declares ([manifests](docs/manifests.md)).
+later" is held to what the package declares. Any other file, such as a `Dockerfile`, it
+reads as text through `file("path")` ([manifests](docs/manifests.md)).
 
 Examples in doc comments (`@example` in TypeScript, `>>>` in Python docstrings, fenced
 blocks in Rust) and Go's testable `Example` functions are checked too, when the config
@@ -464,13 +476,16 @@ npx docattest refresh
 ### Document what a manifest declares
 
 "Node 22.12 or later" and "Python 3.10+" are true because a manifest says so, not the code.
-A fact reads the manifest:
+A fact reads the manifest, and reads any other file, such as a `Dockerfile`, as text:
 
 ```md check fixture=docs/.fixtures/acme-client
 Node 22.12 or later. <!-- fact: manifest("package.json").engines.node.replace(">=", "") -->
+
+The image runs as user `10001`. <!-- fact: file("Dockerfile").match(/^USER (\d+)$/m)[1] -->
 ```
 
-JSON, TOML, YAML and `go.mod` are read; the path is relative to the project root. See
+JSON, TOML, YAML and `go.mod` are read as data, with `manifest("path")`; `file("path")`
+reads any file as its text. The path is relative to the project root. See
 [manifests](docs/manifests.md).
 
 ### Keep a page out of the check
@@ -500,6 +515,7 @@ test it.
 | `pages` | Globs of the Markdown pages to check. Required. What git ignores is never a page, and a glob cannot start with `!`: use `frozen` to leave pages out. |
 | `adapter` | The project's language: `"typescript"`, `"python"`, `"go"` or `"rust"`. Required. |
 | `surfaces` | Your public API, by name. `default` is required. An entry is an entry file, a package or module name (a package's directory or import path in Go, a module path in Rust), or `{ "import": "<name>", "path": "<file>" }`. |
+| `undocumented` | By surface, globs of the symbols that are not meant to be documented, written as `uncovered` prints their names: `{ "default": ["internal*", "Program*"] }`. `uncovered` leaves them out, the report counts them apart, and a glob that matches no symbol is a warning. See [duality](docs/duality.md#symbols-not-meant-to-be-documented-are-counted-apart). |
 | `sources` | Globs of source files whose doc-comment examples are checked. |
 | `frozen` | Globs of pages that are listed in the report but never checked. |
 | `setup` | A module that provides `cases` runners and named `facts`. |
@@ -525,7 +541,7 @@ repository; all but [why](docs/why.md), which is reasoning, carry proofs.
 | [cases](docs/cases.md) | tables run row by row |
 | [citations](docs/citations.md) | binding a sentence to an existing test |
 | [snapshots](docs/snapshots.md) | pinning facts about outside systems, and `refresh` |
-| [manifests](docs/manifests.md) | facts over project files: `package.json`, `pyproject.toml`, `go.mod` |
+| [manifests](docs/manifests.md) | facts over project files: `package.json`, `pyproject.toml`, `go.mod`, and any file as text |
 | [pages](docs/pages.md) | living and frozen pages, doc comments, checking some pages |
 | [surfaces](docs/surfaces.md) | what pages import and where it resolves |
 | [duality](docs/duality.md) | `where`, `uncovered` and the symbol index |

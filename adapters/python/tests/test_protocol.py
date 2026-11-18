@@ -27,7 +27,7 @@ class Hello(unittest.TestCase):
         self.assertIn("*.egg-info", hello["ignoredNames"])
         self.assertEqual(hello["ignoredMarkers"], ["pyvenv.cfg"])
         self.assertEqual(hello["infoWords"], ["continue"])
-        self.assertEqual(hello["capabilities"], ["tests", "observables", "affected"])
+        self.assertEqual(hello["capabilities"], ["tests", "observables", "affected", "display"])
         self.assertEqual(warm.result(1), hello)
         self.assertEqual(
             cold.error(2),
@@ -204,6 +204,11 @@ class Text(unittest.TestCase):
         self.assertNotEqual(other["shape"], before["shape"])
         self.assertEqual(loop["names"], ["r", "r", "ROWS", "r"])
 
+    def test_display_shows_a_data_blocks_values_as_python_does(self):
+        values = [True, False, None, 3, 1.0, 1.5, 1e21, "a b"]
+        shown = Talk(HELLO, {"id": 2, "method": "display", "params": {"values": values}}).result(2)
+        self.assertEqual(shown, ["True", "False", "None", "3", "1.0", "1.5", "1e+21", "a b"])
+
 
 class Values(unittest.TestCase):
     """How Python values reach the core's comparison (the JSON form of ``Observation``)."""
@@ -223,6 +228,7 @@ class Values(unittest.TestCase):
         "await": "await version()",
         "call": "add(2, 2)",
         "private": "_PRIVATE",
+        "unbound": "_NOWHERE",
         "raises": "LIMITS['nope']",
         "syntax": "N +",
         "big": "2 ** 70",
@@ -269,14 +275,16 @@ class Values(unittest.TestCase):
         self.assertEqual(got["await"]["value"]["text"], "2.0")
         self.assertEqual(got["call"]["value"]["text"], "4")
         self.assertEqual(got["big"]["value"]["text"], str(2**70))
+        # A constant is read from source, exported or not.
+        self.assertEqual(got["private"]["value"]["text"], "7")
         self.assertEqual(got["stdlib"]["value"]["text"], "3")
 
     def assert_refusals(self, got):
         self.assertEqual(
-            got["private"],
+            got["unbound"],
             {
                 "ok": False,
-                "message": "fact `_PRIVATE`: _PRIVATE is not exported by surface \"default\" (NameError: name '_PRIVATE' is not defined)",
+                "message": "fact `_NOWHERE`: _NOWHERE is not exported by surface \"default\" (NameError: name '_NOWHERE' is not defined)",
             },
         )
         self.assertEqual(
@@ -326,6 +334,20 @@ class Values(unittest.TestCase):
         got = talk.result(3)
         self.assertEqual(got["read"]["value"]["text"], "3.10")
         self.assertIn('manifest "other.toml" was not read', got["unread"]["message"])
+
+    def test_a_file_is_read_as_text_by_the_path_a_fact_writes(self):
+        facts = [
+            fact("re.search(r'USER (\\d+)', file('Dockerfile'))[1]", id="read"),
+            fact("file('Dockerfile.dev')", id="unread"),
+        ]
+        talk = Talk(
+            HELLO,
+            opened({"lib.py": "N = 3\n"}, texts={"Dockerfile": "FROM python:3.12\nUSER 10001\n"}),
+            {"id": 3, "method": "evaluate", "params": {"facts": facts}},
+        )
+        got = talk.result(3)
+        self.assertEqual((got["read"]["value"]["text"], got["read"]["value"]["kind"]), ("10001", "text"))
+        self.assertIn('file "Dockerfile.dev" was not read', got["unread"]["message"])
 
 
 if __name__ == "__main__":

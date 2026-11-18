@@ -2,3 +2,4 @@
 
 pub mod attestation;
 pub mod errors;
+pub mod field;

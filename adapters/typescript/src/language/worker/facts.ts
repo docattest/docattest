@@ -6,6 +6,7 @@ import { compileFunction, type CompiledFunction } from './compile.js';
 import { exportedEntries, FACT_FUNCTIONS, freshRegistry, type WorkerContext } from './context.js';
 import { describeError } from './describe.js';
 import { offline } from './network.js';
+import type { ModuleRegistry } from './registry.js';
 import { SetupFacts } from './setup-facts.js';
 
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
@@ -29,19 +30,31 @@ export async function runFacts(
   ctx: WorkerContext,
 ): Promise<void> {
   const registry = freshRegistry(ctx, { snapshot: ctx.snapshot });
-  let surface: Map<string, unknown>;
-  try {
-    surface = new Map(exportedEntries(await offline(() => registry.load(job.file))));
-  } catch (err) {
-    const message = `surface "${job.surface}" failed to load: ${describeError(err).message}`;
-    ctx.post({ type: 'failed', id, message });
+  const exports = await loadSurface(registry, job);
+  if (typeof exports === 'string') {
+    ctx.post({ type: 'failed', id, message: exports });
     return;
   }
+  const surface = new Map([...exports, ...job.constants]);
   ctx.post({ type: 'ready', id });
   const helpers = new SetupFacts(registry, job.setup, surface);
   for (const fact of job.facts.slice(start)) {
     const evaluation = await evaluate(fact, job.surface, helpers, ctx);
     ctx.post({ type: 'item', id, outcome: { kind: 'evaluation', evaluation } });
+  }
+}
+
+// A job whose facts read only constants from source never runs the surface's module.
+async function loadSurface(
+  registry: ModuleRegistry,
+  job: FactsJob,
+): Promise<[string, unknown][] | string> {
+  const { file } = job;
+  if (file === undefined) return [];
+  try {
+    return exportedEntries(await offline(() => registry.load(file)));
+  } catch (err) {
+    return `surface "${job.surface}" failed to load: ${describeError(err).message}`;
   }
 }
 

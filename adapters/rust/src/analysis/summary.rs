@@ -1,6 +1,7 @@
 //! What a session keeps of a crate once it is read: where its modules are, what each
-//! exports, and which of them the crate's users can import.
+//! exports, which of them the crate's users can import, and the constants each declares.
 
+use super::constants::Constants;
 use super::modules::{Crate, Export};
 use std::path::{Path, PathBuf};
 
@@ -18,6 +19,7 @@ struct Outline {
     opaque: bool,
     /// Whether its parent declares it `pub`.
     public: bool,
+    constants: Constants,
 }
 
 impl Summary {
@@ -29,6 +31,7 @@ impl Summary {
             exports: krate.exports(&module.path),
             opaque: krate.opaque(&module.path),
             public: krate.declared_public(&module.path),
+            constants: Constants::of(&module.items),
         });
         Summary { modules: modules.collect() }
     }
@@ -58,6 +61,11 @@ impl Summary {
     pub fn private_on(&self, path: &[String]) -> Option<Vec<String>> {
         let mut prefixes = (1..=path.len()).map(|k| &path[..k]);
         prefixes.find(|prefix| self.at(prefix).is_some_and(|module| !module.public)).map(<[String]>::to_vec)
+    }
+
+    /// The constants the module at a path declares, which facts read from source.
+    pub fn constants(&self, path: &[String]) -> Option<&Constants> {
+        self.at(path).map(|module| &module.constants)
     }
 
     fn at(&self, path: &[String]) -> Option<&Outline> {

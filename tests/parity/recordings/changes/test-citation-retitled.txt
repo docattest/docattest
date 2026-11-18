@@ -1,8 +1,8 @@
 # test citation retitled
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 1
-stdout 67 lines
+stdout 68 lines
 {
   "results": [
     {
@@ -20,6 +20,7 @@ stdout 67 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 1,
+    "proofs": 0,
     "weak": 0,
     "cited": 1
   },
@@ -77,7 +78,7 @@ stdout 12 lines
 docs/a.md
   ! L3 test: test/add.test.ts declares no test "sums"; tests there: "adds"
 results: 0 pass, 0 fail, 1 error, 0 skipped
-coverage: 1 living page, 1 covered (1 attestation, 0 weak, 1 cited), 0 uncovered, 0 frozen
+coverage: 1 living page, 1 covered (1 attestation: 0 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen
 warning: "setup" is "docs/docattest.setup.ts", which nothing reads: no living page has a cases table or a fact
 surface default: 4 symbols, 0 attested, 4 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)

@@ -1,8 +1,8 @@
 # frozen at the base, living now
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 0
-stdout 77 lines
+stdout 78 lines
 {
   "results": [
     {
@@ -34,6 +34,7 @@ stdout 77 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 2,
+    "proofs": 2,
     "weak": 0,
     "cited": 0
   },
@@ -88,7 +89,7 @@ docs/retry.md
   ✓ L3 fact: LIMIT is 3
   ✓ L7 example: all assertions held
 results: 2 pass, 0 fail, 0 error, 0 skipped
-coverage: 1 living page, 1 covered (2 attestations, 0 weak), 0 uncovered, 0 frozen
+coverage: 1 living page, 1 covered (2 attestations: 2 proofs, 0 of them weak, and 0 citations), 0 uncovered, 0 frozen
 surface default: 4 symbols, 1 attested, 3 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 surface extra: 2 symbols, 0 attested, 2 not attested by any page

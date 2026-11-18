@@ -12,27 +12,9 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from talk import HELLO, SURFACE, Talk, example, fact, opened, run_one  # noqa: E402
+from talk import HELLO, SURFACE, Talk, example, fact, opened, run_cases, run_one, table  # noqa: E402
 
 CASES_SETUP = "from lib import add, version\n\nasync def versions(row):\n    assert await version() == row['version']\n\ndef adds(row):\n    assert str(add(int(row['a']), int(row['b']))) == row['sum']\n\nadds.columns = ['a', 'b', 'sum']\ncases = {'adds': adds, 'versions': versions}\n"
-
-
-def table(runner, header, rows):
-    """A cases table of ``docs/t.md`` at L5, its rows from L8."""
-    return {
-        "id": runner,
-        "kind": "cases",
-        "page": "docs/t.md",
-        "line": 5,
-        "claim": "",
-        "runner": runner,
-        "header": header,
-        "rows": [{"line": 8 + k, "name": r[0], "values": dict(zip(header, r))} for k, r in enumerate(rows)],
-    }
-
-
-def run_cases(request_id, case):
-    return {"id": request_id, "method": "run", "params": {"examples": [], "cases": [case]}}
 
 
 class Running(unittest.TestCase):

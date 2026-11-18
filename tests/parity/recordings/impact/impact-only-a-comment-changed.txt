@@ -1,7 +1,7 @@
 # impact only a comment changed
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 1 line
-docattest impact: no exported symbol is affected by changes since HEAD
+docattest impact: no symbol is affected by changes since HEAD
 stderr empty

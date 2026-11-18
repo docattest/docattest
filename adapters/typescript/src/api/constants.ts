@@ -53,6 +53,7 @@ export const CONFIG_KEYS = [
   'ignoreTags',
   'members',
   'commands',
+  'undocumented',
 ] as const;
 
 /**

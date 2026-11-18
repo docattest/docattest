@@ -116,8 +116,9 @@ export class Runner {
       data: Object.fromEntries(this.ctx.snapshots.data),
     };
     const manifests = Object.fromEntries(this.ctx.manifests);
+    const texts = Object.fromEntries(this.ctx.texts);
     this.pool ??= new WorkerPool(this.ctx.workers, () =>
-      spawnWorker(this.host, this.ctx.files.root, { snapshots, manifests }),
+      spawnWorker(this.host, this.ctx.files.root, { snapshots, manifests, texts }),
     );
     return this.pool;
   }

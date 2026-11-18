@@ -5,6 +5,7 @@ mod block;
 use std::collections::HashSet;
 
 use crate::api::attestation::{FactTarget, SetFrom};
+use crate::api::field::as_json_writes;
 use crate::attestations::literals::without_version_mark;
 use crate::counted::{agreeing, counted};
 use crate::json::json_string;
@@ -46,12 +47,14 @@ fn collapse(text: &str) -> String {
 /// Compare a fact's observed value with its target: scalars as strings, sets
 /// order-insensitive unless `ordered`, text token by token (whitespace counts only where it
 /// parts two words; see [`first_difference`]). A number or version
-/// compares without the `v` that may lead it, so `v1.2.3` is `1.2.3`.
+/// compares without the `v` that may lead it, so `v1.2.3` is `1.2.3`. A field of a data
+/// block not yet spelled the language's way is compared as JSON writes it.
 pub fn compare_fact(expression: &str, ordered: bool, target: &FactTarget, value: &Observation) -> Comparison {
     match target {
         FactTarget::Scalar(expected) => compare_scalar(expression, expected, value),
         FactTarget::Text(page) => compare_text(expression, page, value),
         FactTarget::Set { items, from } => compare_set(expression, ordered, Expected { items, from }, value),
+        FactTarget::Field { .. } => compare_fact(expression, ordered, &target.spelled(as_json_writes), value),
     }
 }
 
@@ -108,6 +111,9 @@ impl Expected<'_> {
             SetFrom::Table { column } => {
                 (if distinct { "distinct value" } else { "value" }, format!(" in column {column}"))
             }
+            SetFrom::Field { path } => {
+                (if distinct { "distinct item" } else { "item" }, format!(" in field {path}"))
+            }
             SetFrom::List => (if distinct { "distinct item" } else { "item" }, String::new()),
             SetFrom::Sentence => (if distinct { "distinct code span" } else { "code span" }, String::new()),
         };
@@ -118,6 +124,7 @@ impl Expected<'_> {
     fn place(&self) -> String {
         match self.from {
             SetFrom::Table { column } => format!("column {column}"),
+            SetFrom::Field { path } => format!("field {path}"),
             SetFrom::List | SetFrom::Sentence => format!("the {}", self.from.as_str()),
         }
     }
@@ -214,6 +221,8 @@ fn absent_from<'a>(items: &'a [SetItem<'a>], other: &[SetItem]) -> Vec<&'a str> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::api::field::FieldValue;
+    use serde_json::json;
 
     fn obs(text: &str, items: Option<&[&str]>) -> Observation {
         Observation {
@@ -230,6 +239,20 @@ mod tests {
         assert_eq!((c.status, c.message.as_str()), (Status::Pass, "N is 3"));
         let c = compare_fact("N", false, &FactTarget::Scalar("3".into()), &obs("4", None));
         assert_eq!(c.message, "expected 3, got 4 from N");
+    }
+
+    #[test]
+    fn a_field_the_adapter_did_not_display_compares_as_json_writes_it() {
+        let field = |value| FactTarget::Field { path: "on".into(), value };
+        let on = field(FieldValue::Scalar(json!(true)));
+        assert_eq!(compare_fact("ON", false, &on, &obs("true", None)).status, Status::Pass);
+        assert_eq!(
+            compare_fact("ON", false, &on, &obs("True", None)).message,
+            "expected true, got True from ON"
+        );
+        let ratios = field(FieldValue::List(vec![json!(1.0), json!("a")]));
+        let c = compare_fact("R", true, &ratios, &obs("", Some(&["1", "a"])));
+        assert_eq!(c.message, "missing: 1; unexpected: 1.0 (comparing field on on the page with R)");
     }
 
     #[test]
@@ -301,6 +324,20 @@ mod tests {
         assert_eq!((c.status, c.message.as_str()), (Status::Pass, "N is B"));
         let c = compare_fact("N", true, &sentence, &obs("B", None));
         assert_eq!(c.message, "N must be a list to compare with the sentence on the page, got an object");
+    }
+
+    #[test]
+    fn a_list_in_a_field_is_named_by_its_path() {
+        let field = FactTarget::Set {
+            items: vec!["a".into(), "b".into()],
+            from: SetFrom::Field { path: "hosts".into() },
+        };
+        let c = compare_fact("H", false, &field, &obs("", Some(&["a", "b"])));
+        assert_eq!((c.status, c.message.as_str()), (Status::Pass, "2 items in field hosts match H"));
+        let c = compare_fact("H", false, &field, &obs("", Some(&["a", "c"])));
+        assert_eq!(c.message, "missing: c; unexpected: b (comparing field hosts on the page with H)");
+        let c = compare_fact("H", false, &field, &obs("a", None));
+        assert_eq!(c.message, "H must be a list to compare with the field on the page, got an object");
     }
 
     #[test]

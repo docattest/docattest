@@ -1,7 +1,7 @@
 # impact --hook with text that needs escaping
-# recorded from: impact --hook gives the agent a brief, not the whole report
+# recorded from: what adopting it in a Go service found
 === impact --hook
 exit 0
 stdout 1 line
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 1 exported symbol. Nothing checks these places; re-read them:\n  docs/n.md:1 n \"Say \"hi\" \\ to `n` and <b>é😀</b> there.\""}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"docattest: this edit affects 1 symbol. Nothing checks these places; re-read them:\n  docs/n.md:1 n \"Say \"hi\" \\ to `n` and <b>é😀</b> there.\""}}
 stderr empty

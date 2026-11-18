@@ -1,7 +1,7 @@
 # config every problem
-# recorded from: impact --file answers for the edited file's change alone; config key commands
+# recorded from: what adopting it in a Go service found
 === check
 exit 1
 stdout empty
 stderr 1 line
-docattest: invalid docattest.config.json: unknown key "pagez" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands); "pages" must be an array of globs; "frozen" must be an array of globs; "surfaces.default" must be a string, or { "import": "<name>", "path": "<file>" }; "surfaces.other" must be a string, or { "import": "<name>", "path": "<file>" }; "setup" must be a non-empty string; "snapshots.dir" is required; "snapshots.maxAgeDays" must be a positive integer; "adapter" must name a language adapter, such as "typescript", in lower-case letters, digits and "_" (got 5); unknown key "runtime.extra" (known: timeoutMs, workers); "runtime.timeoutMs" must be a positive integer; "runtime.workers" must be a positive integer; "ignoreTags" must be an array of single words
+docattest: invalid docattest.config.json: unknown key "pagez" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); "pages" must be an array of globs; "frozen" must be an array of globs; "surfaces.default" must be a string, or { "import": "<name>", "path": "<file>" }; "surfaces.other" must be a string, or { "import": "<name>", "path": "<file>" }; "setup" must be a non-empty string; "snapshots.dir" is required; "snapshots.maxAgeDays" must be a positive integer; "adapter" must name a language adapter, such as "typescript", in lower-case letters, digits and "_" (got 5); unknown key "runtime.extra" (known: timeoutMs, workers); "runtime.timeoutMs" must be a positive integer; "runtime.workers" must be a positive integer; "ignoreTags" must be an array of single words

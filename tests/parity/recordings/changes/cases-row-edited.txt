@@ -1,8 +1,8 @@
 # cases row edited
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 0
-stdout 65 lines
+stdout 66 lines
 {
   "results": [
     {
@@ -22,6 +22,7 @@ stdout 65 lines
     "uncovered": [],
     "frozen": [],
     "attestations": 1,
+    "proofs": 1,
     "weak": 0,
     "cited": 0
   },
@@ -75,7 +76,7 @@ stdout 11 lines
 docs/c.md
   ✓ L7 cases: docs/c.md:7 small
 results: 1 pass, 0 fail, 0 error, 0 skipped
-coverage: 1 living page, 1 covered (1 attestation, 0 weak), 0 uncovered, 0 frozen
+coverage: 1 living page, 1 covered (1 attestation: 1 proof, 0 of them weak, and 0 citations), 0 uncovered, 0 frozen
 surface default: 4 symbols, 1 attested, 3 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 surface extra: 2 symbols, 0 attested, 2 not attested by any page

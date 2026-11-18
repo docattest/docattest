@@ -8,6 +8,7 @@ use super::project::Project;
 use super::units::{Located, Unit, claim_piece, claim_unit, doc_comment_units, markdown_units, pieces};
 use crate::api::attestation::Attestation;
 use crate::api::errors::{Error, Result};
+use crate::attestations::placement::attested_from_above;
 use crate::config::matcher;
 use crate::files::glob::GlobMatcher;
 use crate::markdown::model::BlockKind;
@@ -32,6 +33,8 @@ pub struct PageView<'a> {
     pub piece_texts: HashSet<String>,
     /// The piece each attestation on the page claims, for those that claim one.
     pub claims: Vec<(&'a Attestation, (usize, String))>,
+    /// Each directive written alone above a paragraph: its line, and the paragraph's first line.
+    pub from_above: Vec<(usize, usize)>,
 }
 
 /// A side over a planned project. Pages are read and parsed lazily, once.
@@ -157,6 +160,9 @@ impl<'a> Side<'a> {
         if self.markdown(page) {
             let parsed = parse_page(&text()).map_err(|why| why.on(page))?;
             view.units = markdown_units(&parsed);
+            view.from_above = (attested_from_above(&parsed).into_iter())
+                .filter_map(|(line, block)| Some((line, parsed.flow.get(block)?.start)))
+                .collect();
             view.code = parsed
                 .code
                 .iter()
@@ -175,14 +181,19 @@ impl<'a> Side<'a> {
             .flat_map(|(k, unit)| pieces(unit).into_iter().map(move |piece| (k, piece.to_string())))
             .collect();
         view.piece_texts = view.pieces.iter().map(|(_, piece)| piece.clone()).collect();
-        view.claims = self.claims(page, &view.units);
+        view.claims = self.claims(page, &view.units, &view.from_above);
         Ok(view)
     }
 
     /// The attestations on a page that claim a piece of its prose, with that piece.
-    fn claims(&self, page: &str, units: &[Unit]) -> Vec<(&'a Attestation, (usize, String))> {
+    fn claims(
+        &self,
+        page: &str,
+        units: &[Unit],
+        from_above: &[(usize, usize)],
+    ) -> Vec<(&'a Attestation, (usize, String))> {
         let claim = |a: &'a Attestation| {
-            let located = claim_unit(a, units)?;
+            let located = claim_unit(a, units, from_above)?;
             Some((a, (located.unit, claim_piece(a, &units[located.unit]).to_string())))
         };
         self.on(page).iter().filter_map(|&a| claim(a)).collect()
@@ -191,7 +202,7 @@ impl<'a> Side<'a> {
     /// The prose an attestation defends, on its own page.
     pub fn claim(&self, a: &Attestation) -> Result<Option<(Rc<PageView<'a>>, Located)>> {
         let view = self.view(&a.page)?;
-        let located = claim_unit(a, &view.units);
+        let located = claim_unit(a, &view.units, &view.from_above);
         Ok(located.map(|l| (view, l)))
     }
 }

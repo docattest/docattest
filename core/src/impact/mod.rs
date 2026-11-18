@@ -2,8 +2,8 @@
 //!
 //! The adapter names the surface exports the change affects; the index adds every
 //! attestation of them, and the living pages every code span that names one without proving
-//! anything. A changed manifest affects the facts that read it, and a change to a command's
-//! files the blocks that run it. Reads only: nothing runs, nothing is written.
+//! anything. A changed file affects the facts that read it (`manifest`, `file`), and a
+//! change to a command's files the blocks that run it. Reads only: nothing runs, nothing is written.
 
 pub mod brief;
 pub mod commands;
@@ -19,9 +19,10 @@ use serde_json::{Map, Value, json};
 use crate::adapter::Language;
 use crate::api::attestation::Kind;
 use crate::api::errors::{Error, Result};
+use crate::fact_files::Reading;
+use crate::fact_files::calls::Reader;
 use crate::files::project_files::ProjectFiles;
 use crate::git::change::git_change;
-use crate::manifests::manifest_call;
 use crate::project::check::Network;
 use crate::project::check::{Reference, build_index, open_session, request_symbols};
 use crate::project::state::State;
@@ -85,6 +86,9 @@ pub struct Impact {
     /// Changed manifests that facts read, sorted. A reference to one has its call as its
     /// symbol: `manifest("package.json")`.
     pub manifests: Vec<String>,
+    /// Changed files that facts read as text, sorted. A reference to one has its call as
+    /// its symbol: `file("Dockerfile")`.
+    pub files: Vec<String>,
     /// Commands built from a changed file (the config's `commands`), sorted. A reference to
     /// one, a block that runs it, has its call as its symbol: `$ mytool`.
     pub commands: Vec<String>,
@@ -93,13 +97,17 @@ pub struct Impact {
 }
 
 impl Impact {
-    /// Whether the change reaches no export, manifest or command.
+    /// Whether the change reaches no export, file a fact reads, or command.
     pub fn is_empty(&self) -> bool {
-        self.symbols.is_empty() && self.manifests.is_empty() && self.commands.is_empty()
+        self.symbols.is_empty()
+            && self.manifests.is_empty()
+            && self.files.is_empty()
+            && self.commands.is_empty()
     }
 
     /// The impact as `--json` prints it, keys in the order the recordings hold; `manifests`
-    /// only when a manifest changed, `commands` only when a command did.
+    /// only when a manifest changed, `files` only when a file a fact reads as text did, and
+    /// `commands` only when a command did.
     pub fn to_json(&self) -> Value {
         let references: Vec<Value> = self
             .references
@@ -114,6 +122,9 @@ impl Impact {
         let mut out = json!({ "base": self.base, "symbols": self.symbols });
         if !self.manifests.is_empty() {
             out["manifests"] = json!(self.manifests);
+        }
+        if !self.files.is_empty() {
+            out["files"] = json!(self.files);
         }
         if !self.commands.is_empty() {
             out["commands"] = json!(self.commands);
@@ -165,7 +176,9 @@ pub fn run_impact(state: &State, network: Network, label: &str, change: Result<C
             state.config.adapter
         )));
     }
-    let (manifests, mut references) = manifest_readers(state, &change.changed);
+    let readings = state.fact_files.readers(&state.attestations, &change.changed);
+    let (manifests, files) = (read_with(&readings, Reader::Manifest), read_with(&readings, Reader::File));
+    let mut references: Vec<ImpactReference> = readings.into_iter().map(reference_to_read).collect();
     let (commands, runners) =
         commands::command_runners(&state.config.commands, &state.attestations, &change.changed)?;
     references.extend(runners);
@@ -179,7 +192,7 @@ pub fn run_impact(state: &State, network: Network, label: &str, change: Result<C
     references.sort_by(|a, b| {
         compare_utf16(&a.symbol, &b.symbol).then(compare_utf16(&a.page, &b.page)).then(a.line.cmp(&b.line))
     });
-    Ok(Impact { base: label.to_string(), symbols: names, manifests, commands, references })
+    Ok(Impact { base: label.to_string(), symbols: names, manifests, files, commands, references })
 }
 
 /// The surface exports `change` affects, each once, as the adapter answers in the session
@@ -193,24 +206,25 @@ fn affected_exports(state: &State, network: Network, change: Change) -> Result<V
     affected_names(&affected.wait()?)
 }
 
-/// The changed manifests that facts read, sorted, and those facts, each a reference to the
-/// manifest's call.
-fn manifest_readers(state: &State, changed: &[String]) -> (Vec<String>, Vec<ImpactReference>) {
-    let readers = state.manifests.readers(&state.attestations, changed);
-    let mut files: Vec<String> = readers.iter().map(|(file, _)| file.clone()).collect();
+/// The changed files that facts read with `reader`, sorted.
+fn read_with(readings: &[Reading], reader: Reader) -> Vec<String> {
+    let mut files: Vec<String> =
+        readings.iter().filter(|r| r.reader == reader).map(|r| r.file.clone()).collect();
     files.sort_by(|a, b| compare_utf16(a, b));
     files.dedup();
-    let references = readers
-        .into_iter()
-        .map(|(file, fact)| ImpactReference {
-            symbol: manifest_call(&file),
-            page: fact.page.clone(),
-            line: fact.line,
-            found: Found::Proven(fact.kind()),
-            claim: fact.claim.clone(),
-        })
-        .collect();
-    (files, references)
+    files
+}
+
+/// A fact that reads a changed file, as a reference to the call it reads it with.
+fn reference_to_read(reading: Reading) -> ImpactReference {
+    let Reading { reader, file, fact } = reading;
+    ImpactReference {
+        symbol: reader.call(&file),
+        page: fact.page.clone(),
+        line: fact.line,
+        found: Found::Proven(fact.kind()),
+        claim: fact.claim.clone(),
+    }
 }
 
 /// The names of the exports `affected` answered, each once, in its order.

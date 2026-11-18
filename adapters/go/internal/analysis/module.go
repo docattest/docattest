@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -21,14 +22,14 @@ var moduleLine = regexp.MustCompile(`(?m)^module\s+(?:"([^"]+)"|(\S+))`)
 
 // findModule finds the nearest go.mod at or above `start`. A project in memory is all
 // there is, so nothing above its root is looked at.
-func findModule(files Files, start, root string, inMemory bool) (Module, error) {
+func findModule(start, root string, inMemory bool) (Module, error) {
 	for dir := start; ; dir = filepath.Dir(dir) {
-		text, err := files.Read(filepath.Join(dir, "go.mod"))
+		text, err := os.ReadFile(filepath.Join(dir, "go.mod"))
 		if err != nil && !errors.Is(err, fs.ErrNotExist) {
 			return Module{}, fmt.Errorf("cannot read the go.mod in %s: %w", dir, err)
 		}
-		if found := moduleLine.FindStringSubmatch(text); found != nil {
-			return Module{Dir: dir, Path: found[1] + found[2]}, nil
+		if found := moduleLine.FindSubmatch(text); found != nil {
+			return Module{Dir: dir, Path: string(found[1]) + string(found[2])}, nil
 		}
 		if dir == filepath.Dir(dir) || (inMemory && dir == root) {
 			return Module{Dir: root}, nil

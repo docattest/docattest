@@ -93,6 +93,7 @@ mod tests {
             base: "HEAD".into(),
             symbols: vec!["Client".into(), "parse".into()],
             manifests: vec![],
+            files: vec![],
             commands: vec![],
             references,
         }
@@ -109,7 +110,7 @@ mod tests {
         assert_eq!(
             text.lines().collect::<Vec<_>>(),
             [
-                "docattest: this edit affects 2 exported symbols. Nothing checks these places; re-read them:",
+                "docattest: this edit affects 2 symbols. Nothing checks these places; re-read them:",
                 "  docs/guide.md:1 parse \"Read it with `parse`.\"",
                 "  docs/guide.md:2 parse, Client \"Read it with `parse`.\"",
                 "  docs/guide.md:3 parse \"Read it with `parse`.\"",
@@ -129,9 +130,7 @@ mod tests {
         ];
         assert_eq!(
             brief_impact(&impact(proven), "src/index.ts").as_deref(),
-            Some(
-                "docattest: this edit affects 2 exported symbols; docattest check covers the 1 place that names it."
-            )
+            Some("docattest: this edit affects 2 symbols; docattest check covers the 1 place that names it.")
         );
         assert_eq!(brief_impact(&impact(vec![]), "src/index.ts"), None);
     }

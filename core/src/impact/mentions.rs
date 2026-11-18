@@ -182,6 +182,16 @@ mod tests {
     }
 
     #[test]
+    fn covers_the_paragraph_below_a_directive_alone_on_the_line_above_it() {
+        let page = "<!-- test: t.ts > \"retries\" -->\nWrap the call in `retry`.\n\nThen `retry` again.\n";
+        let claim = "Wrap the call in `retry`.".into();
+        let citation = Reference { page: "docs/r.md".into(), line: 1, kind: Kind::Test, claim };
+        let covered = covered_lines(page, &[("retry", vec![&citation])]);
+        let lines: Vec<usize> = mentions(page, &["retry"], &covered).into_iter().map(|m| m.line).collect();
+        assert_eq!(lines, vec![4]);
+    }
+
+    #[test]
     fn lists_a_claim_paragraph_once_its_symbol_has_no_attestation_there() {
         let lines: Vec<usize> = found(&["retry"], &[]).into_iter().map(|m| m.1).collect();
         assert_eq!(lines, vec![3, 5, 15]);

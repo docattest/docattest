@@ -37,11 +37,60 @@ function index(ts: string): [path: string, text: string] {
   throw new Error(`no translation for src/index.ts: ${ts}`);
 }
 
+/** The translations of the mirror's own scenarios (scenarios.ts). */
+const AGREEMENTS: Language['code'] = {
+  // A name left out of `__all__` is not exported, so the names stay as they are.
+  'src/server.ts': () => [
+    INIT,
+    lines(
+      '__all__ = ["NAME"]',
+      '',
+      'PORT = 8080',
+      'NAME = "shop"',
+      '',
+      '',
+      'def secret():',
+      '    return 7',
+    ),
+  ],
+  'src/main.ts': () => [
+    'src/shopd/__main__.py',
+    lines('PORT = 8080', 'raise SystemExit("shopd needs a terminal")'),
+  ],
+  'src/settings.ts': () => [INIT, lines('STRICT = True', 'RATIO = 1.0', 'NOTHING = None')],
+  'src/rates.ts': () => [INIT, lines('RATE = 3', 'QUOTE = 2', 'DEBUG_LEVEL = 1')],
+  'test/price.test.ts': () => [
+    'tests/test_price.py',
+    lines(
+      'import pytest',
+      '',
+      '',
+      '@pytest.mark.parametrize("cents", [1, 5], ids=["rounds down", "rounds up"])',
+      'def test_price(cents):',
+      '    assert cents > 0',
+    ),
+  ],
+  'docs/docattest.setup.ts': () => [
+    'docs/docattest_setup.py',
+    lines(
+      'from docattest.cells import code_spans',
+      '',
+      '',
+      'def spans(row):',
+      '    assert ",".join(code_spans(row["cell"])) == row["spans"]',
+      '',
+      '',
+      'cases = {"spans": spans}',
+    ),
+  ],
+};
+
 export const python: Language = {
   adapter: 'python',
   label: 'py',
   manifest: ['pyproject.toml', '[project]\nname = "fixture"\nversion = "1.0.0"\n'],
   surface: './src/fixture',
+  programs: { './src/main.ts': './src/shopd/__main__.py' },
   page: [
     ['```ts ', '```python '],
     ["import { retry } from 'fixture';", 'import asyncio; from fixture import retry'],
@@ -63,8 +112,10 @@ export const python: Language = {
       'test/retry.test.ts > "throws the last error"',
       'tests/test_retry.py > "test_throws_the_last_error"',
     ],
+    ['test/price.test.ts > "price" > ', 'tests/test_price.py > "test_price" > '],
   ],
   code: {
+    ...AGREEMENTS,
     'src/index.ts': index,
     'src/retry.ts': (ts) => [
       'src/fixture/retry.py',

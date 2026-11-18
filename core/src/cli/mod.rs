@@ -242,9 +242,12 @@ fn uncovered(root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
     let state = load(root)?;
     let surface = options.surface.as_deref().unwrap_or(DEFAULT_SURFACE);
     let names = uncovered_names(&state, network(), surface)?;
+    let skips = !state.config.undocumented_globs(surface).is_empty();
     finish(state)?;
     if options.json {
         io.out(&pretty(&serde_json::json!(names)));
+    } else if names.is_empty() && skips {
+        io.out("every public symbol is attested or not meant to be documented");
     } else if names.is_empty() {
         io.out("every public symbol is attested");
     } else {

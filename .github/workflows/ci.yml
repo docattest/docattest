@@ -47,6 +47,7 @@ jobs:
       - run: npm run links
       - run: npm test
       - run: npm run test:action
+      - run: npm run test:scripts
       # The docs, and every project the root config lists as members (the core, and the Rust,
       # Python and Go guides), each with its own adapter: one command for all of them, run by
       # this repository's own GitHub Action (action.yml), as a user's workflow runs it. npm ci

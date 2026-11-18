@@ -133,6 +133,15 @@ fn is_silent_when_the_claim_goes_with_its_proof_or_the_proof_is_replaced() {
 }
 
 #[test]
+fn reads_a_fact_moved_to_the_line_above_its_sentence_as_the_same_claim() {
+    let sentence = "A call is tried at most `3` times.";
+    let moved = page(&lines(&[&["<!-- fact: LIMIT -->", sentence, "", CLAIM, ""], &EXAMPLE]));
+    assert_eq!(kinds(&retry(moved.clone())), NONE);
+    let deleted = page(&lines(&[&[sentence, "", CLAIM, ""], &EXAMPLE]));
+    assert_eq!(kinds_from(&retry(deleted), &[("docs/retry.md", moved)]), ["orphaned-claim docs/retry.md:3"]);
+}
+
+#[test]
 fn catches_a_light_rewording_but_stays_silent_on_a_substantial_one() {
     let light = page(&lines(&[&["A call is attempted at most `3` times.", "", CLAIM, ""], &EXAMPLE]));
     assert_eq!(kinds(&retry(light)), ["orphaned-claim docs/retry.md:3"]);

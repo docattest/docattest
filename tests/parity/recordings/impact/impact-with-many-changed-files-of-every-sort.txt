@@ -1,9 +1,9 @@
 # impact with many changed files of every sort
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 18 lines
-docattest impact: changes since HEAD affect 3 exported symbols
+docattest impact: changes since HEAD affect 3 symbols
 Client
   docs/guide.md:6 mention (unproven)  then `new Client()` reads; `new Client-x` does not
   docs/guide.md:12 mention (unproven)  see `Client.read` or `await parse(x)`?

@@ -1,9 +1,9 @@
 # impact text, one symbol
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: what adopting it in a Go service found
 === impact
 exit 0
 stdout 7 lines
-docattest impact: changes since HEAD affect 1 exported symbol
+docattest impact: changes since HEAD affect 1 symbol
 retry
   docs/guide.md:7 mention (unproven)  **`retry`** wraps
   docs/retry.md:1 mention (unproven)  Retry with `retry`

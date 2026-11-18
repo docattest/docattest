@@ -1,20 +1,41 @@
 package analysis
 
 import (
-	"errors"
-	"fmt"
 	"go/ast"
-	"go/token"
-	"io/fs"
-	"path"
+	"go/types"
 	"path/filepath"
-	"strconv"
 
 	"github.com/docattest/docattest/adapters/go/internal/language"
 	"github.com/docattest/docattest/adapters/go/internal/protocol"
 )
 
-// refs collects the surface symbols a piece of code names, each once, in order.
+// Symbols answers `symbols`: the surface symbols each attestation uses, by its id. A
+// file an attestation names that is not there names nothing; one that cannot be read is
+// an error.
+func (p *Project) Symbols(attestations []protocol.Attestation) (map[string][]protocol.SymbolRef, error) {
+	code, err := p.loadAttested(attestations)
+	if err != nil {
+		return nil, err
+	}
+	out := map[string][]protocol.SymbolRef{}
+	for k, a := range attestations {
+		found := p.newRefs()
+		switch a.Kind {
+		case protocol.KindExample:
+			p.exampleSymbols(found, code.example(k, p.Abs(a.Page)), a)
+		case protocol.KindFact:
+			p.factSymbols(found, a)
+		case protocol.KindTest:
+			p.citationSymbols(found, code.files[p.Abs(a.File)], a)
+		case protocol.KindCases:
+			p.runnerSymbols(found, a.Runner)
+		}
+		out[a.ID] = found.found
+	}
+	return out, nil
+}
+
+// refs collects the surface symbols a piece of code uses, each once, in order.
 type refs struct {
 	project *Project
 	seen    map[protocol.SymbolRef]bool
@@ -27,162 +48,159 @@ func (p *Project) newRefs() *refs {
 
 // add records a name of a surface, when the surface exports it.
 func (r *refs) add(name string, of *Surface) {
+	if r.project.Exports(of)[name] {
+		r.record(name, of)
+	}
+}
+
+// record records a name of a surface, once.
+func (r *refs) record(name string, of *Surface) {
 	ref := protocol.SymbolRef{Name: name, Surface: of.Name}
-	if r.seen[ref] || !r.project.Exports(of)[name] {
+	if !r.seen[ref] {
+		r.seen[ref] = true
+		r.found = append(r.found, ref)
+	}
+}
+
+// collect adds the surface symbols a piece of code uses, as the type checker resolved
+// its names: a name a surface's package declares at its top level, however the code
+// reaches it, and the type that declares a method or a field the code selects. A local
+// name that shadows one of a surface's is not a use of it. A method called through an
+// interface is the interface's: which type's method runs is known only when the program
+// runs, and the code that made the value names that type where it made it.
+func (r *refs) collect(node ast.Node, info *types.Info) {
+	if node == nil || info == nil {
 		return
 	}
-	r.seen[ref] = true
-	r.found = append(r.found, ref)
-}
-
-// scope is how one file reaches the surfaces: by the names it imports them under, and
-// without a name when it is a file of a surface's own package or imports it with a dot.
-type scope struct {
-	qualified map[string][]*Surface
-	bare      []*Surface
-}
-
-// scopeOf reads a file's imports; `dir` is the file's directory, or "" for a block.
-func (p *Project) scopeOf(file *ast.File, dir string) scope {
-	found := scope{qualified: map[string][]*Surface{}}
-	for _, spec := range file.Imports {
-		imported, err := strconv.Unquote(spec.Path.Value)
-		if err != nil {
-			continue
-		}
-		for _, candidate := range p.surfaces {
-			if candidate.Dir != "" && candidate.Import == imported {
-				found.reach(p.localName(spec, candidate), candidate)
-			}
-		}
-	}
-	for _, candidate := range p.surfaces {
-		if dir != "" && candidate.Dir == dir && p.packages.at(dir).Name == file.Name.Name {
-			found.bare = append(found.bare, candidate)
-		}
-	}
-	return found
-}
-
-// reach notes that a file knows a surface by a local name: none for a blank import,
-// every name of the surface for a dot.
-func (in *scope) reach(local string, of *Surface) {
-	switch local {
-	case "_":
-	case ".":
-		in.bare = append(in.bare, of)
-	default:
-		in.qualified[local] = append(in.qualified[local], of)
-	}
-}
-
-// localName is the name a file knows an imported surface by.
-func (p *Project) localName(spec *ast.ImportSpec, of *Surface) string {
-	if spec.Name != nil {
-		return spec.Name.Name
-	}
-	if pkg := p.packages.at(of.Dir); pkg != nil {
-		return pkg.Name
-	}
-	return path.Base(of.Import)
-}
-
-// collect adds the surface symbols a node names, as its file's scope reaches them.
-func (r *refs) collect(node ast.Node, in scope) {
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.SelectorExpr:
-			if base, ok := x.X.(*ast.Ident); ok && in.qualified[base.Name] != nil {
-				for _, of := range in.qualified[base.Name] {
-					r.add(x.Sel.Name, of)
-				}
+			// What is selected is used after what it is selected from.
+			if selection := info.Selections[x]; selection != nil {
+				r.collect(x.X, info)
+				r.addObject(owner(selection))
 				return false
 			}
-			r.collect(x.X, in)
-			return false
 		case *ast.Ident:
-			for _, of := range in.bare {
-				r.add(x.Name, of)
-			}
+			r.addObject(info.Uses[x])
 		}
 		return true
 	})
 }
 
-// Symbols answers `symbols` for one attestation. A file it names that is not there
-// names nothing; one that cannot be read is an error.
-func (p *Project) Symbols(a protocol.Attestation) ([]protocol.SymbolRef, error) {
-	found := p.newRefs()
-	var err error
-	switch a.Kind {
-	case protocol.KindExample:
-		err = p.exampleSymbols(found, a)
-	case protocol.KindFact:
-		if of := p.SurfaceNamed(a.Surface); of != nil {
-			for _, name := range language.Names(a.Expression) {
-				found.add(name, of)
-			}
-		}
-	case protocol.KindTest:
-		err = p.citationSymbols(found, a)
-	case protocol.KindCases:
-		p.runnerSymbols(found, a.Runner)
+// addObject adds what a package declares at its top level, when the package is a
+// surface's and the surface exports it.
+func (r *refs) addObject(object types.Object) {
+	if object == nil || object.Pkg() == nil || object.Parent() != object.Pkg().Scope() {
+		return
 	}
-	return found.found, err
+	for _, of := range r.project.surfacesOf(object.Pkg().Path()) {
+		r.add(object.Name(), of)
+	}
 }
 
-func (p *Project) exampleSymbols(found *refs, a protocol.Attestation) error {
-	if !language.IsSource(a.Page) {
-		if form := language.Program(a.Code, "block"); form.File != nil {
-			found.collect(form.File, p.scopeOf(form.File, ""))
+// surfacesOf are the surfaces whose package has an import path: the one examples import
+// it by, or the one of the directory it is read from.
+func (p *Project) surfacesOf(importPath string) []*Surface {
+	out := []*Surface{}
+	for _, of := range p.surfaces {
+		if pkg := p.tree().at(of.Dir); pkg != nil && (of.Import == importPath || pkg.Path == importPath) {
+			out = append(out, of)
 		}
-		return nil
 	}
-	fset, file, err := p.parse(a.Page)
-	if fn := exampleAt(fset, file, a.Line); fn != nil {
-		dir := filepath.Dir(p.Abs(a.Page))
-		in := p.scopeOf(file, dir)
-		for _, of := range p.surfaces {
-			if of.Dir == dir {
-				found.add(language.ExampleOwner(fn.Name.Name), of)
-			}
-		}
-		found.collect(fn, in)
-	}
-	return err
+	return out
 }
 
-// parse reads a source file of the project; the file is nil when it is not there or
-// cannot be read, and the error says why when it is there.
-func (p *Project) parse(page string) (*token.FileSet, *ast.File, error) {
-	text, err := p.files.Read(p.Abs(page))
-	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		return nil, nil, nil
-	case err != nil:
-		return nil, nil, fmt.Errorf("cannot read %s: %w", page, err)
+// owner is the named type that declares what a selection selects: a method's receiver,
+// or the struct a field is declared in, through any embedding; nil for one of a type
+// with no name.
+func owner(selection *types.Selection) types.Object {
+	if method, isMethod := selection.Obj().(*types.Func); isMethod {
+		return namedObject(method.Type().(*types.Signature).Recv().Type())
 	}
-	fset, file := language.ParseSource(text)
-	return fset, file, nil
+	var declaring types.Object
+	at := selection.Recv()
+	for _, field := range selection.Index() {
+		if named := namedObject(at); named != nil {
+			declaring = named
+		}
+		fields, isStruct := pointee(at).Underlying().(*types.Struct)
+		if !isStruct {
+			break
+		}
+		at = fields.Field(field).Type()
+	}
+	return declaring
 }
 
-func (p *Project) citationSymbols(found *refs, a protocol.Attestation) error {
-	fset, file, err := p.parse(a.File)
-	if file == nil {
-		return err
-	}
-	if test := cited(declaredIn(fset, file), a.Title, a.Describes); test != nil {
-		found.collect(test.Node, p.scopeOf(file, filepath.Dir(p.Abs(a.File))))
+// namedObject is the declaration of a named type, or of the type a pointer points to;
+// nil for a type with no name.
+func namedObject(of types.Type) types.Object {
+	if named, isNamed := types.Unalias(pointee(of)).(*types.Named); isNamed {
+		return named.Origin().Obj()
 	}
 	return nil
+}
+
+// pointee is what a pointer type points to, or the type itself.
+func pointee(of types.Type) types.Type {
+	if pointer, isPointer := types.Unalias(of).(*types.Pointer); isPointer {
+		return pointer.Elem()
+	}
+	return of
+}
+
+// factSymbols adds what a fact reads of its surface: the exports it names, and the
+// constants it reads from source, which are attested although no one can import them.
+func (p *Project) factSymbols(found *refs, a protocol.Attestation) {
+	of := p.SurfaceNamed(a.Surface)
+	if of == nil {
+		return
+	}
+	sourceOnly := p.SourceOnly(of)
+	for _, name := range language.Names(a.Expression) {
+		if sourceOnly[name] == Constant {
+			found.record(name, of)
+		} else {
+			found.add(name, of)
+		}
+	}
+}
+
+// exampleSymbols adds what an example uses: the whole of a block of a page, or the
+// function of a testable example in a source file, with the export it is named after.
+func (p *Project) exampleSymbols(found *refs, code typedFile, a protocol.Attestation) {
+	if !language.IsSource(a.Page) {
+		found.collect(code.syntax, code.info)
+		return
+	}
+	fn := exampleAt(code.fset, code.syntax, a.Line)
+	if fn == nil {
+		return
+	}
+	for _, of := range p.surfaces {
+		if of.Dir == filepath.Dir(p.Abs(a.Page)) {
+			found.add(language.ExampleOwner(fn.Name.Name), of)
+		}
+	}
+	found.collect(fn, code.info)
+}
+
+func (p *Project) citationSymbols(found *refs, code typedFile, a protocol.Attestation) {
+	if code.syntax == nil {
+		return
+	}
+	if test := cited(declaredIn(code.fset, code.syntax), a.Title, a.Describes); test != nil {
+		found.collect(test.Node, code.info)
+	}
 }
 
 // casesVariable is the setup package's variable that gives the runner of each cases table.
 const casesVariable = "Cases"
 
-// runnerSymbols adds what the runner of a cases table names: the function the setup
-// package's Cases gives for it, and the setup package's own functions, variables and
-// constants that it names, at any depth, each as its own file's imports reach the surfaces.
+// runnerSymbols adds what the runner of a cases table uses: the function the setup
+// package's Cases gives for it, and the setup package's own functions, methods,
+// variables and constants that it uses, at any depth.
 func (p *Project) runnerSymbols(found *refs, runner string) {
 	setup := p.setupPackage()
 	if setup == nil {
@@ -193,8 +211,8 @@ func (p *Project) runnerSymbols(found *refs, runner string) {
 		if body == nil {
 			continue
 		}
-		for _, part := range setup.reached(code{node: body, file: file}, casesVariable) {
-			found.collect(part.node, p.scopeOf(part.file, setup.Dir))
+		for _, part := range setup.reached(body, setup.Types.Scope().Lookup(casesVariable)) {
+			found.collect(part, setup.Info)
 		}
 	}
 }
@@ -229,7 +247,7 @@ func (pkg *goPackage) function(value ast.Expr) ast.Node {
 	if !ok {
 		return value
 	}
-	if fn, isFunc := pkg.topLevel[name.Name].node.(*ast.FuncDecl); isFunc {
+	if fn, isFunc := pkg.declaredBy[pkg.Info.Uses[name]].(*ast.FuncDecl); isFunc {
 		return fn
 	}
 	return value

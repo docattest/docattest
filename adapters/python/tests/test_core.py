@@ -228,7 +228,7 @@ class Changes(unittest.TestCase):
         event = json.dumps({"tool_input": {"file_path": os.path.join(self.root, "src/shoplib/shipping.py")}})
         code, out, _ = core("impact", "--hook", root=self.root, stdin=event)
         self.assertIn(
-            "this edit affects 2 exported symbols",
+            "this edit affects 2 symbols",
             json.loads(out)["hookSpecificOutput"]["additionalContext"],
         )
         quiet = json.dumps({"tool_input": {"file_path": os.path.join(self.root, "docs/notes.md")}})
@@ -250,7 +250,7 @@ class Changes(unittest.TestCase):
         # From below the root, with no --root and no agent's event: the root is found.
         done = run("impact", "--file", "shipping.py", cwd=os.path.join(self.root, "src", "shoplib"))
         self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertIn("changes since HEAD affect 2 exported symbols", done.stdout)
+        self.assertIn("changes since HEAD affect 2 symbols", done.stdout)
         done = run("impact", "--file", os.path.join(self.root, "docs", "notes.md"), cwd=self.root)
         self.assertEqual((done.returncode, done.stdout), (0, ""), done.stderr)
         # The baseline for an agent with no hooks: a section of AGENTS.md, and a git hook.

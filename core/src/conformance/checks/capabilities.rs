@@ -17,6 +17,9 @@ const TESTS: u64 = 3;
 const TESTS_OF_A_MISSING_FILE: u64 = 4;
 const OBSERVABLES: u64 = 5;
 const AFFECTED: u64 = 6;
+const DISPLAY: u64 = 7;
+/// The evaluation of the kit's expressions of the values `display` is asked to show.
+const SAME_VALUES: u64 = 8;
 
 pub const CHECKS: [Check; 1] = [Check {
     name: "capabilities: a method the greeting does not list is unknown; one it lists answers",
@@ -29,20 +32,30 @@ fn answers_what_it_lists(suite: &Suite) -> Checked<Conversation> {
         Some(affected) => (affected.base.clone(), json!(affected.changed)),
         None => (json!({}), json!([])),
     };
+    let values: Vec<&Value> = kit.display.iter().map(|same| &same.value).collect();
+    let facts: Vec<Value> = kit
+        .display
+        .iter()
+        .enumerate()
+        .map(|(k, same)| suite.requests.fact(&k.to_string(), &same.expression))
+        .collect();
     let t = suite.session(
         &[
             ("tests", json!({ "file": kit.test.file })),
             ("tests", json!({ "file": "no/such/file" })),
             ("observables", json!({ "surface": "default" })),
             ("affected", json!({ "base": base, "changed": changed })),
+            ("display", json!({ "values": values })),
+            ("evaluate", json!({ "facts": facts })),
         ],
         json!([]),
     )?;
     let listed = texts(&suite.greeting()?["capabilities"]);
-    let answers: [(&str, u64, Answer); 3] = [
+    let answers: [(&str, u64, Answer); 4] = [
         ("tests", TESTS, tests_answer),
         ("observables", OBSERVABLES, observables_answer),
         ("affected", AFFECTED, affected_answer),
+        ("display", DISPLAY, display_answer),
     ];
     for (capability, id, answer) in answers {
         if listed.contains(&capability) { answer(&t, kit)? } else { t.failed_as(id, "internal")? }
@@ -83,4 +96,12 @@ fn affected_answer(t: &Conversation, kit: &Kit) -> Checked {
     let mut expected = affected.names.clone();
     expected.sort();
     same(&json!(names), &json!(expected), "the names the change affects")
+}
+
+/// `display`: each of the kit's values shows as a fact of the same value does, in order.
+fn display_answer(t: &Conversation, kit: &Kit) -> Checked {
+    let evaluated = t.result(SAME_VALUES)?;
+    let shown: Vec<&Value> =
+        (0..kit.display.len()).map(|k| &evaluated[k.to_string()]["value"]["text"]).collect();
+    same(t.result(DISPLAY)?, &json!(shown), "each value shows as a fact of the same value does, in order")
 }

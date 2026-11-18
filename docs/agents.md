@@ -14,8 +14,9 @@ small JSON file, a *descriptor*. Nothing else in docattest names an agent.
 ## Two plain commands
 
 `docattest impact --file <path>` is what to run after editing a file. When the file is a
-source file of the project and its difference from `HEAD` affects an exported symbol, it
-prints what [`impact`](impact.md) prints for that file's change; otherwise it prints nothing.
+source file of the project and its difference from `HEAD` affects a symbol the pages can
+attest, it prints what [`impact`](impact.md) prints for that file's change; otherwise it
+prints nothing.
 It exits `0` either way, so it can run after every edit. `docattest check` is what to run
 before finishing: it exits `1` when a page no longer matches the code.
 

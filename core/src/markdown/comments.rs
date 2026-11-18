@@ -2,8 +2,8 @@
 
 use markdown::mdast::{Html, Node};
 
-use super::model::{Comment, Keyword, Leaf, LeafKind, Unclosed};
-use super::text::{comment_ranges, content_range, prose, slice};
+use super::model::{Comment, FirstSentence, Keyword, Leaf, LeafKind, Unclosed};
+use super::text::{comment_ranges, content_range, ends_sentence, prose, slice};
 use crate::text::{first_line, is_js_space, is_word, lines, trim};
 
 /// Where found comments go, and the context they were found in.
@@ -14,6 +14,7 @@ pub struct CommentContext<'a> {
     pub table: Option<usize>,
     pub comments: &'a mut Vec<Comment>,
     pub unclosed: &'a mut Vec<Unclosed>,
+    pub first_sentences: &'a mut Vec<FirstSentence>,
 }
 
 /// `/<!--\s*(fact|cases|test(?=\s*:))\b/.exec(text)`: the byte index of the opening and its
@@ -56,26 +57,24 @@ fn line_of(node: &Node) -> usize {
     node.position().map_or(0, |p| p.start.line)
 }
 
-/// Comments inside a paragraph, heading or table cell, with the leaves before each.
+/// Comments inside a paragraph, heading or table cell, with the leaves before each; and, for
+/// a paragraph or heading, where its first sentence ends (its text's end when none does).
 pub fn phrasing_comments(children: &[Node], ctx: &mut CommentContext) {
-    let start = content_range(children, ctx.source).map_or(0, |r| r.0);
+    let range = content_range(children, ctx.source);
+    let start = range.map_or(0, |r| r.0);
     let mut before: Vec<Leaf> = Vec::new();
     for child in children {
         visit_phrasing(child, start, &mut before, ctx);
+    }
+    if let Some(range) = range.filter(|_| reads_first_sentence(ctx)) {
+        let line = children.last().and_then(Node::position).map_or(0, |p| p.end.line);
+        push_first_sentence(ctx, range, line, before);
     }
 }
 
 fn visit_phrasing(node: &Node, start: usize, before: &mut Vec<Leaf>, ctx: &mut CommentContext) {
     match node {
-        Node::Text(t) => {
-            let line = line_of(node);
-            for (k, text) in lines(&t.value).into_iter().enumerate() {
-                if let Some((_, keyword)) = opening(text) {
-                    push_unclosed(ctx, keyword, line + k);
-                }
-                before.push(Leaf { kind: LeafKind::Text, value: text.to_string(), line: line + k });
-            }
-        }
+        Node::Text(t) => visit_text(node, &t.value, start, before, ctx),
         Node::InlineCode(c) => {
             before.push(Leaf { kind: LeafKind::Code, value: c.value.clone(), line: line_of(node) })
         }
@@ -92,6 +91,74 @@ fn visit_phrasing(node: &Node, start: usize, before: &mut Vec<Leaf>, ctx: &mut C
             }
         }
     }
+}
+
+/// A text node, one leaf per line; the first sentence of its block may end in it.
+fn visit_text(node: &Node, value: &str, start: usize, before: &mut Vec<Leaf>, ctx: &mut CommentContext) {
+    let line = line_of(node);
+    let texts = lines(value);
+    for (k, text) in texts.iter().enumerate() {
+        if let Some((_, keyword)) = opening(text) {
+            push_unclosed(ctx, keyword, line + k);
+        }
+        let after = if k + 1 < texts.len() { Some('\n') } else { char_after(node, ctx.source) };
+        if let Some(cut) = sentence_end_in(text, after).filter(|_| reads_first_sentence(ctx)) {
+            let mut sentence = before.clone();
+            sentence.push(Leaf { kind: LeafKind::Text, value: text[..cut].to_string(), line: line + k });
+            push_first_sentence(ctx, (start, sentence_end_offset(node, ctx.source)), line + k, sentence);
+        }
+        before.push(Leaf { kind: LeafKind::Text, value: text.to_string(), line: line + k });
+    }
+}
+
+/// Whether the first sentence of the block being read is still to be found: a table cell is
+/// not a sentence a directive above it attests.
+fn reads_first_sentence(ctx: &CommentContext) -> bool {
+    ctx.table.is_none() && !has_first_sentence(ctx)
+}
+
+fn has_first_sentence(ctx: &CommentContext) -> bool {
+    ctx.first_sentences.last().is_some_and(|s| s.block == ctx.block)
+}
+
+/// Just after the first `.`, `!` or `?` in `text` that ends a sentence ([`ends_sentence`]);
+/// `after` is the character that follows `text`.
+fn sentence_end_in(text: &str, after: Option<char>) -> Option<usize> {
+    let mut chars = text.char_indices().peekable();
+    while let Some((k, c)) = chars.next() {
+        if ends_sentence(c, chars.peek().map(|&(_, next)| next).or(after)) {
+            return Some(k + c.len_utf8());
+        }
+    }
+    None
+}
+
+/// The character of the page right after a node.
+fn char_after(node: &Node, source: &str) -> Option<char> {
+    let end = node.position()?.end.offset;
+    source.get(end..)?.chars().next()
+}
+
+/// Where in the page the first sentence of a text node ends: found again in its source, where
+/// an escape or a character reference reads differently from its value; the node's end if
+/// the two disagree.
+fn sentence_end_offset(node: &Node, source: &str) -> usize {
+    let Some(p) = node.position() else { return 0 };
+    let (from, to) = (p.start.offset, p.end.offset);
+    sentence_end_in(slice(source, from, to), char_after(node, source)).map_or(to, |cut| from + cut)
+}
+
+/// Record the first sentence of the block being read: from `range.0` to `range.1` in the page,
+/// ending on `line`.
+fn push_first_sentence(ctx: &mut CommentContext, range: (usize, usize), line: usize, before: Vec<Leaf>) {
+    let rest = first_line(ctx.source.get(range.1..).unwrap_or(""));
+    ctx.first_sentences.push(FirstSentence {
+        block: ctx.block,
+        line,
+        ends_line: trim(rest).is_empty(),
+        lead: prose(slice(ctx.source, range.0, range.1)),
+        before,
+    });
 }
 
 fn inline_comment(node: &Html, start: usize, before: &[Leaf], ctx: &mut CommentContext) -> bool {
@@ -114,6 +181,7 @@ fn inline_comment(node: &Html, start: usize, before: &[Leaf], ctx: &mut CommentC
         lead: prose(slice(ctx.source, start, from)),
         before: before.to_vec(),
         table: ctx.table,
+        alone: false,
     });
     true
 }
@@ -123,6 +191,7 @@ pub fn flow_comments(node: &Html, ctx: &mut CommentContext) {
     let first = node.position.as_ref().map_or(0, |p| p.start.line);
     let value = node.value.as_str();
     let line_at = |index: usize| first + value[..index].matches('\n').count();
+    let alone = prose(value).is_empty();
     let mut consumed = 0;
     for (start, end) in comment_ranges(value) {
         let rest = first_line(&value[end..]);
@@ -135,6 +204,7 @@ pub fn flow_comments(node: &Html, ctx: &mut CommentContext) {
             lead: prose(&value[..start]),
             before: Vec::new(),
             table: ctx.table,
+            alone,
         });
         consumed = end;
     }

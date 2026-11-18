@@ -140,7 +140,7 @@ published as JSON Schema (draft 2020-12) in `protocol/schema/`, which is their d
 | `attestations.json` | the attestations the core sends: `ExampleAttestation`, `FactAttestation`, `CasesAttestation`, `TestAttestation` and their parts |
 | `language.json` | what a language says of itself: `Hello`, `SourceFiles`, `Vocabulary`, and its answers about text (`DocProse`, `ExpressionShape`) |
 | `results.json` | what a project answers: `Result`, `Diagnostic`, `Evaluation`, `Observation`, `Observable`, `SymbolRef`, `TestListing` |
-| `project.json` | the project as `open` describes it: its surfaces (`ConfiguredSurface`, `SurfaceDescription`), its snapshots and its manifests |
+| `project.json` | the project as `open` describes it: its surfaces (`ConfiguredSurface`, `SurfaceDescription`), its snapshots, its manifests and the texts of the files facts read |
 | `kit.json` | an adapter's conformance kit (`Kit`, §5), which the conformance suite reads; it never crosses the pipe |
 
 They use a small part of JSON Schema (`type`, `properties`, `required`,
@@ -165,6 +165,9 @@ page is written as its language writes values: `true` in a TypeScript project, `
 a Python one. The one thing the core must know about a value's type is whether it is text
 (only text can be what a fenced block copies, which is what `audit` looks for), and the
 adapter says so with `"kind": "text"`. `description` is for messages and is never parsed.
+A value of a data block that a fact reads with `field=` is the one value a page writes in
+another spelling than its language's, its data format's, so the core asks the adapter to
+display it (`display`, §3) before comparing.
 
 **Order is the core's.** Wherever the core sorts (the symbols of the index, missing and
 unexpected items) it compares strings by UTF-16 code units, in every language, so that a
@@ -182,11 +185,12 @@ report is the same whichever adapter served it. An adapter sorts nothing for the
 | `docProse` | `{ "files": [{ "page", "text" }] }` | `[{ "text", "start", "end" }][]`: for each file, its doc comments as prose, in order |
 | `mentions` | `{ "spans": string[], "symbols": string[] }` | `(string \| null)[]`: for each inline code span, the one of `symbols` it names |
 | `expressions` | `{ "expressions": string[] }` | `[{ "shape": string, "names": string[] }]`: for each fact expression, its shape and its names |
+| `display` (capability) | `{ "values": (string \| number \| boolean \| null)[] }` | `string[]`: each value as the language displays it |
 
 `hello` is always first. A protocol number the adapter does not speak is a `user` error.
 `blockLanguages` are the info-string languages whose fenced blocks the adapter runs, lower
 case. `capabilities` lists the optional methods it implements: `tests`, `observables`,
-`affected`. Everything in the answer is fixed for the adapter, not per project.
+`affected`, `display`. Everything in the answer is fixed for the adapter, not per project.
 
 **`hello` is answered at once.** The answer is static, and the core may need nothing else
 (an edit hook asks only whether the edited file is source code), so an adapter answers
@@ -324,6 +328,20 @@ exactly when they differ in nothing but names, and the core only ever compares s
 equality. `names` are the names in the order they occur. An adapter that cannot tell
 answers the expression itself as the shape and no names; then nothing is a rename.
 
+**`display`** (capability). A fact with `field=` compares one value of the JSON, TOML or
+YAML block that follows it, and the block is written as its format writes values, not as
+the project's language does: JSON's `true`, `null` and `1.0` are `True`, `None` and `1.0`
+in Python, `true`, `<nil>` and `1` in Go. So the core sends the block's values, each scalar
+that a field fact reads, as JSON (a TOML or YAML block is read into JSON as a manifest is),
+and the adapter answers for each the text its language displays for the value it reads
+that JSON as, exactly as it displays a fact's value (§2). A number written as an integer is
+read as the language's integer and any other number as its float, so `1048576` in a block
+displays as a constant `1048576` does, and `1.0` as a float `1.0` does. A string is its
+text. The answer keeps the order of `values`. The core asks once per check, for the values
+of every field fact it evaluates, and compares each fact with its field's texts. Without
+the capability, a field's values are compared as JSON writes them, so an adapter written
+before `display` existed is asked nothing new.
+
 ### Session level
 
 `open` creates the one session of this process; every method below it needs one.
@@ -339,6 +357,7 @@ answers the expression itself as the shape and no names; then nothing is a renam
   "timeoutMs": 10000, "workers": 8, "network": false,
   "snapshots": { "dir": "docs/.snapshots", "data": { "regions": [] } },
   "manifests": { "package.json": { "engines": { "node": ">=22.12" } } },
+  "texts": { "Dockerfile": "FROM node:22\nUSER 10001\n" },
   "examples": [] }
 ```
 
@@ -368,6 +387,16 @@ evaluates a call for a path the session does not have to a failure whose message
 A manifest that cannot be read never reaches the adapter: the core reports each fact that
 names it as an `error`, and does not ask for it to be evaluated.
 
+`texts` are the project files that fact expressions name as `file("<path>")`, the path
+written out the same way: the text of each, by the path as the expression writes it. The
+text is UTF-8, as every line of the protocol is, and a file that is not is one that cannot
+be read. The adapter gives fact expressions a function `file` that returns the text of a
+path as the language's string, and evaluates a call for a path the session does not have to
+a failure whose message names it. A file that cannot be read never reaches the adapter, as
+a manifest never does. `texts` is absent when no fact reads a file this way, and an adapter
+reads its absence as no files, so an adapter written before `file` existed is sent nothing
+new for a project that does not use it.
+
 | method | params | result |
 |--------|--------|--------|
 | `compile` | `{ "examples": ExampleAttestation[] }` | `Diagnostic[]` |
@@ -387,7 +416,8 @@ asks only what is listed. Without `tests` a citation cannot be checked, so every
 `<!-- test: … -->` is reported as an error on its own line (`test at L12 cannot be cited:
 the <name> adapter does not read test files`); without `observables`, `audit` has
 nothing to compare pages with and `inventory` is a user error; without `affected`,
-`impact` is a user error.
+`impact` is a user error; without `display`, a field of a data block is compared as JSON
+writes it.
 
 `observables` reads values and calls nothing of a surface: a function may do anything, and
 what it returns is not known until it runs. The setup module's named facts are the one
@@ -415,7 +445,9 @@ it has not. The core reports it as `<message> (block line <n>)`, and an example 
 `symbols` takes many attestations in one request so that the index costs one round trip.
 In `affected`, `base` gives the contents at the base revision of every changed path
 (`null`: the file did not exist), and everything else is as it is now. Every path in
-`changed` has an entry in `base`.
+`changed` has an entry in `base`. The answer is the symbols the change reaches that the
+pages can attest: the surfaces' exports, and the constants a fact reads from source,
+exported or not.
 
 `inCode` is the second half of the rename question (`expressions`): which of `names` still
 occur as a name in the project's code. The code is the project files listed in `files` (the
@@ -435,8 +467,8 @@ language's syntax, what its files are called or how its projects are packaged. S
 adapter says, in `hello`, which files are source files and which names are never the
 project's own; and it answers what a doc comment says (`docComments`, `docProse`), whether
 an example asserts (`assertions`), which symbol a code span names (`mentions`), what an
-expression's names are (`expressions`), which names the code still holds (`inCode`) and
-what a configured surface is (`open`). It says which info-string words are its own, what a
+expression's names are (`expressions`), which names the code still holds (`inCode`), how
+a value of a data block displays (`display`) and what a configured surface is (`open`). It says which info-string words are its own, what a
 suite is called and how a package is written. The core holds no list of adapters either,
 and does not know how it was installed: the launcher of the language package says where
 the adapter is and what command runs docattest. A core built today drives an adapter for a
@@ -445,8 +477,8 @@ language it has never heard of.
 What stays in the core is what is the same in every language: Markdown, directives and
 their syntax, the comparison of values as text, git, hidden directories as tool state, and
 the file formats manifests are written in. The one thing the core finds in an expression is
-docattest's own call `manifest("<path>")`, as text, so that it can read the file before
-anything runs. A rule that would have to be written twice belongs in the core.
+docattest's own calls `manifest("<path>")` and `file("<path>")`, as text, so that it can
+read the file before anything runs. A rule that would have to be written twice belongs in the core.
 
 A base revision (`check --base`) is read with the adapter of the working tree, whatever
 adapter the config committed there named: one adapter process serves one invocation.
@@ -465,9 +497,11 @@ It starts the adapter as the core does and holds it to this file: `hello` (stati
 warm, refused for another protocol number and sent again); the mistakes of §1, each an
 `internal` error that leaves the adapter serving; the questions about text (one answer for
 each item, in order; none for a file that is not source); every session method (a verdict
-for each example at its own page and line, an answer for every fact, an entry for every
+for each example at its own page and line, an answer for every fact, the text of a file
+that `file` reads, an entry for every
 attestation in `symbols`, `null` for a surface that cannot be resolved); capabilities (a
-method not listed is unknown, one that is listed answers); a stdout that carries nothing
+method not listed is unknown, one that is listed answers, and `display` shows a value as a
+fact of the same value shows); a stdout that carries nothing
 but responses whatever attested code prints; answers in the order requests finish; `close`
 waiting for what was sent before it; and the end of input. Every line the adapter writes,
 and every line the suite sends, is held to the schemas of §2.
@@ -477,8 +511,9 @@ shape is `schema/kit.json`: a small
 project in memory (`files`, `surfaces`, `setup`), and labelled pieces of code, namely
 examples that pass, fail, do not compile, assert nothing, print, and take half a second;
 fact expressions with the text and items they display, and one that reads a field of the
-suite's manifest; a source file with a doc comment;
-a test file; a mention; an expression and a renaming of it; a change and the exports it
+suite's manifest; values of a data block, each with an expression of the same value, for an
+adapter that lists `display`; a source file with a doc comment;
+a test file; a mention; an expression and a renaming of it; a change and the symbols it
 affects. `adapters/typescript/conformance.json`, `adapters/python/conformance.json`,
 `adapters/go/conformance.json` and `adapters/rust/conformance.json` are the ones that exist, and any is the model for another.
 

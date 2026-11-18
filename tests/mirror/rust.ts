@@ -68,11 +68,83 @@ function index(ts: string): [path: string, text: string] {
 
 const OK = 'retry(|| Ok::<_, String>("ok"))';
 
+/** The translations of the mirror's own scenarios (scenarios.ts). */
+const AGREEMENTS: Language['code'] = {
+  'src/server.ts': () => [
+    LIB,
+    lines(
+      'const PORT: u16 = 8080;',
+      '',
+      'pub const NAME: &str = "shop";',
+      '',
+      'fn secret() -> u32 {',
+      '    7',
+      '}',
+    ),
+  ],
+  'src/main.ts': () => [
+    'src/bin/shopd.rs',
+    lines(
+      'const PORT: u16 = 8080;',
+      '',
+      'fn main() {',
+      '    panic!("shopd needs a terminal");',
+      '}',
+    ),
+  ],
+  'src/settings.ts': () => [
+    LIB,
+    lines(
+      'pub const STRICT: bool = true;',
+      'pub const RATIO: f64 = 1.0;',
+      'pub const NOTHING: Option<u32> = None;',
+    ),
+  ],
+  'src/rates.ts': () => [
+    LIB,
+    lines(
+      'pub const RATE: u32 = 3;',
+      'pub const QUOTE: u32 = 2;',
+      'pub const DEBUG_LEVEL: u32 = 1;',
+    ),
+  ],
+  // An rstest case is named by an identifier.
+  'test/price.test.ts': () => [
+    'tests/price.rs',
+    lines(
+      'use rstest::rstest;',
+      '',
+      '#[rstest]',
+      '#[case::rounds_down(1)]',
+      '#[case::rounds_up(5)]',
+      'fn price(#[case] cents: u32) {',
+      '    assert!(cents > 0);',
+      '}',
+    ),
+  ],
+  'docs/docattest.setup.ts': () => [
+    'docs/docattest_setup.rs',
+    lines(
+      'use std::collections::HashMap;',
+      '',
+      'type Row = HashMap<String, String>;',
+      '',
+      'pub const CASES: &[(&str, fn(&Row) -> Result<(), String>)] = &[("spans", spans)];',
+      '',
+      'fn spans(row: &Row) -> Result<(), String> {',
+      '    let got = docattest_blocks::cells::code_spans(&row["cell"]).join(",");',
+      '    if got == row["spans"] { Ok(()) } else { Err(format!("expected {}, got {got}", row["spans"])) }',
+      '}',
+    ),
+  ],
+};
+
 export const rust: Language = {
   adapter: 'rust',
   label: 'rs',
   manifest: ['Cargo.toml', '[package]\nname = "fixture"\nversion = "1.0.0"\nedition = "2021"\n'],
   surface: 'fixture',
+  programs: { './src/main.ts': './src/bin/shopd.rs' },
   page: [
     ['```ts ', '```rust '],
     ["import { retry } from 'fixture';", 'use fixture::retry;'],
@@ -87,8 +159,11 @@ export const rust: Language = {
     ['Math.min(RETRY_DEFAULTS.maxAttempts, 3)', 'RETRY_DEFAULTS.max_attempts.min(3)'],
     ['RETRY_DEFAULTS.maxAttempts', 'RETRY_DEFAULTS.max_attempts'],
     ['test/retry.test.ts > "throws the last error"', 'tests/retry.rs > "throws_the_last_error"'],
+    ['test/price.test.ts > "price" > "rounds up"', 'tests/price.rs > "price" > "rounds_up"'],
+    ['test/price.test.ts > "price" > "rounds over"', 'tests/price.rs > "price" > "rounds_over"'],
   ],
   code: {
+    ...AGREEMENTS,
     'src/index.ts': index,
     'src/retry.ts': (ts) => [
       'src/retry.rs',

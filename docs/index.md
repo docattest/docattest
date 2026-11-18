@@ -54,7 +54,7 @@ and one of these statuses: <!-- fact: STATUSES -->
 
 Each kind has its own page: [examples](examples.md), [facts](facts.md), [cases](cases.md),
 [snapshots](snapshots.md), [citations](citations.md). [Manifests](manifests.md) covers facts
-over project files such as `package.json`; [commands and sample pages](console.md) covers
+over project files such as `package.json` or a `Dockerfile`; [commands and sample pages](console.md) covers
 the examples docattest runs itself, whatever the language. [Pages](pages.md) covers what is
 checked at all, [surfaces](surfaces.md) what examples and facts may import, [duality](duality.md) the
 code-to-docs index, [report](report.md) the output and exit codes, [the command

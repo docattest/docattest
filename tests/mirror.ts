@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-// The mirror test: benchmark scenarios from tests/bench/scenarios.ts, each run through the
-// same Rust core once as written (TypeScript adapter) and once for every other language,
-// translated to it by hand (tests/mirror/: Python, Go, Rust), and judged by the scenario's own
-// `expect`. Same verdict and same exit code as the TypeScript side is the bar.
+// The mirror test: benchmark scenarios from tests/bench/scenarios.ts, and the mirror's own
+// (tests/mirror/scenarios.ts), each run through the same Rust core once as written
+// (TypeScript adapter) and once for every other language, translated to it by hand
+// (tests/mirror/: Python, Go, Rust), and judged by the scenario's own `expect`. Same verdict
+// and same exit code as the TypeScript side is the bar. Every project can import this
+// checkout's docattest package, as one that installed it can.
 //
 //   node tests/mirror.ts --core /path/to/docattest [--keep]
 //
@@ -10,13 +12,13 @@
 // needs a go command and the Rust side a cargo, which build their adapters; a side whose
 // tool is missing is left out, and said so.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { commandLine } from '../scripts/lib/command-line.ts';
 import { ROOT } from '../scripts/lib/repository.ts';
 import { answerOf, type Answer } from './bench/answer.ts';
-import { judge, type Outcome, type Scenario } from './bench/scenario.ts';
+import { judge, type Outcome } from './bench/scenario.ts';
 import { scenarios } from './bench/scenarios.ts';
 import { buildGoAdapter } from './lib/go.ts';
 import { gitEnv, writeFiles, type ProjectFiles } from './lib/project.ts';
@@ -24,6 +26,7 @@ import { buildRustAdapter } from './lib/rust.ts';
 import { go } from './mirror/go.ts';
 import { python } from './mirror/python.ts';
 import { rust } from './mirror/rust.ts';
+import { agreements, type Agreement } from './mirror/scenarios.ts';
 import { restated, translate, type Language } from './mirror/translation.ts';
 
 const { values } = commandLine(
@@ -69,6 +72,8 @@ const GIT_ENV = {
   ...gitEnv('bench'),
   DOCATTEST_ADAPTER_TYPESCRIPT: `${process.execPath} ${join(ROOT, 'adapters/typescript/dist/protocol/main.js')}`,
   DOCATTEST_ADAPTER_PYTHON: `python3 ${join(ROOT, 'adapters/python/bin/docattest-adapter-python')}`,
+  // Where a setup module finds `docattest.cells`, as in an environment it is installed in.
+  PYTHONPATH: join(ROOT, 'adapters/python'),
   ...(goAdapter ? { DOCATTEST_ADAPTER_GO: JSON.stringify(goAdapter.command) } : {}),
   ...(rustAdapter ? { DOCATTEST_ADAPTER_RUST: JSON.stringify(rustAdapter) } : {}),
 };
@@ -89,10 +94,11 @@ interface Project {
   language?: Language;
 }
 
-function run(scenario: Scenario, { files, head, language }: Project): Side {
+function run(scenario: Agreement, { files, head, language }: Project): Side {
   const root = mkdtempSync(join(tmpdir(), 'docattest-mirror-'));
   try {
     writeFiles(root, files);
+    if (!language) installNpmPackage(root);
     if (head) {
       const git = (...args: string[]): void => {
         execFileSync('git', args, { cwd: root, env: GIT_ENV, stdio: 'ignore' });
@@ -120,9 +126,16 @@ function run(scenario: Scenario, { files, head, language }: Project): Side {
   }
 }
 
+/** The npm package, installed in the project at `root` as a workspace links this checkout's. */
+function installNpmPackage(root: string): void {
+  mkdirSync(join(root, 'node_modules'));
+  symlinkSync(join(ROOT, 'adapters/typescript'), join(root, 'node_modules/docattest'));
+}
+
 // What the core said, small enough to compare by eye.
 function summary({ json, stderr }: Outcome): string {
   if (json === undefined) return `stderr: ${String(stderr.trim().split('\n')[0]?.slice(0, 110))}`;
+  if (Array.isArray(json)) return `listed ${json.join(',') || '-'}`;
   if (json.suggestions) {
     return (
       json.suggestions
@@ -147,7 +160,7 @@ function impactSummary(json: Answer): string {
 }
 
 /** The scenario as `language` writes it. */
-const mirrored = (scenario: Scenario, language: Language): Project => ({
+const mirrored = (scenario: Agreement, language: Language): Project => ({
   files: translate(language, scenario.files),
   head: scenario.head && translate(language, scenario.head),
   language,
@@ -155,17 +168,22 @@ const mirrored = (scenario: Scenario, language: Language): Project => ({
 
 const verdict = (side: Side): string => `${side.pass ? 'pass' : 'FAIL'} exit ${String(side.code)}`;
 
-let differing = 0;
-for (const id of CHOSEN) {
+const benchmarked = CHOSEN.map((id) => {
   const scenario = scenarios.find((s) => s.id === id);
   if (!scenario) throw new Error(`no scenario ${id}`);
+  return scenario;
+});
+const ALL: readonly Agreement[] = [...benchmarked, ...agreements];
+
+let differing = 0;
+for (const scenario of ALL) {
   const ts = run(scenario, { files: scenario.files, head: scenario.head });
   const others = LANGUAGES.map((language) => run(scenario, mirrored(scenario, language)));
   const same = others.every((side) => side.pass === ts.pass && side.code === ts.code);
   if (!same) differing++;
   const verdicts = others.map((side, k) => `${LANGUAGES[k]?.label ?? ''}: ${verdict(side)}`);
   console.log(
-    `${same ? 'same' : 'DIFF'}  ${id.padEnd(10)} ${scenario.polarity.padEnd(8)} ts: ${verdict(ts)} | ${verdicts.join(' | ')}  ${scenario.title}`,
+    `${same ? 'same' : 'DIFF'}  ${scenario.id.padEnd(10)} ts: ${verdict(ts)} | ${verdicts.join(' | ')}  ${scenario.title}`,
   );
   console.log(`        ts  ${ts.what}`);
   others.forEach((side, k) => {
@@ -181,6 +199,6 @@ if (!rustAdapter) {
   console.log('\nno cargo: the Rust adapter was not built, and its side was not run');
 }
 console.log(
-  `\n${CHOSEN.length - differing} of ${CHOSEN.length} scenarios: same verdict and exit code in ${LANGUAGES.length + 1} languages; ${differing} differ`,
+  `\n${ALL.length - differing} of ${ALL.length} scenarios: same verdict and exit code in ${LANGUAGES.length + 1} languages; ${differing} differ`,
 );
 process.exit(differing ? 1 : 0);

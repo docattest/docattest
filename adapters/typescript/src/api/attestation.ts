@@ -1,7 +1,7 @@
-/** What a fact compares its value with: the literal, list, column or block on the page. */
+/** What a fact compares its value with: the literal, list, column, block or field on the page. */
 export type FactTarget =
   | { kind: 'scalar'; value: string }
-  | { kind: 'set'; items: string[]; from: 'list' | 'table' | 'sentence' }
+  | { kind: 'set'; items: string[]; from: 'list' | 'table' | 'sentence' | 'field' }
   | { kind: 'text'; text: string };
 
 interface AttestationBase {
@@ -41,6 +41,8 @@ export interface FactAttestation extends AttestationBase {
   surface: string;
   ordered: boolean;
   column?: string;
+  /** The path `field=` names in the fenced block after the fact, as written. */
+  field?: string;
   /** Absent only when the attestation carries an `error`. */
   target?: FactTarget;
 }

@@ -18,6 +18,10 @@ launcher. Around it:
   platforms a core is built for (Rust target, npm `os`/`cpu`, wheel tags, the npm package
   that carries each core). Every launcher, the release scripts and the version check read
   them.
+- **The code spans of a table cell** ([test-data/code-spans.json](test-data/code-spans.json)), cells with the
+  code spans the core reads in them. The core and every language's cell helper are tested
+  against it, so a helper cannot drift from what a fact over a column compares. Only tests
+  read it, so it is not copied into the packages.
 
 ## One source, copied
 

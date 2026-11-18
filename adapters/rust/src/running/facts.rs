@@ -6,6 +6,10 @@
 //! are in scope the same way; and `std` and the crates of the workspace are there by
 //! their names, as everywhere. The program names every crate from the root (`::shop`):
 //! a crate may declare a module of its own name, which the glob import brings in.
+//!
+//! A constant the surface's module does not export, and any constant of a binary crate,
+//! which nothing imports, is read from source instead: its declaration is written into
+//! the fact's own line of the program, in a module of the fact's closure.
 
 use super::Runner;
 use super::generated::CRATE;
@@ -20,6 +24,8 @@ use std::collections::HashMap;
 const PREAMBLE: usize = 7;
 /// The surface a fact without `@` reads (PROTOCOL.md, `observables`).
 const DEFAULT_SURFACE: &str = "default";
+/// The module of a fact's closure that declares the constants it reads from source.
+const SOURCE: &str = "docattest_from_source";
 /// Hexadecimal digits after `0x` that make an address: fewer is a number someone wrote.
 const MIN_ADDRESS_DIGITS: usize = 6;
 
@@ -80,9 +86,12 @@ impl Runner {
             return Some(format!("cannot parse fact expression `{}`: {err}", fact.expression));
         }
         let (surface, helpers) = (self.analysis.surface(&fact.surface)?, self.analysis.setup_names());
+        let of_surface = |name: &str| {
+            self.analysis.exported(surface, name) || self.analysis.read_from_source(surface, name)
+        };
         let both = identifiers(&fact.expression)
             .into_iter()
-            .find(|name| self.analysis.exported(surface, name) && helpers.iter().any(|h| h == name))?;
+            .find(|name| of_surface(name) && helpers.iter().any(|h| h == name))?;
         Some(format!(
             "fact `{}`: \"{both}\" is both an export of surface \"{}\" and of the setup module; rename the one in the setup module",
             fact.expression, fact.surface
@@ -98,7 +107,7 @@ impl Runner {
             match (program.dropped.get(&k), &program.binary) {
                 (Some(complaint), _) => drop(out.insert(
                     fact.id.clone(),
-                    Evaluation::failed(format!("{label}: {}", not_exported(complaint, surface))),
+                    Evaluation::failed(format!("{label}: {}", self.not_read(complaint, surface))),
                 )),
                 (None, None) => {
                     let why = program.failure.clone().unwrap_or_default();
@@ -143,24 +152,52 @@ impl Runner {
     /// own, for those still in it. `serves` is the harness function they are given to:
     /// `facts`, or `observables`, which takes each with its name.
     fn facts_main(&self, surface: &Surface, expressions: &[String], live: &[bool], serves: &str) -> Rendered {
+        let imported = if surface.importable() {
+            format!("use ::{}::*;", surface.import)
+        } else {
+            "// a binary crate: nothing to import".to_string()
+        };
         let mut source = format!(
-            "#![allow(unused, ambiguous_glob_imports)]\nuse ::{CRATE}::harness::serve::{{manifest, snapshot}};\nuse ::{CRATE}::observe;\nuse ::{}::*;\n{}\nfn main() {{\n    ::{CRATE}::harness::serve::{serves}(vec![\n",
-            surface.import,
+            "#![allow(unused, ambiguous_glob_imports)]\nuse ::{CRATE}::harness::serve::{{file, manifest, snapshot}};\nuse ::{CRATE}::observe;\n{imported}\n{}\nfn main() {{\n    ::{CRATE}::harness::serve::{serves}(vec![\n",
             self.setup_module()
                 .map_or_else(|| "// no setup module".to_string(), |module| format!("{module} use setup::*;")),
         );
         let mut lines = HashMap::new();
         for (k, expression) in expressions.iter().enumerate().filter(|(k, _)| live[*k]) {
             lines.insert(PREAMBLE + lines.len() + 1, k);
-            let read = format!(
-                "Box::new(|| observe!({}))",
-                expression.split_whitespace().collect::<Vec<_>>().join(" ")
-            );
+            let read = self.reader(surface, &expression.split_whitespace().collect::<Vec<_>>().join(" "));
             let item = if serves == "facts" { read } else { format!("({expression:?}, {read})") };
             source.push_str(&format!("        {item},\n"));
         }
         source.push_str("    ]);\n}\n");
         Rendered { source, lines }
+    }
+
+    /// The closure that reads an expression, on one line, so that what the compiler says
+    /// of any of it is said of its fact: with the declarations of the constants it reads
+    /// from source, in a module of its own.
+    fn reader(&self, surface: &Surface, expression: &str) -> String {
+        let constants = self.analysis.source_constants(surface, expression);
+        if constants.names.is_empty() {
+            return format!("Box::new(|| observe!({expression}))");
+        }
+        format!(
+            "Box::new(|| {{ mod {SOURCE} {{ {} }} use {SOURCE}::{{{}}}; observe!({expression}) }})",
+            constants.declarations.join(" "),
+            constants.names.join(", ")
+        )
+    }
+
+    /// Words the compiler's "cannot find … in this scope" as what it means on a page: the
+    /// name is not exported, or is declared but not read from source, and why.
+    fn not_read(&self, complaint: &str, surface: &Surface) -> String {
+        let named = complaint.strip_prefix("cannot find ").and_then(|rest| rest.split('`').nth(1));
+        let Some(name) = named.filter(|_| complaint.ends_with("in this scope")) else {
+            return complaint.to_string();
+        };
+        self.analysis.unread(surface, name).unwrap_or_else(|| {
+            format!("{name} is not exported by surface \"{}\" ({complaint})", surface.name)
+        })
     }
 
     /// Answers `observables`: the values a surface offers, which are those of its
@@ -239,15 +276,6 @@ fn observable(surface: &str, item: &Value) -> Option<Observable> {
         path: vec![item["expression"].as_str()?.to_string()],
         value: serde_json::from_value(item["value"].clone()).ok()?,
     })
-}
-
-/// Words the compiler's "cannot find … in this scope" as what it means on a page.
-fn not_exported(complaint: &str, surface: &Surface) -> String {
-    let named = complaint.strip_prefix("cannot find ").and_then(|rest| rest.split('`').nth(1));
-    match named.filter(|_| complaint.ends_with("in this scope")) {
-        Some(name) => format!("{name} is not exported by surface \"{}\" ({complaint})", surface.name),
-        None => complaint.to_string(),
-    }
 }
 
 #[cfg(test)]

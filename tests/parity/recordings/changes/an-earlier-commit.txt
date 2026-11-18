@@ -1,8 +1,8 @@
 # an earlier commit
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 1
-stdout 68 lines
+stdout 69 lines
 {
   "results": [],
   "coverage": {
@@ -13,6 +13,7 @@ stdout 68 lines
     ],
     "frozen": [],
     "attestations": 0,
+    "proofs": 0,
     "weak": 0,
     "cited": 0
   },
@@ -74,7 +75,7 @@ stdout 68 lines
 stderr empty
 === check --base HEAD~1 --json
 exit 1
-stdout 75 lines
+stdout 76 lines
 {
   "results": [],
   "coverage": {
@@ -85,6 +86,7 @@ stdout 75 lines
     ],
     "frozen": [],
     "attestations": 0,
+    "proofs": 0,
     "weak": 0,
     "cited": 0
   },
@@ -155,7 +157,7 @@ stderr empty
 exit 1
 stdout 13 lines
 results: 0 pass, 0 fail, 0 error, 0 skipped
-coverage: 1 living page, 0 covered (0 attestations, 0 weak), 1 uncovered, 0 frozen
+coverage: 1 living page, 0 covered (0 attestations: 0 proofs, 0 of them weak, and 0 citations), 1 uncovered, 0 frozen
   uncovered: docs/retry.md
 warning: "setup" is "docs/docattest.setup.ts", which nothing reads: no living page has a cases table or a fact
 surface default: 4 symbols, 0 attested, 4 not attested by any page

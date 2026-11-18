@@ -7,7 +7,8 @@ The top level holds the development tools the npm scripts run: running a command
 the core built in this checkout (so the npm package's launcher and API use it), checking
 that every place a release's version is written agrees (and setting it everywhere), and
 checking every relative link in the repository's Markdown. `npm run versions` and
-`npm run links` run in CI.
+`npm run links` run in CI, and so do the scripts' tests, `npm run test:scripts`, which sit
+beside the module they test.
 
 [`release/`](release) holds what the release workflow runs: packaging the core for one
 platform as an npm package, packaging the Go archive for one platform, refusing to

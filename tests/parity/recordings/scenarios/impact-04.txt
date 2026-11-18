@@ -1,5 +1,5 @@
 # impact-04
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === impact --json
 exit 0
 stdout 24 lines
@@ -30,7 +30,7 @@ stdout 24 lines
 stderr empty
 === check --json
 exit 0
-stdout 69 lines
+stdout 70 lines
 {
   "results": [
     {
@@ -74,6 +74,7 @@ stdout 69 lines
     ],
     "frozen": [],
     "attestations": 3,
+    "proofs": 3,
     "weak": 0,
     "cited": 0
   },

@@ -2,12 +2,15 @@
 //!
 //! An entry of the config is a module path (`shop`, `shop::shipping`), a path of the
 //! project (a package's directory, or the file of a module), or both, when the module is
-//! imported under one path and read from a file that path does not lead to.
+//! imported under one path and read from a file that path does not lead to. A binary
+//! crate, which nothing imports, is named by a path: its root file (`./src/main.rs`), a
+//! module's file below it, or the directory of a package that has no library and one
+//! binary.
 
 use super::Analysis;
 use super::documented::Listing;
 use super::modules::Export;
-use crate::project::Package;
+use crate::project::{Binary, Package};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -42,12 +45,38 @@ pub(crate) enum Resolution {
 
 /// Where a resolved surface's module is.
 pub(crate) struct Located {
-    /// The package whose library holds it.
-    pub(crate) package: Package,
+    /// The crate that holds it.
+    pub(crate) owner: Owner,
     /// The module's path below its crate's root.
     pub(crate) module: Vec<String>,
     /// The module's file.
     pub(crate) file: PathBuf,
+}
+
+/// The crate a surface's module is of.
+pub(crate) enum Owner {
+    /// A package's library, which examples and facts import.
+    Library(Package),
+    /// A binary, of which facts read only constants, from source.
+    Binary(Binary),
+}
+
+impl Owner {
+    /// The crate's name: what its library is imported by, or the binary's name.
+    pub(crate) fn name(&self) -> &str {
+        match self {
+            Owner::Library(package) => &package.lib,
+            Owner::Binary(binary) => &binary.name,
+        }
+    }
+
+    /// The crate's root file.
+    pub(crate) fn root(&self) -> &Path {
+        match self {
+            Owner::Library(package) => &package.root,
+            Owner::Binary(binary) => &binary.root,
+        }
+    }
 }
 
 impl Surface {
@@ -62,6 +91,11 @@ impl Surface {
     /// Its module's file; none when the surface did not resolve.
     pub(crate) fn file(&self) -> Option<&Path> {
         self.located().map(|located| located.file.as_path())
+    }
+
+    /// Whether its module is of a library, which a fact's program imports.
+    pub(crate) fn importable(&self) -> bool {
+        self.located().is_some_and(|located| matches!(located.owner, Owner::Library(_)))
     }
 }
 
@@ -116,12 +150,14 @@ impl Analysis {
             (None, Some(located)) => import_of(located),
             (None, None) => String::new(),
         };
-        let resolution = match found {
-            None => Resolution::Unresolved,
-            Some(located) => match self.private_on(&import) {
-                Some(why) => Resolution::Private(why),
-                None => Resolution::Located(located),
-            },
+        let private = match &found {
+            Some(Located { owner: Owner::Library(_), .. }) => self.private_on(&import),
+            _ => None,
+        };
+        let resolution = match (found, private) {
+            (None, _) => Resolution::Unresolved,
+            (Some(_), Some(why)) => Resolution::Private(why),
+            (Some(located), None) => Resolution::Located(located),
         };
         Surface { name: configured.name.clone(), import, written, resolution }
     }
@@ -144,22 +180,37 @@ impl Analysis {
     }
 
     /// The module at a path of the project: a package's root for its directory, else the
-    /// module a file is.
+    /// module a file is. A library is looked for before a binary.
     fn module_at(&self, path: &str) -> Option<Located> {
         let place = self.abs(path).canonicalize().ok()?;
-        for package in &self.project.packages {
-            if place == package.dir {
-                return Some(Located {
-                    package: package.clone(),
-                    module: Vec::new(),
-                    file: package.root.clone(),
-                });
-            }
-            if let Some(module) = self.krate(package).module_of(&place) {
-                return Some(Located { package: package.clone(), module: module.to_vec(), file: place });
+        let libraries = self.project.packages.iter().map(|package| Owner::Library(package.clone()));
+        let binaries = self.project.binaries.iter().map(|binary| Owner::Binary(binary.clone()));
+        libraries.chain(binaries).find_map(|owner| self.module_of(owner, &place))
+    }
+
+    /// The module of a crate at a place: its root, for the directory it is the crate of,
+    /// or the module a file is.
+    fn module_of(&self, owner: Owner, place: &Path) -> Option<Located> {
+        if self.crate_of_directory(&owner, place) {
+            let file = owner.root().to_path_buf();
+            return Some(Located { owner, module: Vec::new(), file });
+        }
+        let module = self.summary(owner.name(), owner.root()).module_of(place)?.to_vec();
+        Some(Located { owner, module, file: place.to_path_buf() })
+    }
+
+    /// Whether a crate is the one a directory names: a package's library, or the one
+    /// binary of a package that has no library.
+    fn crate_of_directory(&self, owner: &Owner, place: &Path) -> bool {
+        match owner {
+            Owner::Library(package) => package.dir == place,
+            Owner::Binary(binary) => {
+                let of_package = |dir: &PathBuf| dir == place;
+                binary.dir == place
+                    && !self.project.packages.iter().any(|package| of_package(&package.dir))
+                    && self.project.binaries.iter().filter(|other| of_package(&other.dir)).count() == 1
             }
         }
-        None
     }
 
     /// The module a module path names, in a crate of the project.
@@ -168,7 +219,7 @@ impl Analysis {
         let package = self.project.by_lib(&segments.next()?)?;
         let module: Vec<String> = segments.collect();
         let file = self.krate(package).file_of(&module)?.to_path_buf();
-        Some(Located { package: package.clone(), module, file })
+        Some(Located { owner: Owner::Library(package.clone()), module, file })
     }
 
     /// A configured surface by name.
@@ -183,9 +234,10 @@ impl Analysis {
     }
 
     /// What a surface exports: read from its source, or listed by the compiler when its
-    /// source does not declare all of it and the compiler can.
+    /// source does not declare all of it and the compiler can. A binary exports nothing.
     pub(crate) fn exports(&self, surface: &Surface) -> Option<Vec<Export>> {
-        let Located { package, module, .. } = surface.located()?;
+        let Located { owner, module, .. } = surface.located()?;
+        let Owner::Library(package) = owner else { return Some(Vec::new()) };
         let compiled = match self.listing(package, module) {
             Listing::Compiled(documented) => documented.exports(module),
             Listing::Read | Listing::Refused(_) => None,
@@ -205,22 +257,25 @@ impl Analysis {
     }
 
     fn describe(&self, surface: &Surface) -> Value {
-        let Located { package, module, file } = match &surface.resolution {
+        let Located { owner, module, file } = match &surface.resolution {
             Resolution::Located(located) => located,
             Resolution::Private(why) => {
                 return json!({ "warnings": [format!("{why}; examples and facts that use it fail")] });
             }
             Resolution::Unresolved => return json!({ "warnings": [self.unresolved(surface)] }),
         };
-        let warnings: Vec<String> = match self.listing(package, module) {
-            Listing::Refused(why) => vec![unlisted(surface, &why)],
-            Listing::Read | Listing::Compiled(_) => Vec::new(),
+        let (package, warnings) = match owner {
+            Owner::Library(package) => match self.listing(package, module) {
+                Listing::Refused(why) => (&package.name, vec![unlisted(surface, &why)]),
+                Listing::Read | Listing::Compiled(_) => (&package.name, Vec::new()),
+            },
+            Owner::Binary(binary) => (&binary.name, Vec::new()),
         };
         json!({
             "resolution": {
                 "import": surface.import,
                 "entry": self.rel(file),
-                "package": { "name": package.name, "display": package.name },
+                "package": { "name": package, "display": package },
             },
             "warnings": warnings,
         })
@@ -262,9 +317,9 @@ impl Analysis {
     }
 }
 
-/// The path examples import a located module by.
+/// The path examples import a located module by; a binary's, by the binary's name.
 fn import_of(located: &Located) -> String {
-    std::iter::once(located.package.lib.clone())
+    std::iter::once(located.owner.name().to_string())
         .chain(located.module.iter().cloned())
         .collect::<Vec<_>>()
         .join("::")

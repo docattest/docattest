@@ -251,6 +251,7 @@ impl PageBuilder<'_> {
             table,
             comments: &mut self.page.comments,
             unclosed: &mut self.page.unclosed,
+            first_sentences: &mut self.page.first_sentences,
         }
     }
 

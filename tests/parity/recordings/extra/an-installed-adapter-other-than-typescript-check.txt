@@ -1,10 +1,10 @@
 # an installed adapter other than typescript: check
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check
 exit 0
 stdout 6 lines
 results: 0 pass, 0 fail, 0 error, 0 skipped
-coverage: 1 living page, 0 covered (0 attestations, 0 weak), 1 uncovered, 0 frozen
+coverage: 1 living page, 0 covered (0 attestations: 0 proofs, 0 of them weak, and 0 citations), 1 uncovered, 0 frozen
   uncovered: docs/a.md
 surface default: 0 symbols, 0 attested, 0 not attested by any page
 snapshots: none

@@ -1,7 +1,8 @@
-//! What needs no project: the greeting, and the questions about Rust text (blocks, doc
-//! comments, code spans, fact expressions).
+//! What needs no project: the greeting, the questions about Rust text (blocks, doc
+//! comments, code spans, fact expressions), and how a data block's values display.
 
 pub(crate) mod blocks;
+pub(crate) mod display;
 pub(crate) mod doc;
 pub(crate) mod text;
 
@@ -37,7 +38,12 @@ pub fn hello() -> Hello {
         source_files: SourceFiles { include: words(&["**/*.rs"]), exclude: Vec::new() },
         // Where cargo builds, which is never the project's own.
         ignored_names: words(&["target"]),
-        capabilities: vec![Capability::Tests, Capability::Observables, Capability::Affected],
+        capabilities: vec![
+            Capability::Tests,
+            Capability::Observables,
+            Capability::Affected,
+            Capability::Display,
+        ],
         info_words: words(&[SHOULD_PANIC]),
         vocabulary: Vocabulary { no_tests: "it declares no test function".into() },
     }
@@ -69,6 +75,11 @@ struct Expressions {
     expressions: Vec<String>,
 }
 
+#[derive(Deserialize)]
+struct Values {
+    values: Vec<Value>,
+}
+
 /// Answers a question about text; `None` for any other method.
 pub fn answer(method: &str, params: Value) -> Option<Answer> {
     Some(match method {
@@ -81,6 +92,8 @@ pub fn answer(method: &str, params: Value) -> Option<Answer> {
         "mentions" => decode::<Spans>(params).map(|p| json!(text::mentions(&p.spans, &p.symbols))),
         "expressions" => decode::<Expressions>(params)
             .map(|p| json!(p.expressions.iter().map(|e| text::shape(e)).collect::<Vec<ExpressionShape>>())),
+        "display" => decode::<Values>(params)
+            .map(|p| json!(p.values.iter().map(display::shown).collect::<Vec<String>>())),
         _ => return None,
     })
 }

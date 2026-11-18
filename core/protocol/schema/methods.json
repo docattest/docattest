@@ -133,6 +133,27 @@
         "$ref": "language.json#/$defs/ExpressionShape"
       }
     },
+    "display.params": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "description": "Scalars of the data blocks that facts read with field=, as the block holds them.",
+          "type": "array",
+          "items": {
+            "type": ["string", "number", "boolean", "null"]
+          }
+        }
+      },
+      "required": ["values"],
+      "additionalProperties": false
+    },
+    "display.result": {
+      "description": "Each value as the language displays the value it reads that JSON as, in order.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "open.params": {
       "type": "object",
       "properties": {
@@ -170,6 +191,9 @@
         },
         "manifests": {
           "$ref": "project.json#/$defs/Manifests"
+        },
+        "texts": {
+          "$ref": "project.json#/$defs/Texts"
         },
         "examples": {
           "description": "Every example a compile or run of this session may name: all the well-formed examples of the pages being checked, in page order.",

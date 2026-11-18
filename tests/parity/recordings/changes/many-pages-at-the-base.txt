@@ -1,8 +1,8 @@
 # many pages at the base
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: what adopting it in a Go service found
 === check --base HEAD --json
 exit 1
-stdout 2577 lines
+stdout 2578 lines
 {
   "results": [
     {
@@ -2523,6 +2523,7 @@ stdout 2577 lines
     ],
     "frozen": [],
     "attestations": 1,
+    "proofs": 1,
     "weak": 0,
     "cited": 0
   },

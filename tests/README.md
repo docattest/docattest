@@ -135,16 +135,23 @@ builds when there is a `go` command and a `cargo`) with a recorder between the c
 
 ## mirror.ts: the same verdict in every language
 
-Takes 18 benchmark scenarios written for TypeScript, translates each page and source file to
-Python, Go and Rust by hand (keeping line numbers, so the scenario's own expectations
-still hold), runs every translation through the same core, and requires the same verdict and exit
-code as the TypeScript side. A language's translation is one file of tables in
-[mirror/](mirror), beside the shape of a translation that they share. A Go export
+Takes 18 benchmark scenarios written for TypeScript, and 9 of its own
+([mirror/scenarios.ts](mirror/scenarios.ts): facts over unexported constants and functions
+and over a program's constants, `file()`, `field=`, citations of a table-driven test's
+rows, `undocumented`, and a cases runner that reads its cells with the language's cell
+helper), translates each page and source file to Python, Go and Rust by hand (keeping line
+numbers, so the scenario's own expectations still hold; any other file is the same in
+every language), runs every translation through the same core, and requires the same
+verdict and exit code as the TypeScript side. A language's translation is one file of
+tables in [mirror/](mirror), beside the shape of a translation that they share. A Go export
 begins with a capital, so the Go side's `Retry` and `Parse` are restated as the scenario
-names them before its expectation judges what the core printed. It needs the built
-TypeScript adapter and `python3`, and builds the Go adapter when there is a `go` command
-and the Rust adapter when there is a `cargo` (a side whose tool is missing is left out, and
-it says so); `--keep` keeps the projects it made.
+names them before its expectation judges what the core printed. Every project can import
+this checkout's docattest package, as one that installed it can: the TypeScript side links
+it into `node_modules`, the Python side has it on `PYTHONPATH`, and the Go module requires
+it with a `replace` (the Rust side's helper comes with the crate docattest generates). It
+needs the built TypeScript adapter and `python3`, and builds the Go adapter when there is a
+`go` command and the Rust adapter when there is a `cargo` (a side whose tool is missing is
+left out, and it says so); `--keep` keeps the projects it made.
 
 ## smoke: a fresh install
 

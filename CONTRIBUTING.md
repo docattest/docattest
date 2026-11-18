@@ -113,6 +113,7 @@ Everything CI runs, from the repository root:
 | `npm run links` | every relative link in every Markdown file |
 | `npm test` | the npm package's unit, protocol, acceptance and corpus tests |
 | `npm run test:action` | the GitHub Action's tests (CI also runs the action itself, on this repository's docs) |
+| `npm run test:scripts` | the tests of the repository's scripts (`scripts/`) |
 | `npm run test:docs` | docattest on its own docs, and on the projects the root config lists as `members`: the core's README and doc comments, and the Rust, Python and Go guides, each with its own adapter (so it needs cargo, Python and Go) |
 | `cargo test`, `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check` | the core (in `core/`) |
 | `python3 -m unittest discover -s tests` | the Python package (in `adapters/python/`; set `DOCATTEST_CORE` to the built core) |
@@ -149,7 +150,7 @@ correctness, and CI fails when one is broken; the size limits below are for revi
 | TypeScript (`adapters/typescript/`) | Prettier (`.prettierrc.json`: width 100, single quotes) | ESLint `strictTypeChecked` and `stylisticTypeChecked` (`eslint.config.js`) | strict TypeScript with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`; every export has a one-line doc comment; no `any` (untyped values come in as `unknown` and are narrowed); lines under 100; only `src/language` loads the compiler (lint enforces it), so the launcher and the API start in milliseconds |
 | Python (`adapters/python/`) | `ruff format` (width 110) | `ruff check` (pycodestyle, pyflakes, isort, bugbear, pyupgrade, annotations; `pyproject.toml`) and `pyright` (strict for the package) | standard library only; the worker (`workers/worker.py` and its parts in `workers/docattest_worker/`) may run on the project's own interpreter |
 | Rust (`adapters/rust/`) | `cargo fmt` (the core's `rustfmt.toml`) | `cargo clippy --all-targets -- -D warnings` | no `unsafe` but two calls that have no safe form (signalling a process group, setting a variable before any thread starts), each with its reason; `src/harness/` uses only `std`, because it is compiled into programs generated in other people's projects |
-| Go (`adapters/go/`) | `gofmt` | `go vet ./...` | standard library only; every package under `internal/`; the source compiled into generated programs (`internal/harness/program/`) declares only names that begin `docattest`, so none can meet a name of a project's |
+| Go (`adapters/go/`) | `gofmt` | `go vet ./...` | the standard library and `golang.org/x/tools` (its `go/packages` loads and type-checks a project); `cells`, which a user's code imports, only the standard library; every other package under `internal/`; the source compiled into generated programs (`internal/harness/program/`) declares only names that begin `docattest`, so none can meet a name of a project's |
 | TypeScript tools (`tests/`, `scripts/`, `protocol/`, `core/tests/fixtures/gen-*`) | Prettier | the same ESLint rules, type-checked by the root `tsconfig.json` with the package's flags | Node 22.18 or later runs them as they are, no dependencies; test code (`tests/`, `core/tests/`) is tables of cases and is exempt from the line length limit |
 
 Markdown is never reformatted by a tool: pages are attested by line, and tables are aligned

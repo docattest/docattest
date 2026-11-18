@@ -7,6 +7,7 @@ use super::citation::Citation;
 use super::core_examples::plan_core_example;
 use super::directives::{Directive, parse_directive};
 use super::examples::{ExampleOptions, plan_example};
+use super::placement::{detached_error, place};
 use crate::api::attestation::{Attestation, Body, Cases, Fact, Test};
 use crate::config::DEFAULT_SURFACE;
 use crate::markdown::model::{BlockKind, Comment, Keyword, Page, Unclosed};
@@ -37,10 +38,11 @@ pub fn plan_parsed(page: &str, parsed: &Page, options: &ExampleOptions) -> Vec<A
     Planner { page, parsed, seq: 0 }.plan(options)
 }
 
-/// The claim a directive defends: the sentence it sits in, in its paragraph, heading or list
-/// item (the sentences before it are other claims); when it has no prose before it, or sits
-/// in a table cell, the paragraph or heading just before its block; failing that, a cell's
-/// own text.
+/// The claim a directive defends, given the comment where it takes effect
+/// ([`super::placement`]): the sentence it sits in, in its paragraph, heading or list item
+/// (the sentences before it are other claims); when it has no prose before it, or sits in a
+/// table cell, the paragraph or heading just before its block; failing that, a cell's own
+/// text.
 fn comment_claim(page: &Page, comment: &Comment) -> String {
     let lead = own_sentence(&comment.lead);
     let claim = match comment.table {
@@ -180,10 +182,13 @@ impl Planner<'_> {
             Directive::Cases { .. } => "cases",
             Directive::Test(_) => "test",
         };
-        let base = self.base(comment.line, kind, comment_claim(self.parsed, comment));
+        let placed = place(self.parsed, comment, directive);
+        let effective = placed.comment().unwrap_or(comment);
+        let base = self.base(comment.line, kind, comment_claim(self.parsed, effective));
+        let detached = placed.comment().is_none().then(|| detached_error(kind, comment.line));
         match directive {
             Directive::Invalid { as_kind, message } => self.plan_error(*as_kind, base, message.clone()),
-            Directive::Test(citation) => self.citation(base, citation),
+            Directive::Test(citation) => self.citation(base, citation, detached),
             Directive::Cases { runner } => {
                 let why = "a directive in a table cell cannot bind one";
                 let error = format!("cases at L{} has no table: {why}", comment.line);
@@ -195,7 +200,11 @@ impl Planner<'_> {
                     surface: f.surface.clone(),
                     ordered: f.ordered,
                     column: f.column.clone(),
-                    target: bind_fact(f.ordered, f.column.as_deref(), comment, self.parsed),
+                    field: f.field.as_ref().map(|path| path.written.clone()),
+                    target: match detached {
+                        Some(error) => Err(error),
+                        None => bind_fact(f, comment.line, effective, self.parsed),
+                    },
                 });
                 self.attestation(base, body, None)
             }
@@ -223,6 +232,7 @@ impl Planner<'_> {
                     surface: DEFAULT_SURFACE.into(),
                     ordered: false,
                     column: None,
+                    field: None,
                     target: Err(error),
                 });
                 self.attestation(base, body, None)
@@ -230,11 +240,14 @@ impl Planner<'_> {
         }
     }
 
-    // A citation defends a sentence; one with nothing before it to defend is misplaced.
-    fn citation(&self, base: Base, c: &Citation) -> Attestation {
-        let error = base.claim.is_empty().then(|| {
-            let hint = "put it after the sentence it defends, on the same line";
-            format!("test at L{} defends no sentence: {hint}", base.line)
+    // A citation defends a sentence; one with nothing before it to defend is misplaced, and
+    // so is a detached one.
+    fn citation(&self, base: Base, c: &Citation, detached: Option<String>) -> Attestation {
+        let error = detached.or_else(|| {
+            base.claim.is_empty().then(|| {
+                let hint = "put it at the end of the sentence it defends, or alone on the line above it";
+                format!("test at L{} defends no sentence: {hint}", base.line)
+            })
         });
         let body =
             Body::Test(Test { file: c.file.clone(), title: c.title.clone(), describes: c.describes.clone() });
@@ -250,12 +263,26 @@ impl Planner<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::api::attestation::{FactTarget, SetFrom};
 
-    fn claims(text: &str) -> Vec<(usize, String)> {
+    fn planned(text: &str) -> Vec<Attestation> {
         let languages = ["ts".to_string()];
         let options = ExampleOptions { languages: &languages, ignore_tags: &[], info_words: &[] };
-        let plan = plan_page("p.md", text, &options).unwrap_or_else(|e| panic!("{e}"));
-        plan.attestations.into_iter().map(|a| (a.line, a.claim)).collect()
+        plan_page("p.md", text, &options).unwrap_or_else(|e| panic!("{e}")).attestations
+    }
+
+    fn claims(text: &str) -> Vec<(usize, String)> {
+        planned(text).into_iter().map(|a| (a.line, a.claim)).collect()
+    }
+
+    /// What each fact on a page binds, and each citation's error.
+    fn outcomes(text: &str) -> Vec<Result<String, String>> {
+        let outcome = |a: Attestation| match (a.body, a.error) {
+            (_, Some(error)) => Err(error),
+            (Body::Fact(fact), None) => fact.target.map(|t| format!("{t:?}")),
+            (_, None) => Ok("cited".into()),
+        };
+        planned(text).into_iter().map(outcome).collect()
     }
 
     #[test]
@@ -276,5 +303,32 @@ mod tests {
         let table = "| a |\n|---|\n| `3` <!-- fact: N --> |";
         assert_eq!(claims(&format!("Limits:\n\n{table}")), vec![(5, "Limits:".into())]);
         assert_eq!(claims(table), vec![(3, "`3`".into())]);
+    }
+
+    #[test]
+    fn directives_alone_on_the_line_above_a_sentence_claim_it() {
+        let page = "# Agent\n\n<!-- test: a.ts > \"x\" --> <!-- test: b.ts > \"y\" -->\nScripts run\nthe same way. Then more.";
+        let claim = "Scripts run the same way.".to_string();
+        assert_eq!(claims(page), vec![(3, claim.clone()), (3, claim)]);
+        assert_eq!(outcomes(page), [Ok("cited".into()), Ok("cited".into())]);
+    }
+
+    #[test]
+    fn a_fact_alone_on_the_line_above_a_sentence_binds_as_at_its_end() {
+        let scalar = |value: &str| Ok(format!("{:?}", FactTarget::Scalar(value.into())));
+        let page = "<!-- fact: CURRENCY -->\nPrices are in `EUR` unless told otherwise. Not `USD`.";
+        assert_eq!(outcomes(page), [scalar("EUR")]);
+        assert_eq!(claims(page), [(1, "Prices are in `EUR` unless told otherwise.".into())]);
+        let set = FactTarget::Set { items: vec!["a".into(), "b".into()], from: SetFrom::Sentence };
+        assert_eq!(outcomes("<!-- fact: KEYS -->\nKeys are `a`\nand `b`.\n"), [Ok(format!("{set:?}"))]);
+        let list = FactTarget::Set { items: vec!["a".into()], from: SetFrom::List };
+        assert_eq!(outcomes("<!-- fact: KEYS -->\nThe keys:\n\n- `a`\n"), [Ok(format!("{list:?}"))]);
+    }
+
+    #[test]
+    fn a_directive_alone_then_a_blank_line_then_prose_is_an_error_there() {
+        let page = "Intro.\n\n<!-- fact: CURRENCY -->\n\nPrices are in `EUR`.\n\n<!-- test: a.ts > \"x\" -->\n\nMore.";
+        let error = |kind: &str, line: usize| Err(detached_error(kind, line));
+        assert_eq!(outcomes(page), [error("fact", 3), error("test", 7)]);
     }
 }
