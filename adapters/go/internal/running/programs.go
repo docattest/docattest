@@ -134,7 +134,8 @@ func (r *Runner) serve(binary string, cases *casesJob, count int) (answers []lin
 	return answers, ""
 }
 
-// programStartup is the time a generated program is given beyond its items' limits.
+// programStartup is the time a generated program is given to start: beyond its items'
+// limits for one that serves items, and before its time limit counts for a block.
 const programStartup = 10 * time.Second
 
 // writeJob writes what a program is told to a file of its own, and returns that file and

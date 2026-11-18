@@ -33,6 +33,16 @@ fn round(hundredths: i64) -> i64 {
 pub fn days(region: &str) -> u32 {
     DAYS.iter().find(|(code, _)| *code == region).map_or(0, |(_, days)| *days)
 }
+
+pub trait Doubled {
+    fn doubled(&self) -> u32;
+}
+
+impl Doubled for u16 {
+    fn doubled(&self) -> u32 {
+        u32::from(*self) * 2
+    }
+}
 ";
 
 const SHOPD_MANIFEST: &str = "[package]\nname = \"shopd\"\nversion = \"0.1.0\"\nedition = \"2021\"\n";
@@ -52,10 +62,15 @@ fn main() {
 ";
 
 fn open(test: &str) -> Written {
+    open_with(test, SHOP)
+}
+
+/// Opens the workspace with this code as the library's.
+fn open_with(test: &str, shop: &str) -> Written {
     let files = [
         ("Cargo.toml", WORKSPACE),
         ("shop/Cargo.toml", SHOP_MANIFEST),
-        ("shop/src/lib.rs", SHOP),
+        ("shop/src/lib.rs", shop),
         ("shopd/Cargo.toml", SHOPD_MANIFEST),
         ("shopd/src/main.rs", SHOPD),
     ];
@@ -83,6 +98,7 @@ fn a_fact_reads_constants_from_source() {
         fact("pairs", "DAYS", "default"),
         fact("float", "SHARE", "default"),
         fact("both", "PORT as u32 + MAX_DISCOUNT", "default"),
+        fact("trait", "PORT.doubled()", "default"),
         fact("binary", "LISTEN", "shopd"),
         fact("module", "WORKERS * 2", "main"),
     ]);
@@ -95,6 +111,7 @@ fn a_fact_reads_constants_from_source() {
         ("static", "NL"),
         ("float", "0.25"),
         ("both", "8130"),
+        ("trait", "16160"),
         ("binary", "0.0.0.0:8080"),
         ("module", "8"),
     ];
@@ -146,6 +163,32 @@ fn only_constants_are_read_from_source() {
     for (id, message) in messages {
         let said = got[id]["message"].as_str().unwrap_or_default();
         assert!(got[id]["ok"] == false && said.contains(message), "{id}: {}", got[id]);
+    }
+}
+
+#[test]
+fn a_library_that_does_not_compile_fails_only_the_facts_that_need_it() {
+    let broken = format!("{SHOP}\npub fn total() -> u32 {{\n    \"not a number\"\n}}\n");
+    let workspace = open_with("broken", &broken);
+    let facts = json!([
+        fact("constant", "PORT", "default"),
+        fact("method", "TIMEOUT.as_secs()", "default"),
+        fact("plain", "1 + 1", "default"),
+        fact("binary", "LISTEN", "shopd"),
+        fact("exported", "MAX_DISCOUNT", "default"),
+        fact("function", "days(\"NL\")", "default"),
+        fact("path", "shop::MAX_DISCOUNT", "main"),
+    ]);
+    let got = workspace.call("evaluate", json!({ "facts": facts }));
+    let texts = [("constant", "8080"), ("method", "30"), ("plain", "2"), ("binary", "0.0.0.0:8080")];
+    for (id, text) in texts {
+        assert_eq!(got[id]["value"]["text"], json!(text), "{id}: {}", got[id]);
+    }
+    let line = SHOP.lines().count() + 3;
+    for (id, surface) in [("exported", "default"), ("function", "default"), ("path", "main")] {
+        let message =
+            format!("surface \"{surface}\" failed to load: shop/src/lib.rs:{line}: mismatched types");
+        assert_eq!(got[id]["message"], json!(message), "{id}: {}", got[id]);
     }
 }
 

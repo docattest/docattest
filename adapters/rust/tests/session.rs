@@ -120,6 +120,43 @@ fn blocks_compile_and_run_each_as_a_program_of_its_own() {
     );
 }
 
+/// A block whose program takes 2500 ms to reach its `main`: a constructor that the system
+/// runs as it loads the program sleeps, as a loaded machine's start-up of a freshly linked
+/// program takes its time.
+const SLOW_START: &str = r#"
+#[used]
+#[cfg_attr(target_os = "macos", unsafe(link_section = "__DATA,__mod_init_func"))]
+#[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
+static SLOW_START: extern "C" fn() = {
+    extern "C" fn slow_start() {
+        std::thread::sleep(std::time::Duration::from_millis(2500));
+    }
+    slow_start
+};
+
+fn main() {
+    assert!(true);
+}
+"#;
+
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+#[test]
+fn a_blocks_time_counts_from_when_its_code_starts() {
+    let examples = [
+        block("slow start", SLOW_START),
+        block("sleeps", "std::thread::sleep(std::time::Duration::from_millis(2500));\nassert!(true);"),
+    ];
+    let session = open(&examples);
+    let results = call(&session, "run", json!({ "examples": examples, "cases": [] }));
+    let got: Vec<(&str, &str)> = results
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|result| (result["status"].as_str().unwrap(), result["message"].as_str().unwrap()))
+        .collect();
+    assert_eq!(got, [("pass", "all assertions held"), ("fail", "timed out after 2000 ms")]);
+}
+
 #[test]
 fn facts_show_values_as_rust_prints_them() {
     let session = open(&[]);

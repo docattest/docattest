@@ -296,8 +296,12 @@ Blocks tagged `python`, `py`, `python3`, `py3` or `pycon` are the adapter's. <!-
   block cannot continue. To bind a page written as one session, tag its first block
   `check` and the rest `check continue`: nothing inside the blocks changes.
 - **Renderer attributes** in an info string are ignored:
-  ```` ```python title="pricing.py" hl_lines="1 2" check ```` is a `check` block. Workers are forked from a clean process
-  (`os.fork`); a block that outlives `runtime.timeoutMs` has its process group killed. <!-- test: tests/test_running.py > "Running" > "test_a_stuck_block_is_stopped_and_the_next_one_runs" -->
+  ```` ```python title="pricing.py" hl_lines="1 2" check ```` is a `check` block.
+- **Time.** Workers are forked from a clean process (`os.fork`); a block that outlives
+  `runtime.timeoutMs` has its process group killed. <!-- test: tests/test_running.py > "Running" > "test_a_stuck_block_is_stopped_and_the_next_one_runs" -->
+  The time counts from when the block is handed to a worker that has started: starting the
+  interpreter is not counted, whether a block is forked from a worker or, where there is no
+  `os.fork`, runs in a worker of its own. <!-- test: tests/test_workers.py > "Interpreter" > "test_starting_the_interpreter_is_not_counted_against_a_block" -->
   `runtime.workers` is the number of blocks that run at once.
 - **Output.** `print` in attested code goes nowhere; anything written to file descriptor 1
   by other means goes to stderr. <!-- test: tests/test_running.py > "Running" > "test_stdout_carries_nothing_but_responses" -->

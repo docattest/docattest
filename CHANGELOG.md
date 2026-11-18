@@ -53,11 +53,12 @@ All notable changes to this project are documented here. The format follows
   `#[rstest]` and `#[test_case]` functions are tests.
 - Each language gives a cases runner the code spans of a cell, as a fact over the cell's
   column reads them: `codeSpans` from `docattest` in TypeScript, `docattest.cells.code_spans`
-  in Python, `cells.CodeSpans` in Go, and `docattest_blocks::cells::code_spans` in Rust. The
+  in Python, `cells.CodeSpans` in Go, and `docattest_harness::cells::code_spans` in Rust. The
   Go package `github.com/docattest/docattest/adapters/go/cells` imports only the standard
-  library, so a module that uses it downloads none of the cores; the Rust helper is in the
-  crate docattest generates, so nothing is added to a project's build. The core and the
-  four helpers are tested against one table, `protocol/test-data/code-spans.json`.
+  library, so a module that uses it downloads none of the cores; the Rust helper is in
+  `docattest_harness`, the part of every program docattest generates that is the same each
+  time, so nothing is added to a project's build. The core and the four helpers are tested
+  against one table, `protocol/test-data/code-spans.json`.
 - `undocumented` in the config names, by surface, globs of the symbols that are not meant to
   be documented (`{ "default": ["internal*"] }`). `uncovered` leaves them out, the surface
   line counts them apart (`1 not attested by any page, 2 not meant to be documented`), the
@@ -69,6 +70,11 @@ All notable changes to this project are documented here. The format follows
 - Rust: a JSON null in a manifest or a snapshot shows as `None`, as a typed `Option::None`
   constant does, where it showed `null`; a null inside an array or object is still written
   as JSON writes it.
+- Rust: a fact that names nothing of the project's crates (no export of its surface, no name
+  of the setup file, no crate) is built in a program that does not depend on them, so a
+  library that does not compile fails only the facts that need it, where it failed every
+  fact of its surface. The harness every generated program shares is a package of its own,
+  `target/docattest/crate/harness`.
 - The coverage line counts proofs and citations apart, and their sum:
   `(41 attestations: 38 proofs, 2 of them weak, and 3 citations)`. The JSON report's
   coverage gains `proofs`. A broken citation now counts as a citation, and errors on a
@@ -101,6 +107,16 @@ All notable changes to this project are documented here. The format follows
 - Go: the guide is split into pages: `adapters/go/docs/examples.md`, `facts.md`, `cases.md`
   and `citations.md`; the README keeps install, configuration, a page, the commands and the
   limits. The Go archive carries the pages beside the README.
+
+### Fixed
+
+- Go and Rust: a block's `runtime.timeoutMs` counts from when the block's own code starts,
+  not from when its program is launched, so a quick block no longer times out while the
+  system starts the freshly built program (macOS checks a new executable the first time it
+  runs, and is slower at it under load). A program that has not started after 10 s is
+  killed, and the block fails with `did not start within 10000 ms`. The TypeScript and
+  Python adapters already started the clock once a block's worker was ready; their guides
+  now say so.
 
 ## [0.1.5] - 2026-11-18
 

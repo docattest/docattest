@@ -15,6 +15,12 @@ pub fn program() -> PathBuf {
 /// and the protocol carries nothing of a language's own settings.
 const FEATURES_VARIABLE: &str = "DOCATTEST_CARGO_FEATURES";
 
+/// The features of the project's crates the generated crate is built with, when
+/// [`FEATURES_VARIABLE`] names any.
+pub fn features() -> Option<String> {
+    std::env::var(FEATURES_VARIABLE).ok().filter(|features| !features.is_empty())
+}
+
 /// `cargo metadata` of a workspace, as far as the adapter reads it.
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct Metadata {
@@ -127,14 +133,14 @@ impl Span {
     }
 }
 
-/// Builds programs of a crate, by name, into a target directory, and reads what the
-/// compiler complains of. A program that does not compile does not stop the others. The
-/// problems are empty exactly when every program was built.
-pub fn build(krate: &Path, target: &Path, programs: &[String]) -> Vec<Problem> {
+/// Builds programs of a crate, by name, into a target directory, with some features, and
+/// reads what the compiler complains of. A program that does not compile does not stop
+/// the others. The problems are empty exactly when every program was built.
+pub fn build(krate: &Path, target: &Path, programs: &[String], features: Option<String>) -> Vec<Problem> {
     let mut args: Vec<String> =
         ["build", "--keep-going", "--message-format=json", "--target-dir"].map(String::from).to_vec();
     args.push(target.to_string_lossy().into_owned());
-    if let Some(features) = std::env::var(FEATURES_VARIABLE).ok().filter(|features| !features.is_empty()) {
+    if let Some(features) = features {
         args.extend(["--features".to_string(), features]);
     }
     for name in programs {

@@ -200,6 +200,7 @@ depends on your crates.
   $ d="$(mktemp -d)" && cp -R . "$d" && cd "$d" && rm -rf target/docattest && docattest check --quiet docs/pricing.md > /dev/null && ls target/docattest/crate && rm -rf "$d"
   Cargo.lock
   Cargo.toml
+  harness
   src
   ```
 - **Isolation.** Every block is its own program and its own process, started in the
@@ -211,6 +212,11 @@ depends on your crates.
   ```
 - **Time.** A block that outlives `runtime.timeoutMs` is killed with everything it
   started. <!-- test: src/toolchain/mod.rs > "tests" > "a_program_that_overruns_is_ended_with_what_it_started" -->
+  The time counts from when the block's own code starts, which its program says as `main`
+  begins. The system's start-up of a freshly built program comes before, and on a loaded
+  machine it can take seconds: it is not counted. <!-- test: tests/session.rs > "a_blocks_time_counts_from_when_its_code_starts" -->
+  A program that has not started after 10 s is killed, and its block fails with
+  `did not start within 10000 ms`. <!-- test: src/toolchain/mod.rs > "tests" > "a_program_that_never_starts_is_ended" --> <!-- test: src/running/blocks.rs > "tests" > "a_block_whose_program_never_starts_says_how_long_it_waited" -->
   `runtime.workers` is the number of blocks that run at once. Building is not counted: the
   blocks of a run are built together, once, before any of them runs.
 - **Output.** What a block prints is dropped; it never reaches the report. The block of
@@ -350,6 +356,12 @@ The constant's declaration is copied into the fact's program, with those of the 
 constants of its module it reads, and the compiler gives it its value there: it is not
 taken from a build of the crate, and nothing of the crate runs. A binary is never built,
 so one whose code does not compile still has its constants read. <!-- test: tests/constants.rs > "a_fact_reads_constants_from_source" -->
+A fact that names nothing of your crates (no export of its surface, no name of the setup
+file, and no crate by its name) is built in a program that does not depend on them. So a
+library that does not compile fails only the facts that need it, each with the compiler's
+error: `surface "default" failed to load: shop/src/lib.rs:34: mismatched types`. <!-- test: tests/constants.rs > "a_library_that_does_not_compile_fails_only_the_facts_that_need_it" -->
+When such a fact does not compile without them, as a call of a method of a trait its
+surface exports does not, it is built with them after all. <!-- test: tests/constants.rs > "a_fact_reads_constants_from_source" -->
 A constant is copied when what it is written with means the same in any program: its type
 is made of primitive types (`u16`, `f64`, `&str`, `char`) and `std::time::Duration`, in
 references, slices, arrays and tuples, and its value of literals, operators, casts,
@@ -413,11 +425,11 @@ of its own that depends on them, so it imports your crate by its name, as a page
 A runner gets each cell's text as the page writes it, code spans included: a cell
 `` `FOO=1` `` reaches it with its backticks
 ([docs/cases.md](../../docs/cases.md#a-runner-receives-each-cell-as-written)).
-`docattest_blocks::cells::code_spans` takes the code out: it gives the content of every
+`docattest_harness::cells::code_spans` takes the code out: it gives the content of every
 code span in a cell, in order, as a fact over the cell's column compares it. <!-- test: tests/cells.rs > "code_spans_are_what_a_column_fact_compares" -->
 
 ```rust check
-let code_spans = docattest_blocks::cells::code_spans;
+let code_spans = docattest_harness::cells::code_spans;
 assert_eq!(code_spans("`FOO=1` `BAR=2`"), ["FOO=1", "BAR=2"]);
 assert_eq!(code_spans("``a`b`` or `` `c` ``"), ["a`b", "`c`"]);
 assert!(code_spans("no code").is_empty());
@@ -427,13 +439,13 @@ A span opens with a run of backticks and closes at the next run of as many, and 
 space around its content is dropped. As CommonMark has it, a backtick escaped with a
 backslash opens no span, and neither does one inside an HTML tag or comment, an autolink,
 or a link's destination or title. <!-- test: src/harness/cells/mod.rs > "tests" > "a_cells_code_spans_are_the_shared_tables" -->
-`docattest_blocks` is the crate docattest generates, whose programs your examples, facts
-and setup file are compiled into, so a setup file calls it with nothing added to your
-build: it is written with only `std`. <!-- test: tests/cells.rs > "a_setup_file_reads_its_cells_with_code_spans" -->
+`docattest_harness` is the part of every program docattest generates that is the same
+each time: a crate written with only `std`, which your examples, facts and setup file are
+compiled with. So a setup file calls it with nothing added to your build. <!-- test: tests/cells.rs > "a_setup_file_reads_its_cells_with_code_spans" -->
 
 ```rust
 fn spans(row: &Row) -> Result<(), String> {
-    let got = docattest_blocks::cells::code_spans(&row["cell"]).join(",");
+    let got = docattest_harness::cells::code_spans(&row["cell"]).join(",");
     if got == row["spans"] { Ok(()) } else { Err(format!("got {got}")) }
 }
 ```

@@ -132,7 +132,7 @@ const AGREEMENTS: Language['code'] = {
       'pub const CASES: &[(&str, fn(&Row) -> Result<(), String>)] = &[("spans", spans)];',
       '',
       'fn spans(row: &Row) -> Result<(), String> {',
-      '    let got = docattest_blocks::cells::code_spans(&row["cell"]).join(",");',
+      '    let got = docattest_harness::cells::code_spans(&row["cell"]).join(",");',
       '    if got == row["spans"] { Ok(()) } else { Err(format!("expected {}, got {got}", row["spans"])) }',
       '}',
     ),

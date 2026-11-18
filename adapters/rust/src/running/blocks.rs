@@ -1,12 +1,14 @@
 //! Examples: each is a program of the generated crate, built once and run by itself.
 
 use super::Runner;
-use super::generated::{general, line_in, program_name};
+use super::generated::{Dependencies, HARNESS_CRATE, general, line_in, program_name};
 use super::outcomes::Outcomes;
+use super::programs::PROGRAM_STARTUP;
+use crate::harness::started;
 use crate::language::{NETWORK_SKIPPED, SHOULD_PANIC, blocks, text};
 use crate::protocol::{Cases, Diagnostic, Example, Kind, Status, Verdict};
 use crate::toolchain::cargo::Problem;
-use crate::toolchain::{Command, Outcome, run};
+use crate::toolchain::{Command, Outcome, Start, Stopped, run};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
@@ -46,7 +48,8 @@ impl Runner {
         let mut fresh: Vec<(String, Block)> = Vec::new();
         let mut sources: Vec<(String, String)> = Vec::new();
         for example in examples.iter().filter(|e| e.error.is_none() && !by_id.contains_key(&e.id)) {
-            let program = blocks::program(&example.code);
+            let program =
+                blocks::program(&example.code, &format!("::{HARNESS_CRATE}::harness::started::signal();"));
             let name = program_name("e", &program.source);
             sources.push((name.clone(), program.source));
             fresh.push((
@@ -55,7 +58,7 @@ impl Runner {
             ));
         }
         if !fresh.is_empty() {
-            let problems = self.build(&sources);
+            let problems = self.build(Dependencies::Project, &sources);
             for (id, mut block) in fresh {
                 self.settle(&mut block, &problems);
                 by_id.insert(id, Arc::new(block));
@@ -128,29 +131,51 @@ impl Runner {
             return Outcomes::fail(format!("does not compile: {message} (block line {line})"));
         }
         let Some(binary) = &block.binary else { return Outcomes::fail("the block was not built") };
+        let dir = match self.scratch(binary) {
+            Ok(dir) => dir,
+            Err(why) => return Outcomes::fail(format!("could not be run: {why}")),
+        };
         let command = Command {
             program: binary.clone(),
             args: Vec::new(),
             dir: self.analysis.root.clone(),
             timeout: Some(self.timeout()),
+            start: Some(Start {
+                variable: started::VARIABLE,
+                signal: dir.join("started"),
+                within: PROGRAM_STARTUP,
+            }),
             ..Command::default()
         };
         let outcome = self.running(|| run(&command));
+        // The directory is this run's own and nothing reads it again.
+        let _ = std::fs::remove_dir_all(&dir);
         self.judge(example, &block, &outcome)
     }
 
-    /// Judges how a block's program ended.
+    /// Judges how a block's program ended: it could not be run, it was stopped, or it ran to
+    /// an exit.
     fn judge(&self, example: &Example, block: &Block, outcome: &Outcome) -> Outcomes {
-        let panics = example.tags.iter().any(|tag| tag == SHOULD_PANIC);
-        match (&outcome.error, outcome.timed_out, outcome.code) {
-            (Some(error), _, _) => Outcomes::fail(format!("could not be run: {error}")),
-            (None, true, _) => Outcomes::fail(self.timed_out()),
-            (None, false, Some(PANICKED)) if panics => Outcomes::pass("panicked, as it says it does"),
-            (None, false, Some(0)) if panics => Outcomes::fail("ran to its end, and says it panics"),
-            (None, false, Some(0)) if text::asserts(&example.code) => Outcomes::pass("all assertions held"),
-            (None, false, Some(0)) => Outcomes::pass("ran to its end, but asserts nothing (weak)"),
-            (None, false, code) => crash(outcome, code, block),
+        if let Some(error) = &outcome.error {
+            return Outcomes::fail(format!("could not be run: {error}"));
         }
+        match outcome.stopped {
+            Some(Stopped::TimedOut) => Outcomes::fail(self.timed_out()),
+            Some(Stopped::NotStarted) => Outcomes::fail(never_started()),
+            None => exited(example, block, outcome),
+        }
+    }
+}
+
+/// Judges a block's program that ran to an exit, by its status and what the block says of it.
+fn exited(example: &Example, block: &Block, outcome: &Outcome) -> Outcomes {
+    let panics = example.tags.iter().any(|tag| tag == SHOULD_PANIC);
+    match outcome.code {
+        Some(PANICKED) if panics => Outcomes::pass("panicked, as it says it does"),
+        Some(0) if panics => Outcomes::fail("ran to its end, and says it panics"),
+        Some(0) if text::asserts(&example.code) => Outcomes::pass("all assertions held"),
+        Some(0) => Outcomes::pass("ran to its end, but asserts nothing (weak)"),
+        code => crash(outcome, code, block),
     }
 }
 
@@ -193,5 +218,21 @@ fn crash(outcome: &Outcome, code: Option<i32>, block: &Block) -> Outcomes {
         message: format!("panicked: {message}{sides}{wherein}"),
         expected: right,
         actual: left,
+    }
+}
+
+/// Why a block whose program never started fails: as the Go adapter says it, so a page
+/// reads the same whichever language it documents.
+fn never_started() -> String {
+    format!("did not start within {} ms", PROGRAM_STARTUP.as_millis())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::never_started;
+
+    #[test]
+    fn a_block_whose_program_never_starts_says_how_long_it_waited() {
+        assert_eq!(never_started(), "did not start within 10000 ms");
     }
 }

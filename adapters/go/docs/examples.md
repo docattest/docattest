@@ -30,8 +30,13 @@ your project: generated files reach the go command through a build overlay.
 - **Isolation.** Every block is its own package and its own process, started in the
   project root. Blocks share nothing, so each imports what it uses.
 - **Time.** A block that outlives `runtime.timeoutMs` is killed with everything it
-  started. `runtime.workers` is the number of blocks that run at once. Building is not
-  counted: the blocks of a run are built together, once, before any of them runs.
+  started. The time counts from when the block's own code starts, once its program has
+  been launched and the packages it imports are initialised: the system's start-up of a
+  program, which macOS slows the first time a freshly built one runs, is not counted. <!-- test: internal/running/run_test.go > "TestABlocksTimeCountsFromWhenItsOwnCodeStarts" -->
+  A program that has not started after `10000` ms is killed too, and the block fails with
+  `did not start within 10000 ms`. <!-- test: internal/running/run_test.go > "TestABlockThatNeverStartsSaysSo" -->
+  `runtime.workers` is the number of blocks that run at once. Building is not counted: the
+  blocks of a run are built together, once, before any of them runs.
 - **Output.** What a block prints is compared or dropped; it never reaches the report.
 - **Network.** Host names do not resolve unless the block is tagged `check network`
   (which runs only with `DOCATTEST_NETWORK=1`), so reaching the internet by name fails

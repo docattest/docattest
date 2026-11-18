@@ -7,18 +7,44 @@
 //! the same sources as in the project's own build. It lives in the project's target
 //! directory (`target/docattest`), with a target directory of its own, and what cargo
 //! built there is still there the next time.
+//!
+//! The part of every program that is the same each time, the harness, is a package of its
+//! own, written with std alone, that the generated crate depends on. A program that needs
+//! nothing of the project's crates is a program of the harness's package: it is built
+//! even when the project's code does not compile.
 
 use super::Runner;
 use crate::toolchain::cargo::{self, Dependency, Problem};
+use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::{Path, PathBuf};
 
-/// The name of the generated crate.
-pub(super) const CRATE: &str = "docattest_blocks";
+/// The name of the generated crate, whose programs depend on the project's libraries.
+const CRATE: &str = "docattest_blocks";
 
-/// The files of the generated crate's `harness` module, by name: the modules of this
-/// crate's own `harness`, as text.
-const HARNESS: [(&str, &str); 7] = [
+/// The name of the harness's package, by which every program reaches it: blocks and
+/// setup files too (`docattest_harness::cells::code_spans`).
+pub(super) const HARNESS_CRATE: &str = "docattest_harness";
+
+/// The harness's package, by its directory in the generated crate's: a member of its
+/// workspace, so the two share a lock file and a target directory.
+const HARNESS_DIR: &str = "harness";
+
+/// What a program of the generated crate is built with, which decides the package it is
+/// a program of.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub(super) enum Dependencies {
+    /// The project's libraries, what they depend on, and the harness: a program of the
+    /// generated crate, built only when the project's code compiles.
+    Project,
+    /// The harness alone: a program of the harness's package, which needs nothing of the
+    /// project.
+    Harness,
+}
+
+/// The files of the harness's `harness` module, by name: the modules of this crate's own
+/// `harness`, as text.
+const HARNESS: [(&str, &str); 8] = [
     ("mod.rs", include_str!("../harness/mod.rs")),
     ("cells/mod.rs", include_str!("../harness/cells/mod.rs")),
     ("cells/links.rs", include_str!("../harness/cells/links.rs")),
@@ -26,6 +52,7 @@ const HARNESS: [(&str, &str); 7] = [
     ("json.rs", include_str!("../harness/json.rs")),
     ("observe.rs", include_str!("../harness/observe.rs")),
     ("serve.rs", include_str!("../harness/serve.rs")),
+    ("started.rs", include_str!("../harness/started.rs")),
 ];
 
 /// Writes a file when its text is not already what it holds: cargo builds again what
@@ -119,43 +146,82 @@ impl Runner {
         self.analysis.project.work.join("crate")
     }
 
+    /// The directory of the package a program is built in.
+    fn package_dir(&self, dependencies: Dependencies) -> PathBuf {
+        match dependencies {
+            Dependencies::Project => self.crate_dir(),
+            Dependencies::Harness => self.crate_dir().join(HARNESS_DIR),
+        }
+    }
+
+    /// The edition the generated packages are written in: the project's.
+    fn edition(&self) -> &str {
+        self.analysis.project.packages.first().map_or("2021", |package| package.edition.as_str())
+    }
+
     /// The manifest of the generated crate.
     fn manifest(&self) -> Result<String, String> {
-        let packages = &self.analysis.project.packages;
-        let edition = packages.first().map_or("2021", |package| package.edition.as_str());
-        let mut lines: Vec<String> = packages
-            .iter()
-            .map(|p| format!("{} = {{ path = {} }}", quoted(&p.name), quoted(&p.dir.to_string_lossy())))
-            .collect();
-        let mut taken: Vec<String> = packages.iter().map(|package| package.name.clone()).collect();
-        for (key, line) in
-            packages.iter().flat_map(|package| &package.dependencies).filter_map(dependency_line)
-        {
-            if !taken.contains(&key) {
-                taken.push(key);
-                lines.push(line);
-            }
-        }
+        let lines: Vec<String> = self.dependencies().into_iter().map(|(_, line)| line).collect();
         Ok(format!(
-            "[package]\nname = \"{CRATE}\"\nversion = \"0.0.0\"\nedition = \"{edition}\"\npublish = false\n\n\
+            "[package]\nname = \"{CRATE}\"\nversion = \"0.0.0\"\nedition = \"{}\"\npublish = false\n\n\
              [dependencies]\n{}\n\n[profile.dev]\ndebug = false\n\n[workspace]\n\n{}",
+            self.edition(),
             lines.join("\n"),
             patches(&self.analysis.project.workspace)?
         ))
     }
 
-    /// Writes what every program of the generated crate needs: its manifest, the
-    /// project's lock file to start from, and the harness. Without a workspace there is
-    /// nowhere to write them.
+    /// The dependencies of the generated crate, each as its key and its line of the
+    /// manifest: the harness, the project's libraries, and what they depend on.
+    fn dependencies(&self) -> Vec<(String, String)> {
+        let packages = &self.analysis.project.packages;
+        let harness = format!("{} = {{ path = {} }}", quoted(HARNESS_CRATE), quoted(HARNESS_DIR));
+        let mut lines = vec![(HARNESS_CRATE.to_string(), harness)];
+        lines.extend(packages.iter().map(|p| {
+            (
+                p.name.clone(),
+                format!("{} = {{ path = {} }}", quoted(&p.name), quoted(&p.dir.to_string_lossy())),
+            )
+        }));
+        for (key, line) in
+            packages.iter().flat_map(|package| &package.dependencies).filter_map(dependency_line)
+        {
+            if !lines.iter().any(|(taken, _)| *taken == key) {
+                lines.push((key, line));
+            }
+        }
+        lines
+    }
+
+    /// The names a program of the generated crate reaches the project's crates by: its
+    /// libraries, and what they depend on.
+    pub(super) fn crate_names(&self) -> Vec<String> {
+        let libraries = self.analysis.project.packages.iter().map(|package| package.lib.clone());
+        let keys = self.dependencies().into_iter().map(|(key, _)| key.replace('-', "_"));
+        let keys = keys.filter(|key| key != HARNESS_CRATE);
+        libraries.chain(keys).collect()
+    }
+
+    /// Writes what every program of the generated crate needs: the manifests of its two
+    /// packages, the project's lock file to start from, and the harness. Without a
+    /// workspace there is nowhere to write them.
     fn prepare(&self) -> Result<(), String> {
         if let Some(error) = &self.analysis.project.error {
             return Err(format!("cargo could not read the project: {error}"));
         }
-        let dir = self.crate_dir();
+        let (dir, harness) = (self.crate_dir(), self.package_dir(Dependencies::Harness));
         write_if_changed(&dir.join("Cargo.toml"), &self.manifest()?)?;
-        write_if_changed(&dir.join("src/lib.rs"), "pub mod harness;\npub use harness::cells;\n")?;
+        // Cargo reads a package that has no target as no package, and the harness's builds
+        // read this one before it has a program.
+        write_if_changed(&dir.join("src/lib.rs"), "")?;
+        let harness_manifest = format!(
+            "[package]\nname = \"{HARNESS_CRATE}\"\nversion = \"0.0.0\"\nedition = \"{}\"\npublish = false\n",
+            self.edition()
+        );
+        write_if_changed(&harness.join("Cargo.toml"), &harness_manifest)?;
+        write_if_changed(&harness.join("src/lib.rs"), "pub mod harness;\npub use harness::cells;\n")?;
         for (name, text) in HARNESS {
-            write_if_changed(&dir.join("src/harness").join(name), text)?;
+            write_if_changed(&harness.join("src/harness").join(name), text)?;
         }
         let (locked, ours) = (self.analysis.project.workspace.join("Cargo.lock"), dir.join("Cargo.lock"));
         let modified = |path: &Path| std::fs::metadata(path).and_then(|held| held.modified()).ok();
@@ -166,26 +232,53 @@ impl Runner {
         Ok(())
     }
 
-    /// Writes programs of the generated crate, each given as its name and its source, and
-    /// builds them, one build at a time. A file that cannot be written is a problem about
-    /// every program.
-    pub(super) fn build(&self, programs: &[(String, String)]) -> Vec<Problem> {
+    /// Writes programs built with the same dependencies, each given as its name and its
+    /// source, and builds them, one build at a time. A file that cannot be written is a
+    /// problem about every program.
+    pub(super) fn build(&self, dependencies: Dependencies, programs: &[(String, String)]) -> Vec<Problem> {
         let _one = self.one_build();
+        let dir = self.package_dir(dependencies);
         let written = self.prepare().and_then(|()| {
             programs.iter().try_for_each(|(name, source)| {
-                write_if_changed(&self.crate_dir().join("src/bin").join(format!("{name}.rs")), source)
+                write_if_changed(&dir.join("src/bin").join(format!("{name}.rs")), source)
             })
         });
         if let Err(message) = written {
             return vec![Problem { target: String::new(), file: String::new(), line: 0, message }];
         }
         let names: Vec<String> = programs.iter().map(|(name, _)| name.clone()).collect();
-        let problems = cargo::build(&self.crate_dir(), &self.analysis.project.work.join("target"), &names);
+        // The features name the project's crates, which the harness does not depend on.
+        let features = match dependencies {
+            Dependencies::Project => cargo::features(),
+            Dependencies::Harness => None,
+        };
+        let problems = cargo::build(&dir, &self.analysis.project.work.join("target"), &names, features);
         problems.into_iter().map(|problem| self.located(problem)).collect()
     }
 
+    /// Builds programs, each given as what it is built with, its name and its source:
+    /// those of each package together. Gives the problems of each package's build.
+    pub(super) fn build_each(
+        &self,
+        programs: &[(Dependencies, String, String)],
+    ) -> HashMap<Dependencies, Vec<Problem>> {
+        let mut problems = HashMap::new();
+        for dependencies in [Dependencies::Project, Dependencies::Harness] {
+            let sources: Vec<(String, String)> = programs
+                .iter()
+                .filter(|(of, _, _)| *of == dependencies)
+                .map(|(_, name, source)| (name.clone(), source.clone()))
+                .collect();
+            if !sources.is_empty() {
+                problems.insert(dependencies, self.build(dependencies, &sources));
+            }
+        }
+        problems
+    }
+
     /// A problem with its file named from the project's root, where a reader finds it:
-    /// cargo names the generated crate's own files from that crate's directory.
+    /// cargo names the generated crate's own files, the harness's among them, from that
+    /// crate's directory.
     fn located(&self, problem: Problem) -> Problem {
         if problem.file.is_empty() {
             return problem;
@@ -200,9 +293,12 @@ impl Runner {
         self.analysis.project.work.join("target").join("debug").join(file)
     }
 
-    /// A new directory of the session's own, under the project's work.
-    pub(super) fn scratch(&self, name: &str) -> Result<PathBuf, String> {
-        let dir = self.analysis.project.work.join("jobs").join(name);
+    /// A new directory of the session's own, under the project's work, for one run of a
+    /// program.
+    pub(super) fn scratch(&self, binary: &Path) -> Result<PathBuf, String> {
+        let now = (std::time::Instant::now(), std::thread::current().id());
+        let dir =
+            self.analysis.project.work.join("jobs").join(program_name("j", &format!("{binary:?}{now:?}")));
         std::fs::create_dir_all(&dir).map_err(|err| format!("cannot create {}: {err}", dir.display()))?;
         Ok(dir)
     }

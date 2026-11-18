@@ -90,7 +90,8 @@ platform), `docattest` says so and how to fix it.
 
 Every example is its own module with a fresh import of your package, runs in a worker with a
 time limit, and has the network off: a `check network` block runs only when
-`DOCATTEST_NETWORK=1` is set, and is skipped otherwise. Lines above `// ---cut---` run but
+`DOCATTEST_NETWORK=1` is set, and is skipped otherwise. The time limit counts from when the
+worker is ready to run the example: starting a new worker is not counted. <!-- test: adapters/typescript/test/unit/language/run/pool.test.ts > "runJob" > "does not count a new worker's start-up against the job's time" --> Lines above `// ---cut---` run but
 are setup that renderers can hide. A surface is an entry file (`./src/index.ts`), a package
 name resolved as Node would, or both (`{ "import": "@acme/client", "path":
 "packages/client/dist/index.js" }`), which is how a monorepo points a page at one package's

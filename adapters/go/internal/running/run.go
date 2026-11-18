@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/docattest/docattest/adapters/go/internal/harness/program"
 	"github.com/docattest/docattest/adapters/go/internal/language"
 	"github.com/docattest/docattest/adapters/go/internal/protocol"
 	"github.com/docattest/docattest/adapters/go/internal/toolchain"
@@ -82,7 +83,12 @@ func (r *Runner) runExample(example protocol.Example, made *block) verdict {
 // runBlock runs a block's program in the project root and judges how it ended.
 func (r *Runner) runBlock(made *block) verdict {
 	release := r.running()
-	outcome := toolchain.Run(toolchain.Command{Path: made.binary, Dir: r.project.Root, Timeout: r.timeout()})
+	outcome := toolchain.Run(toolchain.Command{
+		Path:    made.binary,
+		Dir:     r.project.Root,
+		Timeout: r.timeout(),
+		Start:   &toolchain.Start{Line: program.DocattestStartLine, Limit: programStartup},
+	})
 	release()
 	if ended := r.ended(outcome, made.label, 1); ended != nil {
 		return *ended
@@ -106,6 +112,8 @@ func (r *Runner) ended(outcome toolchain.Outcome, label string, first int) *verd
 		found = fail(fmt.Sprintf("could not be run: %v", outcome.Err))
 	case outcome.TimedOut:
 		found = fail(r.timeoutText())
+	case outcome.NeverStarted:
+		found = fail(fmt.Sprintf("did not start within %d ms", programStartup.Milliseconds()))
 	case outcome.Code != 0:
 		found = fail(crash(outcome, label, first))
 	default:

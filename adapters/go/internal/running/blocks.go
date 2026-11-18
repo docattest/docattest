@@ -16,6 +16,12 @@ import (
 // exists only in the build overlay.
 const blocksDir = "docattest_blocks"
 
+// startFile is the name of the file that writes a block's start line. The go command
+// gives the compiler a package's files in the order of their names, and a package's
+// variables are initialised in that order, before any init function: this name comes
+// before "block.go", so the line is written before any of the block's code runs.
+const startFile = "0_docattest_start.go"
+
 // block is one example of a page as a program: a package of its own in the module.
 type block struct {
 	example protocol.Example
@@ -86,18 +92,24 @@ func (r *Runner) newBlock(example protocol.Example) *block {
 	name := fmt.Sprintf("e%d", r.serial.take())
 	made := &block{example: example, name: name, label: "docattest_" + name + ".go"}
 	made.form = language.Program(example.Code, made.label)
-	files := map[string]string{"block.go": made.form.Source}
+	pkg := "main"
+	if made.form.File != nil {
+		pkg = made.form.File.Name.Name
+	}
+	files := map[string]string{"block.go": made.form.Source, startFile: startSource(pkg)}
 	if !example.Network {
-		pkg := "main"
-		if made.form.File != nil {
-			pkg = made.form.File.Name.Name
-		}
 		files["docattest_guard.go"] = guardSource(pkg)
 	}
 	if err := r.place(name, files); err != nil {
 		made.problems = []problem{{1, err.Error()}}
 	}
 	return made
+}
+
+// startSource is a file that writes the start line as its package begins to be
+// initialised.
+func startSource(pkg string) string {
+	return harness.Source(harness.Start, pkg) + "\nvar docattestStarted = docattestSayStarted()\n"
 }
 
 // guardSource is a file that refuses the network before anything of its package runs.

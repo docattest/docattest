@@ -181,7 +181,9 @@ assert.equal(skipped.exitCode, 0);
 ## A block that does not finish in time fails
 
 The default budget is `10000` ms per block <!-- fact: DEFAULT_TIMEOUT_MS --> and
-`runtime.timeoutMs` in the config overrides it.
+`runtime.timeoutMs` in the config overrides it. The time counts from when the block's own
+code starts: starting the worker or the process it runs in is not counted, so a slow
+start-up on a busy machine does not fail a quick block. <!-- test: adapters/typescript/test/unit/language/run/pool.test.ts > "runJob" > "does not count a new worker's start-up against the job's time" -->
 
 ```ts check
 import { createProject } from 'docattest';

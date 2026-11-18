@@ -58,6 +58,51 @@ func TestRunEndsWhatOverruns(t *testing.T) {
 	}
 }
 
+// started is the start line of the programs of the tests below.
+var started = &Start{Line: "started\n", Limit: 5 * time.Second}
+
+func TestRunCountsTheTimeoutFromTheStartLine(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses sh")
+	}
+	// A start-up longer than the timeout is not counted; the line is not kept.
+	slowStart := Run(Command{Path: "sh", Args: []string{"-c", "sleep 0.5; echo started >&2; echo after >&2"}, Timeout: 200 * time.Millisecond, Start: started})
+	if want := (Outcome{Stderr: "after\n"}); slowStart != want {
+		t.Errorf("a slow start: got %+v", slowStart)
+	}
+	late := Run(Command{Path: "sh", Args: []string{"-c", "echo started >&2; sleep 30 & wait"}, Timeout: 200 * time.Millisecond, Start: started})
+	if !late.TimedOut || late.Code != -1 {
+		t.Errorf("a slow run: got %+v", late)
+	}
+	never := Run(Command{Path: "sh", Args: []string{"-c", "echo before >&2; sleep 30 & wait"}, Timeout: time.Minute, Start: &Start{Line: "started\n", Limit: 200 * time.Millisecond}})
+	if !never.NeverStarted || never.TimedOut || never.Code != -1 || never.Stderr != "before\n" {
+		t.Errorf("no start: got %+v", never)
+	}
+}
+
+func TestTheStartLineIsFoundInPieces(t *testing.T) {
+	var kept capped
+	watch := newStartWatch("started\n", &kept)
+	for _, piece := range []string{"one\nsta", "r", "ted\ntwo", "\n"} {
+		watch.Write([]byte(piece))
+	}
+	watch.flush()
+	select {
+	case <-watch.started:
+	default:
+		t.Error("the line was not seen")
+	}
+	if kept.kept.String() != "one\ntwo\n" {
+		t.Errorf("got %q", kept.kept.String())
+	}
+	unfinished := newStartWatch("started\n", &kept)
+	unfinished.Write([]byte("sta"))
+	unfinished.flush()
+	if kept.kept.String() != "one\ntwo\nsta" {
+		t.Errorf("got %q", kept.kept.String())
+	}
+}
+
 func TestGoCommandCanBeChosen(t *testing.T) {
 	t.Setenv("DOCATTEST_GO", "/opt/go/bin/go")
 	if GoCommand() != "/opt/go/bin/go" {

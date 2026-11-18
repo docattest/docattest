@@ -1,5 +1,5 @@
 # index --json
-# recorded from: what adopting it in a Go service found
+# recorded from: block time from the code's start; Rust harness package
 === index --json
 exit 0
 stdout 790 lines
@@ -107,7 +107,7 @@ stdout 790 lines
   "codeSpans": [
     {
       "page": "adapters/typescript/README.md",
-      "line": 164,
+      "line": 165,
       "kind": "example",
       "claim": "A cases runner is a function of the setup module's `cases` export, called once per row with the row's cells by column. It gets each cell's text as the page writes it, code spans with their backticks ([cases](../../docs/cases.md#a-runner-receives-each-cell-as-written)). `codeSpans`, which this package exports, takes the code out: it gives the content of every code span in a cell, in order, as a fact over the cell's column compares it."
     },
@@ -133,37 +133,37 @@ stdout 790 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 116,
+      "line": 117,
       "kind": "example",
       "claim": "A program's most documented values, its port or its default timeout, are often not exported, or live in an entry script that runs when it is imported. So a fact may also read a constant that the surface's module declares at its top level, exported or not. Its value is read from the module's source, and a fact that reads only constants never loads the module: nothing of it runs. A surface may therefore be a command's entry file (`\"cli\": \"./src/main.ts\"`), whose constants are read however the script behaves on import. A fact that names anything else of it, such as a function, loads it, as an example does."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 152,
+      "line": 153,
       "kind": "test",
       "claim": "A fact attests the constants it reads, exported or not, as `where` shows; `uncovered` lists only exports."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 154,
+      "line": 155,
       "kind": "test",
       "claim": "So `impact` lists a change to such a constant as it lists a change to an export, with the facts that read it."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 177,
+      "line": 178,
       "kind": "test",
       "claim": "Each cell of that table is also written into a page under a `fact column=` that lists what `codeSpans` gives, and the core must agree."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 214,
+      "line": 215,
       "kind": "example",
       "claim": "So the tests of a table the file writes can be cited, each by the title its runner prints for its row: `it.each(table)`, `test.each`, `describe.each` and `test.for` with a literal array, or with a template-literal table, by their title's placeholders (`%s`, `%i`, `%#`, `$name` and the rest); a `for (const c of table)` loop or a `table.forEach((c) => …)` over a literal array (or `Object.entries` of a literal object), by the title its body computes. The table is written in the call or held by a `const` above it that the file never changes. Vitest and Jest print some values differently: Vitest quotes a string that `$name` names, Jest does not. The runner is the one the file imports its test functions from (`vitest`, or `@jest/globals`); when it imports them from neither, a title counts only where the two print the same. The titles Vitest prints are checked against Vitest itself, in a table-driven test whose rows are cited so. What cannot be told stays uncitable: a table the file imports, builds with a call or changes (`cases.push(…)`), and a value a title would show as an object or an array. The title as written, `\"adds %i\"`, still cites the table's test as a whole."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 250,
+      "line": 251,
       "kind": "example",
       "claim": "From code"
     },
@@ -237,7 +237,7 @@ stdout 790 lines
       "page": "docs/cases.md",
       "line": 154,
       "kind": "example",
-      "claim": "A runner gets each cell's text as the page writes it, code spans included: a cell `` `3` `` reaches the runner as `` `3` ``, backticks and all, and only the `\\|` escape is undone. That is not what a fact compares: a fact over a table column takes the code spans in a cell, `3`. A runner whose cells hold code takes the code out with its language's helper, which gives the content of every code span in a cell, in order, as a fact over the cell's column compares it: `codeSpans` from `docattest` in TypeScript, `docattest.cells.code_spans` in Python, `cells.CodeSpans` from `github.com/docattest/docattest/adapters/go/cells` in Go, and `docattest_blocks::cells::code_spans` in Rust. The core and the four helpers are tested against one table of cells, `protocol/test-data/code-spans.json`."
+      "claim": "A runner gets each cell's text as the page writes it, code spans included: a cell `` `3` `` reaches the runner as `` `3` ``, backticks and all, and only the `\\|` escape is undone. That is not what a fact compares: a fact over a table column takes the code spans in a cell, `3`. A runner whose cells hold code takes the code out with its language's helper, which gives the content of every code span in a cell, in order, as a fact over the cell's column compares it: `codeSpans` from `docattest` in TypeScript, `docattest.cells.code_spans` in Python, `cells.CodeSpans` from `github.com/docattest/docattest/adapters/go/cells` in Go, and `docattest_harness::cells::code_spans` in Rust. The core and the four helpers are tested against one table of cells, `protocol/test-data/code-spans.json`."
     },
     {
       "page": "docs/cases.md",
@@ -487,25 +487,25 @@ stdout 790 lines
     },
     {
       "page": "docs/examples.md",
-      "line": 186,
+      "line": 188,
       "kind": "example",
-      "claim": "The default budget is `10000` ms per block and `runtime.timeoutMs` in the config overrides it."
+      "claim": "The default budget is `10000` ms per block and `runtime.timeoutMs` in the config overrides it. The time counts from when the block's own code starts: starting the worker or the process it runs in is not counted, so a slow start-up on a busy machine does not fail a quick block."
     },
     {
       "page": "docs/examples.md",
-      "line": 207,
+      "line": 209,
       "kind": "example",
       "claim": "Blocks run on a pool of worker threads. When a block runs out of time its worker is terminated, so a block stuck at an `await` or in a busy loop really stops: its timers never fire and cannot disturb the blocks that run after it. A fresh worker takes its place."
     },
     {
       "page": "docs/examples.md",
-      "line": 253,
+      "line": 255,
       "kind": "example",
       "claim": "Documentation sites add their own words to an info string, such as `twoslash` for type hovers. On a block tagged `check` or `compile`, a word docattest does not know is an error unless it is listed in `ignoreTags`, which accepts it and otherwise ignores it. On a block with no tag of docattest's, a renderer's word leaves it documentation, counted toward nothing; but a word that is likely a misspelling of `check`, `compile` or `network` (within a third of the tag's length in edits, at least one, ignoring case) is an error that names the tag it resembles, so a typo like `chekc` can never pass silently as prose. A bracketed title such as `[TypeScript SDK]`, which code-group renderers use as a tab label, is always ignored."
     },
     {
       "page": "docs/examples.md",
-      "line": 291,
+      "line": 293,
       "kind": "example",
       "claim": "Many packages declare only an `import` condition in their exports map. Examples and facts can still use a surface that depends on one; docattest resolves through the `import` condition when the `require` path is not exported."
     },

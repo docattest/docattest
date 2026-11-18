@@ -54,7 +54,7 @@ language is the code: examples, fact expressions and the setup module. `"adapter
 | setup above the reader's view | lines above `// ---cut---` | none: put it in an earlier block and tag the next `continue` | none: a block is a whole program | lines that begin `# `, as in a doc test |
 | examples in source files | `@example` in a doc comment | `>>>` prompts in a docstring | `Example…` functions in a `_test.go` file | fenced blocks in `///` doc comments |
 | a test to cite | `it("title")`, inside `describe` blocks, or a row of `it.each` by the title its runner prints | a `test_…` function, inside classes, or a `parametrize` case or a `subTest` by the id its runner prints (`"test_total" > "big discount"`) | a `Test…` function, or a `t.Run("title", …)` inside one, a row of a literal table included | a `#[test]` function inside its `mod tests`, or a named case of an rstest or test-case test (`"tests" > "discount" > "quarter"`) |
-| a cell's code spans, in a cases runner | `codeSpans(cell)`, from `docattest` | `code_spans(cell)`, from `docattest.cells` | `cells.CodeSpans(cell)`, from `github.com/docattest/docattest/adapters/go/cells` | `docattest_blocks::cells::code_spans(cell)` |
+| a cell's code spans, in a cases runner | `codeSpans(cell)`, from `docattest` | `code_spans(cell)`, from `docattest.cells` | `cells.CodeSpans(cell)`, from `github.com/docattest/docattest/adapters/go/cells` | `docattest_harness::cells::code_spans(cell)` |
 | the setup module | `export const cases`, `export const facts` | `cases = {…}`, `facts = {…}` | a package with `var Cases = map[string]func(map[string]string) error{…}`; facts use its exports | a file with `pub const CASES: &[(&str, fn(&HashMap<String, String>) -> Result<(), String>)]`; facts use its `pub` items |
 
 Syntax:

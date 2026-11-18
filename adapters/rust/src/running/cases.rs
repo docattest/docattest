@@ -13,7 +13,7 @@
 //! expressions may use by name.
 
 use super::Runner;
-use super::generated::CRATE;
+use super::generated::HARNESS_CRATE;
 use super::outcomes::Outcomes;
 use super::programs::{Built, Line, Rendered};
 use crate::protocol::{Cases, Kind, Status, Verdict};
@@ -32,7 +32,7 @@ impl Runner {
         let built = self.cases.get_or_init(|| {
             let columns = if self.analysis.setup_names().iter().any(|name| name == "COLUMNS") { "setup::COLUMNS" } else { "&[]" };
             let source = format!(
-                "#![allow(unused)]\n{}\nfn main() {{\n    ::{CRATE}::harness::serve::cases(setup::CASES, {columns});\n}}\n",
+                "#![allow(unused)]\n{}\nfn main() {{\n    ::{HARNESS_CRATE}::harness::serve::cases(setup::CASES, {columns});\n}}\n",
                 self.setup_module().unwrap_or_default()
             );
             self.build_program(0, &|_| Rendered { source: source.clone(), lines: HashMap::new() })

@@ -1,6 +1,6 @@
 //! Reading the cells of a cases table. A runner gets each cell as the page writes it, code
 //! spans with their backticks; [`code_spans`] takes out what docattest itself reads from a
-//! cell. A setup file calls it as `docattest_blocks::cells::code_spans`.
+//! cell. A setup file calls it as `docattest_harness::cells::code_spans`.
 
 mod links;
 mod raw;

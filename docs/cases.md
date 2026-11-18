@@ -148,7 +148,7 @@ helper, which gives the content of every code span in a cell, in order, as a fac
 cell's column compares it: `codeSpans` from `docattest` in TypeScript,
 `docattest.cells.code_spans` in Python, `cells.CodeSpans` from
 `github.com/docattest/docattest/adapters/go/cells` in Go, and
-`docattest_blocks::cells::code_spans` in Rust. The core and the four helpers are tested
+`docattest_harness::cells::code_spans` in Rust. The core and the four helpers are tested
 against one table of cells, `protocol/test-data/code-spans.json`.
 
 ```ts check

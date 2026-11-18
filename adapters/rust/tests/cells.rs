@@ -1,4 +1,4 @@
-//! The cell helper of the harness, `docattest_blocks::cells::code_spans`, held to the core
+//! The cell helper of the harness, `docattest_harness::cells::code_spans`, held to the core
 //! that ships with it: run with the `docattest` command on projects written to the
 //! temporary directory.
 
@@ -88,7 +88,7 @@ fn code_spans_are_what_a_column_fact_compares() {
         .map(|cell| {
             // The literal is in a comment, which a `-->` in it would end.
             let literal = format!("{:?}", cell.replace("\\|", "|")).replace("--", "-\\u{2d}");
-            format!("<!-- fact column=cell: docattest_blocks::cells::code_spans({literal}) -->\n| cell |\n|---|\n| {cell} |\n\n")
+            format!("<!-- fact column=cell: docattest_harness::cells::code_spans({literal}) -->\n| cell |\n|---|\n| {cell} |\n\n")
         })
         .collect();
     let results = checked("agree", &page, None);
@@ -104,7 +104,7 @@ use std::collections::HashMap;
 pub const CASES: &[(&str, fn(&HashMap<String, String>) -> Result<(), String>)] = &[("spans", spans)];
 
 fn spans(row: &HashMap<String, String>) -> Result<(), String> {
-    let got = docattest_blocks::cells::code_spans(&row["cell"]).join(",");
+    let got = docattest_harness::cells::code_spans(&row["cell"]).join(",");
     if got == row["spans"] { Ok(()) } else { Err(format!("got {got}")) }
 }
 "#;

@@ -3,7 +3,7 @@
 //! every time, and a main the session writes is the rest.
 
 use super::Runner;
-use super::generated::{general, line_in, program_name};
+use super::generated::{Dependencies, general, line_in, program_name};
 use crate::toolchain::cargo::Problem;
 use crate::toolchain::{Command, Outcome, run};
 use serde::Deserialize;
@@ -11,6 +11,11 @@ use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+
+/// How long a generated program may take to start, before its own code runs. A block's time
+/// limit and a fact or cases program's items are counted from then; a system that takes
+/// longer to start a program is not loaded but broken.
+pub(crate) const PROGRAM_STARTUP: Duration = Duration::from_secs(10);
 
 /// A generated program as far as it could be built.
 #[derive(Clone, Default)]
@@ -60,6 +65,13 @@ pub(super) struct Rendered {
 /// Writes a program's main for those of its pieces that are still in it.
 pub(super) type Render<'a> = &'a dyn Fn(&[bool]) -> Rendered;
 
+/// A program to build: what it is built with, how many pieces it has, and its `render`.
+pub(super) struct Program<'a> {
+    pub(super) dependencies: Dependencies,
+    pub(super) pieces: usize,
+    pub(super) render: Render<'a>,
+}
+
 /// One line of a program's results.
 #[derive(Clone, Debug, Default, Deserialize)]
 #[serde(default)]
@@ -78,31 +90,36 @@ impl Runner {
     /// piece the compiler complains of is taken out, with the complaint, and the rest is
     /// built again: one wrong fact does not cost a page its other facts.
     pub(super) fn build_program(&self, pieces: usize, render: Render) -> Built {
-        self.build_programs(&[(pieces, render)]).remove(0)
+        self.build_programs(&[Program { dependencies: Dependencies::Project, pieces, render }]).remove(0)
     }
 
-    /// Builds several such programs, each given as its number of pieces and its
-    /// `render`, together: one run of cargo builds all that are not settled yet.
-    pub(super) fn build_programs(&self, programs: &[(usize, Render)]) -> Vec<Built> {
+    /// Builds several such programs together: one run of cargo for each package builds
+    /// all of its programs that are not settled yet.
+    pub(super) fn build_programs(&self, programs: &[Program]) -> Vec<Built> {
         let mut states: Vec<Building> = programs
             .iter()
-            .map(|(pieces, _)| Building { built: Built::default(), live: vec![true; *pieces] })
+            .map(|program| Building { built: Built::default(), live: vec![true; program.pieces] })
             .collect();
         let mut open: Vec<usize> = (0..programs.len()).collect();
         while !open.is_empty() {
             let rendered: Vec<(usize, String, Rendered)> = open
                 .iter()
                 .map(|&k| {
-                    let rendered = (programs[k].1)(&states[k].live);
-                    (k, program_name("p", &rendered.source), rendered)
+                    let rendered = (programs[k].render)(&states[k].live);
+                    // The packages share a target directory, where a program's name is its file's.
+                    let named = format!("{:?}{}", programs[k].dependencies, rendered.source);
+                    (k, program_name("p", &named), rendered)
                 })
                 .collect();
-            let sources: Vec<(String, String)> =
-                rendered.iter().map(|(_, name, rendered)| (name.clone(), rendered.source.clone())).collect();
-            let problems = self.build(&sources);
+            let sources: Vec<(Dependencies, String, String)> = rendered
+                .iter()
+                .map(|(k, name, rendered)| (programs[*k].dependencies, name.clone(), rendered.source.clone()))
+                .collect();
+            let problems = self.build_each(&sources);
             open.clear();
             for (k, name, source) in rendered {
-                if !states[k].settle(&name, &source, &problems) {
+                let problems = problems.get(&programs[k].dependencies).map_or(&[][..], Vec::as_slice);
+                if !states[k].settle(&name, &source, problems) {
                     open.push(k);
                 } else if states[k].built.failure.is_none()
                     && (states[k].live.is_empty() || states[k].live.contains(&true))
@@ -123,10 +140,7 @@ impl Runner {
         cases: Option<Value>,
         count: usize,
     ) -> Result<Vec<Line>, String> {
-        let dir = self.scratch(&program_name(
-            "j",
-            &format!("{binary:?}{:?}{:?}", std::time::Instant::now(), std::thread::current().id()),
-        ))?;
+        let dir = self.scratch(binary)?;
         let snapshots = &self.snapshots;
         let job = json!({ "timeoutMs": self.limits.timeout_ms, "snapshots": { "dir": snapshots.dir, "data": snapshots.data }, "manifests": self.manifests, "texts": self.texts, "cases": cases });
         let (job_file, results) = (dir.join("job.json"), dir.join("results"));
@@ -138,7 +152,7 @@ impl Runner {
                 .map(|path| path.to_string_lossy().into_owned())
                 .into_iter()
                 .chain([answers.len().to_string()]);
-            let backstop = self.timeout() * (count - answers.len()) as u32 + Duration::from_secs(10);
+            let backstop = self.timeout() * (count - answers.len()) as u32 + PROGRAM_STARTUP;
             let command = Command {
                 program: binary.to_path_buf(),
                 args: args.collect(),

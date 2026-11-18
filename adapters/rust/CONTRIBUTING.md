@@ -24,10 +24,11 @@ with dependencies pointing one way, from the protocol loop down to cargo:
 - **The project** module asks cargo what the workspace is made of, and **the toolchain**
   module runs cargo, rustdoc and the programs cargo builds, with a time limit.
 - **The harness** is the Rust source compiled into every generated program: showing a
-  value of any type, a small JSON reader, serving items one by one, and the code spans of
-  a table's cell, which setup files call. Its modules are
-  modules of this crate, tested here, and are also embedded as text and written into
-  the generated crate, so they use only `std`.
+  value of any type, a small JSON reader, serving items one by one, saying when a block's
+  code starts, and the code spans of a table's cell, which setup files call. Its modules
+  are modules of this crate, tested here, and are also embedded as text and written into
+  a package of their own beside the generated crate, `docattest_harness`, so they use only
+  `std`. A fact program that needs nothing of the project is a program of that package.
 
 Each module is a directory or a file of `src/`, beside `lib.rs`, the launcher and the
 programs:

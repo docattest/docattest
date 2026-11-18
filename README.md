@@ -273,7 +273,7 @@ table-driven test).
 
 The [Rust guide](adapters/rust/README.md) covers doc-comment examples, facts that read
 constants from source (a binary's too), citations of rstest and test-case cases, the setup
-file and `docattest_blocks::cells::code_spans`, and where blocks are built.
+file and `docattest_harness::cells::code_spans`, and where blocks are built.
 
 The rest of this README writes commands as `npx docattest …`; in a Python, Go or Rust
 project drop the `npx`.
