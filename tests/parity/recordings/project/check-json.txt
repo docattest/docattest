@@ -1,5 +1,5 @@
 # check --json
-# recorded from: block time from the code's start; Rust harness package
+# recorded from: docattest 0.2.0
 === check --json
 exit 0
 stdout 5167 lines
@@ -11,9 +11,9 @@ stdout 5167 lines
       "kind": "fact",
       "status": "pass",
       "symbols": [],
-      "message": "manifest(\"adapters/typescript/package.json\").version is 0.1.5",
-      "expected": "0.1.5",
-      "actual": "0.1.5"
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.2.0",
+      "expected": "0.2.0",
+      "actual": "0.2.0"
     },
     {
       "page": "README.md",
@@ -2685,8 +2685,8 @@ stdout 5167 lines
         "entry": "adapters/typescript/dist/index.js",
         "package": {
           "name": "docattest",
-          "version": "0.1.5",
-          "display": "docattest@0.1.5"
+          "version": "0.2.0",
+          "display": "docattest@0.2.0"
         }
       },
       "warnings": []
@@ -4328,8 +4328,8 @@ stdout 5167 lines
               "entry": "docattest_python/language.py",
               "package": {
                 "name": "docattest",
-                "version": "0.1.5",
-                "display": "docattest 0.1.5"
+                "version": "0.2.0",
+                "display": "docattest 0.2.0"
               }
             },
             "warnings": []
@@ -4364,8 +4364,8 @@ stdout 5167 lines
               "entry": "docattest/launcher.py",
               "package": {
                 "name": "docattest",
-                "version": "0.1.5",
-                "display": "docattest 0.1.5"
+                "version": "0.2.0",
+                "display": "docattest 0.2.0"
               }
             },
             "warnings": []
