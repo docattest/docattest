@@ -1,6 +1,7 @@
 # docattest
 
 [![docs: attested](https://img.shields.io/badge/docs-attested-17a35e)](https://docattest.github.io/docattest/)
+[![GitHub Marketplace](https://img.shields.io/badge/GitHub_Marketplace-docattest-2088FF?logo=githubactions&logoColor=white)](https://github.com/marketplace/actions/docattest)
 
 **Documentation that CI can fail.**
 
@@ -357,8 +358,10 @@ jobs:
           args: --base origin/main
 ```
 
-The [GitHub Action](action/README.md) runs the docattest your project installed, marks each
-claim that fails on its line of the pull request, and lists them on the run's summary page.
+The [GitHub Action](action/README.md), also
+[on the GitHub Marketplace](https://github.com/marketplace/actions/docattest), runs the
+docattest your project installed, marks each claim that fails on its line of the pull
+request, and lists them on the run's summary page.
 For a Python project, replace the Node steps with `actions/setup-python` and
 `pip install docattest`. For a Go project, replace them with `actions/setup-go` and the
 `go install` above; for a Rust project, with a Rust toolchain and `cargo install docattest`.

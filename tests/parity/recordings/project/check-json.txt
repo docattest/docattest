@@ -1,5 +1,5 @@
 # check --json
-# recorded from: docattest 0.1.5
+# recorded from: README and site link the GitHub Marketplace listing
 === check --json
 exit 0
 stdout 3977 lines
@@ -7,7 +7,7 @@ stdout 3977 lines
   "results": [
     {
       "page": "README.md",
-      "line": 22,
+      "line": 23,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -17,7 +17,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 29,
+      "line": 30,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -25,7 +25,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 40,
+      "line": 41,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -33,7 +33,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 75,
+      "line": 76,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -43,7 +43,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 77,
+      "line": 78,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -53,7 +53,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 86,
+      "line": 87,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -63,7 +63,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 95,
+      "line": 96,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -73,7 +73,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 111,
+      "line": 112,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -83,7 +83,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 133,
+      "line": 134,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -91,7 +91,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 170,
+      "line": 171,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -99,7 +99,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 205,
+      "line": 206,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -107,7 +107,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 247,
+      "line": 248,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -115,7 +115,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 271,
+      "line": 272,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -127,7 +127,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 293,
+      "line": 294,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -139,7 +139,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 466,
+      "line": 469,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -147,7 +147,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 480,
+      "line": 483,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -157,7 +157,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 494,
+      "line": 497,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -169,7 +169,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 503,
+      "line": 506,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -181,7 +181,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 504,
+      "line": 507,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -193,7 +193,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 585,
+      "line": 588,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -203,7 +203,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 587,
+      "line": 590,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -213,7 +213,7 @@ stdout 3977 lines
     },
     {
       "page": "README.md",
-      "line": 588,
+      "line": 591,
       "kind": "fact",
       "status": "pass",
       "symbols": [],

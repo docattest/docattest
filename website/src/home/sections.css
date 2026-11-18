@@ -218,6 +218,10 @@
   box-shadow: var(--lift);
   overflow: hidden;
 }
+.setup-ci {
+  margin: 1.25rem 0 0;
+  max-width: 46rem;
+}
 .setup-tabs {
   display: flex;
   flex-wrap: wrap;

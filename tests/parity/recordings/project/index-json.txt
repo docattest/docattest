@@ -1,5 +1,5 @@
 # index --json
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: README and site link the GitHub Marketplace listing
 === index --json
 exit 0
 stdout 680 lines
@@ -15,7 +15,7 @@ stdout 680 lines
   "COMMANDS": [
     {
       "page": "README.md",
-      "line": 293,
+      "line": 294,
       "kind": "fact",
       "claim": "Commands"
     },
@@ -29,7 +29,7 @@ stdout 680 lines
   "CONFIG_KEYS": [
     {
       "page": "README.md",
-      "line": 494,
+      "line": 497,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     }
@@ -37,7 +37,7 @@ stdout 680 lines
   "DEFAULT_SNAPSHOT_MAX_AGE_DAYS": [
     {
       "page": "README.md",
-      "line": 503,
+      "line": 506,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -51,7 +51,7 @@ stdout 680 lines
   "DEFAULT_TIMEOUT_MS": [
     {
       "page": "README.md",
-      "line": 504,
+      "line": 507,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -71,7 +71,7 @@ stdout 680 lines
   "KINDS": [
     {
       "page": "README.md",
-      "line": 271,
+      "line": 272,
       "kind": "fact",
       "claim": "Kinds of proof"
     },
@@ -101,7 +101,7 @@ stdout 680 lines
   "createProject": [
     {
       "page": "README.md",
-      "line": 480,
+      "line": 483,
       "kind": "example",
       "claim": "Use it from code"
     },

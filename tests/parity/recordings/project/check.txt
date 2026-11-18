@@ -1,31 +1,31 @@
 # check
-# recorded from: docattest 0.1.5
+# recorded from: README and site link the GitHub Marketplace listing
 === check
 exit 0
 stdout 447 lines
 README.md
-  ✓ L22 fact: manifest("adapters/typescript/package.json").version is 0.1.5
-  ✓ L29 example: every command printed what the block shows
-  ✓ L40 example: every command printed what the block shows
-  ✓ L75 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
-  ✓ L77 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
-  ✓ L86 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L95 fact: manifest("adapters/go/go.mod")["go"] is 1.23
-  ✓ L111 fact: 5 code spans match Object.keys(manifest("protocol/platforms.json").platforms)
-  ✓ L133 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L170 example: every proof on the sample page held in a copy of adapters/python/tests/fixture
-  ✓ L205 example: every proof on the sample page held in a copy of adapters/go/testdata/fixture
-  ✓ L247 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
-  ✓ L271 fact: 5 values in column Reported match KINDS
-  ✓ L293 fact: 12 distinct values in column Command match COMMANDS
-  ✓ L466 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L480 example: compiles
-  ✓ L494 fact: 12 values in column Key match CONFIG_KEYS
-  ✓ L503 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
-  ✓ L504 fact: DEFAULT_TIMEOUT_MS is 10000
-  ✓ L585 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
-  ✓ L587 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L588 fact: manifest("adapters/go/go.mod").go is 1.23
+  ✓ L23 fact: manifest("adapters/typescript/package.json").version is 0.1.5
+  ✓ L30 example: every command printed what the block shows
+  ✓ L41 example: every command printed what the block shows
+  ✓ L76 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
+  ✓ L78 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
+  ✓ L87 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L96 fact: manifest("adapters/go/go.mod")["go"] is 1.23
+  ✓ L112 fact: 5 code spans match Object.keys(manifest("protocol/platforms.json").platforms)
+  ✓ L134 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L171 example: every proof on the sample page held in a copy of adapters/python/tests/fixture
+  ✓ L206 example: every proof on the sample page held in a copy of adapters/go/testdata/fixture
+  ✓ L248 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
+  ✓ L272 fact: 5 values in column Reported match KINDS
+  ✓ L294 fact: 12 distinct values in column Command match COMMANDS
+  ✓ L469 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L483 example: compiles
+  ✓ L497 fact: 12 values in column Key match CONFIG_KEYS
+  ✓ L506 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
+  ✓ L507 fact: DEFAULT_TIMEOUT_MS is 10000
+  ✓ L588 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
+  ✓ L590 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L591 fact: manifest("adapters/go/go.mod").go is 1.23
 adapters/typescript/README.md
   ✓ L14 example: every command printed what the block shows
   ✓ L37 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
