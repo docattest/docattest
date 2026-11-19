@@ -106,12 +106,12 @@ pub fn metadata(dir: &Path) -> Result<Metadata, String> {
 }
 
 /// Why cargo did not start, naming the program tried, which may be `DOCATTEST_CARGO`'s.
-fn not_run(error: &str) -> String {
+pub fn not_run(error: &str) -> String {
     format!("{} could not be run: {error}", program().display())
 }
 
 /// The last thing cargo said went wrong, on one line.
-pub(super) fn last_error(stderr: &str) -> String {
+pub fn last_error(stderr: &str) -> String {
     let lines: Vec<&str> = stderr.lines().filter(|line| !line.trim().is_empty()).collect();
     let said = lines.iter().rev().find(|line| line.starts_with("error")).or(lines.last());
     said.map_or_else(|| "cargo failed".to_string(), |line| line.trim().to_string())

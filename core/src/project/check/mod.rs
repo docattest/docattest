@@ -1,8 +1,10 @@
 //! Running a check through the adapter, and the parsing-only queries.
 
 mod checker;
+mod cited_runs;
 mod display;
 mod exports_split;
+mod problems;
 mod sample;
 
 use std::collections::{HashMap, HashSet};
@@ -15,10 +17,15 @@ use crate::adapter::Pending;
 use crate::api::attestation::{Attestation, Body, Kind};
 use crate::api::errors::{Error, Result};
 use crate::report::order::by_page_and_line;
-use crate::report::{Outcome, PageSets, Report, SurfaceCoverage, coverage_for, exit_code_for, order_results};
+use crate::report::{
+    Coverage, Outcome, PageSets, Report, SurfaceCoverage, coverage_for, exit_code_for, order_results,
+};
 use crate::text::compare_utf16;
 use checker::Checker;
+pub use cited_runs::CitedTests;
+use cited_runs::refuse_without_runner;
 use exports_split::split_exports;
+use problems::{Problems, send_problems};
 
 /// A surface symbol an attestation exercises; `surface` is None when none exports it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -136,7 +143,13 @@ fn export_names(value: Value) -> Option<Vec<String>> {
 }
 
 /// Run the attestations on the selected pages; coverage still covers every living page.
-pub fn run_check(state: &State, network: Network, selected: &HashSet<String>) -> Result<Report> {
+pub fn run_check(
+    state: &State,
+    network: Network,
+    selected: &HashSet<String>,
+    cited: CitedTests,
+) -> Result<Report> {
+    refuse_without_runner(&state.adapter, cited)?;
     let chosen: Vec<&Attestation> =
         state.attestations.iter().filter(|a| selected.contains(&a.page)).collect();
     let examples: Vec<&Attestation> =
@@ -146,11 +159,12 @@ pub fn run_check(state: &State, network: Network, selected: &HashSet<String>) ->
     // workers run them while it builds its compiler program for symbols and compile. Answers
     // are still awaited in a fixed order (the session, symbols, then the checks), so when
     // several requests fail, the same one is reported every time.
-    let mut checker = Checker::new(state, network);
+    let mut checker = Checker::new(state, network, cited);
     let started = checker.start(&chosen);
     let symbols_answer = symbols_request(state);
     let compiled = checker.send_compile(&examples);
     let described = state.adapter.send("describeSurfaces", json!({}));
+    let problems = send_problems(&state.adapter);
     let exported: Vec<Pending> = state
         .config
         .surfaces
@@ -162,28 +176,37 @@ pub fn run_check(state: &State, network: Network, selected: &HashSet<String>) ->
     let checked = checker.check(&chosen, started, compiled)?;
     let mut all = state.snapshots.errors.clone();
     all.extend(checked.into_iter().flatten());
-    let results = order_results(all);
-    let pages = PageSets { living: &state.living, prose: &state.prose, frozen: &state.frozen };
-    let coverage = coverage_for(
-        pages,
-        &result_counts(state, &results, selected),
-        state.attestations.iter().filter(|a| matches!(&a.body, Body::Example(e) if e.weak) && a.ok()).count(),
-        // A broken citation is still a citation: its error is counted among the attestations,
-        // and must not be counted as a proof.
-        state.attestations.iter().filter(|a| a.kind() == Kind::Test).count(),
-    );
+    let mut coverage = coverage_of(state, &all, selected);
+    coverage.cited_run = (cited == CitedTests::Run).then_some(checker.cited_ran);
     let SurfaceReports { surfaces, warnings } =
         surface_reports(state, &checker.symbols, described, exported)?;
+    // A problem fails the check but attests nothing, so it is added after coverage is counted.
+    let problems = Problems::wait(problems)?;
+    all.extend(problems.results);
+    let results = order_results(all);
     let exit_code = exit_code_for(&results);
     Ok(Report {
         results,
         coverage,
         surfaces,
         snapshots: state.snapshots.statuses.clone(),
-        warnings: [state.warnings.clone(), warnings].concat(),
+        warnings: [state.warnings.clone(), warnings, problems.warnings].concat(),
         exit_code,
         changes: None,
     })
+}
+
+/// Page coverage from the results of the attestations.
+fn coverage_of(state: &State, results: &[Outcome], selected: &HashSet<String>) -> Coverage {
+    let pages = PageSets { living: &state.living, prose: &state.prose, frozen: &state.frozen };
+    coverage_for(
+        pages,
+        &result_counts(state, results, selected),
+        state.attestations.iter().filter(|a| matches!(&a.body, Body::Example(e) if e.weak) && a.ok()).count(),
+        // A broken citation is still a citation: its error is counted among the attestations,
+        // and must not be counted as a proof.
+        state.attestations.iter().filter(|a| a.kind() == Kind::Test).count(),
+    )
 }
 
 // Pages that were not run count what they would produce, so coverage never shrinks when
@@ -274,15 +297,31 @@ fn truthy(v: &Value) -> bool {
 }
 
 /// The results of `chosen`, each attestation's in a list of its own, in the order given, as
-/// `check` would give them. Nothing is compiled, so `chosen` holds no example.
+/// `check` would give them.
 pub fn results_of(state: &State, network: Network, chosen: &[&Attestation]) -> Result<Vec<Vec<Outcome>>> {
-    let opened = open(state, network, &[]);
-    let mut checker = Checker::new(state, network);
+    results_and_symbols(state, network, chosen).map(|(results, _)| results)
+}
+
+/// [`results_of`], and the symbols of every attestation of the project. The examples among
+/// `chosen` are the session's, and are compiled before they run; citations are judged from
+/// their test files, as `check` without `--run-cited` judges them. The session stays open
+/// for more requests.
+pub(crate) fn results_and_symbols(
+    state: &State,
+    network: Network,
+    chosen: &[&Attestation],
+) -> Result<(Vec<Vec<Outcome>>, Symbols)> {
+    let examples: Vec<&Attestation> =
+        chosen.iter().copied().filter(|a| matches!(a.body, Body::Example(_)) && a.ok()).collect();
+    let opened = open(state, network, &examples);
+    let mut checker = Checker::new(state, network, CitedTests::Declared);
     let started = checker.start(chosen);
     let symbols = symbols_request(state);
+    let compiled = checker.send_compile(&examples);
     opened.wait()?;
     checker.symbols = parse_symbols(symbols.wait()?)?;
-    checker.check(chosen, started, None)
+    let results = checker.check(chosen, started, compiled)?;
+    Ok((results, checker.symbols))
 }
 
 /// Queries parse and resolve symbols but never run anything, so the session compiles nothing.

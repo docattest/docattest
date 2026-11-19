@@ -139,7 +139,7 @@ published as JSON Schema (draft 2020-12) in `protocol/schema/`, which is their d
 | `methods.json` | for each method, `#/$defs/<method>.params` and `#/$defs/<method>.result` |
 | `attestations.json` | the attestations the core sends: `ExampleAttestation`, `FactAttestation`, `CasesAttestation`, `TestAttestation` and their parts |
 | `language.json` | what a language says of itself: `Hello`, `SourceFiles`, `Vocabulary`, and its answers about text (`DocProse`, `ExpressionShape`) |
-| `results.json` | what a project answers: `Result`, `Diagnostic`, `Evaluation`, `Observation`, `Observable`, `SymbolRef`, `TestListing` |
+| `results.json` | what a project answers: `Result`, `Problem`, `Diagnostic`, `Evaluation`, `Observation`, `Observable`, `SymbolRef`, `TestListing`, `TestRun` |
 | `project.json` | the project as `open` describes it: its surfaces (`ConfiguredSurface`, `SurfaceDescription`), its snapshots, its manifests, the texts of the files facts read, and what facts match and read in them (`Matches`, `ManifestFields`) |
 | `kit.json` | an adapter's conformance kit (`Kit`, §5), which the conformance suite reads; it never crosses the pipe |
 
@@ -189,8 +189,8 @@ report is the same whichever adapter served it. An adapter sorts nothing for the
 
 `hello` is always first. A protocol number the adapter does not speak is a `user` error.
 `blockLanguages` are the info-string languages whose fenced blocks the adapter runs, lower
-case. `capabilities` lists the optional methods it implements: `tests`, `observables`,
-`affected`, `display`. Everything in the answer is fixed for the adapter, not per project.
+case. `capabilities` lists the optional methods it implements: `tests`, `runTests`,
+`observables`, `affected`, `display`, `problems`, `mutants`. Everything in the answer is fixed for the adapter, not per project.
 
 **`hello` is answered at once.** The answer is static, and the core may need nothing else
 (an edit hook asks only whether the edited file is source code), so an adapter answers
@@ -428,19 +428,24 @@ failure says the call was not read.
 | `symbols` | `{ "attestations": Attestation[] }` | `{ [id]: SymbolRef[] }` |
 | `exports` | `{ "surface": "default" }` | `string[]`, or `null` when the surface cannot be resolved |
 | `describeSurfaces` | `{}` | `{ [surface]: SurfaceDescription }` |
+| `problems` (capability) | `{}` | `{ "problems": [{ "path", "line", "message" }], "warnings": string[] }` |
 | `tests` (capability) | `{ "file": "test/a.test.ts" }` | `TestListing` |
+| `runTests` (capability) | `{ "tests": [{ "file": "test/a.test.ts", "describes": ["retry"], "title": "throws" }], "timeoutMs": 600000 }` | `TestRun[]`: for each test, `{ "status": "passed" }`, or `"failed"`, `"skipped"` or `"notRun"` with a `message` |
 | `observables` (capability) | `{ "surface": "default" }` | `Observable[]`; a surface that cannot be loaded is a `user` error |
 | `affected` (capability) | `{ "base": { "src/a.ts": "…", "src/new.ts": null }, "changed": ["src/a.ts", "src/new.ts"] }` | `SymbolRef[]` |
+| `mutants` (capability) | `{ "symbols": [{ "name": "LIMIT" }], "limit": 8 }` | `SymbolMutants[]`: for each symbol, `{ "edits": [{ "path", "start", "end", "replacement", "description" }] }`, or no edits and `"why"` |
 | `inCode` | `{ "names": ["LIMIT"], "files": ["src/a.ts"] }` | `string[]`: those of `names` the project's code still holds |
 | `close` | `{}` | `{}`; the adapter releases its workers |
 
 A method marked (capability) exists only when `hello.capabilities` lists it, and the core
 asks only what is listed. Without `tests` a citation cannot be checked, so every
 `<!-- test: … -->` is reported as an error on its own line (`test at L12 cannot be cited:
-the <name> adapter does not read test files`); without `observables`, `audit` has
+the <name> adapter does not read test files`); without `runTests`, `check --run-cited` is a
+user error; without `observables`, `audit` has
 nothing to compare pages with and `inventory` is a user error; without `affected`,
 `impact` is a user error; without `display`, a field of a data block is compared as JSON
-writes it.
+writes it; without `problems`, nothing is reported outside the attestations; without
+`mutants`, `mutate` changes no code, only the files facts read and the cells of tables.
 
 `observables` reads values and calls nothing of a surface: a function may do anything, and
 what it returns is not known until it runs. The setup module's named facts are the one
@@ -456,9 +461,53 @@ In a `TestListing`, `tests` are what can be cited and `suites` what may be cited
 for a test. A suite says what it is in `kind`, with its article (`a describe block`,
 `a class`): the core's message reads `"x" in <file> is <kind>, not a test`.
 
+`runTests` runs the tests that citations name, for `check --run-cited`: a citation
+otherwise proves only that its test is declared. The core asks once per check, after the
+citations' files were read, for the distinct tests of the citations that hold, each as its
+file declares it (`describes` and `title` from the `TestListing`, so the path is whole even
+where the citation left the describe titles out), and never for one whose path holds a
+title that cannot be cited. The answer keeps their order, one `TestRun` for each:
+
+- `passed`: the test ran, with exactly this path selected, and passed. A test that holds
+  cases passes when every one of them does.
+- `failed`: it ran and failed, or its run did not end within `timeoutMs`. `message` is the
+  failure as the runner reported it, a few lines (an assertion's own message rather than
+  the whole log); the core shows at most ten of them.
+- `skipped`: the runner skipped it; `message` is the reason, when the runner gives one, or
+  says that it was skipped.
+- `notRun`: nothing ran, and `message` says why: the runner selected no test by that path,
+  the project has no runner the adapter can use, or the project is in memory (`files`),
+  where nothing can run.
+
+How a test is selected, and how its outcome is read, is the adapter's: it runs the
+language's own runner with exact selection, so that no other test runs and none is
+mistaken for another, and reads the runner's report (machine-readable where the runner has
+one) rather than its exit code alone. It may run the tests of one file or package in one
+runner invocation, and runs as many invocations at once as `open.workers`. `timeoutMs`
+bounds one invocation; the core sends 600000 (ten minutes), whatever `open.timeoutMs` is,
+because a test suite is not a block. The core turns `passed` into a citation that passes,
+`failed` into one that fails, and `skipped` and `notRun` into an error.
+
 A `SurfaceDescription` says where a surface resolved. `resolution.package.display` is the
 package and its version as the language writes them (`name@1.2.0`, `name 1.2.0`); the text
 report prints it between brackets, and `--json` carries the resolution as it was given.
+
+**`problems`** (capability). Some of what an adapter finds wrong belongs to no attestation:
+a linter's finding in a file that only docattest builds (the Go adapter's docs helper files,
+which `go vet` leaves out without the `docattest` tag), or a release of the adapter that a
+project file requires and that is not the one running. The core asks once per `check`,
+beside `describeSurfaces`, and the answer holds two lists, either of them empty. Each of
+`problems` is a failure at a line of a project file: `path` is relative to the root, as every
+path is, and need not be a page. The core reports it as a result of kind `problem` and status
+`fail` at that place, in the text, in `--json`, in the reports for other CI services and in
+the GitHub Action's annotations, and it fails the check. A check of named pages reports it
+too, since it belongs to no page. It attests nothing, so page coverage does not count it.
+`message` is all the report says of it, so it names where it comes from
+(`go vet -tags docattest: …`). Each of `warnings` is about the whole project: the core prints
+it with the config's warnings, lists it in the report's `warnings`, and never fails on it. A
+warning about one surface belongs in that surface's `SurfaceDescription` instead. Without
+the capability the core asks nothing, so an adapter written before `problems` existed is
+asked nothing new.
 
 A `Diagnostic` is a reason an example cannot be accepted without running it: a type error
 where the language has a compiler, a syntax error or an import that cannot be found where
@@ -471,6 +520,39 @@ In `affected`, `base` gives the contents at the base revision of every changed p
 `changed` has an entry in `base`. The answer is the symbols the change reaches that the
 pages can attest: the surfaces' exports, and the constants a fact reads from source,
 exported or not.
+
+**`mutants`** (capability). `docattest mutate` asks how strong a proof is by breaking what
+it reads and running it again: a proof no change makes fail proves less than it seems to.
+What it reads of the code is the symbols `symbols` answered for it, and changing their
+values is the language's to do, so the core sends those symbols, each as `symbols` gave it,
+and the adapter answers, for each in order, edits to the literals of its declaration. The
+declaration is the one the symbol's surface resolves the name to, through any re-export;
+for a symbol without a surface, the declaration of a constant of that name that a fact
+reads from source. Its literals are those of the value it is declared with (the
+initializer of a constant or a variable), in source order, at any depth, except inside a
+function or class the initializer defines (which runs only when called) and inside a type:
+
+- a number is changed to that number plus one (`8080 → 8081`, `1.5 → 2.5`), written as the
+  language reads a number of the same type, a suffix kept (`3u32 → 4u32`);
+- a string keeps its quotes, prefix and escapes, and gains an `x` before its closing quote
+  (`"shop" → "shopx"`); a string that fills in values when it runs (a template, an
+  f-string) is not one;
+- a boolean is flipped;
+- a list, array, tuple or set offers its last item removed (`'LOG_LEVEL' removed`), before
+  the edits of its items, unless the language would not compile the declaration without it
+  (an array whose length is in its type);
+- a map's keys are literals too, so a string key is changed as a string is.
+
+`null`, `None` and `nil` are left as they are. Each edit stands alone: the core applies one
+at a time, to a copy of the project, and runs the proofs that read the symbol. `start` and
+`end` are offsets in bytes of the file's UTF-8 text, as it is on disk or in `open.files`,
+`end` excluded; `replacement` is the text put in their place; `description` says what
+changes, as the language writes it, for the report (`8080 → 8081`). An adapter answers at
+most `limit` edits for a symbol, the first in source order, and only edits that leave the
+file valid code. A symbol with no edits says why: `function` (a function, method, class or
+type: what a proof reads of it is computed when it runs), `noLiteral` (a value whose
+declaration holds no literal, such as one a call returns) or `notFound` (no file of the
+project's own declares it). `why` is present exactly when `edits` is empty.
 
 `inCode` is the second half of the rename question (`expressions`): which of `names` still
 occur as a name in the project's code. The code is the project files listed in `files` (the
@@ -491,7 +573,8 @@ adapter says, in `hello`, which files are source files and which names are never
 project's own; and it answers what a doc comment says (`docComments`, `docProse`), whether
 an example asserts (`assertions`), which symbol a code span names (`mentions`), what an
 expression's names are (`expressions`), which names the code still holds (`inCode`), how
-a value of a data block displays (`display`) and what a configured surface is (`open`). It says which info-string words are its own, what a
+a value of a data block displays (`display`), how a symbol's literals are written
+(`mutants`) and what a configured surface is (`open`). It says which info-string words are its own, what a
 suite is called and how a package is written. The core holds no list of adapters either,
 and does not know how it was installed: the launcher of the language package says where
 the adapter is and what command runs docattest. A core built today drives an adapter for a
@@ -525,8 +608,11 @@ each item, in order; none for a file that is not source); every session method (
 for each example at its own page and line, an answer for every fact, the text of a file
 that `file` reads, an entry for every
 attestation in `symbols`, `null` for a surface that cannot be resolved); capabilities (a
-method not listed is unknown, one that is listed answers, and `display` shows a value as a
-fact of the same value shows); a stdout that carries nothing
+method not listed is unknown, one that is listed answers, `display` shows a value as a
+fact of the same value shows, `problems` places each problem at a path inside the project,
+`runTests` runs nothing of the kit's project, which is in memory, and `mutants` changes the
+kit's scalar within its file and finds no declaration of a name nothing declares); a stdout
+that carries nothing
 but responses whatever attested code prints; answers in the order requests finish; `close`
 waiting for what was sent before it; and the end of input. Every line the adapter writes,
 and every line the suite sends, is held to the schemas of §2.

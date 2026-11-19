@@ -117,7 +117,7 @@ fn what_is(value: &Value) -> String {
 }
 
 /// Keys as a path is written, a key that a dot or a space would split in quotes.
-fn shown_path(keys: &[String]) -> String {
+pub(crate) fn shown_path(keys: &[String]) -> String {
     let shown = keys.iter().map(|key| {
         let plain = !key.is_empty() && !key.contains(|c: char| c == '.' || is_js_space(c));
         if plain { key.clone() } else { format!("\"{key}\"") }

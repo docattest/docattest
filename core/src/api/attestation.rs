@@ -13,6 +13,9 @@ pub enum Kind {
     Cases,
     Snapshot,
     Test,
+    /// Something the adapter finds wrong in the project that belongs to no attestation
+    /// (PROTOCOL.md §3, `problems`): a result, never an attestation.
+    Problem,
 }
 
 impl Kind {
@@ -23,11 +26,12 @@ impl Kind {
             Kind::Cases => "cases",
             Kind::Snapshot => "snapshot",
             Kind::Test => "test",
+            Kind::Problem => "problem",
         }
     }
 
     pub fn parse(word: &str) -> Option<Kind> {
-        [Kind::Example, Kind::Fact, Kind::Cases, Kind::Snapshot, Kind::Test]
+        [Kind::Example, Kind::Fact, Kind::Cases, Kind::Snapshot, Kind::Test, Kind::Problem]
             .into_iter()
             .find(|k| k.as_str() == word)
     }

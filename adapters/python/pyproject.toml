@@ -39,6 +39,7 @@ packages = [
   "docattest_python.analysis.declared_tests",
   "docattest_python.server",
   "docattest_python.session",
+  "docattest_python.test_runs",
   "docattest_python.workers",
   "docattest_python.workers.docattest_worker",
 ]

@@ -22,6 +22,7 @@ The CLI exposes these commands, whichever adapter serves a project: <!-- fact: C
 - `audit`
 - `inventory`
 - `impact`
+- `mutate`
 - `hooks`
 - `agents`
 - `conformance`
@@ -35,7 +36,10 @@ text that need no project (whether an example asserts anything, what a doc comme
 which symbol a code span names, what shape a fact expression has), and, once a project is
 open, the questions that do: compiling and running examples, evaluating facts, which
 symbols an attestation exercises, what a surface exports, the tests a file declares, the
-values a surface offers to `audit`, and what a change affects for `impact`.
+values a surface offers to `audit`, and what a change affects for `impact`. Once per check
+it may also report what it finds wrong outside every attestation, such as a linter's
+finding in a file that only docattest builds, which fails the check at its file and line,
+and warnings about the whole project ([the report](report.md#what-the-adapter-finds-outside-every-proof-fails-at-its-line)).
 
 [protocol](protocol.md) shows that conversation with this package's adapter. The protocol
 itself, every method and every rule, is

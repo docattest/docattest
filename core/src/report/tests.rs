@@ -9,8 +9,17 @@ fn pages(n: usize) -> Vec<String> {
 fn report(uncovered: Vec<String>, frozen: Vec<String>) -> Report {
     let living = uncovered.len() + 1;
     let prose = Vec::new();
-    let coverage =
-        Coverage { living, covered: 1, uncovered, prose, frozen, attestations: 1, weak: 0, cited: 0 };
+    let coverage = Coverage {
+        living,
+        covered: 1,
+        uncovered,
+        prose,
+        frozen,
+        attestations: 1,
+        weak: 0,
+        cited: 0,
+        cited_run: None,
+    };
     let (surfaces, snapshots, warnings) = (Vec::new(), Vec::new(), Vec::new());
     Report { results: Vec::new(), coverage, surfaces, snapshots, warnings, exit_code: 0, changes: None }
 }
@@ -44,6 +53,20 @@ fn the_coverage_line_counts_proofs_and_citations_apart_and_their_sum() {
     assert!(line(1, 1, 0).contains("(1 attestation: 1 proof, 1 of them weak, and 0 citations)"));
     let json = report(Vec::new(), Vec::new()).to_json();
     assert_eq!((&json["coverage"]["attestations"], &json["coverage"]["proofs"]), (&json!(1), &json!(1)));
+}
+
+#[test]
+fn citations_whose_test_ran_are_counted_among_the_citations_only_when_tests_ran() {
+    let mut r = report(Vec::new(), Vec::new());
+    r.coverage = Coverage { attestations: 3, cited: 2, ..r.coverage };
+    assert!(!r.format(Detail::Full).contains("of them run"));
+    assert_eq!(r.to_json()["coverage"].get("citedRun"), None);
+    r.coverage.cited_run = Some(1);
+    assert!(
+        r.format(Detail::Full)
+            .contains("(3 attestations: 1 proof, 0 of them weak, and 2 citations, 1 of them run)")
+    );
+    assert_eq!(r.to_json()["coverage"]["citedRun"], json!(1));
 }
 
 #[test]

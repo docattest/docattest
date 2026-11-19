@@ -1,13 +1,15 @@
 """The session ``open`` creates: one project, for one docattest invocation.
 
 Static questions (``exports``, ``symbols``, ``compile``, ``tests``, ``inCode``,
-``affected``, ``describeSurfaces``) are answered from syntax. Whatever has to run project
-code (``evaluate``, ``run``, ``observables``) is sent to the worker pool.
+``affected``, ``describeSurfaces``, ``mutants``) are answered from syntax. Whatever has to
+run project code (``evaluate``, ``run``, ``observables``) is sent to the worker pool;
+``runTests`` runs the project's own test runner.
 
 A session is made of parts that share one ``Workspace`` (the project's files, modules and
 surfaces): ``problems`` answers ``compile``, ``symbols`` answers ``symbols`` and ``tests``,
-and ``running`` sends work to the pool. ``continued`` remembers the examples the core has
-named, which the three need for blocks tagged ``continue``.
+``mutants`` answers ``mutants``, and ``running`` sends work to the pool. ``continued``
+remembers the examples the core has named, which the three need for blocks tagged
+``continue``.
 """
 
 from __future__ import annotations
@@ -22,7 +24,9 @@ from ..workers.docattest_worker.jobs import Settings
 from ..workers.interpreter import Interpreter, choose_interpreter
 from ..workers.pool import WorkerPool
 from ..workers.worker_process import WorkerSpec
+from .cited_tests import CitedTests, OnDisk
 from .continued import ContinuedBlocks
+from .mutants import Mutants
 from .problems import Problems
 from .running import Running
 from .settings import SessionSettings
@@ -40,8 +44,14 @@ class Session:
         self.continued.remember(settings.examples)
         self.problems = Problems(self.workspace, self.continued, self.interpreter)
         self.symbols = Symbols(self.workspace, self.continued)
+        self.mutants = Mutants(self.workspace)
         spec = WorkerSpec(self.interpreter.python, root, self._worker_settings(settings))
         workers = settings.workers or os.cpu_count() or 1
+        # Resolved, as pytest resolves the paths it names its tests by.
+        on_disk = (
+            OnDisk(os.path.realpath(root), self.workspace.project.search) if settings.files is None else None
+        )
+        self.cited_tests = CitedTests(on_disk, self.symbols, self.interpreter, workers)
         self.running = Running(
             self.workspace,
             self.continued,
@@ -87,6 +97,7 @@ class Session:
 
     def close(self) -> None:
         self.running.close()
+        self.cited_tests.close()
         if self.temp is not None:
             self.temp.cleanup()
 

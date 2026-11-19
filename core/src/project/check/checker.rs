@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use serde_json::{Value, json};
 
+use super::cited_runs::{CitedRuns, CitedTests, SentRuns};
 use super::display::{Displayed, send_display};
 use super::sample::check_sample;
 use super::{Network, Symbols, symbol_names};
@@ -34,11 +35,24 @@ pub(super) struct Checker<'s> {
     network: Network,
     pub(super) symbols: Symbols,
     by_attestation: HashMap<String, Vec<Outcome>>,
+    cited: CitedTests,
+    /// The run of the tests that citations name, when `cited` asks for one.
+    runs: Option<SentRuns>,
+    /// How many citations had their test run, whatever it gave.
+    pub(super) cited_ran: usize,
 }
 
 impl<'s> Checker<'s> {
-    pub(super) fn new(state: &'s State, network: Network) -> Self {
-        Checker { state, network, symbols: Symbols::new(), by_attestation: HashMap::new() }
+    pub(super) fn new(state: &'s State, network: Network, cited: CitedTests) -> Self {
+        Checker {
+            state,
+            network,
+            symbols: Symbols::new(),
+            by_attestation: HashMap::new(),
+            cited,
+            runs: None,
+            cited_ran: 0,
+        }
     }
 
     /// Ask the adapter to compile the examples; nothing is asked when there are none, so an
@@ -98,6 +112,7 @@ impl<'s> Checker<'s> {
         self.cite(&citations, listings)?;
         self.emit_runs(&runnable, runs)?;
         self.emit_runs(&cases, tables)?;
+        self.emit_cited_runs()?;
         Ok(attestations.iter().map(|a| self.by_attestation.remove(&a.id).unwrap_or_default()).collect())
     }
 
@@ -139,10 +154,10 @@ impl<'s> Checker<'s> {
             let mine = diagnostics_of(&diagnostics, &e.id)?;
             let Body::Example(example) = &e.body else { continue };
             if !mine.is_empty() {
-                self.emit(
-                    e,
-                    vec![Outcome::new(&e.page, e.line, Kind::Example, Status::Fail, &mine.join("; "))],
-                )?;
+                let mut diagnosed =
+                    Outcome::new(&e.page, e.line, Kind::Example, Status::Fail, &mine.join("; "));
+                diagnosed.compile_diagnostics = true;
+                self.emit(e, vec![diagnosed])?;
                 continue;
             }
             if example.mode == Mode::Compile {
@@ -202,22 +217,34 @@ impl<'s> Checker<'s> {
         Ok(())
     }
 
-    // Citations are judged from the cited file's syntax; the test itself is never run here.
+    // Citations are judged from the cited file's syntax. With `--run-cited`, the tests of
+    // the ones that hold are sent to run, and those citations wait for their runs.
     fn cite(&mut self, citations: &[&Attestation], listings: Vec<(String, Pending)>) -> Result<()> {
         let mut answers: HashMap<String, Value> = HashMap::new();
         let mut pending: HashMap<String, Pending> = listings.into_iter().collect();
+        let mut runs = CitedRuns::default();
         for c in citations {
             let Body::Test(t) = &c.body else { continue };
-            if !answers.contains_key(&t.file) {
-                let listing = match pending.remove(&t.file) {
-                    Some(p) => p.wait()?,
-                    None => Value::Null,
-                };
-                answers.insert(t.file.clone(), listing);
+            let listing = listing_of(&t.file, &mut answers, &mut pending)?;
+            let judged = judge_citation(t, listing, &self.state.adapter.vocabulary)?;
+            let outcome = match judged.found {
+                Some(found) if self.cited == CitedTests::Run => runs.add(c, &t.file, found),
+                _ => Some(Outcome::new(&c.page, c.line, Kind::Test, judged.status, &judged.message)),
+            };
+            if let Some(outcome) = outcome {
+                self.emit(c, vec![outcome])?;
             }
-            let listing = answers.get(&t.file).unwrap_or(&Value::Null);
-            let (status, message) = judge_citation(t, listing, &self.state.adapter.vocabulary)?;
-            self.emit(c, vec![Outcome::new(&c.page, c.line, Kind::Test, status, &message)])?;
+        }
+        self.runs = runs.send(&self.state.adapter);
+        Ok(())
+    }
+
+    /// Emits what running the cited tests made of their citations.
+    fn emit_cited_runs(&mut self) -> Result<()> {
+        let Some(runs) = self.runs.take() else { return Ok(()) };
+        for run in runs.outcomes()? {
+            self.cited_ran += usize::from(run.ran);
+            self.emit(&run.citation, vec![run.outcome])?;
         }
         Ok(())
     }
@@ -232,6 +259,23 @@ impl<'s> Checker<'s> {
         self.by_attestation.entry(attestation.id.clone()).or_default().extend(located);
         Ok(())
     }
+}
+
+/// What `tests` answered for `file`, waited for the first time a citation asks; null when it
+/// was never asked.
+fn listing_of<'a>(
+    file: &str,
+    answers: &'a mut HashMap<String, Value>,
+    pending: &mut HashMap<String, Pending>,
+) -> Result<&'a Value> {
+    if !answers.contains_key(file) {
+        let listing = match pending.remove(file) {
+            Some(p) => p.wait()?,
+            None => Value::Null,
+        };
+        answers.insert(file.to_string(), listing);
+    }
+    Ok(answers.get(file).unwrap_or(&Value::Null))
 }
 
 /// The messages of the compile diagnostics for one example, each with its block line.

@@ -7,20 +7,37 @@ import { declarationOf, type TestDeclaration } from './test-calls.js';
 import { TestScope } from './test-scope.js';
 
 /** A test or describe call in a test file, with the call itself for symbol lookup. */
-interface FoundTest extends DeclaredTest {
+export interface FoundTest extends DeclaredTest {
   call: ts.CallExpression;
+  /**
+   * The full paths (describe titles, then the title) a runner reports what it declares by:
+   * one, or one for each row of a table that it declares by its title as written. Undefined
+   * when a title on the way cannot be told.
+   */
+  reported: string[][] | undefined;
 }
 
-/** Every test and describe block in a file whose title the file's own literals write. */
+/**
+ * Every test and describe block in a file whose title the file's own literals write, and the
+ * runner it imports its test functions from.
+ */
 interface FoundTests {
   tests: FoundTest[];
   suites: FoundTest[];
+  runner: TestRunner | undefined;
 }
 
-/** A title a call declares, and the scope its callback runs in for it. */
+/** A title a call declares, the titles the runner reports it by, and its callback's scope. */
 interface Titled {
   title: string | undefined;
+  reported: string[] | undefined;
   scope: TestScope;
+}
+
+/** Where a call is: the describe titles around it, and the paths the runner reports them by. */
+interface Within {
+  describes: (string | null)[];
+  reported: string[][] | undefined;
 }
 
 /**
@@ -34,60 +51,67 @@ interface Titled {
  */
 export function findTests(fileName: string, code: string): FoundTests {
   const source = parseSource(fileName, code);
-  const finder = new TestFinder(source, runnerOf(source));
-  finder.visit(source, [], new TestScope(mutatedNames(source)));
-  return { tests: distinct(finder.found.tests), suites: distinct(finder.found.suites) };
+  const runner = runnerOf(source);
+  const finder = new TestFinder(source, runner);
+  finder.visit(source, { describes: [], reported: [[]] }, new TestScope(mutatedNames(source)));
+  return { tests: distinct(finder.found.tests), suites: distinct(finder.found.suites), runner };
 }
 
 class TestFinder {
-  readonly found: FoundTests = { tests: [], suites: [] };
+  readonly found: Omit<FoundTests, 'runner'> = { tests: [], suites: [] };
 
   constructor(
     private readonly source: ts.SourceFile,
     private readonly runner: TestRunner | undefined,
   ) {}
 
-  visit(node: ts.Node, describes: (string | null)[], scope: TestScope): void {
+  visit(node: ts.Node, within: Within, scope: TestScope): void {
     if (ts.isForOfStatement(node)) {
-      this.loop(node, describes, scope);
+      this.loop(node, within, scope);
       return;
     }
     const declaration = ts.isCallExpression(node) ? declarationOf(node) : undefined;
     if (declaration && ts.isCallExpression(node)) {
-      this.declared(node, declaration, describes, scope);
+      this.declared(node, declaration, within, scope);
       return;
     }
     if (ts.isCallExpression(node) && isForEach(node)) {
-      this.forEach(node, describes, scope);
+      this.forEach(node, within, scope);
       return;
     }
     ts.forEachChild(node, (child) => {
-      this.visit(child, describes, scope);
+      this.visit(child, within, scope);
     });
   }
 
   private declared(
     call: ts.CallExpression,
     declaration: TestDeclaration,
-    describes: (string | null)[],
+    within: Within,
     scope: TestScope,
   ): void {
     const line = this.source.getLineAndCharacterOfPosition(call.getStart(this.source)).line + 1;
     const callback = call.arguments.find(
       (a) => ts.isArrowFunction(a) || ts.isFunctionExpression(a),
     );
-    for (const { title, scope: inner } of this.titles(call, declaration, callback, scope)) {
-      const entry = { title: title ?? '', describes, line, call };
+    const titles = this.titles(call, declaration, callback, scope);
+    for (const { title, reported: own, scope: inner } of titles) {
+      const reported = own && within.reported?.flatMap((path) => own.map((t) => [...path, t]));
+      const entry = { title: title ?? '', describes: within.describes, line, call, reported };
       if (title !== undefined) {
         this.found[declaration.role === 'suite' ? 'suites' : 'tests'].push(entry);
       }
-      const within = declaration.role === 'suite' ? [...describes, title ?? null] : describes;
-      for (const arg of call.arguments) this.visit(arg, within, inner);
+      const inside =
+        declaration.role === 'suite'
+          ? { describes: [...within.describes, title ?? null], reported }
+          : within;
+      for (const arg of call.arguments) this.visit(arg, inside, inner);
     }
   }
 
   // The title as written, with the callback's parameters unknown; then one for each row of
-  // a table the file writes, with the parameters bound to that row.
+  // a table the file writes, with the parameters bound to that row. The runner reports the
+  // title as written by its rows' titles.
   private titles(
     call: ts.CallExpression,
     declaration: TestDeclaration,
@@ -97,43 +121,50 @@ class TestFinder {
     const first = call.arguments[0];
     const folded = first && scope.fold(first);
     const title = typeof folded?.value === 'string' ? folded.value : undefined;
-    const written = [{ title, scope: withParameters(callback, undefined, scope) }];
-    if (!declaration.table || title === undefined) return written;
-    const rows = tableRows(declaration.table, title, this.runner, scope) ?? [];
-    const each = rows.map((row) => ({
+    const unbound = withParameters(callback, undefined, scope);
+    if (!declaration.table || title === undefined) {
+      return [{ title, reported: title === undefined ? undefined : [title], scope: unbound }];
+    }
+    const rows = tableRows(declaration.table, title, this.runner, scope);
+    const each = (rows ?? []).map((row) => ({
       title: row.title,
+      reported: row.title === undefined ? undefined : [row.title],
       scope: withParameters(callback, row.args, scope),
     }));
-    return [...written, ...each];
+    const reported =
+      rows && each.every((row) => row.reported)
+        ? each.flatMap((row) => row.reported ?? [])
+        : undefined;
+    return [{ title, reported, scope: unbound }, ...each];
   }
 
-  private loop(loop: ts.ForOfStatement, describes: (string | null)[], scope: TestScope): void {
+  private loop(loop: ts.ForOfStatement, within: Within, scope: TestScope): void {
     const list = loop.initializer;
     const variable = ts.isVariableDeclarationList(list) ? list.declarations[0] : undefined;
     const items = loop.awaitModifier ? undefined : iterated(loop.expression, scope);
-    if (!variable) this.visit(loop.statement, describes, scope);
-    else if (!items) this.visit(loop.statement, describes, scope.binding(variable.name, undefined));
+    if (!variable) this.visit(loop.statement, within, scope);
+    else if (!items) this.visit(loop.statement, within, scope.binding(variable.name, undefined));
     else {
       for (const item of items) {
-        this.visit(loop.statement, describes, scope.binding(variable.name, { value: item }));
+        this.visit(loop.statement, within, scope.binding(variable.name, { value: item }));
       }
     }
   }
 
-  private forEach(call: ts.CallExpression, describes: (string | null)[], scope: TestScope): void {
+  private forEach(call: ts.CallExpression, within: Within, scope: TestScope): void {
     const callback = call.arguments[0];
     const receiver = (call.expression as ts.PropertyAccessExpression).expression;
     const items = iterated(receiver, scope);
     if (!callback || (!ts.isArrowFunction(callback) && !ts.isFunctionExpression(callback))) {
       ts.forEachChild(call, (child) => {
-        this.visit(child, describes, scope);
+        this.visit(child, within, scope);
       });
       return;
     }
-    if (!items) this.visit(callback.body, describes, withParameters(callback, undefined, scope));
+    if (!items) this.visit(callback.body, within, withParameters(callback, undefined, scope));
     items?.forEach((item, index) => {
       const bound = withParameters(callback, [item, index, items], scope);
-      this.visit(callback.body, describes, bound);
+      this.visit(callback.body, within, bound);
     });
   }
 }

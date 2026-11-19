@@ -1,10 +1,16 @@
-import type { AdapterSession, Language, LanguageDescription, SourceText } from '../api/adapter.js';
+import type {
+  AdapterSession,
+  CitedTest,
+  Language,
+  LanguageDescription,
+  SourceText,
+} from '../api/adapter.js';
 import type { Attestation } from '../api/attestation.js';
 import { InternalError, UserError } from '../api/errors.js';
 import { sourceFileMatcher } from '../files/glob.js';
 import { ignoreRule } from '../files/ignored.js';
 import type { FileSource } from '../files/source.js';
-import { isObject } from '../json.js';
+import { isObject, isStringArray } from '../json.js';
 import { changeOf, contextOf } from './context.js';
 import { Params, PROTOCOL_VERSION, ProtocolError } from './wire.js';
 
@@ -15,7 +21,14 @@ export interface AdapterInfo {
 }
 
 /** The optional protocol methods (PROTOCOL.md §3): this adapter implements every one. */
-const CAPABILITIES: readonly string[] = ['tests', 'observables', 'affected', 'display'];
+const CAPABILITIES: readonly string[] = [
+  'tests',
+  'runTests',
+  'observables',
+  'affected',
+  'display',
+  'mutants',
+];
 
 type Handler = (params: Params) => unknown;
 interface Opened {
@@ -178,9 +191,11 @@ const SESSION_METHODS = new Map<string, SessionHandler>([
   ['exports', async ({ session }, p) => (await session.exports(p.string('surface'))) ?? null],
   ['describeSurfaces', async ({ session }) => Object.fromEntries(await session.describeSurfaces())],
   ['tests', ({ session }, p) => session.tests(p.string('file'))],
+  ['runTests', ({ session }, p) => session.runTests(citedTestsOf(p), p.number('timeoutMs'))],
   ['observables', ({ session }, p) => session.observables(p.string('surface'))],
   ['affected', ({ session, files }, p) => session.affected(changeOf(files, p))],
   ['inCode', ({ session }, p) => session.inCode(p.strings('names'), p.strings('files'))],
+  ['mutants', ({ session }, p) => session.mutants(p.symbolRefs('symbols'), p.number('limit'))],
 ]);
 
 /** `files`: source files as `{ page, text }`. */
@@ -202,6 +217,19 @@ function examplesOf(params: Params): { lang: string; code: string }[] {
       throw new ProtocolError('assertions: each of "examples" must have a "lang" and a "code"');
     }
     return { lang, code };
+  });
+}
+
+/** `tests`: the tests citations name, as `{ file, describes, title }`. */
+function citedTestsOf(params: Params): CitedTest[] {
+  return params.list('tests').map((test) => {
+    const { file, describes, title } = isObject(test) ? test : {};
+    if (typeof file !== 'string' || !isStringArray(describes) || typeof title !== 'string') {
+      throw new ProtocolError(
+        'runTests: each of "tests" must have a "file", "describes" and a "title"',
+      );
+    }
+    return { file, describes, title };
   });
 }
 

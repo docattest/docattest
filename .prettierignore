@@ -1,6 +1,7 @@
 # Build output and installed packages.
 **/node_modules/
 adapters/typescript/dist/
+adapters/typescript/.dist-*/
 website/dist/
 core/target/
 package-lock.json

@@ -22,8 +22,8 @@ export function foldConstant(node: ts.Expression, resolve: NameResolver): Folded
   return folder?.(expression, resolve);
 }
 
-// Type-only syntax around a value leaves the value as it is.
-function unwrapped(node: ts.Expression): ts.Expression {
+/** The expression inside type-only syntax, which leaves the value as it is. */
+export function unwrapped(node: ts.Expression): ts.Expression {
   let current = node;
   while (
     ts.isParenthesizedExpression(current) ||

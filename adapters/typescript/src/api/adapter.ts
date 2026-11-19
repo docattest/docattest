@@ -39,6 +39,30 @@ export interface SymbolRef {
   surface?: string;
 }
 
+/**
+ * One change to one file of the project, for `mutate`: the bytes of its UTF-8 text from
+ * `start` to `end` (excluded) replaced by `replacement`.
+ */
+export interface MutantEdit {
+  /** Project-relative. */
+  path: string;
+  start: number;
+  end: number;
+  replacement: string;
+  /** What changes, as the source writes it: `8080 → 8081`, `'LOG_LEVEL' removed`. */
+  description: string;
+}
+
+/**
+ * Why a symbol offers no edit: it is a function, class or type, whose value is computed when
+ * it runs; a value whose declaration holds no literal; or nothing the project declares.
+ */
+export type NoMutantReason = 'function' | 'noLiteral' | 'notFound';
+
+/** The edits to the literals of one symbol's declaration, or why there are none. */
+export type SymbolMutants =
+  { edits: [MutantEdit, ...MutantEdit[]] } | { edits: []; why: NoMutantReason };
+
 /** A test or describe block a test file declares, by its literal title. */
 export interface DeclaredTest {
   title: string;
@@ -59,6 +83,20 @@ export interface DeclaredSuite extends DeclaredTest {
 /** What a test file declares, or why it cannot be read. */
 export type TestListing =
   { ok: true; tests: DeclaredTest[]; suites: DeclaredSuite[] } | { ok: false; message: string };
+
+/** A test a citation names, as its file declares it: the `describes` and `title` it lists. */
+export interface CitedTest {
+  file: string;
+  describes: string[];
+  title: string;
+}
+
+/**
+ * How a cited test ran: it passed; or it failed, was skipped, or nothing ran (`notRun`),
+ * with what the runner said about it, a few lines.
+ */
+export type TestRun =
+  { status: 'passed' } | { status: 'failed' | 'skipped' | 'notRun'; message: string };
 
 /**
  * The language's words for what the core's sentences name. Each is optional; the core has
@@ -88,6 +126,11 @@ export interface Adapter {
   exports(surface: string): Promise<string[] | undefined>;
   /** The tests and describe blocks a project-relative test file declares, from its syntax. */
   tests(file: string): Promise<TestListing>;
+  /**
+   * Run each cited test with the project's own runner, exactly that test selected, and say
+   * how it ran, in order. `timeoutMs` bounds one run of the runner.
+   */
+  runTests(tests: readonly CitedTest[], timeoutMs: number): Promise<TestRun[]>;
 }
 
 /**
@@ -167,6 +210,11 @@ export interface AdapterSession extends Adapter {
    * from. An adapter that cannot tell returns every name.
    */
   inCode(names: readonly string[], files: readonly string[]): Promise<string[]>;
+  /**
+   * For each symbol, in order, at most `limit` edits that each change one literal of its
+   * declaration, the first in source order; or why it has none.
+   */
+  mutants(symbols: readonly SymbolRef[], limit: number): Promise<SymbolMutants[]>;
   /** Release workers and anything else the session holds. */
   close(): Promise<void>;
 }

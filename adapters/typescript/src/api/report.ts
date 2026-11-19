@@ -34,6 +34,8 @@ export interface Coverage {
   weak: number;
   /** `test` citations, broken ones too: sentences tied to a test that docattest does not run. */
   cited: number;
+  /** With `check --run-cited`, the citations whose test ran, whatever it gave; absent otherwise. */
+  citedRun?: number;
 }
 
 /** Where a surface resolved: the file examples and facts actually ran against. */

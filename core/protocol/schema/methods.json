@@ -347,6 +347,33 @@
         "$ref": "project.json#/$defs/SurfaceDescription"
       }
     },
+    "problems.params": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "problems.result": {
+      "type": "object",
+      "properties": {
+        "problems": {
+          "description": "Failures that belong to no attestation, each at a file and line of the project.",
+          "type": "array",
+          "items": {
+            "$ref": "results.json#/$defs/Problem"
+          }
+        },
+        "warnings": {
+          "description": "Warnings about the whole project, printed with the config's.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["problems", "warnings"],
+      "additionalProperties": false
+    },
     "tests.params": {
       "type": "object",
       "properties": {
@@ -359,6 +386,47 @@
     },
     "tests.result": {
       "$ref": "results.json#/$defs/TestListing"
+    },
+    "runTests.params": {
+      "type": "object",
+      "properties": {
+        "tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "description": "A test a citation names, as its file declares it: the titles that enclose it, outermost first, and its own.",
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "describes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": ["file", "describes", "title"],
+            "additionalProperties": false
+          }
+        },
+        "timeoutMs": {
+          "description": "How long one run of the test runner may take.",
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": ["tests", "timeoutMs"],
+      "additionalProperties": false
+    },
+    "runTests.result": {
+      "type": "array",
+      "items": {
+        "$ref": "results.json#/$defs/TestRun"
+      }
     },
     "observables.params": {
       "type": "object",
@@ -399,6 +467,31 @@
       "type": "array",
       "items": {
         "$ref": "results.json#/$defs/SymbolRef"
+      }
+    },
+    "mutants.params": {
+      "type": "object",
+      "properties": {
+        "symbols": {
+          "type": "array",
+          "items": {
+            "$ref": "results.json#/$defs/SymbolRef"
+          }
+        },
+        "limit": {
+          "description": "The most edits to answer for one symbol.",
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": ["symbols", "limit"],
+      "additionalProperties": false
+    },
+    "mutants.result": {
+      "description": "One entry for each of the symbols, in their order.",
+      "type": "array",
+      "items": {
+        "$ref": "results.json#/$defs/SymbolMutants"
       }
     },
     "inCode.params": {

@@ -50,6 +50,11 @@ class WorkerProcess:
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 cwd=spec.cwd if os.path.isdir(spec.cwd) else None,
+                # `docattest mutate` runs proofs in copies of the project whose `__pycache__`
+                # and other directories not the project's own are links to the originals:
+                # bytecode written there would land in the user's project. Inherited by any
+                # interpreter attested code starts.
+                env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"),
                 start_new_session=os.name == "posix",
             )
         except OSError as err:

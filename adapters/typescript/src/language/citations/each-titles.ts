@@ -3,8 +3,15 @@ import { jestArrayTitles, jestTemplateTitle } from './jest-titles.js';
 import type { TestScope } from './test-scope.js';
 import { vitestTitle } from './vitest-titles.js';
 
-/** A runner whose way of titling a table's rows is known. */
-export type TestRunner = 'vitest' | 'jest';
+/** A runner a test file can be written for. How Vitest and Jest title a table's rows is known. */
+export type TestRunner = 'vitest' | 'jest' | 'node:test';
+
+/** The module each runner's test functions are imported from. */
+const RUNNER_MODULES = new Map<string, TestRunner>([
+  ['vitest', 'vitest'],
+  ['@jest/globals', 'jest'],
+  ['node:test', 'node:test'],
+]);
 
 /** The table of a `.each(table)`, a `.each` template literal or a `.for(table)`. */
 export type EachTable =
@@ -26,17 +33,16 @@ export function runnerOf(source: ts.SourceFile): TestRunner | undefined {
     if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) {
       continue;
     }
-    const from = statement.moduleSpecifier.text;
-    if (from === 'vitest') return 'vitest';
-    if (from === '@jest/globals') return 'jest';
+    const runner = RUNNER_MODULES.get(statement.moduleSpecifier.text);
+    if (runner) return runner;
   }
   return undefined;
 }
 
 /**
  * The rows of a table and each one's title, as the runner prints it; undefined when the
- * table is not written in the file. When the runner is not known, a title is one only where
- * Vitest and Jest print the same.
+ * table is not written in the file. For any runner but Vitest and Jest, a title is one only
+ * where the two print the same.
  */
 export function tableRows(
   each: EachTable,

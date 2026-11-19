@@ -17,6 +17,32 @@ struct Declared {
     line: Option<String>,
 }
 
+/// The test a citation names, as its file declares it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CitedTest {
+    /// The titles that enclose it, outermost first; None where one cannot be cited.
+    pub describes: Vec<Option<String>>,
+    pub title: String,
+    /// Its line in the file, as the text of the number the adapter sent.
+    pub line: String,
+    /// `"<describe>" > … > "<title>"`, as messages name it.
+    pub path: String,
+}
+
+/// The verdict on a citation, and the test it names when its file declares one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Judged {
+    pub status: Status,
+    pub message: String,
+    pub found: Option<CitedTest>,
+}
+
+impl Judged {
+    fn error(message: String) -> Judged {
+        Judged { status: Status::Error, message, found: None }
+    }
+}
+
 /// Something a test file declares that is not a test, and what the language calls it, when
 /// it says.
 struct Suite {
@@ -69,7 +95,7 @@ fn path_of(describes: &[Option<String>], title: Option<&str>, untitled: &str) ->
 /// The verdict on a citation, given its file's `TestListing`. Every message names both.
 /// What a suite is called, and what stands for a title that cannot be cited, are the
 /// language's words: the listing and the adapter's vocabulary say them.
-pub fn judge_citation(cited: &Test, listing: &Value, words: &Vocabulary) -> Result<(Status, String)> {
+pub fn judge_citation(cited: &Test, listing: &Value, words: &Vocabulary) -> Result<Judged> {
     let describes: Vec<Option<String>> = cited.describes.iter().cloned().map(Some).collect();
     let name = path_of(&describes, Some(&cited.title), &words.untitled);
     if listing.get("ok") != Some(&Value::Bool(true)) {
@@ -77,7 +103,7 @@ pub fn judge_citation(cited: &Test, listing: &Value, words: &Vocabulary) -> Resu
             .get("message")
             .and_then(Value::as_str)
             .ok_or_else(|| Error::internal("tests answered a failure without a message"))?;
-        return Ok((Status::Error, format!("cannot cite {name}: {why}")));
+        return Ok(Judged::error(format!("cannot cite {name}: {why}")));
     }
     let entries = |key: &str| listing.get(key).and_then(Value::as_array).cloned().unwrap_or_default();
     let tests: Vec<Declared> = entries("tests").iter().map(declared).collect();
@@ -87,7 +113,10 @@ pub fn judge_citation(cited: &Test, listing: &Value, words: &Vocabulary) -> Resu
             return Err(Error::internal("tests answered a test without its line"));
         };
         let path = shown(found);
-        return Ok((Status::Pass, format!("{}:{line} declares {path} (not run by docattest)", cited.file)));
+        let message = format!("{}:{line} declares {path} (not run by docattest)", cited.file);
+        let title = cited.title.clone();
+        let found = CitedTest { describes: found.describes.clone(), title, line: line.clone(), path };
+        return Ok(Judged { status: Status::Pass, message, found: Some(found) });
     }
     let suites: Vec<Suite> = entries("suites").iter().map(suite).collect();
     let why = match suites.iter().find(|s| matches(&s.declared, cited)) {
@@ -105,7 +134,7 @@ pub fn judge_citation(cited: &Test, listing: &Value, words: &Vocabulary) -> Resu
             if tests.len() > LISTED { format!(", and {} more", tests.len() - LISTED) } else { String::new() };
         format!("tests there: {}{more}", some.join(", "))
     };
-    Ok((Status::Error, format!("{why}; {listed}")))
+    Ok(Judged::error(format!("{why}; {listed}")))
 }
 
 #[cfg(test)]
@@ -125,7 +154,8 @@ mod tests {
             alias: None,
         };
         let words = Vocabulary { untitled: "(computed title)".into(), ..Vocabulary::default() };
-        judge_citation(&t, &listing, &words).unwrap()
+        let judged = judge_citation(&t, &listing, &words).unwrap();
+        (judged.status, judged.message)
     }
 
     #[test]
@@ -144,12 +174,30 @@ mod tests {
     }
 
     #[test]
+    fn a_citation_that_holds_names_the_test_as_its_file_declares_it() {
+        let listing = json!({ "ok": true, "tests": [{ "title": "waits", "describes": ["retry", null], "line": 9 }], "suites": [] });
+        let t = Test { file: "t.test.ts".into(), title: "waits".into(), describes: Vec::new(), alias: None };
+        let found = judge_citation(&t, &listing, &Vocabulary::default()).unwrap().found;
+        assert_eq!(
+            found,
+            Some(CitedTest {
+                describes: vec![Some("retry".into()), None],
+                title: "waits".into(),
+                line: "9".into(),
+                path: "\"retry\" > (untitled) > \"waits\"".into(),
+            })
+        );
+        let other = Test { title: "throws".into(), ..t };
+        assert_eq!(judge_citation(&other, &listing, &Vocabulary::default()).unwrap().found, None);
+    }
+
+    #[test]
     fn the_words_are_the_adapters_and_a_broken_listing_is_its_bug() {
         let t = Test { file: "t.py".into(), title: "T".into(), describes: Vec::new(), alias: None };
         let listing = json!({ "ok": true, "tests": [], "suites": [{ "title": "T", "describes": [], "line": 1, "kind": "a class" }] });
-        let (status, message) = judge_citation(&t, &listing, &Vocabulary::default()).unwrap();
+        let judged = judge_citation(&t, &listing, &Vocabulary::default()).unwrap();
         assert_eq!(
-            (status, message.as_str()),
+            (judged.status, judged.message.as_str()),
             (Status::Error, "\"T\" in t.py is a class, not a test; it declares no test")
         );
         assert!(judge_citation(&t, &json!({ "ok": false }), &Vocabulary::default()).is_err());

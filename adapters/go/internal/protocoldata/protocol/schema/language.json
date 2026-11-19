@@ -49,7 +49,15 @@
         "capabilities": {
           "type": "array",
           "items": {
-            "enum": ["tests", "observables", "affected", "display"]
+            "enum": [
+              "tests",
+              "runTests",
+              "observables",
+              "affected",
+              "display",
+              "problems",
+              "mutants"
+            ]
           }
         },
         "infoWords": {

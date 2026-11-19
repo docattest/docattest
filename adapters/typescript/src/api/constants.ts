@@ -1,7 +1,10 @@
-/** The kinds of attestation a result can carry, as the protocol's `Result` schema has them. */
-export const KINDS = ['example', 'fact', 'cases', 'snapshot', 'test'] as const;
+/**
+ * What a result can be about, as the protocol's `Result` schema has them: a kind of
+ * attestation, a snapshot file, or a problem the adapter found outside every attestation.
+ */
+export const KINDS = ['example', 'fact', 'cases', 'snapshot', 'test', 'problem'] as const;
 
-/** What a result attests: one of {@link KINDS}. */
+/** What a result is about: one of {@link KINDS}. */
 export type Kind = (typeof KINDS)[number];
 
 /** The verdicts a result can carry, as the protocol's `Result` schema has them. */
@@ -31,6 +34,7 @@ export const COMMANDS = [
   'audit',
   'inventory',
   'impact',
+  'mutate',
   'hooks',
   'agents',
   'conformance',

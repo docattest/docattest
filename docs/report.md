@@ -134,6 +134,81 @@ assert.deepEqual(report.warnings, [
 assert.equal(report.exitCode, 0);
 ```
 
+## What the adapter finds outside every proof fails at its line
+
+An adapter may find something wrong that belongs to no attestation: the Go adapter vets the
+docs helper files that only docattest builds, and what vet finds there is in no page's
+proof. Each such problem is a result of kind `problem` and status `fail` at its file and
+line, whether or not the file is a page. It fails the check, and the results line counts
+it. It attests nothing, so page coverage leaves it out: it adds no attestation, and covers
+no page. An adapter may also warn about the whole project. Its warning is listed with the
+config's, under `warnings`, and like every warning leaves the exit code as it is. How an
+adapter reports either is in [protocol/PROTOCOL.md](../protocol/PROTOCOL.md) (`problems`).
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const adapter = fileURLToPath(new URL('../adapters/typescript/dist/protocol/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-problems-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
+put('src/index.ts', 'export const N = 3;');
+put('docs/a.md', 'N is `3`. <!-- fact: N -->');
+put('docs/b.md', 'Nothing proven here.');
+// The TypeScript adapter reports no problems, so this one stands in front of it: it lists
+// the capability and answers `problems` with its first argument.
+const wrapper = join(root, 'wrapper.mjs');
+writeFileSync(wrapper, `
+import { spawn } from 'node:child_process';
+import { createInterface } from 'node:readline';
+const adapter = spawn(process.execPath, [${JSON.stringify(adapter)}], { stdio: ['pipe', 'pipe', 'inherit'] });
+const hellos = new Set();
+createInterface({ input: process.stdin }).on('line', (line) => {
+  const request = JSON.parse(line);
+  if (request.method === 'problems') {
+    process.stdout.write(JSON.stringify({ id: request.id, result: JSON.parse(process.argv[2]) }) + '\\n');
+    return;
+  }
+  if (request.method === 'hello') hellos.add(request.id);
+  adapter.stdin.write(line + '\\n');
+}).on('close', () => adapter.stdin.end());
+createInterface({ input: adapter.stdout }).on('line', (line) => {
+  const response = JSON.parse(line);
+  if (hellos.has(response.id)) response.result?.capabilities.push('problems');
+  process.stdout.write(JSON.stringify(response) + '\\n');
+});
+`);
+const check = (answer: unknown, ...args: string[]) => {
+  const env = { ...process.env, DOCATTEST_ADAPTER_TYPESCRIPT: JSON.stringify([process.execPath, wrapper, JSON.stringify(answer)]) };
+  return spawnSync(process.execPath, [cli, 'check', '--root', root, ...args], { encoding: 'utf8', env });
+};
+// ---cut---
+const found = {
+  problems: [{ path: 'docs/b.md', line: 1, message: 'lint: the page says nothing' }],
+  warnings: ['the lock file is older than the manifest'],
+};
+const report = JSON.parse(check(found, '--json').stdout);
+assert.deepEqual(
+  report.results.map((r: { page: string; line: number; kind: string; status: string }) => `${r.page}:${r.line} ${r.kind} ${r.status}`),
+  ['docs/a.md:1 fact pass', 'docs/b.md:1 problem fail'],
+);
+assert.equal(report.coverage.attestations, 1);
+assert.deepEqual(report.coverage.uncovered, ['docs/b.md']);
+assert.deepEqual(report.warnings, ['the lock file is older than the manifest']);
+assert.equal(report.exitCode, 1);
+
+const text = check(found, '--quiet');
+assert.equal(text.stdout, 'docs/b.md\n  ✗ L1 problem: lint: the page says nothing\nwarning: the lock file is older than the manifest\nFAILED\n');
+
+const warnedOnly = check({ problems: [], warnings: found.warnings });
+assert.equal(warnedOnly.status, 0);
+```
+
 ## The text report
 
 `docattest check` without `--json` prints the report as text: failures by page and line,
@@ -197,7 +272,8 @@ the proofs. Citations only check that the test they name still exists: they say 
 look, not that the sentence holds ([citations](citations.md#what-a-citation-does-not-prove)).
 All three counts are always printed, `0` too, and the report object carries them as
 `attestations`, `proofs`, `weak` and `cited`, with `proofs` and `cited` adding up to
-`attestations`.
+`attestations`. A check that runs the cited tests also says how many of the citations ran
+([running the cited tests](citations.md#running-the-cited-tests)).
 
 ```ts check
 import { createProject } from 'docattest';

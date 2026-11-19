@@ -5,16 +5,23 @@
 use crate::analysis::Analysis;
 use crate::analysis::surfaces::{Configured, workspace_start};
 use crate::project::{self, Project};
-use crate::protocol::{Answer, Attestation, Cases, Error, Example, Fact, decode};
+use crate::protocol::{
+    Answer, AskedSymbol, Attestation, Cases, CitedTest, Error, Example, Fact, TestRun, decode,
+};
 use crate::running::{FactFiles, Limits, Runner, Snapshots};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::Duration;
 
 /// The time limit of a program when `open` gives none.
 const DEFAULT_TIMEOUT_MS: f64 = 10_000.0;
+
+/// Why no cited test runs in a project in memory.
+const IN_MEMORY: &str =
+    "the project is in memory (open.files), where nothing runs: cargo test runs a project on disk";
 
 /// What `open` says.
 #[derive(Deserialize)]
@@ -87,6 +94,13 @@ struct RunParams {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RunTestsParams {
+    tests: Vec<CitedTest>,
+    timeout_ms: u64,
+}
+
+#[derive(Deserialize)]
 struct FactsParams {
     facts: Vec<Fact>,
 }
@@ -112,6 +126,12 @@ struct AffectedParams {
 }
 
 #[derive(Deserialize)]
+struct MutantsParams {
+    symbols: Vec<AskedSymbol>,
+    limit: usize,
+}
+
+#[derive(Deserialize)]
 struct InCodeParams {
     names: Vec<String>,
     files: Vec<String>,
@@ -125,6 +145,7 @@ impl crate::protocol::Session for Session {
             "run" => decode::<RunParams>(params).map(|p| json!(runner.run(&p.examples, &p.cases))),
             "evaluate" => decode::<FactsParams>(params).map(|p| json!(runner.evaluate(&p.facts))),
             "observables" => decode::<SurfaceParams>(params).and_then(|p| runner.observables(&p.surface)),
+            "runTests" => decode::<RunTestsParams>(params).map(|p| json!(self.run_tests(&p))),
             _ => return self.read(method, params),
         })
     }
@@ -141,6 +162,16 @@ impl crate::protocol::Session for Session {
 }
 
 impl Session {
+    /// Answers `runTests`: a project in memory runs nothing.
+    fn run_tests(&self, params: &RunTestsParams) -> Vec<TestRun> {
+        match &self.written {
+            Some(_) => {
+                params.tests.iter().map(|_| TestRun::NotRun { message: IN_MEMORY.to_string() }).collect()
+            }
+            None => self.runner.run_tests(&params.tests, Duration::from_millis(params.timeout_ms)),
+        }
+    }
+
     /// Answers a method that only reads the project's syntax; `None` for any other.
     fn read(&self, method: &str, params: Value) -> Option<Answer> {
         let analysis = &self.analysis;
@@ -153,6 +184,9 @@ impl Session {
             "describeSurfaces" => Ok(analysis.describe_surfaces()),
             "tests" => decode::<FileParams>(params).map(|p| analysis.list_tests(&p.file)),
             "affected" => decode::<AffectedParams>(params).map(|p| json!(analysis.affected(&p.base))),
+            "mutants" => {
+                decode::<MutantsParams>(params).map(|p| json!(analysis.mutants(&p.symbols, p.limit)))
+            }
             "inCode" => decode::<InCodeParams>(params).map(|p| json!(analysis.in_code(&p.names, &p.files))),
             _ => return None,
         })

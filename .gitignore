@@ -1,6 +1,8 @@
 # Installed packages and build output
 node_modules/
 dist/
+# A test run builds into one of these before it replaces dist (adapters/typescript/test/global-setup.ts)
+.dist-*/
 core/target/
 adapters/rust/target/
 adapters/rust/tests/fixture/target/

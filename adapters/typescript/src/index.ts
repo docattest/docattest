@@ -32,6 +32,7 @@ export type {
   Suggestion,
 } from './api/audit.js';
 export type { Impact, ImpactOptions, ImpactReference } from './api/impact.js';
+export type { MutatedProof, MutateOptions, Mutation } from './api/mutate.js';
 export type {
   ExplainedAlias,
   ExplainedAttestation,

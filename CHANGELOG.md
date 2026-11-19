@@ -8,6 +8,48 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `docattest check --run-cited` runs the test each citation names, after the check, and a
+  citation then holds only when its test ran and passed: a test that fails fails its
+  citation with what the runner said, and one that is skipped or that the runner does not
+  run is an error that says why. Each adapter runs the project's own runner with the test
+  selected exactly and reads the runner's own report, one run of the runner for each file,
+  package or target, `runtime.workers` at a time. TypeScript: Vitest (`--reporter=json`), Jest
+  (`--json`) or node:test (with a reporter the package ships), as the file imports or the
+  nearest `package.json` declares, by an anchored pattern over the test's full name and read
+  by its exact path. Python: pytest by node id (`file::Class::test[id]`, JUnit report) when
+  the project's interpreter has it, else unittest through the adapter's driver, which
+  imports the file as `unittest discover` does; a `subTest` case runs with its test and ends
+  as its subtest did. Go: `go test -json -count=1 -run '^TestX$/^case$'` in the file's
+  package, subtest names rewritten as `testing` rewrites them, read from test2json; every
+  cited test of a package that does not build fails with the build errors. Rust: `cargo test`
+  lists the target that owns the file (`--lib`, `--test`, `--bin`, `--bench`, `--example`)
+  and runs the names it listed with `--exact`, so rstest and test-case cases run by the
+  names their macros give them; the outcome is read from libtest's text. The coverage line
+  says how many citations ran (`and 3 citations, 3 of them run`), and `--json` gives
+  `coverage.citedRun`, both only when cited tests ran: a citation that ran is still not a
+  proof, since a run shows that the test passes, not that it tests the sentence. A run of a
+  runner may take ten minutes. It is a flag and not a config key, so the cost falls on the
+  check that asks for it (CI) and not on the check after each edit. The protocol gains the
+  optional method `runTests`, listed in `hello.capabilities`; without it, `--run-cited` is
+  a user error, and the conformance suite checks that a project in memory runs nothing.
+- `docattest mutate [pages…]` (and `project.mutate({ pages })`): how strong each proof is.
+  Every proof that passes is run again against changes to what it reads, one at a time: the
+  literals of the constants it reads (in copies of the project beside it, never in the
+  project), each line of a file, what a regex matched and each value of a manifest a fact
+  reads, and each cell of a table's row but the first. It reports each proof as killed (by
+  the first change that made it fail), survived (with every change it survived) or not
+  mutated (with why: a function's result, a value with no literal, a citation, a proof that
+  does not pass), and for a row the cells no change of which failed it. A change that leaves
+  the code unable to build or load (an error, or an example's compile diagnostics, pointing at
+  a line of the changed file, or a project that does not load) is stillborn: it is counted
+  and kills nothing. The copies are removed at the end, on Ctrl-C and SIGTERM too, and a run
+  removes those a killed run left. `--json`; exit `0`,
+  or `1` with `--fail-on-survivors` when a proof survived. Code mutants come from a new
+  optional adapter method, `mutants` (capability), which every adapter implements: edits to
+  the literals of a symbol's declaration, spelled as the language writes them (a number plus
+  one, a string with an `x` before its closing quote, a boolean flipped, a list without its
+  last item), at most 8 a symbol; the conformance suite checks it. The agent skill suggests
+  running it on a new page.
 - `matched("<path>", "<regex>")` and `manifestField("<path>", "<keys>")` in fact
   expressions, in every language: one value of a project file in one call, worked out by
   the core so that every language gets the same value. `matched` is the text of the
@@ -49,16 +91,33 @@ All notable changes to this project are documented here. The format follows
   line, modules and `replace` directives, with the setup module added) unless `GOWORK=off`;
   nothing is written into the project.
 - Go: `check` runs `go vet -tags docattest` on each surface package that has docs helper
-  files and reports what vet finds in those files, with the file and line, which a plain
-  `go vet ./...` never vets. The Go guide shows how to give the tag to `go vet` in CI and to
-  golangci-lint (`run.build-tags`).
+  files and reports what vet finds in those files, which a plain `go vet ./...` never vets,
+  as a failure at the file and line (a `problem` result), so it fails the check. The Go
+  guide shows how to give the tag to `go vet` in CI and to golangci-lint
+  (`run.build-tags`).
 - Go: `check` warns when your `go.mod`, or the setup module's, requires
   `github.com/docattest/docattest/adapters/go` at another release than the docattest that
   runs, naming the file and both versions; a `replace` of the module or a pseudo-version is
-  not compared.
+  not compared. The warning is about the whole project, listed with the config's warnings.
+- Protocol: an optional capability `problems`, which the core asks once per `check`. Its
+  answer holds problems, failures that belong to no attestation (such as what a linter
+  finds in a file only docattest builds), each at a project file and line, and warnings
+  about the whole project. The core reports each problem as a `fail` result of the new kind
+  `problem` at its file and line, in the text, `--json`, JUnit and Code Quality reports and
+  the GitHub Action's annotations, whether or not the file is a page, and also in a check
+  of named pages. The results line counts it, page coverage does not, and it fails the exit
+  code. The warnings are listed with the config's and never fail. The conformance suite
+  checks that an adapter that lists the capability answers each problem at a path inside
+  the project; one that does not list it is asked nothing new.
 
 ### Changed
 
+- Rust: the adapter generates and builds its crate in `target/docattest/<a hash of the
+  workspace root>`, so that two copies of a project that share one `target` (as `mutate`'s
+  copies do) never write the same generated crate.
+- Python: the processes that run a project's code write no bytecode
+  (`PYTHONDONTWRITEBYTECODE`), so a run never writes into the project, or into a directory a
+  copy links to.
 - Go: the adapter imports `golang.org/x/mod` directly (it was already required through
   `golang.org/x/tools`), to read `go.mod` and `go.work` files.
 

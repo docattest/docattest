@@ -1,20 +1,22 @@
 //! What is read from a project's syntax, with nothing run: its surfaces and what they
 //! export, the symbols an attestation names, the tests a file declares, what a change
-//! affects, the setup module's names, and the docs helpers of a surface's module. Nothing
-//! is compiled either, but for the one thing syntax cannot say: what a module exports
-//! when a macro writes some of it ([`documented`]).
+//! affects, the literals of a declaration that `mutate` changes, the setup module's names,
+//! and the docs helpers of a surface's module. Nothing is compiled either, but for the one
+//! thing syntax cannot say: what a module exports when a macro writes some of it
+//! ([`documented`]).
 
 mod affected;
 mod constants;
 mod docs_helpers;
 mod documented;
 pub(crate) mod modules;
+mod mutants;
 mod reach;
 mod setup;
 mod summary;
 pub(crate) mod surfaces;
 mod symbols;
-mod tests;
+pub(crate) mod tests;
 
 use crate::project::{Package, Project};
 use documented::Documented;

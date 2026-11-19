@@ -24,7 +24,7 @@ fn the_adapter_conforms_to_the_protocol() {
         Command::new(DOCATTEST).args(["conformance", "run"]).arg(kit).args(["--", ADAPTER]).output().unwrap();
     let said = String::from_utf8_lossy(&ran.stdout);
     assert!(
-        ran.status.success() && said.contains("conformance (rust): 13 of 13 checks hold"),
+        ran.status.success() && said.contains("conformance (rust): 14 of 14 checks hold"),
         "{said}{}",
         String::from_utf8_lossy(&ran.stderr)
     );

@@ -70,6 +70,17 @@ impl Call {
         }
     }
 
+    /// The same call, reading `path` instead.
+    pub fn with_path(&self, path: &str) -> Call {
+        let path = path.to_string();
+        match self {
+            Call::Manifest { .. } => Call::Manifest { path },
+            Call::File { .. } => Call::File { path },
+            Call::Matched { pattern, .. } => Call::Matched { path, pattern: pattern.clone() },
+            Call::ManifestField { keys, .. } => Call::ManifestField { path, keys: keys.clone() },
+        }
+    }
+
     /// The call `function` makes with these arguments; None for a call of the wrong arity.
     fn of(function: &str, path: String, second: Option<String>) -> Option<Call> {
         match (function, second) {
@@ -90,6 +101,27 @@ const LITERAL: &str = r##"r#"(?:[^"\r\n]|"(?!#))*"#|r"[^"\r\n]*"|r'[^'\r\n]*'|"(
 /// that is a member of something else (`x.manifest("…")`) is not the one docattest gives; one
 /// after a spread (`...`) or a range (`..`) is, since two dots are never member access.
 pub fn named_in(expression: &str) -> impl Iterator<Item = Call> + '_ {
+    calls_in(expression).map(|(call, _)| call)
+}
+
+/// `expression` with `suffix` written at the end of the path of each call it makes that is
+/// `call`, inside the path's literal, so that the call reads `<path><suffix>`. A suffix that
+/// holds no quote, backslash or `$` leaves every literal one, with the same value plus it.
+pub fn with_path_suffix(expression: &str, call: &Call, suffix: &str) -> String {
+    let mut out = String::with_capacity(expression.len() + suffix.len());
+    let mut copied = 0;
+    for (_, path_end) in calls_in(expression).filter(|(found, _)| found == call) {
+        out.push_str(&expression[copied..path_end]);
+        out.push_str(suffix);
+        copied = path_end;
+    }
+    out.push_str(&expression[copied..]);
+    out
+}
+
+/// Each call `expression` makes, with where the text of its path's literal ends: before the
+/// literal's closing quote.
+fn calls_in(expression: &str) -> impl Iterator<Item = (Call, usize)> + '_ {
     static CALL: OnceLock<fancy_regex::Regex> = OnceLock::new();
     let call = CALL.get_or_init(|| {
         let pattern = format!(
@@ -99,12 +131,14 @@ pub fn named_in(expression: &str) -> impl Iterator<Item = Call> + '_ {
     });
     call.captures_iter(expression).filter_map(|c| {
         let c = c.ok()?;
-        let path = literal_value(c.get(2)?.as_str())?;
+        let written = c.get(2)?;
+        let path = literal_value(written.as_str())?;
         let second = match c.get(3) {
             Some(written) => Some(literal_value(written.as_str())?),
             None => None,
         };
-        Call::of(c.get(1)?.as_str(), path, second)
+        let closing = if written.as_str().starts_with("r#\"") { 2 } else { 1 };
+        Some((Call::of(c.get(1)?.as_str(), path, second)?, written.end() - closing))
     })
 }
 
@@ -223,6 +257,25 @@ mod tests {
             _ => None,
         };
         named_in(expression).filter_map(pattern).collect()
+    }
+
+    #[test]
+    fn a_suffix_goes_inside_the_path_literal_of_each_call_that_is_the_one_named() {
+        let read = |expression: &str| -> String { with_path_suffix(expression, &file("V"), "#m1") };
+        assert_eq!(
+            read(r#"file("V").trim() + file('V') + file("W")"#),
+            r#"file("V#m1").trim() + file('V#m1') + file("W")"#
+        );
+        assert_eq!(
+            read(r##"file(r#"V"#) + file(`V`) + file(r"V")"##),
+            r##"file(r#"V#m1"#) + file(`V#m1`) + file(r"V#m1")"##
+        );
+        let matched = Call::Matched { path: "D".into(), pattern: "(x)".into() };
+        assert_eq!(
+            with_path_suffix(r#"matched("D", "(x)") + matched("D", "(y)")"#, &matched, "#m2"),
+            r#"matched("D#m2", "(x)") + matched("D", "(y)")"#
+        );
+        assert_eq!(named(&read(r#"file("V")"#)), ["V#m1"]);
     }
 
     #[test]

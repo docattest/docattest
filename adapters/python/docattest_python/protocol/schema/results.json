@@ -15,7 +15,7 @@
           "minimum": 1
         },
         "kind": {
-          "enum": ["example", "fact", "cases", "snapshot", "test"]
+          "enum": ["example", "fact", "cases", "snapshot", "test", "problem"]
         },
         "status": {
           "enum": ["pass", "fail", "error", "skipped"]
@@ -38,6 +38,26 @@
         }
       },
       "required": ["page", "line", "kind", "status", "message"],
+      "additionalProperties": false
+    },
+    "Problem": {
+      "type": "object",
+      "description": "Something the adapter finds wrong in the project that belongs to no attestation, such as what a linter finds in a file that only docattest builds. The core reports it as a failing result at its file and line.",
+      "properties": {
+        "path": {
+          "description": "The file, relative to the project root; it need not be a page.",
+          "type": "string",
+          "minLength": 1
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": ["path", "line", "message"],
       "additionalProperties": false
     },
     "Diagnostic": {
@@ -158,6 +178,51 @@
       "required": ["name"],
       "additionalProperties": false
     },
+    "SymbolMutants": {
+      "type": "object",
+      "description": "The edits that change the literals of one symbol's declaration, each alone; why there are none when there are none.",
+      "properties": {
+        "edits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MutantEdit"
+          }
+        },
+        "why": {
+          "description": "Present exactly when edits is empty: the symbol is a function, method, class or type (function); a value whose declaration holds no literal (noLiteral); or nothing the project's own files declare (notFound).",
+          "enum": ["function", "noLiteral", "notFound"]
+        }
+      },
+      "required": ["edits"],
+      "additionalProperties": false
+    },
+    "MutantEdit": {
+      "type": "object",
+      "description": "One change to one file: the bytes from start to end (UTF-8 offsets, end excluded) replaced by replacement.",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "replacement": {
+          "type": "string"
+        },
+        "description": {
+          "description": "What changes, as the language writes it: 8080 → 8081, \"shop\" → \"shopx\", 'LOG_LEVEL' removed.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["path", "start", "end", "replacement", "description"],
+      "additionalProperties": false
+    },
     "TestListing": {
       "description": "What a test file declares, or why it cannot be read.",
       "anyOf": [
@@ -244,6 +309,36 @@
       },
       "required": ["title", "describes", "line", "kind"],
       "additionalProperties": false
+    },
+    "TestRun": {
+      "description": "How a cited test ran: it passed; or it failed, was skipped, or the runner found nothing to run (notRun), with what the runner said about it.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "const": "passed"
+            }
+          },
+          "required": ["status"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": ["failed", "skipped", "notRun"]
+            },
+            "message": {
+              "description": "A few lines: a failure's own output, a skip's reason, or why nothing ran.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["status", "message"],
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

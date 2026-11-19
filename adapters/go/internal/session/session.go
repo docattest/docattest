@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/docattest/docattest/adapters/go/internal/analysis"
+	"github.com/docattest/docattest/adapters/go/internal/citedtests"
 	"github.com/docattest/docattest/adapters/go/internal/protocol"
 	"github.com/docattest/docattest/adapters/go/internal/running"
 )
@@ -35,6 +37,8 @@ type params struct {
 type Session struct {
 	project *analysis.Project
 	runner  *running.Runner
+	// runTests runs cited tests: on disk, or not at all when the project is in memory.
+	runTests func(tests []protocol.CitedTest, timeout time.Duration) []protocol.TestRun
 	// temp holds everything the session writes, and is removed when it closes.
 	temp string
 }
@@ -86,7 +90,13 @@ func open(told params, temp string) (*Session, error) {
 		Matches:   told.Matches,
 		Fields:    told.Fields,
 	}
-	return &Session{project: project, runner: running.New(project, options, told.Examples), temp: temp}, nil
+	runTests := citedtests.InMemory
+	if told.Files == nil {
+		runTests = citedtests.Runner{Root: root, Workspace: project.Workspace, Workers: int(told.Workers)}.Run
+	}
+	return &Session{
+		project: project, runner: running.New(project, options, told.Examples), runTests: runTests, temp: temp,
+	}, nil
 }
 
 // materialise writes a project that exists only in memory to a directory, since the go

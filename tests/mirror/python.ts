@@ -59,6 +59,18 @@ const AGREEMENTS: Language['code'] = {
   ],
   'src/settings.ts': () => [INIT, lines('STRICT = True', 'RATIO = 1.0', 'NOTHING = None')],
   'src/rates.ts': () => [INIT, lines('RATE = 3', 'QUOTE = 2', 'DEBUG_LEVEL = 1')],
+  'src/batch.ts': () => [
+    INIT,
+    lines(
+      '__all__ = ["batch_size"]',
+      '',
+      'PORT = 8080',
+      '',
+      '',
+      'def batch_size():',
+      '    return 2',
+    ),
+  ],
   'test/price.test.ts': () => [
     'tests/test_price.py',
     lines(
@@ -68,6 +80,41 @@ const AGREEMENTS: Language['code'] = {
       '@pytest.mark.parametrize("cents", [1, 5], ids=["rounds down", "rounds up"])',
       'def test_price(cents):',
       '    assert cents > 0',
+    ),
+  ],
+  // CI's Python has no pytest, so the tests `--run-cited` runs are unittest's.
+  'test/math.test.ts': () => [
+    'tests/test_math.py',
+    lines(
+      'import unittest',
+      '',
+      '',
+      'class TestMath(unittest.TestCase):',
+      '    def test_adds(self):',
+      '        self.assertEqual(1 + 1, 2)',
+      '',
+      '    def test_subtracts(self):',
+      '        self.assertEqual(2 - 1, 0, "two minus one is not zero")',
+      '',
+      '    @unittest.skip("not yet")',
+      '    def test_multiplies(self):',
+      '        self.assertEqual(2 * 2, 4)',
+    ),
+  ],
+  // A table-driven test is a test whose subTests are its cases.
+  'test/rounding.test.ts': () => [
+    'tests/test_rounding.py',
+    lines(
+      'import unittest',
+      '',
+      'CASES = [{"name": "rounds down", "cents": 1}, {"name": "rounds up", "cents": 5}]',
+      '',
+      '',
+      'class TestRounding(unittest.TestCase):',
+      '    def test_rounding(self):',
+      '        for case in CASES:',
+      '            with self.subTest(case["name"]):',
+      '                self.assertLess(case["cents"], 5, "%d cents is too many" % case["cents"])',
     ),
   ],
   'docs/docattest.setup.ts': () => [
@@ -113,9 +160,17 @@ export const python: Language = {
       'tests/test_retry.py > "test_throws_the_last_error"',
     ],
     ['test/price.test.ts > "price" > ', 'tests/test_price.py > "test_price" > '],
+    ['test/math.test.ts > "adds"', 'tests/test_math.py > "test_adds"'],
+    ['test/math.test.ts > "subtracts"', 'tests/test_math.py > "test_subtracts"'],
+    ['test/math.test.ts > "multiplies"', 'tests/test_math.py > "test_multiplies"'],
+    [
+      'test/rounding.test.ts > "rounding" > ',
+      'tests/test_rounding.py > "TestRounding" > "test_rounding" > ',
+    ],
     // A regex is written as a raw string.
     ['"^USER (\\\\d+)$"', 'r"^USER (\\d+)$"'],
     ['"^ENTRYPOINT (\\\\w+)$"', 'r"^ENTRYPOINT (\\w+)$"'],
+    ['fact: batchSize()', 'fact: batch_size()'],
   ],
   code: {
     ...AGREEMENTS,

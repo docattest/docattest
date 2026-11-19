@@ -66,8 +66,8 @@ A module whose `go` line is lower than this module's, `1.23`, has it raised to t
 The `docattest` that runs and the release your `go.mod` requires are upgraded together.
 When the `go.mod` of your module, or of a [setup module](#a-setup-module), requires
 `github.com/docattest/docattest/adapters/go` at another release, `check` warns, naming the
-file and both versions. The protocol carries no warning of a whole project, so the warning
-is given under the first surface the config names. <!-- test: internal/analysis/adapterversion_test.go > "TestAnotherReleaseInTheSetupModuleIsAWarningOfTheFirstSurface" -->
+file and both versions. It is a warning of the whole project, listed with the config's
+warnings and under no surface, and it leaves the exit code as it is. <!-- test: internal/analysis/adapterversion_test.go > "TestAnotherReleaseInTheSetupModuleIsAWarningOfTheProject" -->
 A `replace` of the module, or a pseudo-version, names no release, and is not compared. <!-- test: internal/analysis/adapterversion_test.go > "TestARequirementOfAnotherReleaseIsNamed" -->
 
 A row is named by the page, its line and its first cell. A runner that panics fails its

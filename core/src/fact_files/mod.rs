@@ -11,6 +11,7 @@
 
 pub mod calls;
 mod matched;
+pub mod mutants;
 
 use std::path::{Component, Path};
 

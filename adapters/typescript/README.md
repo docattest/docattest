@@ -175,6 +175,23 @@ modules use it. When the package's entry does not re-export it, that module can 
 surface of its own (`"internal": "./src/caps.ts"`): facts read and attest the value there,
 and the package's API stays as it is. <!-- test: adapters/typescript/test/unit/language/run/facts.test.ts > "a value the package entry does not re-export" > "is read and attested on a surface of the module that exports it" -->
 
+### What `mutate` changes
+
+`docattest mutate` changes what a proof reads and runs it again. In TypeScript it changes
+the literals of the value a symbol is declared with, in the file that declares it, through
+any re-export of the surface. <!-- test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts > "symbolMutants" > "resolves a surface's symbol through re-exports to the file that declares it" -->
+A constant a fact reads from source is changed where the surface's module declares it. <!-- test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts > "symbolMutants" > "finds a constant a fact reads from source, with its surface or without one" -->
+A number gains one (`8080 → 8081`, `-5 → -4`, `10n → 11n`). <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "adds one to a number, written as TypeScript reads a number" -->
+A string, or a template with nothing to fill in, gains an `x` before its closing quote,
+its quotes and escapes kept. <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "puts an x before the closing quote of a string, keeping its quotes and escapes" -->
+A boolean is flipped, and `null` and `undefined` stay as they are. <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "flips a boolean and leaves null and undefined alone" -->
+An array first loses its last item (`'LOG_LEVEL' removed`), then its items change. <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "removes an array's last item before changing its items" -->
+An array whose type is a tuple keeps its length. <!-- test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts > "symbolMutants" > "reads the value of a name that a type shares, and keeps the length of a tuple" -->
+Literals change at any depth, in source order, the string keys of objects among them, but
+nothing inside a function, a class or a type the value holds. <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "changes literals at any depth, string keys among them, in source order" --> <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "changes nothing inside a function, a class or a type the value holds" -->
+A function, a class, a type or an enum has nothing to change, nor has a value with no
+literal of its own, such as what a call returns. <!-- test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts > "symbolMutants" > "says why a symbol has no edits: a function, no literal, or not found" -->
+
 ### Named facts: the setup module
 
 A fact may call a named fact of the setup module's `facts` export
@@ -270,6 +287,51 @@ const missing = await cite('rounds over');
 assert.equal(missing.status, 'error');
 assert.match(missing.message, /tests there: "price" > "adds %i and %i", "price" > "adds 1 and 2", "price" > "adds 3 and 4", "price" > "rounds down", "price" > "rounds up"/);
 ```
+
+### Running cited tests
+
+`docattest check --run-cited` also runs the test each citation names, with the project's own
+runner, and the citation then passes only when that test ran and passed
+([citations](../../docs/citations.md#running-the-cited-tests)). The runner is the one the
+test file imports its test functions from (`vitest`, `@jest/globals` or `node:test`), else
+the one the nearest `package.json` declares among its dependencies. Vitest and Jest run from
+the directory of the nearest `package.json` that declares them, where their config is, as
+installed in `node_modules` from there up to the project's root, on the Node that runs
+docattest; so does node:test, from the nearest `package.json`. <!-- test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts > "chooseRunner" > "runs a file with the runner it imports, from the package that declares it" --> <!-- test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts > "chooseRunner" > "runs a file that imports nothing with the runner the nearest package declares" --> <!-- test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts > "chooseRunner" > "runs node:test with the adapter's Node from the nearest package" -->
+A file that names no runner, or whose runner is not installed, runs nothing, and its
+citations are errors that say why. <!-- test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts > "chooseRunner" > "has no runner for a file that names none, or whose runner is not installed" -->
+
+The cited tests of one file run in one invocation, at most `runtime.workers` invocations at
+once, each with a machine-readable report:
+
+- Vitest: `vitest run <file> --testNamePattern=<pattern> --reporter=json --outputFile=<report>`. <!-- test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts > "invocationOf" > "runs Vitest on the file alone, selecting by name, with a JSON report" -->
+- Jest: `jest --json --outputFile=<report> --testNamePattern=<pattern> --runTestsByPath <file>`. <!-- test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts > "invocationOf" > "runs Jest on exactly the file by its path, with its JSON report" -->
+- node:test: `node --test --test-name-pattern=<pattern> --test-reporter=<docattest's reporter>
+  --test-reporter-destination=<report> <file>`, with `--experimental-strip-types` on a Node
+  older than 22.18, which does not strip TypeScript's types by itself. <!-- test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts > "invocationOf" > "runs node:test with the adapter's reporter, stripping types where Node does not" -->
+
+The pattern matches exactly each cited test's full name, its describe titles and its title
+joined by single spaces, every character of a title taken literally. <!-- test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts > "namePattern" > "matches exactly the full names, every character of a title taken literally" -->
+Two tests whose titles join to the same name (`"price" > "rounds"` and `"price rounds"`)
+both run, and Jest matches a name whatever its case; but how a test ran is read from the
+runner's report, by its exact path, never from the exit code. <!-- test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts > "outcomeOf" > "reads the test of exactly the cited path, not one whose titles join to the same name" --> <!-- test: adapters/typescript/test/protocol/run-tests.test.ts > "runTests" > "runs node:test tests by their exact path, a case of a table one alone" -->
+A row of a table, cited by the title its runner prints, runs alone; the table cited by its
+title as written (`"adds %i"`) runs every row, and passes only when every row does. <!-- test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts > "outcomeOf" > "passes a table cited as a whole only when every row does, and names a failing row" --> <!-- test: adapters/typescript/test/protocol/run-tests.test.ts > "runTests" > "runs Vitest tests from the package that declares it, a table's rows together" -->
+A table whose rows the file builds as it runs, so that it does not tell their titles, runs
+by its describe titles: its rows are the tests reported directly under them, but for the
+file's other tests there. It passes when one row at least ran and every row passed. <!-- test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts > "namePattern" > "selects every test under describe titles, for a table whose rows are not known" --> <!-- test: adapters/typescript/test/protocol/run-tests.test.ts > "runTests" > "runs the rows of a table built as the file runs, by its describe titles, as one" -->
+A node:test test that runs subtests passes only when they do. <!-- test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts > "outcomeOf" > "fails a test whose subtest failed with the subtest's message, not the summary" -->
+
+A test that fails says what its runner said of it, without the stack. <!-- test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts > "outcomeOf" > "gives a failure's own lines, without its stack" -->
+One the runner skips (`skip`, a `todo`, a skip at run time such as `t.skip('why')`) is
+skipped, with the reason when the runner gives one. <!-- test: adapters/typescript/test/unit/language/test-runs/node-test-report.test.ts > "readNodeTestReport" > "reads each test by the path of the tests around it, and leaves describe blocks out" --> <!-- test: adapters/typescript/test/unit/language/test-runs/json-report.test.ts > "readJsonReport" > "reads the file's tests from Vitest's report by their titles, whatever else ran" -->
+A test the run did not find by its path, such as one declared under an `if` that never
+holds, and the tests of a file that cannot load, did not run. <!-- test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts > "outcomeOf" > "runs nothing of a path the run selected no test by, or of a file that cannot run" -->
+A project in memory (`createProject` with `files`) runs none of its tests. <!-- test: adapters/typescript/test/protocol/run-tests.test.ts > "runTests" > "runs nothing of a project in memory" -->
+An invocation still running after its time limit, ten minutes, is killed with the processes
+it started, and each of its tests fails. <!-- test: adapters/typescript/test/protocol/run-tests.test.ts > "runTests" > "fails every test of a run that does not finish in time" -->
+The reports read are those of Vitest 3 and of node:test on Node 22.12 to 24; Jest's is read
+from its documented format, the same as Vitest's. <!-- test: adapters/typescript/test/unit/language/test-runs/json-report.test.ts > "readJsonReport" > "reads Jest's report, and a file that could not run" -->
 
 ## Commands
 

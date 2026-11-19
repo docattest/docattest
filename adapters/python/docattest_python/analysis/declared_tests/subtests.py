@@ -152,11 +152,19 @@ def _title(call: ast.Call, bindings: Bindings) -> str | None:
             return None
         params.append(f"{keyword.arg}={value!r}")
     if message_node is None:
-        return ", ".join(params) or None
+        return subtest_title(None, params)
     message = _value(message_node, bindings)
     if message is NOT_LITERAL:
         return None
-    return f"{message} ({', '.join(params)})" if params else str(message)
+    return subtest_title(str(message), params)
+
+
+def subtest_title(message: str | None, params: list[str]) -> str | None:
+    """What unittest prints for a subtest, without its brackets: its message, its parameters
+    (each ``name=repr(value)``), or both; None for one with neither, which has no title."""
+    if message is None:
+        return ", ".join(params) or None
+    return f"{message} ({', '.join(params)})" if params else message
 
 
 def _value(node: ast.expr, bindings: Bindings) -> object:

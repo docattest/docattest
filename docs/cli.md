@@ -182,6 +182,40 @@ assert.equal(inside.status, 0);
 assert.doesNotMatch(inside.stdout, /member/);
 ```
 
+## `--run-cited` runs the tests that citations name
+
+`docattest check --run-cited` also runs the test each citation names, and a citation then
+holds only when its test ran and passed ([citations](citations.md#running-the-cited-tests)
+says what counts and what it costs). The language's adapter
+runs the tests, so one that cannot makes `--run-cited` an error that says so, before
+anything runs, whether or not the project has any citations.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-cli-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: 'lib' }, adapter: 'plain' }));
+put('docs/a.md', 'It works. <!-- test: lib/a.test > "works" -->');
+// An adapter that runs nothing: it answers hello, listing no optional method.
+put('plain.cjs', `require('node:readline').createInterface({ input: process.stdin }).on('line', (line) => {
+  const { id } = JSON.parse(line);
+  const result = { protocol: 1, adapter: { name: 'plain', version: '1.0.0' }, blockLanguages: [],
+    sourceFiles: { include: [], exclude: [] }, ignoredNames: [], capabilities: [] };
+  process.stdout.write(JSON.stringify({ id, result }) + '\\n');
+});`);
+const env = { ...process.env, DOCATTEST_ADAPTER_PLAIN: JSON.stringify([process.execPath, join(root, 'plain.cjs')]) };
+// ---cut---
+const run = spawnSync(process.execPath, [cli, 'check', '--run-cited'], { cwd: root, env, encoding: 'utf8' });
+assert.equal(run.status, 1);
+assert.equal(run.stderr.trim(), 'docattest: --run-cited runs the tests that citations name, and the plain adapter does not run tests');
+```
+
 ## Reports for other CI services
 
 `docattest check --report <format>=<path>` also writes the report to a file in a format a
@@ -303,6 +337,28 @@ assert.equal(docattest('skill', 'install', '--agent', 'gemini').status, 0);
 assert.equal(readFileSync(join(root, '.gemini/skills/docattest/SKILL.md'), 'utf8'), packaged);
 ```
 
+## `mutate` says how strong each proof is
+
+`docattest mutate [pages…]` runs each proof that passes again against changes to what it
+reads, one at a time, and says which some change makes fail (killed), which none does
+(survived) and which nothing could be changed for (not mutated). It exits `0`, or `1` with
+`--fail-on-survivors` when a proof survived; [mutate](mutate.md) has the whole story.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const at = (path: string) => fileURLToPath(new URL(`../${path}`, import.meta.url));
+const cli = at('adapters/typescript/dist/launcher/main.js');
+const docattest = (...args: string[]) =>
+  spawnSync(process.execPath, [cli, ...args], { cwd: at('docs/.fixtures/mutate'), encoding: 'utf8' });
+// ---cut---
+const measured = docattest('mutate', '--json');
+assert.equal(measured.status, 0);
+assert.deepEqual(JSON.parse(measured.stdout).summary, { proofs: 5, killed: 3, survived: 1, notMutated: 1, mutants: 5, stillborn: 0 });
+assert.equal(docattest('mutate', '--fail-on-survivors').status, 1);
+```
+
 ## `conformance` holds a language adapter to the protocol
 
 `docattest conformance run <kit.json> -- <adapter command>` is for whoever writes a language
@@ -325,5 +381,5 @@ const docattest = (...args: string[]) => spawnSync(process.execPath, [cli, ...ar
 const adapter = [process.execPath, at('adapters/typescript/dist/protocol/main.js')];
 const run = docattest('conformance', 'run', at('adapters/typescript/conformance.json'), '--', ...adapter);
 assert.equal(run.status, 0);
-assert.match(run.stdout, /conformance \(typescript\): 13 of 13 checks hold/);
+assert.match(run.stdout, /conformance \(typescript\): 14 of 14 checks hold/);
 ```

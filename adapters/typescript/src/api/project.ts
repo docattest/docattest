@@ -1,6 +1,7 @@
 import type { AuditReport, InventoryEntry } from './audit.js';
 import type { Explanation } from './explain.js';
 import type { Impact, ImpactOptions } from './impact.js';
+import type { MutateOptions, Mutation } from './mutate.js';
 import type { Reference, Report } from './report.js';
 
 /**
@@ -57,6 +58,13 @@ export interface Project {
   explain(page: string, line?: number): Promise<Explanation>;
   /** The exports a change since `base` affects, and the prose that names them. Reads only. */
   impact(options?: ImpactOptions): Promise<Impact>;
+  /**
+   * Each proof run again against changes to what it reads (a literal of the code, a line of a
+   * file a fact reads, a cell of a table): killed when one makes it fail, survived when none
+   * does, not mutated when nothing it reads could be changed. The project is never written:
+   * code is changed in copies of it.
+   */
+  mutate(options?: MutateOptions): Promise<Mutation>;
   /**
    * Refetch snapshots from their source over HTTP and rewrite them; returns the names
    * refreshed. The core does the fetching: there is no fetcher to pass.

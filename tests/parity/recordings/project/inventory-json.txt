@@ -1,8 +1,8 @@
 # inventory --json
-# recorded from: what adopting it in a Go service found
+# recorded from: explain, citation shorthands, prose pages, matched, manifestField, problems, run-cited, mutate
 === inventory --json
 exit 0
-stdout 85 lines
+stdout 89 lines
 [
   {
     "surface": "default",
@@ -18,17 +18,19 @@ stdout 85 lines
   {
     "surface": "default",
     "expression": "COMMANDS",
-    "value": "check,where,uncovered,index,refresh,skill,audit,inventory,impact,hooks,agents,conformance",
+    "value": "check,where,uncovered,index,explain,refresh,skill,audit,inventory,impact,mutate,hooks,agents,conformance",
     "items": [
       "check",
       "where",
       "uncovered",
       "index",
+      "explain",
       "refresh",
       "skill",
       "audit",
       "inventory",
       "impact",
+      "mutate",
       "hooks",
       "agents",
       "conformance"
@@ -37,11 +39,12 @@ stdout 85 lines
   {
     "surface": "default",
     "expression": "CONFIG_KEYS",
-    "value": "$schema,pages,frozen,sources,surfaces,setup,snapshots,adapter,runtime,ignoreTags,members,commands,undocumented",
+    "value": "$schema,pages,frozen,prose,sources,surfaces,setup,snapshots,adapter,runtime,ignoreTags,members,commands,undocumented",
     "items": [
       "$schema",
       "pages",
       "frozen",
+      "prose",
       "sources",
       "surfaces",
       "setup",
@@ -67,13 +70,14 @@ stdout 85 lines
   {
     "surface": "default",
     "expression": "KINDS",
-    "value": "example,fact,cases,snapshot,test",
+    "value": "example,fact,cases,snapshot,test,problem",
     "items": [
       "example",
       "fact",
       "cases",
       "snapshot",
-      "test"
+      "test",
+      "problem"
     ]
   },
   {

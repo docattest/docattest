@@ -47,7 +47,7 @@ export interface Answer {
   references?: Reference[];
   symbols?: string[];
   results?: Result[];
-  coverage?: { uncovered?: string[] };
+  coverage?: { uncovered?: string[]; citedRun?: number };
 }
 
 /** Parse a command's stdout as the JSON report it may be. */

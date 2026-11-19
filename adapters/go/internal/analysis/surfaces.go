@@ -198,16 +198,11 @@ func (p *Project) DocsHelpers(found *Surface) map[string]Declares {
 }
 
 // DescribeSurfaces answers `describeSurfaces`: where each surface resolved, and what is
-// wrong with it. The protocol has no warning of the project's own, so the warnings about
-// its go.mod files go with the first surface the config names.
+// wrong with it.
 func (p *Project) DescribeSurfaces() map[string]protocol.SurfaceDescription {
 	out := map[string]protocol.SurfaceDescription{}
-	for k, found := range p.surfaces {
-		described := p.describe(found)
-		if k == 0 {
-			described.Warnings = append(described.Warnings, p.versionWarnings()...)
-		}
-		out[found.Name] = described
+	for _, found := range p.surfaces {
+		out[found.Name] = p.describe(found)
 	}
 	return out
 }

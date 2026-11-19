@@ -5,6 +5,7 @@ import type { AuditReport, InventoryEntry } from '../api/audit.js';
 import { InternalError } from '../api/errors.js';
 import type { Explanation } from '../api/explain.js';
 import type { Impact } from '../api/impact.js';
+import type { Mutation } from '../api/mutate.js';
 import type { Reference, Report } from '../api/report.js';
 import { isObject, isStringArray } from '../json.js';
 
@@ -54,6 +55,14 @@ export const asImpact = (value: unknown): Impact =>
     'impact',
     (v) => isObject(v) && isStringArray(v.symbols) && Array.isArray(v.references),
   ) as Impact;
+
+/** `mutate --json`: a verdict on each proof, and the counts. */
+export const asMutation = (value: unknown): Mutation =>
+  fits(
+    value,
+    'mutate',
+    (v) => isObject(v) && Array.isArray(v.proofs) && isObject(v.summary),
+  ) as Mutation;
 
 function fits(value: unknown, command: string, shape: (value: unknown) => boolean): unknown {
   if (!shape(value)) {

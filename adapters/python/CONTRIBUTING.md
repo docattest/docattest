@@ -9,11 +9,12 @@ adapter, and its subpackages follow the path of a request: <!-- fact: [p.split("
   where it enters, as an `internal` error that names it.
 - `session/` is the project that `open` describes and the parts that answer questions
   about it: a workspace (the project's files, modules, surfaces and setup module), what
-  `compile` reports, the symbols and tests of attestations, and the work sent to the pool.
+  `compile` reports, the symbols and tests of attestations, the edits `mutants` offers for
+  symbols, the work sent to the pool, and the cited tests it runs.
 - `analysis/` reads Python modules without importing them: what a module binds and
   exports, the values of its constants, which names a piece of code uses, what a
-  configured surface resolves to and what a fact may read of it, and which exports a change
-  affects. Its `declared_tests/` reads the tests a test file declares, with the cases that
+  configured surface resolves to and what a fact may read of it, which exports a change
+  affects, and the edits that change a declaration's literals, as byte offsets of its file. Its `declared_tests/` reads the tests a test file declares, with the cases that
   `parametrize` and `subTest` write. It knows nothing of sessions or processes.
 - `workers/` is where attested code runs: the interpreter it runs on, the pool of worker
   processes, and the worker itself. The worker (`worker.py`, started by its path, and its
@@ -21,6 +22,11 @@ adapter, and its subpackages follow the path of a request: <!-- fact: [p.split("
   project's own interpreter, so it imports nothing from the rest of the adapter. What the
   adapter sends it and what it writes back are typed messages defined beside it, read
   back on each side with the same field reader.
+- `test_runs/` runs the tests citations name, for `check --run-cited`: which runner runs
+  each test and the command line that selects it, the reading of each runner's report,
+  and the edge that starts the runner. unittest runs in `unittest_driver.py`, started by
+  its path on the project's interpreter, which, like the worker, uses only the standard
+  library.
 
 At the top of `docattest_python/` sit what every layer shares: the attestations as typed
 values, the two kinds of error a response can carry, and what Python says of itself

@@ -1,8 +1,8 @@
 # index --json
-# recorded from: a value attests what its initializer uses
+# recorded from: explain, citation shorthands, prose pages, matched, manifestField, problems, run-cited, mutate
 === index --json
 exit 0
-stdout 850 lines
+stdout 940 lines
 {
   "CHANGE_TYPES": [
     {
@@ -15,7 +15,7 @@ stdout 850 lines
   "COMMANDS": [
     {
       "page": "README.md",
-      "line": 308,
+      "line": 311,
       "kind": "fact",
       "claim": "Commands"
     },
@@ -29,7 +29,7 @@ stdout 850 lines
   "CONFIG_KEYS": [
     {
       "page": "README.md",
-      "line": 514,
+      "line": 520,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     }
@@ -37,7 +37,7 @@ stdout 850 lines
   "DEFAULT_SNAPSHOT_MAX_AGE_DAYS": [
     {
       "page": "README.md",
-      "line": 524,
+      "line": 531,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -51,7 +51,7 @@ stdout 850 lines
   "DEFAULT_TIMEOUT_MS": [
     {
       "page": "README.md",
-      "line": 525,
+      "line": 532,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -84,6 +84,12 @@ stdout 850 lines
   ],
   "Report": [
     {
+      "page": "docs/citation-shorthands.md",
+      "line": 51,
+      "kind": "cases",
+      "claim": "Each row below is a page beside `test/launch.test.ts`, which declares the tests `python`, `node` and `ruby` inside `describe('run')`, and a `Makefile`; the results are the page's, in order."
+    },
+    {
       "page": "docs/facts.md",
       "line": 47,
       "kind": "cases",
@@ -105,7 +111,7 @@ stdout 850 lines
   "STATUSES": [
     {
       "page": "docs/index.md",
-      "line": 49,
+      "line": 50,
       "kind": "fact",
       "claim": "and one of these statuses:"
     }
@@ -113,7 +119,7 @@ stdout 850 lines
   "codeSpans": [
     {
       "page": "adapters/typescript/README.md",
-      "line": 189,
+      "line": 212,
       "kind": "example",
       "claim": "A cases runner is a function of the setup module's `cases` export, called once per row with the row's cells by column. It gets each cell's text as the page writes it, code spans with their backticks ([cases](../../docs/cases.md#a-runner-receives-each-cell-as-written)). `codeSpans`, which this package exports, takes the code out: it gives the content of every code span in a cell, in order, as a fact over the cell's column compares it."
     },
@@ -133,85 +139,85 @@ stdout 850 lines
   "createProject": [
     {
       "page": "README.md",
-      "line": 500,
+      "line": 506,
       "kind": "example",
       "claim": "Use it from code"
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 117,
+      "line": 123,
       "kind": "example",
       "claim": "A program's most documented values, its port or its default timeout, are often not exported, or live in an entry script that runs when it is imported. So a fact may also read a constant that the surface's module declares at its top level, exported or not. Its value is read from the module's source, and a fact that reads only constants never loads the module: nothing of it runs. A surface may therefore be a command's entry file (`\"cli\": \"./src/main.ts\"`), whose constants are read however the script behaves on import. A fact that names anything else of it, such as a function, loads it, as an example does."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 153,
+      "line": 159,
       "kind": "test",
       "claim": "A fact attests the constants it reads, exported or not, as `where` shows; `uncovered` lists only exports."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 155,
+      "line": 161,
       "kind": "test",
       "claim": "So `impact` lists a change to such a constant as it lists a change to an export, with the facts that read it."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 162,
+      "line": 168,
       "kind": "test",
       "claim": "A function's body is not followed: a fact over `total()` attests `total`, not the names its body reads."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 162,
+      "line": 168,
       "kind": "test",
       "claim": "A function's body is not followed: a fact over `total()` attests `total`, not the names its body reads."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 162,
+      "line": 168,
       "kind": "test",
       "claim": "A function's body is not followed: a fact over `total()` attests `total`, not the names its body reads."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 163,
+      "line": 169,
       "kind": "test",
       "claim": "`impact` lists the fact when one of those names changes."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 170,
+      "line": 176,
       "kind": "test",
       "claim": "When the package's entry does not re-export it, that module can be a surface of its own (`\"internal\": \"./src/caps.ts\"`): facts read and attest the value there, and the package's API stays as it is."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 178,
+      "line": 201,
       "kind": "test",
       "claim": "So `where` lists the fact under them, and `uncovered` no longer lists them."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 179,
+      "line": 202,
       "kind": "test",
       "claim": "`impact` lists the fact when one of them changes."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 202,
+      "line": 225,
       "kind": "test",
       "claim": "Each cell of that table is also written into a page under a `fact column=` that lists what `codeSpans` gives, and the core must agree."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 239,
+      "line": 262,
       "kind": "example",
       "claim": "So the tests of a table the file writes can be cited, each by the title its runner prints for its row: `it.each(table)`, `test.each`, `describe.each` and `test.for` with a literal array, or with a template-literal table, by their title's placeholders (`%s`, `%i`, `%#`, `$name` and the rest); a `for (const c of table)` loop or a `table.forEach((c) => …)` over a literal array (or `Object.entries` of a literal object), by the title its body computes. The table is written in the call or held by a `const` above it that the file never changes. Vitest and Jest print some values differently: Vitest quotes a string that `$name` names, Jest does not. The runner is the one the file imports its test functions from (`vitest`, or `@jest/globals`); when it imports them from neither, a title counts only where the two print the same. The titles Vitest prints are checked against Vitest itself, in a table-driven test whose rows are cited so. What cannot be told stays uncitable: a table the file imports, builds with a call or changes (`cases.push(…)`), and a value a title would show as an object or an array. The title as written, `\"adds %i\"`, still cites the table's test as a whole."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 275,
+      "line": 343,
       "kind": "example",
       "claim": "From code"
     },
@@ -354,62 +360,68 @@ stdout 850 lines
       "claim": "`check({ base: { files } })` compares with a base given as files, which is how every example on this page works: the base is committed with git in the project's temporary directory, so git must be installed. A git ref needs a project on disk, and a project on disk takes only a git ref. A base without a `docattest.config.json` had nothing to protect, so there are no changes."
     },
     {
-      "page": "docs/citations.md",
-      "line": 36,
-      "kind": "example",
-      "claim": "A citation is weaker than an example, and the report keeps it apart as its own kind, `test`, never counted as an example. docattest reads the test file's syntax; it does not run the test. That is the project's own test job, which docattest neither replaces nor watches. So a citation cannot tell that the test fails, is skipped, has been weakened until it asserts nothing, or never tested what the sentence says. It proves only that a test with that name still exists where the page says it does. When a sentence matters enough for more, write an example."
+      "page": "docs/citation-shorthands.md",
+      "line": 51,
+      "kind": "cases",
+      "claim": "Each row below is a page beside `test/launch.test.ts`, which declares the tests `python`, `node` and `ruby` inside `describe('run')`, and a `Makefile`; the results are the page's, in order."
     },
     {
       "page": "docs/citations.md",
-      "line": 56,
+      "line": 41,
+      "kind": "example",
+      "claim": "A citation is weaker than an example, and the report keeps it apart as its own kind, `test`, never counted as an example. By default docattest reads the test file's syntax; it does not run the test. That is the project's own test job. So a citation cannot tell that the test fails, is skipped, has been weakened until it asserts nothing, or never tested what the sentence says. It proves only that a test with that name still exists where the page says it does. [`--run-cited`](#running-the-cited-tests) runs the tests too, which answers the first two; no run answers the last two. When a sentence matters enough for more, write an example."
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 147,
       "kind": "example",
       "claim": "A citation of a test that exists passes, and covers its page"
     },
     {
       "page": "docs/citations.md",
-      "line": 92,
+      "line": 183,
       "kind": "example",
       "claim": "The message names the file and the title. When the title is missing it lists the titles the file does declare, so the fix is plain at the failure site."
     },
     {
       "page": "docs/citations.md",
-      "line": 117,
+      "line": 208,
       "kind": "example",
       "claim": "Describe titles, when given, must match the test's describe blocks"
     },
     {
       "page": "docs/citations.md",
-      "line": 150,
+      "line": 241,
       "kind": "example",
       "claim": "`it` and `test` calls count, with their `.only`, `.skip`, `.concurrent` and `.each` forms, when the file's own literals write the title. The same words in a comment or a string do not."
     },
     {
       "page": "docs/citations.md",
-      "line": 202,
+      "line": 293,
       "kind": "example",
       "claim": "A name the file does not write, such as one a function makes, or a row of a table built by a call or changed after it is written, cannot be cited; the test itself still can. A citation of a case that is not there lists the cases that are."
     },
     {
       "page": "docs/citations.md",
-      "line": 230,
+      "line": 321,
       "kind": "example",
       "claim": "A citation with no title, no file, a missing quote or no closing `-->` is an error at its line. So is one with no sentence before it to defend. A comment that merely starts with a word like \"testing\" is not a citation."
     },
     {
       "page": "docs/citations.md",
-      "line": 267,
+      "line": 358,
       "kind": "example",
       "claim": "A line that holds only directives applies each of them to the line directly below it, as `// @ts-expect-error` does: citations there defend the sentence that starts on that line, and `where` shows that sentence as their claim. With a blank line between such a line and the prose below, a citation is an error at its line that says to put it directly above the sentence or at its end."
     },
     {
       "page": "docs/citations.md",
-      "line": 305,
+      "line": 396,
       "kind": "example",
       "claim": "On a line of its own with no prose directly below it, a citation defends the paragraph immediately before it in the same container: in a list item, the item's own sentence, not the prose before the list."
     },
     {
       "page": "docs/citations.md",
-      "line": 333,
+      "line": 424,
       "kind": "example",
       "claim": "`where` and the index carry a citation under each surface symbol that the cited test's own body uses, imported from a surface by name or by a relative path to the surface's file. Symbols used only in hooks or helpers outside the test are not followed, so such a citation names no symbol; it still covers its page."
     },
@@ -558,6 +570,18 @@ stdout 850 lines
       "claim": "Many packages declare only an `import` condition in their exports map. Examples and facts can still use a surface that depends on one; docattest resolves through the `import` condition when the `require` path is not exported."
     },
     {
+      "page": "docs/explain.md",
+      "line": 73,
+      "kind": "example",
+      "claim": "`explain --json`, and `project.explain(page, line)` in the programmatic API, give the same as an object: for each directive its `line` and `kind`; `placed`, with the line of the sentence for a directive placed above one; a fact's `rule`; a citation's `alias`; the `attestation` as the adapter is sent it, with its claim and its target, file or rows; and the `results`, a fact's carrying the value its expression gives as `actual`. An alias is an entry of the kind `alias`, with its `name`, its `file` and the lines it is `citedAt`."
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 102,
+      "kind": "cases",
+      "claim": "A fact tries these in order, and `rule` names the one that bound it ([facts](facts.md) has the whole story). Each row is a page with one fact, the rule `explain` names, and where the fact took effect."
+    },
+    {
       "page": "docs/facts.md",
       "line": 47,
       "kind": "cases",
@@ -673,85 +697,151 @@ stdout 850 lines
     },
     {
       "page": "docs/manifests.md",
-      "line": 19,
+      "line": 21,
       "kind": "example",
       "claim": "The path is relative to the project root. The fact is held to the file as it is now, so it fails when the manifest changes and the page does not."
     },
     {
       "page": "docs/manifests.md",
-      "line": 48,
+      "line": 50,
       "kind": "example",
       "claim": "The file's name says its format: `.json` is JSON, `.toml` is TOML, `.yaml` and `.yml` are YAML, and a file named `go.mod` is read for its `module`, `go` and `toolchain` directives, each the string it was given (the other directives are not read). Every manifest is an object at the top, so a fact reads a field of any of them the same way; a JSON or YAML file that holds anything else is an error. Keys keep the order the file writes them in. YAML is read as YAML 1.2: an alias is the node its anchor names, a key is its text, and a file of several documents is an error. A fact with `field=` reads a fenced block of JSON, TOML or YAML on the page the same way ([facts](facts.md#a-fact-can-check-one-field-of-a-data-block))."
     },
     {
       "page": "docs/manifests.md",
-      "line": 84,
+      "line": 86,
       "kind": "example",
       "claim": "`file(\"<path>\")` gives a project file's text as the language's string, so a fact takes what it needs with the language's own string and regular-expression functions. It reads any file, whatever its name, and parses nothing."
     },
     {
       "page": "docs/manifests.md",
-      "line": 107,
+      "line": 109,
       "kind": "example",
       "claim": "The text must be UTF-8, because it reaches the adapter inside the protocol's JSON. A file that is not, such as an image, is an error that names it and the offset of its first byte that is not UTF-8, rather than text with characters replaced that a fact would compare without anyone seeing why."
     },
     {
       "page": "docs/manifests.md",
-      "line": 130,
+      "line": 136,
+      "kind": "example",
+      "claim": "`matched(\"<path>\", \"<regex>\")` is what a regular expression matches in a file's text: the text of its first group in its first match, or the whole match when it has no group. `^` and `$` match at the start and end of each line, `.` stops at the end of a line, and a line that ends in `\\r\\n` ends as one that ends in `\\n` does, so a checkout with either line ending gives the same value; `(?-m)` and `(?s)` in the regex turn the first two off. The core matches it with the syntax of Rust's `regex` crate, with look-around and back-references, the same regex in every language."
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 167,
+      "kind": "example",
+      "claim": "`manifestField(\"<path>\", \"<keys>\")` is the value at a path of keys in a manifest's data, written as `field=` writes one ([facts](facts.md#a-fact-can-check-one-field-of-a-data-block)): keys parted by dots, a list's item by its index, a key that holds a dot or a space in quotes. The value is in the language's own kind of value, as `manifest` gives one: a string, a number (an integer where the file writes one), a boolean, null, a list or an object. So a deep field needs no chain of indexes, and in a typed language no type assertions."
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 207,
+      "kind": "example",
+      "claim": "A regex that matches nothing, one that is not valid, a first group that takes no part in the match, and a path that is not in the manifest are each an `error` at the fact, saying which file and what is there instead, as `field=` says it; the fact does not run. So a value that is gone is never compared as an empty string."
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 243,
       "kind": "example",
       "claim": "A missing file, a file that is not valid in its format, and a path that leaves the project are each an `error` at the fact, saying which file and why. The fact does not run. A file that `file` reads follows the same rules, but for the format, which it does not read."
     },
     {
       "page": "docs/manifests.md",
-      "line": 169,
+      "line": 282,
       "kind": "example",
       "claim": "The core reads the files facts name, manifests and texts alike, before anything runs, and gives them to the adapter with the session, as it gives it the snapshots: it never evaluates an expression, and an adapter cannot ask it for a file halfway through one. So it reads exactly the files that facts name as a string literal, in any quotes, and a path built at run time was never read. Reading only those keeps a check from reading, or failing on, files no page is about. A call is the one docattest gives unless it is a member of something else, so a spread before it, `[...manifest(\"tsconfig.json\").references]`, still names its file."
     },
     {
       "page": "docs/manifests.md",
-      "line": 206,
+      "line": 319,
+      "kind": "example",
+      "claim": "Both arguments of `matched` and of `manifestField` are written out too, and the core reads a literal only where every language gives it the same value: a raw literal (`r\"…\"`, `r'…'`, `r#\"…\"#`, `` `…` ``) is its text, and a quoted one may escape only a backslash, `\\\\`, and its own quote. So a regex is written `\"^USER (\\\\d+)$\"`, or raw where the language has raw strings: `` `^USER (\\d+)$` `` in Go, `r\"^USER (\\d+)$\"` in Python and Rust. Any other escape, such as the `\\d` of `\"^USER (\\d+)$\"`, means something different in each language (in TypeScript it is a plain `d`), so the call names nothing, and the fact fails saying it was not read."
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 350,
       "kind": "example",
       "claim": "`impact` lists the facts that read a manifest the change touched, under the manifest's call, beside the exports the change affects; its answer then has `manifests`, the changed files that facts read. A file that facts read with `file` is listed the same way, under its own call, and in `files`. `impact --file` and an agent's hook answer only for an edit to a source file, so an edit to a manifest shows in `impact` and `impact --base`, not after each edit. `check --base` needs nothing more: every fact is evaluated against the file as it is."
     },
     {
+      "page": "docs/manifests.md",
+      "line": 378,
+      "kind": "example",
+      "claim": "A fact that reads a file with `manifestField` is listed as one that reads it with `manifest`, and one that reads it with `matched` as one that reads it with `file`: under the file's call."
+    },
+    {
+      "page": "docs/mutate.md",
+      "line": 48,
+      "kind": "example",
+      "claim": "What a proof reads of the code is the symbols the index has for it (`docattest where` lists them), and changing a symbol's value is its language's business: the adapter answers edits to the literals of the symbol's declaration, and the core makes each one alone, in a copy of the project. A number gains one, a string gains an `x` before its closing quote, a boolean is flipped, and a list loses its last item before each of its items is changed. [The protocol](../protocol/PROTOCOL.md) has the rule every adapter follows, and each language's guide lists its own: [Python](../adapters/python/README.md), [Go](../adapters/go/README.md), [Rust](../adapters/rust/README.md) and [TypeScript](../adapters/typescript/README.md). At most 8 edits of one symbol are run, the first in source order:"
+    },
+    {
+      "page": "docs/mutate.md",
+      "line": 74,
+      "kind": "example",
+      "claim": "The files facts read, the core reads itself (`file`, `matched`, `manifest` and `manifestField`, as [manifests](manifests.md) describes), so the core changes what those calls give, the same in every language: each line of a file's text that is not blank, what a regex matched (its last number counted up, or an `x` added), and each value of a manifest (a number plus one, a string as text is, a boolean flipped, a list without its last item). At most 64 changes of one call are run; each is one more evaluation in the project's own session, so they cost little."
+    },
+    {
+      "page": "docs/mutate.md",
+      "line": 106,
+      "kind": "example",
+      "claim": "A row of a [cases table](cases.md) is a proof of its own, and the core changes one of its cells at a time on a copy of the row: the content of the cell's last code span, else its text, the last number in it counted up, else an `x` added. The first cell names the row and is never changed. A row is killed when some change fails it, and a cell no change of which fails its row is named (`ignoredCells`): the runner does not read that column, and the page promises something no proof checks."
+    },
+    {
+      "page": "docs/mutate.md",
+      "line": 181,
+      "kind": "example",
+      "claim": "`mutate --json`, and `project.mutate({ pages })` in the programmatic API, give the same as an object: `proofs`, each with its `page`, `line`, `kind`, `claim` (a row's `row`, its first cell) and `status`; a killed proof's `killedBy`, the number of `mutants` run and its `ignoredCells`; a survivor's `survivors`, every change it survived; for both, how many of their mutants were `stillborn`; a proof not mutated's `why`; and a `summary` of the counts, `stillborn` among them."
+    },
+    {
       "page": "docs/pages.md",
-      "line": 14,
+      "line": 15,
       "kind": "example",
       "claim": "A living page with no attestations is uncovered, not failing"
     },
     {
       "page": "docs/pages.md",
-      "line": 36,
+      "line": 37,
       "kind": "example",
       "claim": "A false fact on a frozen page produces no result. The page is listed under `frozen`."
     },
     {
       "page": "docs/pages.md",
-      "line": 59,
+      "line": 60,
       "kind": "example",
       "claim": "Every list of globs in the config adds files: a file is a page when any glob of `pages` matches it. A glob that starts with `!` would match every file it does not name, so the config refuses one and says to list the pages to leave out in `frozen`."
     },
     {
       "page": "docs/pages.md",
-      "line": 111,
+      "line": 112,
       "kind": "example",
       "claim": "`docattest: false` in the frontmatter freezes one page without touching the config."
     },
     {
       "page": "docs/pages.md",
-      "line": 133,
+      "line": 137,
+      "kind": "example",
+      "claim": "Some living pages hold only guidance: an index of the docs, a contributing guide. Calling one uncovered says a proof is missing when none could be written, and freezing it says \"never check this\", which is not what is meant either. `prose` in the config, globs of pages as `frozen` takes, or `docattest: prose` in a page's frontmatter, marks such a page. It stays living: a directive on it still runs, and `audit` still reads it. It is never reported as uncovered: the report object lists it under `prose`, which it has only when some page is prose, and the coverage line counts it apart from the uncovered and the frozen."
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 165,
+      "kind": "example",
+      "claim": "A page marked as prose that gains a proof is covered like any other page, and its marker becomes a warning, since it now says something false about the page. A warning never fails the check."
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 189,
       "kind": "example",
       "claim": "`check({ pages })`, and `docattest check <page or glob>...` on the command line, runs only the attestations on the matching pages. Patterns are paths or globs relative to the project root. Coverage still describes every living page, so checking one page never makes the rest look uncovered."
     },
     {
       "page": "docs/pages.md",
-      "line": 160,
+      "line": 216,
       "kind": "example",
       "claim": "A pattern that matches no living page is an error, so a typo cannot pass as an empty check."
     },
     {
       "page": "docs/pages.md",
-      "line": 182,
+      "line": 238,
       "kind": "example",
       "claim": "An `@example` in a doc comment on a source file matched by `sources` is an `example` when its first line is `// check` or `// compile`. The result's page is the source file and its symbol is the documented export."
     },
@@ -793,9 +883,9 @@ stdout 850 lines
     },
     {
       "page": "docs/report.md",
-      "line": 177,
+      "line": 278,
       "kind": "example",
-      "claim": "The coverage line gives the number of attestations on the living pages, a cases table counting one for each row, and then splits it in two. Proofs are what docattest runs or evaluates itself: examples, facts and table rows. A weak example, a `check` block that asserts nothing, is still a proof, so the weak ones are counted among the proofs. Citations only check that the test they name still exists: they say where to look, not that the sentence holds ([citations](citations.md#what-a-citation-does-not-prove)). All three counts are always printed, `0` too, and the report object carries them as `attestations`, `proofs`, `weak` and `cited`, with `proofs` and `cited` adding up to `attestations`."
+      "claim": "The coverage line gives the number of attestations on the living pages, a cases table counting one for each row, and then splits it in two. Proofs are what docattest runs or evaluates itself: examples, facts and table rows. A weak example, a `check` block that asserts nothing, is still a proof, so the weak ones are counted among the proofs. Citations only check that the test they name still exists: they say where to look, not that the sentence holds ([citations](citations.md#what-a-citation-does-not-prove)). All three counts are always printed, `0` too, and the report object carries them as `attestations`, `proofs`, `weak` and `cited`, with `proofs` and `cited` adding up to `attestations`. A check that runs the cited tests also says how many of the citations ran ([running the cited tests](citations.md#running-the-cited-tests))."
     },
     {
       "page": "docs/snapshots.md",

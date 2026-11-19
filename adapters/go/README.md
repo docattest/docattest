@@ -277,14 +277,35 @@ page, and the constants it reads from source, unexported or in a `package main`.
 
 ### Citations
 
-[Citations](docs/citations.md): what a test is in a Go test file, and the subtests of a
-table-driven test that can be cited.
+[Citations](docs/citations.md): what a test is in a Go test file, the subtests of a
+table-driven test that can be cited, and how `check --run-cited` runs them with `go test`.
 
 ## What is never your project's own
 
 The adapter tells the core to leave files and directories named `vendor`, `testdata` and
 `node_modules` alone, wherever they are. <!-- fact: Hello().IgnoredNames --> Hidden
 directories are left out by the core itself.
+
+## What `mutate` changes
+
+<!-- tests: mutants = internal/analysis/mutants_test.go -->
+
+`docattest mutate` changes what a proof reads and runs the proof again. In Go it changes
+the literals of the value a package-level constant or variable is declared with, one at a
+time, in source order: an integer becomes that number plus one, written in decimal
+(`0x10 → 17`); a floating-point number too, written so that Go still reads a float
+(`1e3 → 1001.0`); a string, raw or not, gains an `x` before its closing quote, its escapes
+kept; the predeclared `true` and `false` are flipped. <!-- test: mutants > "TestMutantsChangeTheLiteralsOfAValue" -->
+A slice literal, or an array literal whose length is `...`, first loses its last item
+(`"LOG_LEVEL" removed`), and what is left is still a list Go reads. <!-- test: mutants > "TestARemovedItemLeavesAListGoReads" -->
+A map literal's keys change as its values do. An array whose length is written keeps its
+items, and runes, `nil`, struct field names and what is inside a function literal or a type
+are left alone. <!-- test: mutants > "TestMutantsChangeTheLiteralsOfAValue" -->
+A change is made only when the value still type-checks with it: `const Max uint8 = 255` is
+not made 256, and two keys of a map do not become one. The uses of the value elsewhere are
+not checked. <!-- test: mutants > {"TestMutantsChangeTheLiteralsOfAValue", "TestMutantsSayWhyAValueHasNone"} -->
+A function, a method or a type has no changes, and neither has a value with no literal,
+such as `time.Now()`, another constant's name or `iota`, nor one declared outside the project. <!-- test: mutants > {"TestMutantsSayWhyAValueHasNone", "TestMutantsAreOfTheProjectsOwnFiles"} -->
 
 ## Limits
 

@@ -1,5 +1,6 @@
 //! Project files: discovery on disk, paths and glob matching (`src/files/`).
 
+pub mod copy;
 pub mod glob;
 pub mod ignored;
 pub mod memory;

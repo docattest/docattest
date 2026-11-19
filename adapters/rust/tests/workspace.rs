@@ -89,8 +89,9 @@ fn a_surface_that_does_not_load_says_where_the_program_that_imports_it_is() {
     let workspace = open("misnamed");
     let got = workspace.call("evaluate", json!({ "facts": [fact("lost", "NETWORK", "misnamed")] }));
     let message = got["lost"]["message"].as_str().unwrap();
-    let at = "surface \"misnamed\" failed to load: target/docattest/crate/src/bin/p_";
-    assert!(message.starts_with(at) && message.contains("unresolved import"), "{message}");
+    let (at, program) = ("surface \"misnamed\" failed to load: target/docattest/", "/crate/src/bin/p_");
+    let in_work = message.starts_with(at) && message.contains(program);
+    assert!(in_work && message.contains("unresolved import"), "{message}");
 }
 
 #[test]

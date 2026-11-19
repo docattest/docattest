@@ -13,11 +13,15 @@ from .parametrize import parametrized
 from .subtests import subtests
 from .tables import Scope, scope_of
 
+#: What a declared thing is: a test function or method, a case of one that ``parametrize``
+#: or ``subTest`` writes, or a class that holds tests (a suite).
+DeclaredKind = Literal["test", "parametrized", "subtest", "suite"]
+
 
 class Declared(NamedTuple):
-    """A test, or a class that holds tests (a suite), as a test file declares it."""
+    """A test, a case of one, or a class that holds tests (a suite), as a test file declares it."""
 
-    kind: Literal["test", "suite"]
+    kind: DeclaredKind
     title: str
     #: The classes and the test that enclose it, outermost first.
     describes: list[str]
@@ -47,8 +51,11 @@ def _visit(
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             if node.name.startswith("test"):
                 yield Declared("test", node.name, describes, node.lineno, node)
-                for case in parametrized(node, classes, tree, scope) + subtests(node, scope):
-                    yield Declared("test", case.title, [*describes, node.name], case.line, node)
+                inside = [*describes, node.name]
+                for case in parametrized(node, classes, tree, scope):
+                    yield Declared("parametrized", case.title, inside, case.line, node)
+                for case in subtests(node, scope):
+                    yield Declared("subtest", case.title, inside, case.line, node)
         elif isinstance(node, ast.ClassDef):
             yield Declared("suite", node.name, describes, node.lineno, node)
             yield from _visit(node.body, [*classes, node], tree, scope)

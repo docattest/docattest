@@ -285,12 +285,13 @@ $ go list -tags docattest -f '{{.GoFiles}}' ./sandbox
 ```
 
 So `check` vets them itself. It runs `go vet -tags docattest` on each surface package that
-has a docs helper file, and gives what vet finds in those files as a warning of the
-surface, with the file and the line. What vet finds in the package's other files is left
-to your own vet. <!-- test: internal/running/vet_test.go > "TestVetReportsWhatItFindsInDocsHelperFiles" -->
+has a docs helper file, and gives what vet finds in those files with the file and the line.
+What vet finds in the package's other files is left to your own vet. <!-- test: internal/running/vet_test.go > "TestVetReportsWhatItFindsInDocsHelperFiles" -->
+A finding in a package that two surfaces share is reported once. <!-- test: internal/running/vet_test.go > "TestAFindingInAPackageTwoSurfacesShareIsReportedOnce" -->
+Each finding is a failing result of kind `problem` at the helper file's line, which fails
+the check, even a check of named pages. <!-- test: endtoend/endtoend_test.go > "TestAVetFindingInADocsHelperFailsTheCheck" -->
 Helpers that vet finds nothing in add nothing to the report. <!-- test: internal/running/vet_test.go > "TestCleanDocsHelpersSayNothing" -->
-A warning leaves the exit code as it is: the protocol carries no failure outside a page's
-proofs. To have CI fail on a helper, give your own tools the tag. In CI, run vet with it:
+To have your own tools see the helpers too, give them the tag. Run vet with it:
 
 ```console check cwd=testdata/fixture
 $ go vet -tags docattest ./...

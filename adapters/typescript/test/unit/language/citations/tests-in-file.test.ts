@@ -119,3 +119,41 @@ describe('the tests of a table the file writes', () => {
     expect(titles(code)).toEqual(['c1 > inner 9', 'c2 > inner 9']);
   });
 });
+
+describe('the paths a runner reports a test by', () => {
+  const reported = (code: string) =>
+    Object.fromEntries(
+      findTests('/t.test.ts', code).tests.map((t) => [
+        [...t.describes, t.title].join(' > '),
+        t.reported?.map((path) => path.join(' > ')),
+      ]),
+    );
+
+  it("are a test's own path, or each row's for a table's title as written, at every level", () => {
+    const code = [
+      VITEST,
+      "describe.each(['a', 'b'])('group %s', () => {",
+      "  it.each([1, 2])('adds %i', () => {});",
+      "  for (const c of ['x']) it(c, () => {});",
+      '});',
+      "it('alone', () => {});",
+    ].join('\n');
+    expect(reported(code)).toMatchObject({
+      'group %s > adds %i': [
+        'group a > adds 1',
+        'group a > adds 2',
+        'group b > adds 1',
+        'group b > adds 2',
+      ],
+      'group a > adds 1': ['group a > adds 1'],
+      'group %s > x': ['group a > x', 'group b > x'],
+      'group b > x': ['group b > x'],
+      alone: ['alone'],
+    });
+  });
+
+  it('cannot be told for a table with a row whose title cannot be', () => {
+    const code = [VITEST, "it.each([[1], [{}]])('takes %s', () => {});"].join('\n');
+    expect(reported(code)).toEqual({ 'takes %s': undefined, 'takes 1': ['takes 1'] });
+  });
+});

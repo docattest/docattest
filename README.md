@@ -290,6 +290,7 @@ project drop the `npx`.
 | **Cases** | `cases` | `<!-- cases: runner -->` above a table | a row's expected result is not what the runner produces |
 | **Citation** | `test` | `<!-- test: file > "test name" -->` after a sentence | the test it names no longer exists |
 | **Snapshot** | `snapshot` | a fact that reads `snapshot("name")` | the pinned data from an outside system disagrees with the page, or is too old |
+| **Problem** | `problem` | nothing: it is not a proof, but what an adapter finds wrong outside every proof, such as what `go vet -tags docattest` finds in a Go docs helper file | always, at its file and line ([the report](docs/report.md#what-the-adapter-finds-outside-every-proof-fails-at-its-line)) |
 
 A fact reads your code through the surface, and a project file such as `package.json`,
 `pyproject.toml` or `go.mod` through `manifest("path")`, so a claim like "Node 22.12 or
@@ -321,6 +322,7 @@ report.
 | `inventory` | `inventory [text]` | Values a fact could read, each with its expression, the setup module's named facts included. |
 | `impact` | `impact [--base <ref>]` | The documented symbols your diff affects and the prose that names them. |
 | `impact` | `impact --file <path>` | The same for one edited file's change; silent when nothing is affected. |
+| `mutate` | `mutate [pages…]` | Run each proof again against changes to what it reads, and list the proofs no change makes fail: how strong the documentation is. |
 | `refresh` | `refresh [name]` | Refetch snapshots from their source. |
 | `hooks` | `hooks install` | Add hooks to a coding agent's settings, or `--git` for a pre-commit hook. |
 | `agents` | `agents install` | Write a docattest section into `AGENTS.md`. |

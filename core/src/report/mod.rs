@@ -29,6 +29,9 @@ pub struct Coverage {
     pub weak: usize,
     /// `test` citations, broken ones too: each names a test, and proves nothing itself.
     pub cited: usize,
+    /// With `check --run-cited`, the citations whose test ran, whatever it gave; None when
+    /// the check did not run cited tests.
+    pub cited_run: Option<usize>,
 }
 
 impl Coverage {
@@ -129,6 +132,7 @@ pub fn coverage_for(pages: PageSets, counts: &HashMap<String, usize>, weak: usiz
         attestations: pages.living.iter().filter_map(|p| counts.get(p)).sum(),
         weak,
         cited,
+        cited_run: None,
     }
 }
 
@@ -147,6 +151,9 @@ fn coverage_json(c: &Coverage) -> Value {
     m.insert("proofs".into(), json!(c.proofs()));
     m.insert("weak".into(), json!(c.weak));
     m.insert("cited".into(), json!(c.cited));
+    if let Some(run) = c.cited_run {
+        m.insert("citedRun".into(), json!(run));
+    }
     Value::Object(m)
 }
 
@@ -246,12 +253,15 @@ impl Report {
     /// Proofs and citations are always counted apart, and summed: a citation only says where
     /// to look, so a total alone would make coverage look stronger than it is. Prose and
     /// frozen pages are counted, never named: marking them was the project's decision. Prose
-    /// is counted only in a project that has some.
+    /// is counted only in a project that has some. Citations whose test ran are counted among
+    /// the citations, not the proofs: a run shows that the test passes, not that it tests the
+    /// sentence.
     fn coverage_lines(&self, detail: Detail) -> Vec<String> {
         let c = &self.coverage;
         let prose = if c.prose.is_empty() { String::new() } else { format!(", {} prose", c.prose.len()) };
+        let run = c.cited_run.map_or_else(String::new, |run| format!(", {run} of them run"));
         let mut lines = vec![format!(
-            "coverage: {}, {} covered ({}: {}, {} of them weak, and {}), {} uncovered{prose}, {} frozen",
+            "coverage: {}, {} covered ({}: {}, {} of them weak, and {}{run}), {} uncovered{prose}, {} frozen",
             counted(c.living, "living page"),
             c.covered,
             counted(c.attestations, "attestation"),

@@ -9,7 +9,7 @@ from collections.abc import Callable, Collection
 from typing import cast
 
 from .. import language
-from ..analysis.declared_tests.listing import cited, declared
+from ..analysis.declared_tests.listing import Declared, cited, declared
 from ..analysis.modules import Declaration, Module
 from ..analysis.names import Imports, chains, computed_names, expression_names, free_names
 from ..attestations import Attestation, Example, Fact, TestCitation
@@ -263,7 +263,9 @@ class Symbols:
         name, _ = self.project.module_name(file)
         module = Module(name or "test", file, text, os.path.basename(file) == "__init__.py")
         found: list[ast.AST] = [
-            d.node for d in declared(module.tree) if d.kind == "test" and cited(d, t.title, list(t.describes))
+            d.node
+            for d in declared(module.tree)
+            if d.kind != "suite" and cited(d, t.title, list(t.describes))
         ]
         if not found:
             return []
@@ -272,28 +274,32 @@ class Symbols:
     # --- tests ---------------------------------------------------------------------------
 
     def tests(self, file: str) -> dict[str, object]:
-        if not language.is_source(file):
-            return {"ok": False, "message": f"{file} is not a Python file, so its tests cannot be read"}
-        text = self.workspace.read(self.workspace.abs(file))
-        if text is None:
-            return {"ok": False, "message": f"{file} does not exist"}
-        try:
-            tree = ast.parse(text)
-        except (SyntaxError, ValueError) as err:
-            return {
-                "ok": False,
-                "message": f"{file} does not parse: {type(err).__name__}: {getattr(err, 'msg', err)}",
-            }
+        found = self.declared(file)
+        if isinstance(found, str):
+            return {"ok": False, "message": found}
         tests: list[dict[str, object]] = []
         suites: list[dict[str, object]] = []
-        for test in declared(tree):
+        for test in found:
             entry: dict[str, object] = {"title": test.title, "describes": test.describes, "line": test.line}
-            if test.kind == "test":
+            if test.kind != "suite":
                 tests.append(entry)
             else:
                 # What it is, in Python's word: the core's message says "is a class, not a test".
                 suites.append({**entry, "kind": "a class"})
         return {"ok": True, "tests": tests, "suites": suites}
+
+    def declared(self, file: str) -> list[Declared] | str:
+        """What a test file declares, or why it cannot be read."""
+        if not language.is_source(file):
+            return f"{file} is not a Python file, so its tests cannot be read"
+        text = self.workspace.read(self.workspace.abs(file))
+        if text is None:
+            return f"{file} does not exist"
+        try:
+            tree = ast.parse(text)
+        except (SyntaxError, ValueError) as err:
+            return f"{file} does not parse: {type(err).__name__}: {getattr(err, 'msg', err)}"
+        return declared(tree)
 
 
 def _assigned_names(binding: Declaration) -> list[str]:

@@ -235,6 +235,22 @@ none, in words that read correctly for a language without a compiler too (Python
 need a language to answer and run no adapter, so a stand-in compiled for tests only answers
 as the TypeScript adapter does.
 
+`mutate` tells a change of code that leaves the project unable to build from one that
+makes a proof fail without knowing the language, from what the adapter reports: an `error`,
+or an example's compile diagnostics, that points at a line of the changed file
+(`src/lib.rs:14:5`, `./shop.go:13:9`, `src/index.ts(3,5)`) is the code not building, and so
+is a project that cannot be loaded or opened with the change. Such a mutant is stillborn
+and kills nothing. A value that differs, a test that fails, a panic while an example runs,
+an error about something else (a key that is gone) or a traceback's `"a.py", line 3` is how
+the changed code behaves, and kills. A proof whose every mutant was stillborn is not
+mutated. <!-- test: src/mutate/effect.rs > "tests" > "an_error_that_points_at_the_changed_file_is_the_code_not_building" --> <!-- test: src/mutate/effect.rs > "tests" > "a_value_that_differs_and_an_error_about_something_else_are_how_the_code_behaves" --> <!-- test: src/mutate/verdict.rs > "tests" > "a_stillborn_mutant_kills_nothing_and_a_proof_with_only_those_is_not_mutated" --> <!-- test: src/mutate/tests.rs > "a_change_that_fails_a_proof_kills_it_one_that_breaks_the_project_is_stillborn" -->
+
+Its copies of the project are directories beside the project's, each claimed by a lock file
+beside it that the run holds while the copy lives. A copy goes when it is dropped, at the end
+of a run or when a panic unwinds; SIGINT and SIGTERM wake a thread that removes the copies
+before the process exits as the signal would have ended it; and a copy whose lock is free was
+left by a run that was killed outright, and the next run removes it. <!-- test: src/mutate/sibling.rs > "tests" > "a_claim_is_a_locked_sibling_that_another_claim_skips_and_both_go_when_dropped" --> <!-- test: src/mutate/sibling.rs > "tests" > "a_claim_is_removed_when_the_code_holding_it_panics" --> <!-- test: tests/mutate_signal.rs > "a_run_stopped_by_sigterm_removes_its_copies" --> <!-- test: src/mutate/sibling.rs > "tests" > "a_copy_a_killed_run_left_is_cleared_and_one_a_live_run_holds_is_not" -->
+
 Git is read in one module, and every child process, git and the adapter alike, is started
 by one function that holds a lock meanwhile: a child forked while another thread is between
 creating a pipe and marking it close-on-exec would inherit it and keep it open.

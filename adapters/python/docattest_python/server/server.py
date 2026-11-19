@@ -263,9 +263,11 @@ SESSION_METHODS: dict[str, Callable[[Session, Params], object]] = {
     "exports": lambda s, p: s.workspace.exports(p.string("surface")),
     "describeSurfaces": lambda s, p: s.describe_surfaces(),
     "tests": lambda s, p: s.symbols.tests(p.string("file")),
+    "runTests": lambda s, p: s.cited_tests.run(p.requested_tests("tests"), p.number("timeoutMs")),
     "observables": lambda s, p: s.running.observables(p.string("surface")),
     "affected": lambda s, p: s.affected(p.base("base"), p.strings("changed")),
     "inCode": lambda s, p: s.workspace.in_code(p.strings("names"), p.strings("files")),
+    "mutants": lambda s, p: s.mutants.mutants(p.mutated_symbols("symbols"), p.integer("limit")),
 }
 
 

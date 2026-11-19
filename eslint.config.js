@@ -28,6 +28,7 @@ export default defineConfig(
       // Python virtualenvs (adapters/python's linter).
       '**/.venv/',
       `${PACKAGE}/dist/`,
+      `${PACKAGE}/.dist-*/`,
       'core/target/',
       'core/vendor/',
       'adapters/python/',

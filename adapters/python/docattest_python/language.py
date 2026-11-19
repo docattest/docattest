@@ -32,7 +32,7 @@ IGNORED_MARKERS = ["pyvenv.cfg"]
 #: Info-string words of this adapter's own; the core passes them on in an example's tags.
 CONTINUE = "continue"
 INFO_WORDS = [CONTINUE]
-CAPABILITIES = ["tests", "observables", "affected", "display"]
+CAPABILITIES = ["tests", "runTests", "observables", "affected", "display", "mutants"]
 
 
 class SourceText(NamedTuple):

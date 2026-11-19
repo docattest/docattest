@@ -5,8 +5,9 @@
 //! block may use what a doc test of the project may use. It carries the project's own
 //! `[patch]` tables and starts from its lock file, so the project's code is built from
 //! the same sources as in the project's own build. It lives in the project's target
-//! directory (`target/docattest`), with a target directory of its own, and what cargo
-//! built there is still there the next time.
+//! directory, in a directory named for the workspace's root (`target/docattest/<hash>`),
+//! with a target directory of its own, and what cargo built there is still there the next
+//! time. Copies of a project that share one target directory each build their own.
 //!
 //! The part of every program that is the same each time, the harness, is a package of its
 //! own, written with std alone, that the generated crate depends on. A program that needs

@@ -53,6 +53,7 @@ mod tests {
             attestations: results.len(),
             weak: 0,
             cited: 0,
+            cited_run: None,
         };
         let exit_code = crate::report::exit_code_for(&results);
         let surface = SurfaceCoverage {

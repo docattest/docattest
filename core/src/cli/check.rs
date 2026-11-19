@@ -1,5 +1,5 @@
-//! `check [pages…] [--base <ref>]`: run the attestations of the project, and of each of its
-//! members when no page is named, and print the reports.
+//! `check [pages…] [--base <ref>] [--run-cited]`: run the attestations of the project, and
+//! of each of its members when no page is named, and print the reports.
 
 use std::path::{Path, PathBuf};
 
@@ -11,7 +11,7 @@ use crate::api::errors::{Error, Result};
 use crate::changes::BaseReading;
 use crate::config::{Member, ProjectConfig};
 use crate::files::source::DiskFiles;
-use crate::project::check::run_check;
+use crate::project::check::{CitedTests, run_check};
 use crate::project::state::{State, launch, select_pages};
 use crate::report::Report;
 use crate::report::members::{Checked, MemberReport};
@@ -21,7 +21,8 @@ use crate::snapshots::now_ms;
 /// With `--report`, also writes the report for CI services.
 pub(super) fn check(args: &[String], root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
     let report_files = ReportFiles::asked(&options.reports, &io.cwd, root)?;
-    let checked = check_projects(args, root, options.base.as_deref())?;
+    let cited = if options.run_cited { CitedTests::Run } else { CitedTests::Declared };
+    let checked = check_projects(args, root, Asked { base: options.base.as_deref(), cited })?;
     if options.json {
         io.out(&pretty(&checked.to_json()));
     } else {
@@ -31,11 +32,19 @@ pub(super) fn check(args: &[String], root: &Path, options: &Options, io: &mut Io
     Ok(checked.exit_code())
 }
 
+/// What a check is asked besides its pages, the same for the project and every member: the
+/// git ref whose change it judges, and whether it runs the tests citations name.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Asked<'a> {
+    pub base: Option<&'a str>,
+    pub cited: CitedTests,
+}
+
 /// The project at `root`, then, unless pages are named, each of its members, and theirs.
-pub(super) fn check_projects(args: &[String], root: &Path, base: Option<&str>) -> Result<Checked> {
-    let (top, config) = check_project(args, root, &Launch::Found, base)?;
+pub(super) fn check_projects(args: &[String], root: &Path, asked: Asked) -> Result<Checked> {
+    let (top, config) = check_project(args, root, &Launch::Found, asked)?;
     let members =
-        if args.is_empty() { check_members(root, None, &config.members, base)? } else { Vec::new() };
+        if args.is_empty() { check_members(root, None, &config.members, asked)? } else { Vec::new() };
     Ok(Checked { top, members })
 }
 
@@ -46,11 +55,13 @@ fn check_members(
     dir: &Path,
     path: Option<&str>,
     members: &[Member],
-    base: Option<&str>,
+    asked: Asked,
 ) -> Result<Vec<MemberReport>> {
     std::thread::scope(|scope| {
-        let checks: Vec<_> =
-            members.iter().map(|member| scope.spawn(move || check_member(dir, path, member, base))).collect();
+        let checks: Vec<_> = members
+            .iter()
+            .map(|member| scope.spawn(move || check_member(dir, path, member, asked)))
+            .collect();
         let mut out = Vec::new();
         for check in checks {
             out.extend(check.join().map_err(|_| Error::internal("a member's check panicked"))??);
@@ -60,18 +71,13 @@ fn check_members(
 }
 
 /// One member's report, then its own members'.
-fn check_member(
-    dir: &Path,
-    path: Option<&str>,
-    member: &Member,
-    base: Option<&str>,
-) -> Result<Vec<MemberReport>> {
+fn check_member(dir: &Path, path: Option<&str>, member: &Member, asked: Asked) -> Result<Vec<MemberReport>> {
     let path = path.map_or_else(|| member.path.clone(), |above| format!("{above}/{}", member.path));
     let launch = Launch::of_member(member.adapter_command.as_deref(), dir);
     let in_member = |why: Error| why.within(format!("member {path}"));
     let member_dir = below(dir, &member.path).map_err(in_member)?;
-    let (report, config) = check_project(&[], &member_dir, &launch, base).map_err(in_member)?;
-    let below_it = check_members(&member_dir, Some(&path), &config.members, base)?;
+    let (report, config) = check_project(&[], &member_dir, &launch, asked).map_err(in_member)?;
+    let below_it = check_members(&member_dir, Some(&path), &config.members, asked)?;
     Ok(std::iter::once(MemberReport { path, adapter: config.adapter, report }).chain(below_it).collect())
 }
 
@@ -93,10 +99,10 @@ fn check_project(
     args: &[String],
     root: &Path,
     launched: &Launch,
-    base: Option<&str>,
+    asked: Asked,
 ) -> Result<(Report, ProjectConfig)> {
     let pages: Vec<String> = args.iter().map(|given| page_argument(root, given)).collect();
-    let (state, reading) = load_with_base(root, launched, base)?;
+    let (state, reading) = load_with_base(root, launched, asked.base)?;
     let selected = if pages.is_empty() {
         state.living.iter().cloned().collect()
     } else {
@@ -107,7 +113,7 @@ fn check_project(
     if let Some(reading) = &reading {
         reading.found()?;
     }
-    let checked = run_check(&state, network(), &selected);
+    let checked = run_check(&state, network(), &selected, asked.cited);
     let report = with_base_changes(checked, reading, &state)?;
     let config = state.config.clone();
     finish(state)?;
@@ -175,7 +181,8 @@ mod tests {
             assert!(below(&top.0, "loop").unwrap_err().to_string().contains("leads out of"));
         }
         let member = Member { path: "core".into(), adapter_command: None };
-        let said = check_members(&top.0, None, &[member], None).unwrap_err().to_string();
+        let asked = Asked { base: None, cited: CitedTests::Declared };
+        let said = check_members(&top.0, None, &[member], asked).unwrap_err().to_string();
         assert!(
             said.starts_with("docattest: member core: docattest.config.json is not valid JSON"),
             "{said}"

@@ -117,7 +117,7 @@ impl Greeting {
         let lower = |words: Vec<String>| words.iter().map(|w| w.to_lowercase()).collect::<Vec<_>>();
         Ok(Greeting {
             block_languages: required("blockLanguages").map(lower)?,
-            capabilities: required("capabilities").map(lower)?,
+            capabilities: required("capabilities")?,
             source_files: SourceFiles::from_hello(hello.get("sourceFiles"))?,
             ignored: Ignored::new(&required("ignoredNames")?, &optional("ignoredMarkers")?)?,
             info_words: optional("infoWords").and_then(info_words)?,
@@ -280,6 +280,15 @@ mod tests {
         assert_eq!(said.no_tests, "it declares no test");
         assert!(read(json!({ "noTests": 1 })).is_err());
         assert!(read(json!([])).is_err());
+    }
+
+    #[test]
+    fn capabilities_are_read_as_the_protocol_spells_them() {
+        let hello = json!({ "blockLanguages": ["TS"], "capabilities": ["tests", "runTests"],
+            "sourceFiles": { "include": [], "exclude": [] }, "ignoredNames": [] });
+        let greeting = Greeting::read(&hello).unwrap();
+        assert_eq!(greeting.capabilities, ["tests", "runTests"]);
+        assert_eq!(greeting.block_languages, ["ts"]);
     }
 
     #[test]

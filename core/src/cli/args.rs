@@ -21,7 +21,7 @@ struct Spec {
 }
 
 /// Options by long name.
-const OPTIONS: [Spec; 14] = [
+const OPTIONS: [Spec; 16] = [
     Spec { name: "root", kind: Type::String, short: None, set: |o, v| o.root = v },
     Spec { name: "json", kind: Type::Boolean, short: None, set: |o, _| o.json = true },
     Spec { name: "quiet", kind: Type::Boolean, short: None, set: |o, _| o.quiet = true },
@@ -30,10 +30,17 @@ const OPTIONS: [Spec; 14] = [
     Spec { name: "force", kind: Type::Boolean, short: None, set: |o, _| o.force = true },
     Spec { name: "base", kind: Type::String, short: None, set: |o, v| o.base = v },
     Spec { name: "report", kind: Type::String, short: None, set: |o, v| o.reports.extend(v) },
+    Spec { name: "run-cited", kind: Type::Boolean, short: None, set: |o, _| o.run_cited = true },
     Spec { name: "hook", kind: Type::Boolean, short: None, set: |o, _| o.hook = true },
     Spec { name: "file", kind: Type::String, short: None, set: |o, v| o.file = v },
     Spec { name: "agent", kind: Type::String, short: None, set: |o, v| o.agent = v },
     Spec { name: "git", kind: Type::Boolean, short: None, set: |o, _| o.git = true },
+    Spec {
+        name: "fail-on-survivors",
+        kind: Type::Boolean,
+        short: None,
+        set: |o, _| o.fail_on_survivors = true,
+    },
     Spec { name: "help", kind: Type::Boolean, short: Some('h'), set: |o, _| o.help = true },
     Spec { name: "version", kind: Type::Boolean, short: None, set: |o, _| o.version = true },
 ];
@@ -51,6 +58,8 @@ pub struct Options {
     pub base: Option<String>,
     /// `check --report <format>=<path>`, once for each file, in the order given.
     pub reports: Vec<String>,
+    /// `check --run-cited`: also run the tests that citations name.
+    pub run_cited: bool,
     pub hook: bool,
     /// `impact --file`: the file that was edited.
     pub file: Option<String>,
@@ -58,6 +67,8 @@ pub struct Options {
     pub agent: Option<String>,
     /// `hooks install --git`: the git pre-commit hook instead of an agent's hooks.
     pub git: bool,
+    /// `mutate --fail-on-survivors`: exit 1 when a proof survived every mutant.
+    pub fail_on_survivors: bool,
     pub help: bool,
     pub version: bool,
 }
@@ -315,5 +326,7 @@ mod tests {
         assert!(line(&["-hh"]).options.help);
         let l = line(&["check", "--report", "junit=a.xml", "--report=codequality=b.json"]);
         assert_eq!(l.options.reports, vec!["junit=a.xml", "codequality=b.json"]);
+        assert!(line(&["check", "--run-cited"]).options.run_cited);
+        assert!(!line(&["check"]).options.run_cited);
     }
 }

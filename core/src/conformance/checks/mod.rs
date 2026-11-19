@@ -4,6 +4,7 @@
 mod answer;
 mod capabilities;
 mod greeting;
+mod problems;
 mod running;
 mod session;
 mod text;
@@ -18,6 +19,7 @@ pub fn checks(kit: &Kit) -> Vec<Check> {
     [&greeting::CHECKS[..], &text::CHECKS, &session::CHECKS, &capabilities::CHECKS]
         .concat()
         .into_iter()
+        .chain(problems::CHECKS)
         .chain(cases)
         .chain(running::CHECKS)
         .collect()

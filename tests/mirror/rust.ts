@@ -100,6 +100,10 @@ const AGREEMENTS: Language['code'] = {
       'pub const NOTHING: Option<u32> = None;',
     ),
   ],
+  'src/batch.ts': () => [
+    LIB,
+    lines('const PORT: u16 = 8080;', '', 'pub fn batch_size() -> u32 {', '    2', '}'),
+  ],
   'src/rates.ts': () => [
     LIB,
     lines(
@@ -119,6 +123,48 @@ const AGREEMENTS: Language['code'] = {
       '#[case::rounds_up(5)]',
       'fn price(#[case] cents: u32) {',
       '    assert!(cents > 0);',
+      '}',
+    ),
+  ],
+  'test/math.test.ts': () => [
+    'tests/math.rs',
+    lines(
+      '#[test]',
+      'fn adds() {',
+      '    assert_eq!(1 + 1, 2);',
+      '}',
+      '',
+      '#[test]',
+      'fn subtracts() {',
+      '    assert_eq!(2 - 1, 0, "two minus one is not zero");',
+      '}',
+      '',
+      '#[test]',
+      '#[ignore]',
+      'fn multiplies() {',
+      '    assert_eq!(2 * 2, 4);',
+      '}',
+    ),
+  ],
+  // A table's rows are cases only through a crate, and the project downloads none: each
+  // row is a test of its own, in a module named after the table.
+  'test/rounding.test.ts': () => [
+    'tests/rounding.rs',
+    lines(
+      'fn rounds(cents: u32) {',
+      '    assert!(cents < 5, "{cents} cents is too many");',
+      '}',
+      '',
+      'mod rounding {',
+      '    #[test]',
+      '    fn rounds_down() {',
+      '        super::rounds(1);',
+      '    }',
+      '',
+      '    #[test]',
+      '    fn rounds_up() {',
+      '        super::rounds(5);',
+      '    }',
       '}',
     ),
   ],
@@ -161,9 +207,19 @@ export const rust: Language = {
     ['test/retry.test.ts > "throws the last error"', 'tests/retry.rs > "throws_the_last_error"'],
     ['test/price.test.ts > "price" > "rounds up"', 'tests/price.rs > "price" > "rounds_up"'],
     ['test/price.test.ts > "price" > "rounds over"', 'tests/price.rs > "price" > "rounds_over"'],
+    ['test/math.test.ts > ', 'tests/math.rs > '],
+    [
+      'test/rounding.test.ts > "rounding" > "rounds down"',
+      'tests/rounding.rs > "rounding" > "rounds_down"',
+    ],
+    [
+      'test/rounding.test.ts > "rounding" > "rounds up"',
+      'tests/rounding.rs > "rounding" > "rounds_up"',
+    ],
     // A regex is written as a raw string.
     ['"^USER (\\\\d+)$"', 'r"^USER (\\d+)$"'],
     ['"^ENTRYPOINT (\\\\w+)$"', 'r"^ENTRYPOINT (\\w+)$"'],
+    ['fact: batchSize()', 'fact: batch_size()'],
   ],
   code: {
     ...AGREEMENTS,

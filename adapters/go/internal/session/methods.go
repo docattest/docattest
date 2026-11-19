@@ -2,6 +2,7 @@ package session
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/docattest/docattest/adapters/go/internal/protocol"
 )
@@ -15,10 +16,13 @@ func (s *Session) Methods() map[string]protocol.Handler {
 		"symbols":          s.onSymbols,
 		"exports":          s.onExports,
 		"describeSurfaces": s.onDescribeSurfaces,
+		"problems":         s.onProblems,
 		"tests":            s.onTests,
+		"runTests":         s.onRunTests,
 		"observables":      s.onObservables,
 		"affected":         s.onAffected,
 		"inCode":           s.onInCode,
+		"mutants":          s.onMutants,
 	}
 }
 
@@ -57,16 +61,14 @@ func (s *Session) onRun(raw json.RawMessage) (any, error) {
 	return s.runner.Run(params.Examples, params.Cases), nil
 }
 
-// onDescribeSurfaces says where each surface resolved and what is wrong with it: what
-// the analysis finds, and what go vet finds in its docs helper files.
 func (s *Session) onDescribeSurfaces(json.RawMessage) (any, error) {
-	described := s.project.DescribeSurfaces()
-	for name, findings := range s.runner.VetDocsHelpers() {
-		surface := described[name]
-		surface.Warnings = append(surface.Warnings, findings...)
-		described[name] = surface
-	}
-	return described, nil
+	return s.project.DescribeSurfaces(), nil
+}
+
+// onProblems answers what go vet finds in the docs helper files, which belongs to no
+// attestation, and the warnings about the project's go.mod files.
+func (s *Session) onProblems(json.RawMessage) (any, error) {
+	return protocol.ProjectProblems{Problems: s.runner.VetDocsHelpers(), Warnings: s.project.VersionWarnings()}, nil
 }
 
 func (s *Session) onSymbols(raw json.RawMessage) (any, error) {
@@ -100,6 +102,17 @@ func (s *Session) onTests(raw json.RawMessage) (any, error) {
 	return s.project.ListTests(params.File), nil
 }
 
+func (s *Session) onRunTests(raw json.RawMessage) (any, error) {
+	params, err := protocol.Decode[struct {
+		Tests     []protocol.CitedTest `json:"tests"`
+		TimeoutMs int64                `json:"timeoutMs"`
+	}](raw)
+	if err != nil {
+		return nil, err
+	}
+	return s.runTests(params.Tests, time.Duration(params.TimeoutMs)*time.Millisecond), nil
+}
+
 func (s *Session) onObservables(raw json.RawMessage) (any, error) {
 	params, err := protocol.Decode[surfaceParams](raw)
 	if err != nil {
@@ -128,4 +141,15 @@ func (s *Session) onInCode(raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	return s.project.InCode(params.Names, params.Files)
+}
+
+func (s *Session) onMutants(raw json.RawMessage) (any, error) {
+	params, err := protocol.Decode[struct {
+		Symbols []protocol.SymbolRef `json:"symbols"`
+		Limit   int                  `json:"limit"`
+	}](raw)
+	if err != nil {
+		return nil, err
+	}
+	return s.project.Mutants(params.Symbols, params.Limit)
 }

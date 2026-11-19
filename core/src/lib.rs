@@ -12,6 +12,7 @@
 // the compiler reports what nothing calls.
 pub mod adapter;
 pub mod agents;
+mod altered;
 mod api;
 mod attestations;
 mod audit;
@@ -30,6 +31,7 @@ mod impact;
 mod json;
 mod manifests;
 mod markdown;
+mod mutate;
 mod parallel;
 pub mod process;
 mod project;

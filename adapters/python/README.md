@@ -498,7 +498,7 @@ a sentence to a test. A test's title is its function's name: any function or met
 name starts with `test`, as pytest and unittest find them. <!-- test: tests/test_static.py > "Static" > "test_tests_are_listed_from_syntax" --> Enclosing classes may be named
 first, outermost first. Citing a class itself is an error that says so
 (`"TestTotals" in tests/test_pricing.py is a class, not a test`). The file is read, never
-run.
+run, unless the check is asked to run the tests (below).
 
 The cases of a parametrized test, and the subtests of a test, can be cited too: each is a
 test inside its test, titled by the id its runner prints for it, so the case that pytest
@@ -529,6 +529,68 @@ The test itself still can, and a citation of a case that is not there names the 
 are (`tests/test_p.py declares no test "test_named" > "large"; tests there: "test_named",
 "test_named" > "small", …`). <!-- test: tests/test_citations.py > "Citations" > "test_a_case_is_cited_by_its_id" -->
 A case attests what its test uses. <!-- test: tests/test_citations.py > "Citations" > "test_a_case_attests_what_its_test_uses" -->
+
+### Running cited tests
+
+`docattest check --run-cited` also runs each test a citation names, and the citation passes
+only when its test ran and passed. The tests run in the project on disk, on the interpreter
+and with the import path its examples run with ([Which Python runs your code](#which-python-runs-your-code)),
+one run per test file and runner, as many at once as `runtime.workers`. <!-- test: tests/test_cited_tests.py > "CitedTestsOnDisk" > "test_each_cited_test_runs_and_ends_as_its_runner_reports" --> <!-- test: tests/test_selection.py > "Commands" > "test_the_tests_of_one_file_share_a_run_for_each_runner" -->
+What a run prints is kept from the core. A run that has not ended after ten minutes is
+killed, with everything it started, and its tests fail. <!-- test: tests/test_cited_tests.py > "CitedTestsOnDisk" > "test_a_run_that_overruns_its_time_fails_its_tests" -->
+Nothing runs in a project held in memory. <!-- test: tests/test_cited_tests.py > "CitedTestsInMemory" > "test_nothing_runs_in_a_project_in_memory" -->
+
+- **pytest**, when that interpreter can import it, runs
+  `python -m pytest -p no:cacheprovider -q --rootdir=<root> --junitxml=<report> -- <node ids>`,
+  each test by its node id: `tests/test_a.py::TestA::test_b`, and a parametrized case with
+  its id in brackets, `tests/test_a.py::test_total[big discount]`. A test cited whole runs
+  all its cases. <!-- test: tests/test_selection.py > "Selection" > "test_pytest_selects_a_test_by_its_node_id_and_a_case_with_its_id_in_brackets" --> <!-- test: tests/test_selection.py > "Commands" > "test_pytest_gets_each_node_id_once_after_the_options_end" -->
+  How each ended is read from the JUnit XML report: a failure or an error, in the test or
+  its setup, fails it; a skip, or an expected failure (`xfail`), skips it; a test cited
+  whole passes when all its cases do; a node id pytest selects nothing by (a class it does
+  not collect) did not run. The report is read as pytest 9.2 writes it. <!-- test: tests/test_pytest_report.py > "PytestReport" > "test_a_passed_failed_and_skipped_test_each_ends_as_its_testcase_says" --> <!-- test: tests/test_pytest_report.py > "PytestReport" > "test_an_expected_failure_is_skipped_and_an_error_in_setup_fails" --> <!-- test: tests/test_pytest_report.py > "PytestReport" > "test_a_case_ends_as_its_own_testcase_and_a_test_cited_whole_as_all_its_cases" --> <!-- test: tests/test_pytest_report.py > "PytestReport" > "test_a_test_with_no_testcase_did_not_run_and_the_message_quotes_pytest" -->
+  pytest refuses a whole run when one node id selects nothing, so that run is made again,
+  one test at a time. <!-- test: tests/test_pytest_report.py > "PytestReport" > "test_a_run_pytest_refused_runs_again_one_test_at_a_time" -->
+- **unittest** runs otherwise, in a driver of the adapter's, which imports the file as
+  `unittest discover` does, from the first directory above it that is not a package, by its
+  dotted name from there (`tests/test_a.py` is `test_a` from `tests`), and runs the cited
+  methods in one suite, with the module's and the classes' fixtures. <!-- test: tests/test_selection.py > "ModuleImports" > "test_a_file_is_imported_from_the_first_directory_above_it_that_is_not_a_package" --> <!-- test: tests/test_cited_tests.py > "CitedTestsOnDisk" > "test_each_cited_test_runs_and_ends_as_its_runner_reports" -->
+  It runs the test methods of a `TestCase` class at the top of a module; a test function,
+  a method of a nested class or a parametrized case does not run without pytest. <!-- test: tests/test_selection.py > "Selection" > "test_unittest_runs_the_methods_of_classes_at_the_top_of_a_module" --> <!-- test: tests/test_cited_tests.py > "CitedTestsOnDisk" > "test_without_pytest_a_test_function_does_not_run" -->
+  An expected failure is skipped; a fixture that fails fails its tests; a module that does
+  not import, or a class that is not a `TestCase`, runs nothing. <!-- test: tests/test_unittest_report.py > "UnittestReport" > "test_a_failed_fixture_fails_its_tests_and_a_module_that_does_not_import_runs_none" --> <!-- test: tests/test_unittest_report.py > "UnittestReport" > "test_a_method_the_class_does_not_have_did_not_run" -->
+- **A subTest case runs with its test**, under unittest whichever runner runs the rest, since
+  no runner selects a subTest alone: it passes when its subTest ran and passed, and fails
+  with its own message when it failed; its test, cited whole, passes when every subTest
+  did. <!-- test: tests/test_cited_tests.py > "CitedTestsOnDisk" > "test_a_subtest_case_runs_with_its_test_and_ends_as_its_subtest" --> <!-- test: tests/test_unittest_report.py > "UnittestReport" > "test_a_subtest_case_ends_as_its_subtest_and_its_test_as_all_its_subtests" -->
+  A case its test stopped before ends as the test did, and one it never reached did not
+  run. <!-- test: tests/test_unittest_report.py > "UnittestReport" > "test_a_subtest_case_its_test_never_reached_ends_as_its_test_or_did_not_run" -->
+
+## What `docattest mutate` changes
+
+<!-- tests: literals = tests/test_literal_edits.py -->
+<!-- tests: mutants = tests/test_mutants.py -->
+
+`docattest mutate` changes the code a proof reads and runs the proof again, to see whether
+it can fail. What the Python adapter changes are the literals of the value a symbol is
+assigned, found from syntax, through any re-export, to the module that declares it, one
+change at a time. <!-- test: mutants > "Mutants" > {"test_a_surface_symbol_is_changed_where_its_re_export_is_declared", "test_a_surface_reads_its_unexported_constants_from_source"} -->
+They come in source order, at any depth, at most the number the core asks for: <!-- test: literals > "Displays" > "test_nested_literals_come_in_source_order_and_dict_keys_are_literals" --> <!-- test: mutants > "Mutants" > "test_at_most_limit_edits_the_first_in_source_order" -->
+
+- A number gains one, written as Python writes its type: `8080 → 8081`, `1.5 → 2.5`. <!-- test: literals > "Numbers" > {"test_an_int_gains_one_written_in_decimal", "test_a_float_gains_one_written_as_python_writes_a_float"} -->
+- A string or bytes gains `x` before its closing quote, its prefix, quotes and escapes
+  kept: `'shop' → 'shopx'`. Each part of an implicit concatenation is a literal of its own,
+  and an f-string is none. <!-- test: literals > "Strings" > {"test_escapes_and_prefixes_are_kept", "test_bytes_gain_x_too", "test_a_triple_quoted_string_keeps_its_quotes", "test_an_implicit_concatenation_is_one_literal_per_part", "test_an_f_string_is_no_literal"} -->
+- `True` and `False` swap. <!-- test: literals > "Numbers" > "test_a_bool_is_flipped" -->
+- A list, tuple or set first loses its last item (`"B" removed`), then its items change.
+  A tuple of one item becomes `()`, and a set of one `set()`. <!-- test: literals > "Displays" > {"test_a_list_offers_its_last_item_removed_before_its_items", "test_a_single_item_leaves_an_empty_display_of_the_same_kind"} -->
+- A dict's literal keys change as its values do. <!-- test: literals > "Displays" > "test_nested_literals_come_in_source_order_and_dict_keys_are_literals" -->
+
+`None` and `...` stay as they are, and so does anything in a `lambda` or an annotation. <!-- test: literals > "Numbers" > {"test_none_and_ellipsis_are_left_alone", "test_an_annotation_is_not_the_value"} --> <!-- test: literals > "Values" > "test_a_lambda_is_not_followed_but_a_call_is" -->
+A function or class has nothing to change, and neither has a value with no literal in it,
+such as `os.getpid()` or the name of another constant; the report says which. <!-- test: mutants > "Mutants" > "test_a_symbol_without_edits_says_why" -->
+The copies of the project the proofs run in share its `__pycache__`, so attested code runs
+with `PYTHONDONTWRITEBYTECODE` set and writes no bytecode, there or in any run. <!-- test: tests/test_workers.py > "Bytecode" > "test_attested_code_writes_no_bytecode_into_the_project" -->
 
 ## Which Python runs your code
 

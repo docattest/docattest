@@ -40,9 +40,11 @@ pub fn hello() -> Hello {
         ignored_names: words(&["target"]),
         capabilities: vec![
             Capability::Tests,
+            Capability::RunTests,
             Capability::Observables,
             Capability::Affected,
             Capability::Display,
+            Capability::Mutants,
         ],
         info_words: words(&[SHOULD_PANIC]),
         vocabulary: Vocabulary { no_tests: "it declares no test function".into() },

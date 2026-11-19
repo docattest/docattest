@@ -174,6 +174,83 @@ const CITATIONS: Agreement[] = [
   },
 ];
 
+/** Tests a check runs with `--run-cited`: one passes, one fails and one is skipped. */
+const MATH_TEST = lines(
+  "import { test } from 'node:test';",
+  "import assert from 'node:assert/strict';",
+  '',
+  "test('adds', () => {",
+  '  assert.equal(1 + 1, 2);',
+  '});',
+  '',
+  "test('subtracts', () => {",
+  "  assert.equal(2 - 1, 0, 'two minus one is not zero');",
+  '});',
+  '',
+  "test.skip('multiplies', () => {",
+  '  assert.equal(2 * 2, 4);',
+  '});',
+);
+
+/** A table-driven test a check runs with `--run-cited`: its second row fails. */
+const ROUNDING_TEST = lines(
+  "import { describe, test } from 'node:test';",
+  "import assert from 'node:assert/strict';",
+  '',
+  "const cases = [{ name: 'rounds down', cents: 1 }, { name: 'rounds up', cents: 5 }];",
+  '',
+  "describe('rounding', () => {",
+  '  for (const c of cases) {',
+  '    test(c.name, () => {',
+  '      assert.ok(c.cents < 5, `${c.cents} cents is too many`);',
+  '    });',
+  '  }',
+  '});',
+);
+
+const RUN_CITED = ['check', '--json', '--run-cited'];
+
+const RUNS: Agreement[] = [
+  {
+    id: 'run-01',
+    title: '--run-cited runs each cited test: one passes, one fails, one is skipped',
+    ...checked(
+      lines(
+        '# Arithmetic',
+        '',
+        'Adding works. <!-- test: test/math.test.ts > "adds" -->',
+        '',
+        'Subtracting works. <!-- test: test/math.test.ts > "subtracts" -->',
+        '',
+        'Multiplying works. <!-- test: test/math.test.ts > "multiplies" -->',
+      ),
+      { 'test/math.test.ts': MATH_TEST },
+    ),
+    run: RUN_CITED,
+    expect: (out) =>
+      gave(out, 1, ['test:pass', 'test:fail', 'test:error']) &&
+      out.json?.coverage?.citedRun === 2 &&
+      out.stdout.includes('two minus one is not zero'),
+  },
+  {
+    id: 'run-02',
+    title: '--run-cited runs one case of a table-driven test',
+    ...checked(
+      lines(
+        '# Rounding',
+        '',
+        'A cent is rounded down. <!-- test: test/rounding.test.ts > "rounding" > "rounds down" -->',
+        '',
+        'Five cents are rounded up. <!-- test: test/rounding.test.ts > "rounding" > "rounds up" -->',
+      ),
+      { 'test/rounding.test.ts': ROUNDING_TEST },
+    ),
+    run: RUN_CITED,
+    expect: (out) =>
+      gave(out, 1, ['test:pass', 'test:fail']) && out.stdout.includes('5 cents is too many'),
+  },
+];
+
 /** A cases runner that compares what the language's cell helper reads of a cell. */
 const SETUP = lines(
   "import assert from 'node:assert/strict';",
@@ -225,5 +302,50 @@ const SETUP_AND_UNDOCUMENTED: Agreement[] = [
   },
 ];
 
+/** The status of each proof `mutate --json` judged, in order, and why each not mutated was not. */
+const judged = (out: Outcome): string[] => {
+  const answer = JSON.parse(out.stdout) as { proofs: { status: string; why?: string }[] };
+  return answer.proofs.map((p) => (p.why === undefined ? p.status : `${p.status}: ${p.why}`));
+};
+
+const MUTATE: Agreement[] = [
+  {
+    id: 'mutate-01',
+    title: "mutate kills a fact a constant's literal sets, and cannot mutate a function's result",
+    files: project(
+      {
+        'src/batch.ts': lines(
+          'const PORT = 8080;',
+          'export function batchSize(): number { return 2; }',
+        ),
+        'docs/page.md': lines(
+          'The server listens on port `8080`. <!-- fact: PORT -->',
+          '',
+          'A batch holds `2` items. <!-- fact: batchSize() -->',
+        ),
+      },
+      configured({ default: './src/batch.ts' }),
+    ),
+    run: ['mutate', '--json'],
+    expect: (out) => {
+      const [port, size] = judged(out);
+      return (
+        out.code === 0 &&
+        port === 'killed' &&
+        size !== undefined &&
+        /^notMutated: \w+ is a function, class or type: what it gives is computed when it runs$/.test(
+          size,
+        )
+      );
+    },
+  },
+];
+
 /** The mirror's own scenarios, in the order they run. */
-export const agreements: readonly Agreement[] = [...FACTS, ...CITATIONS, ...SETUP_AND_UNDOCUMENTED];
+export const agreements: readonly Agreement[] = [
+  ...FACTS,
+  ...CITATIONS,
+  ...RUNS,
+  ...SETUP_AND_UNDOCUMENTED,
+  ...MUTATE,
+];

@@ -6,7 +6,6 @@ mod project;
 
 use project::Written;
 use serde_json::json;
-use std::path::{Path, PathBuf};
 
 const MANIFEST: &str = "[package]\nname = \"depot\"\nversion = \"0.1.0\"\nedition = \"2021\"\n";
 
@@ -76,9 +75,11 @@ fn affected(depot: &Written, file: &str, now_holds: &str, held: &str) -> String 
     words.join(" ")
 }
 
-/// Where the compiler's listing of a project is built.
-fn listing(depot: &Written) -> PathBuf {
-    depot.root.join("target").join("docattest").join("doc")
+/// Whether the compiler has listed a project: its listing is built in the workspace's own
+/// directory below `target/docattest`.
+fn listed(depot: &Written) -> bool {
+    let workspaces = std::fs::read_dir(depot.root.join("target").join("docattest")).into_iter().flatten();
+    workspaces.map(|workspace| workspace.unwrap().path().join("doc")).any(|doc| doc.is_dir())
 }
 
 fn stocked(test: &str) -> Written {
@@ -103,16 +104,16 @@ fn the_compiler_is_asked_only_about_a_module_syntax_cannot_list() {
     let plain = open_depot("plain", &[("src/lib.rs", "pub fn count() -> u32 {\n    4\n}\n")]);
     assert_eq!(plain.call("exports", json!({ "surface": "depot" })), json!(["count"]));
     assert_eq!(plain.call("describeSurfaces", json!({}))["depot"]["warnings"], json!([]));
-    assert!(!listing(&plain).exists(), "the compiler was asked about a module its source declares");
+    assert!(!listed(&plain), "the compiler was asked about a module its source declares");
 
     let stocked = stocked("asked");
     assert_eq!(
         stocked.call("exports", json!({ "surface": "depot" })),
         json!(["low", "space", "label", "fastens"])
     );
-    assert!(!listing(&stocked).exists(), "the compiler was asked before a module needed it");
+    assert!(!listed(&stocked), "the compiler was asked before a module needed it");
     stocked.call("exports", json!({ "surface": "levels" }));
-    assert!(Path::new(&listing(&stocked)).is_dir());
+    assert!(listed(&stocked));
 }
 
 #[test]

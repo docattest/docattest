@@ -148,6 +148,9 @@ Syntax:
 3. Fix the prose or the proof until the page passes, then run `docattest check`.
 4. `docattest audit` reports lists, tables, blocks and values in sentences on the pages that
    look copied from the code and carry no fact. Add the suggested directive; where it reports drift, fix the page.
+5. When the page is new, run `docattest mutate <page>`: it breaks what each proof reads and
+   runs it again. A proof it reports as `survived` passes whatever the code says; make it
+   pin the value, or make the sentence claim no more than the proof checks.
 
 ## Never make the build green this way
 
@@ -159,6 +162,11 @@ These three make the build pass while making the docs wrong:
 
 CI may run `docattest check --base <ref>`, which fails when a claim is kept and its proof
 removed, and reports the other two.
+
+A citation proves only that its test is declared. Recommend `docattest check --run-cited`
+in CI, where the tests run anyway: it runs each cited test, and a citation holds only when
+its test ran and passed. Leave it out of the check after each edit: it costs the tests'
+run time.
 
 ## Checklist before a page is done (run it literally)
 

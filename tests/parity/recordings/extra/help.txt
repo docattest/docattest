@@ -1,8 +1,8 @@
 # help
-# recorded from: what adopting it in a Go service found
+# recorded from: explain, citation shorthands, prose pages, matched, manifestField, problems, run-cited, mutate
 === --help
 exit 0
-stdout 46 lines
+stdout 56 lines
 usage: docattest <command> [options]
 
   check [pages or globs...]       run attestations (all living pages, or just these);
@@ -15,9 +15,14 @@ usage: docattest <command> [options]
                                   --report <format>=<path>: also write the report to a
                                   file for a CI service, junit or codequality (GitLab);
                                   once for each file
+                                  --run-cited: also run the test each citation names;
+                                  a citation holds only when its test ran and passed
   where <symbol>                  pages, lines and claims that attest a symbol. --json
   uncovered [--surface <name>]    public symbols of a surface no page attests. --json
   index                           the whole symbol → references map (parsing only). --json
+  explain <page>[:<line>]         what each directive on the line, or on the page, binds
+                                  and why, the sentence it defends, and what checking it
+                                  gives. --json
   refresh [name]                  refetch snapshots from their source and rewrite them
   audit                           lists, tables and blocks that look copied from a surface
                                   and carry no directive; advisory, exit 0 (1 when a
@@ -32,6 +37,11 @@ usage: docattest <command> [options]
                                   --file <path>: asked after editing that file; prints
                                   nothing unless it is a source file and something is affected;
                                   exit 1 when the path names no file of the project
+  mutate [pages or globs...]      run each proof again against changes to what it reads
+                                  (a constant's literal, a line of a file it reads, a cell
+                                  of its table): killed when one makes it fail, survived
+                                  when none does. --json; exit 0, or 1 with
+                                  --fail-on-survivors when a proof survived
   hooks install                   add hooks to a coding agent's settings: impact after each
                                   edit, check before the agent stops. --agent
                                   --git: a git pre-commit hook that runs check instead

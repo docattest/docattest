@@ -49,7 +49,6 @@ func (pkg *goPackage) docsNames() map[string]Declares {
 
 // DocsHelperFile is a docs helper file of a surface's package in the project's module.
 type DocsHelperFile struct {
-	Surface string
 	// Path is the file's absolute path, and Page its path relative to the project root.
 	Path, Page string
 }
@@ -67,7 +66,7 @@ func (p *Project) DocsHelperFiles() []DocsHelperFile {
 		for _, name := range slices.Sorted(maps.Keys(pkg.Files)) {
 			if isDocsFile(pkg.Files[name]) {
 				path := filepath.Join(found.Dir, name)
-				out = append(out, DocsHelperFile{Surface: found.Name, Path: path, Page: p.rel(path)})
+				out = append(out, DocsHelperFile{Path: path, Page: p.rel(path)})
 			}
 		}
 	}

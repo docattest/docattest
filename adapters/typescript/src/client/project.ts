@@ -11,6 +11,7 @@ import {
   asImpact,
   asIndex,
   asInventory,
+  asMutation,
   asNames,
   asReferences,
   asReport,
@@ -51,6 +52,8 @@ export function createProject(input: ProjectInput): Project {
       return asInventory(await query(args));
     },
     impact: (options = {}) => impact(place, run, options),
+    mutate: async ({ pages = [] } = {}) =>
+      asMutation(await query(['mutate', '--json', '--', ...pages])),
     async refresh(name?: string, ...rest: unknown[]) {
       if (rest.length > 0) {
         throw new UserError(

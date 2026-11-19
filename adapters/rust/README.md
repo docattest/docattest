@@ -188,8 +188,9 @@ depends on your crates.
 - **`compile`** builds the block and never runs it. The diagnostics are the compiler's own
   errors, at the lines of the block. Warnings are not reported: a snippet is not held to a
   crate's lints, as a doc test is not. <!-- test: src/toolchain/cargo.rs > "tests" > "errors_are_read_from_the_compilers_messages" -->
-- **Where it is built.** In a crate the adapter generates in your target directory
-  (`target/docattest`), never inside your sources. That crate depends on the libraries of
+- **Where it is built.** In a crate the adapter generates in your target directory, in a
+  directory named for your workspace's root (`target/docattest/<hash>`), never inside
+  your sources. That crate depends on the libraries of
   your workspace by path and on what they depend on, dev-dependencies included, so a block
   may use what a doc test may use; it carries your workspace's `[patch]` tables and starts
   from your `Cargo.lock`. What cargo built there is still there the next time: the first
@@ -198,7 +199,7 @@ depends on your crates.
   copy of the fixture, so that its other examples keep theirs:
 
   ```console check cwd=tests/fixture
-  $ d="$(mktemp -d)" && cp -R . "$d" && cd "$d" && rm -rf target/docattest && docattest check --quiet docs/pricing.md > /dev/null && ls target/docattest/crate && rm -rf "$d"
+  $ d="$(mktemp -d)" && cp -R . "$d" && cd "$d" && rm -rf target/docattest && docattest check --quiet docs/pricing.md > /dev/null && ls target/docattest/*/crate && rm -rf "$d"
   Cargo.lock
   Cargo.toml
   harness
@@ -582,6 +583,41 @@ its position or its values, and cannot be cited; neither can an argument of `#[v
 The function itself is cited for all its cases. A loop over a table inside a `#[test]` is
 one test: Rust's test harness has no subtests, so its rows have no names to cite.
 
+#### Running cited tests
+
+`docattest check --run-cited` runs each cited test with `cargo test`, in your project as
+it is on disk. The test's file decides what is built: each target's `mod` declarations are
+followed from its root file, and the target that reaches the file is selected with its
+package, `--lib` for the library, `--test math` for `tests/math.rs`, and `--bin`,
+`--bench` or `--example` for the others. <!-- test: src/running/cited/selection.rs > "tests" > "each_kind_of_target_is_selected_by_its_own_flag" -->
+A file that no target reaches, or that two reach (a `tests/common.rs` that two tests
+declare), runs nothing, and the citation says why. <!-- test: src/running/cited/selection.rs > "tests" > "a_file_belongs_to_the_target_whose_modules_lead_to_it" -->
+
+The cited tests of one target share two runs of cargo: `cargo test --package till --lib
+-- --list` builds the target and lists its tests, and `cargo test --package till --lib --
+--exact tests::adds tests::subtracts` runs exactly the names the citations select from
+that listing, and nothing else. <!-- test: src/running/cited/selection.rs > "tests" > "a_run_lists_then_runs_exactly_the_names_it_listed" -->
+A test function is selected by its path. A function that rstest or test-case makes a
+module of cases, cited whole, runs every case below it; a named case runs the one test its
+macro named after it, whatever position the name begins with. <!-- test: src/analysis/tests/mod.rs > "listing" > "a_test_is_printed_by_its_path_and_a_parametrized_one_by_its_cases" -->
+That name is rstest's `case_2_quarter` for `#[case::quarter(…)]` (`case_02_quarter` among
+ten or more cases), <!-- test: src/analysis/tests/parametrized.rs > "tests" > "an_rstest_case_is_printed_after_its_position" -->
+and test-case's description made an identifier, `a_quarter_off_` for `"A quarter, off!"`,
+after `test_case_1_` from test-case 3.4 on. <!-- test: src/analysis/tests/parametrized.rs > "tests" > "a_test_case_case_is_printed_as_its_description_made_an_identifier" -->
+
+Stable Rust's libtest has no machine-readable report, so what it prints is read, test by
+test. `ok` passes, `#[should_panic]` included; `FAILED` fails, with the failure's own lines,
+from its panic on, and without what the test printed before; a test `#[ignore]` marks is
+skipped, with the reason `#[ignore = "…"]` gives. A test the build leaves out (under a
+`#[cfg]` that does not hold) is not in the listing, and did not run. A target that does
+not compile fails each of its cited tests with the compiler's first error. <!-- test: tests/cited.rs > "each_cited_test_is_run_exactly_and_reported_as_libtest_reports_it" -->
+A test cited whole passes when every one of its cases passes, and fails with the first
+failure among them. <!-- test: src/running/cited/report.rs > "tests" > "a_test_passes_when_every_case_of_it_passed" -->
+A test program that ends without its summary (a test that aborts the process) fails the
+tests it did not report, with how cargo says it ended. <!-- test: src/running/cited/report.rs > "tests" > "a_run_whose_program_ended_early_fails_what_it_did_not_report" -->
+A run of cargo that outlasts the core's limit for it is ended, with everything it started,
+and fails its tests. <!-- test: tests/cited.rs > "a_run_that_overruns_is_ended_and_fails_its_tests" -->
+
 ## What is never your project's own
 
 The adapter tells the core to leave every `target` directory alone. <!-- fact: hello().ignored_names.join(", ") --> Hidden directories are
@@ -599,12 +635,39 @@ something its source does not lead to (`pub use Kind::*` of an enum, a module of
 crate). For a surface that is such a module, the adapter asks the compiler, through
 rustdoc's JSON output, and lists what the compiler lists. This happens by itself, and
 only for such a surface. The listing is built beside the examples, in
-`target/docattest/doc`, and costs one `cargo check` of your dependencies the first time.
+`target/docattest/<hash>/doc`, and costs one `cargo check` of your dependencies the first time.
 
 rustdoc's JSON is not stable yet, so the adapter sets `RUSTC_BOOTSTRAP` to the name of
 your crate for that one command. When the compiler cannot answer (your crate does not
 compile, or a later Rust writes a format this adapter does not read), `check` says so as
 a warning and the surface keeps the exports its source declares.
+
+## What `mutate` changes
+
+`docattest mutate` asks how strong a proof is by changing what it reads and running it
+again. In Rust code, what it changes is the value a constant or a static is declared with:
+each literal of it, one at a time, where it is written.
+
+- An integer gains one, written in decimal, with its suffix kept (`3u32 → 4u32`,
+  `0x1F → 32`). <!-- test: src/analysis/mutants/literals.rs > "tests" > "an_integer_gains_one_in_decimal_and_keeps_its_suffix" -->
+  A float gains one, written as Rust reads a float (`1.5 → 2.5`, `1e3 → 1001.0`). <!-- test: src/analysis/mutants/literals.rs > "tests" > "a_float_gains_one_written_as_a_float_and_keeps_its_suffix" -->
+- A string gains an `x` before its closing quote, and keeps its prefix and escapes:
+  `"shop" → "shopx"`, `b"ab" → b"abx"`, `r#"hi"# → r#"hix"#`. <!-- test: src/analysis/mutants/literals.rs > "tests" > "a_string_gains_an_x_before_its_closing_quote_whatever_its_kind" -->
+- A boolean flips; a character and a byte are left alone. <!-- test: src/analysis/mutants/literals.rs > "tests" > "a_character_and_a_byte_are_left_alone_and_a_boolean_flips" -->
+- A slice (`&[…]`) or a `vec![…]` first loses its last item (`"LOG_LEVEL" removed`), then
+  its items change. <!-- test: src/analysis/mutants/literals.rs > "tests" > {"a_slice_loses_its_last_item_before_its_items_change", "a_last_item_goes_with_the_comma_before_it_and_an_only_one_with_its_trailing_comma", "a_vec_loses_its_last_item_as_a_slice_does"} -->
+  An array whose length its type writes (`[T; N]`, `&[T; N]`) loses no item, which would
+  not compile. <!-- test: src/analysis/mutants/literals.rs > "tests" > "an_array_whose_length_its_type_writes_loses_no_item" -->
+- The fields of tuples and of struct literals are values too, at any depth. <!-- test: src/analysis/mutants/literals.rs > "tests" > "the_fields_of_tuples_and_structs_are_values_at_any_depth" -->
+  A closure or a function the value declares runs only when called, and is left alone,
+  as are types and the length of `[x; N]`. <!-- test: src/analysis/mutants/literals.rs > "tests" > "what_runs_when_called_types_and_lengths_are_left_alone" -->
+
+The constant changed is the one the surface's module declares under the name, or the one
+a `pub use` of it leads to. <!-- test: tests/mutants.rs > "a_reexported_constant_is_changed_where_it_is_declared" -->
+A constant a fact reads from source is changed as well. <!-- test: tests/mutants.rs > "a_constant_read_from_source_is_found_without_a_surface" -->
+A function, a struct or any other item that is not a value has nothing to change, and
+neither has a constant whose value is a call or another constant's name: `mutate` says
+which of these a symbol is. <!-- test: tests/mutants.rs > "a_symbol_without_edits_says_why" -->
 
 ## Limits
 
@@ -638,8 +701,14 @@ a warning and the surface keeps the exports its source declares.
   takes the place of `build.rustflags`, so docattest's build lacks `--cfg docattest`, and
   a fact that calls a docs helper says so. Set `RUSTFLAGS` to those flags for docattest's
   run: the cfg is then added to it. <!-- test: tests/helpers.rs > "a_cargo_config_that_takes_the_place_of_build_rustflags_leaves_docs_helpers_out" -->
-- Two docattest runs on one project at the same time share `target/docattest`: cargo makes
-  one build wait for the other, but they may rewrite each other's generated files.
+- Two docattest runs on one project at the same time share `target/docattest/<hash>`:
+  cargo makes one build wait for the other, but they may rewrite each other's generated
+  files. Copies of a project that share its target directory, as `mutate` makes them, are
+  workspaces of their own, and each builds in a directory of its own. <!-- test: src/project.rs > "tests" > "copies_of_a_project_that_share_a_target_directory_build_apart" -->
+- `mutate` knows a value's type only as far as its declaration writes it. A slice in a
+  struct literal whose field is an array reference (`&[T; N]`) is offered without its last
+  item, and an integer at its type's largest value is offered one more: neither compiles,
+  and the proof that reads it fails for that reason.
 - This adapter has not been run on Windows.
 
 ## Working on this package

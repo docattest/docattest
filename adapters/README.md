@@ -95,6 +95,8 @@ are checked by the conformance suite, so you find out early.
 | `observables` | `hello.capabilities` | `audit` and `inventory`; without it `inventory` is a user error and `audit` finds nothing |
 | `affected` | `hello.capabilities` | `impact`, `impact --file` and the agents' `impact --hook`; without it `impact` is a user error |
 | `display` | `hello.capabilities` | `field=` facts compared in your language's spelling (`True`, `None`); without it a data block's values are compared as JSON writes them |
+| `problems` | `hello.capabilities` | failures that belong to no attestation, each at a project file and line (Go: what `go vet -tags docattest` finds in docs helper files), and warnings about the whole project; without it a check reports neither |
+| `mutants` | `hello.capabilities` | `mutate` changes the literals of the constants proofs read; without it `mutate` changes only the files facts read and the cells of tables, and every proof that reads code is not mutated |
 | `ignoredMarkers` | `hello` | leave out directories marked by a file inside them (Python: a virtualenv's `pyvenv.cfg`) |
 | `infoWords` | `hello` | words of your own on a code fence, passed to you in `tags` (Python: `continue`) |
 | `vocabulary` | `hello` | your language's words in two of the core's sentences about citations |

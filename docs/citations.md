@@ -30,12 +30,13 @@ tests of one place in one directive, and an alias names a test file once for a w
 ## What a citation does not prove
 
 A citation is weaker than an example, and the report keeps it apart as its own kind,
-`test`, never counted as an example. docattest reads the test file's syntax; it does not
-run the test. That is the project's own test job, which docattest neither replaces nor
-watches. So a citation cannot tell that the test fails, is skipped, has been weakened
-until it asserts nothing, or never tested what the sentence says. It proves only that a
-test with that name still exists where the page says it does. When a sentence matters
-enough for more, write an example.
+`test`, never counted as an example. By default docattest reads the test file's syntax; it
+does not run the test. That is the project's own test job. So a citation cannot tell that
+the test fails, is skipped, has been weakened until it asserts nothing, or never tested
+what the sentence says. It proves only that a test with that name still exists where the
+page says it does. [`--run-cited`](#running-the-cited-tests) runs the tests too, which
+answers the first two; no run answers the last two. When a sentence matters enough for
+more, write an example.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -53,6 +54,92 @@ const report = await createProject({
 assert.equal(report.results[0].kind, 'test');
 assert.equal(report.results[0].status, 'pass');
 assert.match(report.results[0].message, /not run by docattest/);
+```
+
+## Running the cited tests
+
+`docattest check --run-cited` also runs the test each citation names, once the check has
+found it declared, and a citation then holds only when its test ran and passed. A test
+that fails fails its citation, with what the runner said about the failure; one the runner
+skips, or does not run at all, is an error that says why. The language's adapter runs the
+project's own test runner with exactly the cited tests selected, so no other test runs,
+and reads the runner's own report of each. Each guide says what runs in its language:
+[TypeScript](../adapters/typescript/README.md#running-cited-tests),
+[Python](../adapters/python/README.md#running-cited-tests),
+[Go](../adapters/go/docs/citations.md#running-cited-tests),
+[Rust](../adapters/rust/README.md#running-cited-tests).
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-run-cited-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('package.json', JSON.stringify({ name: 'demo', type: 'module' }));
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
+put('src/index.ts', 'export const N = 3;');
+put('test/math.test.ts', [
+  "import { test } from 'node:test';",
+  "import assert from 'node:assert/strict';",
+  "test('adds', () => { assert.equal(1 + 1, 2); });",
+  "test('subtracts', () => { assert.equal(2 - 1, 0, 'two minus one is not zero'); });",
+  "test.skip('multiplies', () => { assert.equal(2 * 2, 4); });",
+].join('\n'));
+put('docs/math.md', [
+  'Adding works. <!-- test: test/math.test.ts > "adds" -->', '',
+  'Subtracting works. <!-- test: test/math.test.ts > "subtracts" -->', '',
+  'Multiplying works. <!-- test: test/math.test.ts > "multiplies" -->',
+].join('\n'));
+// ---cut---
+const check = (...args: string[]) => spawnSync(process.execPath, [cli, 'check', ...args], { cwd: root, encoding: 'utf8' });
+
+// Without --run-cited, three tests that are declared hold their citations.
+assert.equal(check().status, 0);
+
+const run = check('--run-cited');
+assert.equal(run.status, 1);
+assert.match(run.stdout, /✓ L1 test: test\/math\.test\.ts:3 declares "adds", which ran and passed\n/);
+assert.match(run.stdout, /✗ L3 test: test\/math\.test\.ts:4 declares "subtracts", which failed: [^]*two minus one is not zero/);
+assert.match(run.stdout, /! L5 test: test\/math\.test\.ts:5 declares "multiplies", which was skipped/);
+```
+
+Running costs what running those tests costs, so it is meant for CI, where the project's
+tests run anyway, and not for the check a coding agent runs after every edit. That is why
+it is a flag of `check` and not a key of the config: the config holds for every check,
+and the cost belongs to the one that asks for it. A test suite is not a block, so
+`runtime.timeoutMs` does not bound a run of one: a run of the runner that has not finished
+after `600_000` <!-- fact: matched("core/src/project/check/cited_runs.rs", `RUN_TIMEOUT_MS: u64 = ([0-9_]+);`) -->
+milliseconds, ten minutes, is stopped, and its tests fail.
+
+A citation whose test ran is still a citation, not a proof: the run shows that the test
+passes, not that it tests the sentence. So the coverage line counts it among the
+citations, and says how many of them ran; the report object has the count as
+`citedRun`, only when the check ran cited tests.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-run-cited-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('package.json', JSON.stringify({ name: 'demo', type: 'module' }));
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
+put('src/index.ts', 'export const N = 3;');
+put('test/math.test.ts', "import { test } from 'node:test';\ntest('adds', () => {});\ntest.skip('multiplies', () => {});");
+put('docs/math.md', 'N is `3`. <!-- fact: N -->\n\nIt adds. <!-- test: test/math.test.ts > "adds" -->\n\nIt multiplies. <!-- test: test/math.test.ts > "multiplies" -->');
+// ---cut---
+const check = (...args: string[]) => spawnSync(process.execPath, [cli, 'check', ...args], { cwd: root, encoding: 'utf8' }).stdout;
+assert.ok(check('--run-cited').split('\n').includes('coverage: 1 living page, 1 covered (3 attestations: 1 proof, 0 of them weak, and 2 citations, 1 of them run), 0 uncovered, 0 frozen'));
+assert.equal(JSON.parse(check('--json', '--run-cited')).coverage.citedRun, 1);
+assert.equal(JSON.parse(check('--json')).coverage.citedRun, undefined);
 ```
 
 ## A citation of a test that exists passes, and covers its page

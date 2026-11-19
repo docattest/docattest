@@ -4,6 +4,7 @@ import { listTests } from './citations/listing.js';
 import { Compiler } from './compiler.js';
 import { surfaceObservables } from './inventory/observables.js';
 import { affectedExports } from './impact/affected.js';
+import { symbolMutants } from './mutants/symbol-mutants.js';
 import { FactEvaluator } from './run/facts.js';
 import { Runner } from './run/runner.js';
 import { SurfaceDeclarations } from './surfaces/declarations.js';
@@ -12,6 +13,7 @@ import { surfaceSpecs } from './surfaces/specs.js';
 import { workspaceBuildWarnings } from './surfaces/workspace-builds.js';
 import { namesInCode } from './syntax/lexical.js';
 import { SymbolResolver } from './symbols.js';
+import { runCitedTests } from './test-runs/run-tests.js';
 
 /**
  * The TypeScript adapter for one check: a compiler program for `compile`, `symbols` and
@@ -39,10 +41,13 @@ export function createSession(ctx: AdapterContext): AdapterSession {
     symbols: (attestation) => Promise.resolve(symbols.of(attestation)),
     exports: (name) => Promise.resolve(compiler.exports(name)),
     tests: (file) => Promise.resolve(listTests(ctx.files, file)),
+    runTests: (tests, timeoutMs) =>
+      runCitedTests(ctx.files, tests, { timeoutMs, workers: ctx.workers }),
     observables: async (name) => surfaceObservables(facts, compiler.exports(name) ?? [], name),
     describeSurfaces: () => Promise.resolve(describeSurfaces(ctx.files, surfaces)),
     affected: (change) => Promise.resolve(affectedExports(ctx.files, specs, change)),
     inCode: (names, files) => Promise.resolve(namesInCode(ctx.files, specs, names, files)),
+    mutants: (refs, limit) => Promise.resolve(symbolMutants(ctx.files, specs, refs, limit)),
     close: async () => runner.close(),
   };
 }

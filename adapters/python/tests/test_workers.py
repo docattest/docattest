@@ -152,6 +152,23 @@ class Interpreter(unittest.TestCase):
         )
 
 
+class Bytecode(unittest.TestCase):
+    def test_attested_code_writes_no_bytecode_into_the_project(self):
+        code = (
+            "import os, subprocess, sys\n"
+            "import lib\n"
+            "assert not os.path.exists(os.path.join(os.path.dirname(lib.__file__), '__pycache__'))\n"
+            "child = 'import sys; assert sys.dont_write_bytecode'\n"
+            "subprocess.run([sys.executable, '-c', child], check=True)\n"
+        )
+        talk = Talk(
+            HELLO,
+            opened({"lib.py": SURFACE}),
+            {"id": 3, "method": "run", "params": {"examples": [example(code)], "cases": []}},
+        )
+        self.assertEqual(talk.result(3)[0]["status"], "pass", talk.result(3))
+
+
 if __name__ == "__main__":
     unittest.main()
 

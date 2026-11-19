@@ -121,6 +121,7 @@ mod tests {
             attestations: 0,
             weak: 0,
             cited: 0,
+            cited_run: None,
         };
         Report {
             results: vec![],

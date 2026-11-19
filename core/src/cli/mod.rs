@@ -15,6 +15,7 @@ mod git_hook;
 mod hook;
 pub(crate) mod hooks;
 mod impact;
+mod mutate;
 mod refresh;
 pub(crate) mod skill;
 pub(crate) mod usage;
@@ -46,7 +47,7 @@ struct Invocation<'a> {
 type Command = fn(&Invocation, &mut Io) -> Result<i32>;
 
 /// The subcommands, by name.
-const COMMANDS: [(&str, Command); 13] = [
+const COMMANDS: [(&str, Command); 14] = [
     ("check", check_command),
     ("where", |run, io| where_(run.args, run.root, run.options, io)),
     ("uncovered", |run, io| uncovered(run.root, run.options, io)),
@@ -57,6 +58,7 @@ const COMMANDS: [(&str, Command); 13] = [
     ("audit", |run, io| audit::audit(run.root, run.options, io)),
     ("inventory", |run, io| audit::inventory(run.args, run.root, run.options, io)),
     ("impact", |run, io| impact::impact(run.args, run.root, run.options, io)),
+    ("mutate", |run, io| mutate::mutate(run.args, run.root, run.options, io)),
     ("hooks", |run, io| hooks::hooks(run.args, run.root, run.options, io)),
     ("agents", |run, io| agents::agents(run.args, run.root, io)),
     ("conformance", |run, io| conformance::conformance(run.args, io)),

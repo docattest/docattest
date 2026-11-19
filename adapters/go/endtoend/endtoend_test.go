@@ -133,6 +133,39 @@ func TestCheckTheFixture(t *testing.T) {
 	}
 }
 
+func TestAVetFindingInADocsHelperFailsTheCheck(t *testing.T) {
+	root := t.TempDir()
+	if err := os.CopyFS(root, os.DirFS("../testdata/fixture")); err != nil {
+		t.Fatal(err)
+	}
+	helper := "//go:build docattest\n\npackage sandbox\n\nimport \"fmt\"\n\n" +
+		"func FirstCap() string { return fmt.Sprintf(\"%d\", forbiddenCaps[0].Name) }\n"
+	if err := os.WriteFile(filepath.Join(root, "sandbox", "vetted_docattest.go"), []byte(helper), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, code := docattest(t, root, "check", "docs/sandbox.md", "--json")
+	var report struct {
+		Results []struct {
+			Page, Message string
+			verdict
+		}
+	}
+	if err := json.Unmarshal([]byte(out), &report); err != nil || code != 1 {
+		t.Fatalf("exit %d, %v\n%s", code, err, out)
+	}
+	failed := []string{}
+	for _, result := range report.Results {
+		if result.Status != "pass" {
+			failed = append(failed, fmt.Sprintf("%s:%d %s %s: %s", result.Page, result.Line, result.Kind, result.Status, result.Message))
+		}
+	}
+	want := []string{"sandbox/vetted_docattest.go:7 problem fail: go vet -tags docattest: " +
+		"fmt.Sprintf format %d has arg forbiddenCaps[0].Name of wrong type string"}
+	if !reflect.DeepEqual(failed, want) {
+		t.Fatalf("got %q", failed)
+	}
+}
+
 func TestTheIndexAndTheAudit(t *testing.T) {
 	// ErrorCodes is read by a helper of the setup package that a fact calls, Shell and
 	// MaxOpenFiles only by the values that facts read, and the sandbox's docs helpers are

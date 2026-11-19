@@ -7,9 +7,10 @@ use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
-use super::{Network, run_check};
+use super::{CitedTests, Network, run_check};
 use crate::api::attestation::{Attestation, Kind, Sample};
 use crate::api::errors::Result;
+use crate::files::copy::copy_tree;
 use crate::files::source::DiskFiles;
 use crate::project::state::{State, load_state_beside};
 use crate::report::{Outcome, Status};
@@ -72,7 +73,7 @@ fn results_in(root: &Path, page: &str, network: Network, checked: &State) -> Res
         state.adapter.finish()?;
         return Ok(None);
     }
-    let checked = run_check(&state, network, &HashSet::from([page.to_string()]));
+    let checked = run_check(&state, network, &HashSet::from([page.to_string()]), CitedTests::Declared);
     state.adapter.finish_session()?;
     Ok(Some(checked?.results.into_iter().filter(|r| r.page == page).collect()))
 }
@@ -138,39 +139,6 @@ fn fresh_directory() -> std::io::Result<PathBuf> {
             created => return created.map(|()| dir),
         }
     }
-}
-
-/// Copy a directory tree. A symbolic link is made again, to what it points to, so that a
-/// link out of the fixture (an installed dependency) still reaches the same place.
-fn copy_tree(from: &Path, to: &Path) -> std::io::Result<()> {
-    fs::create_dir_all(to)?;
-    for entry in fs::read_dir(from)? {
-        copy_entry(&entry?, to)?;
-    }
-    Ok(())
-}
-
-/// One entry of a directory into `to`: a directory as a tree, a link as a link, else a file.
-fn copy_entry(entry: &fs::DirEntry, to: &Path) -> std::io::Result<()> {
-    let (source, target) = (entry.path(), to.join(entry.file_name()));
-    let kind = entry.file_type()?;
-    if kind.is_dir() {
-        copy_tree(&source, &target)
-    } else if kind.is_symlink() {
-        link(&source, &target)
-    } else {
-        fs::copy(&source, &target).map(|_| ())
-    }
-}
-
-#[cfg(unix)]
-fn link(source: &Path, target: &Path) -> std::io::Result<()> {
-    std::os::unix::fs::symlink(fs::canonicalize(source)?, target)
-}
-
-#[cfg(not(unix))]
-fn link(source: &Path, target: &Path) -> std::io::Result<()> {
-    if source.is_dir() { copy_tree(source, target) } else { fs::copy(source, target).map(|_| ()) }
 }
 
 #[cfg(test)]

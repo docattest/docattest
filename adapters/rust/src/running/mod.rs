@@ -1,8 +1,11 @@
 //! What has to be compiled or run: examples, facts, cases tables and what a surface
-//! offers, each a program of a crate the adapter generates beside the project.
+//! offers, each a program of a crate the adapter generates beside the project; and the
+//! project's own tests that citations name, which `cargo test` runs in the project
+//! ([`cited`]).
 
 mod blocks;
 mod cases;
+mod cited;
 mod facts;
 mod generated;
 mod outcomes;

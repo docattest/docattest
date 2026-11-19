@@ -38,7 +38,7 @@ func TestTheModuleComparedIsTheAdapters(t *testing.T) {
 	}
 }
 
-func TestAnotherReleaseInTheSetupModuleIsAWarningOfTheFirstSurface(t *testing.T) {
+func TestAnotherReleaseInTheSetupModuleIsAWarningOfTheProject(t *testing.T) {
 	files := map[string]string{}
 	for path, text := range setupModuleProject {
 		files[path] = text
@@ -47,13 +47,14 @@ func TestAnotherReleaseInTheSetupModuleIsAWarningOfTheFirstSurface(t *testing.T)
 	p := read(t, Config{
 		Root: written(t, files), InMemory: true, Surfaces: entries("default", ".", "again", "."), Setup: "docs", Work: t.TempDir(),
 	})
-	described := p.DescribeSurfaces()
 	want := []string{"docs/go.mod requires " + adapterModule + " v0.1.0, but this docattest is " +
 		protocoldata.Core().Version + ": upgrade the two together"}
-	if got := described["default"].Warnings; !reflect.DeepEqual(got, want) {
-		t.Fatalf("default: got %q", got)
+	if got := p.VersionWarnings(); !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %q", got)
 	}
-	if got := described["again"].Warnings; len(got) != 0 {
-		t.Fatalf("again: got %q", got)
+	for name, described := range p.DescribeSurfaces() {
+		if len(described.Warnings) != 0 {
+			t.Fatalf("%s: got %q", name, described.Warnings)
+		}
 	}
 }

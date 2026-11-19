@@ -18,9 +18,9 @@ import (
 // adapterModule is the module path of this adapter, as its go.mod declares it.
 const adapterModule = "github.com/docattest/docattest/adapters/go"
 
-// versionWarnings warn of each go.mod of the project's code, its module's and its setup
+// VersionWarnings warn of each go.mod of the project's code, its module's and its setup
 // module's, that requires this adapter's module at another release than the adapter's.
-func (p *Project) versionWarnings() []string {
+func (p *Project) VersionWarnings() []string {
 	running := protocoldata.Core().Version
 	warnings := []string{}
 	for _, dir := range p.moduleDirs() {

@@ -1,8 +1,8 @@
 # check --json
-# recorded from: docattest 0.2.2
+# recorded from: explain, citation shorthands, prose pages, matched, manifestField, problems, run-cited, mutate
 === check --json
 exit 0
-stdout 5909 lines
+stdout 7589 lines
 {
   "results": [
     {
@@ -121,25 +121,25 @@ stdout 5909 lines
       "symbols": [
         "KINDS"
       ],
-      "message": "5 values in column Reported match KINDS",
-      "expected": "[example, fact, cases, test, snapshot]",
-      "actual": "[example, fact, cases, snapshot, test]"
+      "message": "6 values in column Reported match KINDS",
+      "expected": "[example, fact, cases, test, snapshot, problem]",
+      "actual": "[example, fact, cases, snapshot, test, problem]"
     },
     {
       "page": "README.md",
-      "line": 308,
+      "line": 311,
       "kind": "fact",
       "status": "pass",
       "symbols": [
         "COMMANDS"
       ],
-      "message": "12 distinct values in column Command match COMMANDS",
-      "expected": "[check, check, check, where, uncovered, index, audit, inventory, impact, impact, refresh, hooks, agents, skill, conformance]",
-      "actual": "[check, where, uncovered, index, refresh, skill, audit, inventory, impact, hooks, agents, conformance]"
+      "message": "14 distinct values in column Command match COMMANDS",
+      "expected": "[check, check, check, where, uncovered, index, explain, audit, inventory, impact, impact, mutate, refresh, hooks, agents, skill, conformance]",
+      "actual": "[check, where, uncovered, index, explain, refresh, skill, audit, inventory, impact, mutate, hooks, agents, conformance]"
     },
     {
       "page": "README.md",
-      "line": 483,
+      "line": 488,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -147,7 +147,7 @@ stdout 5909 lines
     },
     {
       "page": "README.md",
-      "line": 500,
+      "line": 506,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -157,19 +157,19 @@ stdout 5909 lines
     },
     {
       "page": "README.md",
-      "line": 514,
+      "line": 520,
       "kind": "fact",
       "status": "pass",
       "symbols": [
         "CONFIG_KEYS"
       ],
-      "message": "13 values in column Key match CONFIG_KEYS",
-      "expected": "[pages, adapter, surfaces, undocumented, sources, frozen, setup, snapshots, runtime, ignoreTags, members, commands, $schema]",
-      "actual": "[$schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented]"
+      "message": "14 values in column Key match CONFIG_KEYS",
+      "expected": "[pages, adapter, surfaces, undocumented, sources, frozen, prose, setup, snapshots, runtime, ignoreTags, members, commands, $schema]",
+      "actual": "[$schema, pages, frozen, prose, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented]"
     },
     {
       "page": "README.md",
-      "line": 524,
+      "line": 531,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -181,7 +181,7 @@ stdout 5909 lines
     },
     {
       "page": "README.md",
-      "line": 525,
+      "line": 532,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -193,7 +193,7 @@ stdout 5909 lines
     },
     {
       "page": "README.md",
-      "line": 606,
+      "line": 615,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -203,7 +203,7 @@ stdout 5909 lines
     },
     {
       "page": "README.md",
-      "line": 608,
+      "line": 617,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -213,7 +213,7 @@ stdout 5909 lines
     },
     {
       "page": "README.md",
-      "line": 609,
+      "line": 618,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -277,7 +277,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 105,
+      "line": 106,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -287,7 +287,27 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 115,
+      "line": 110,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "matched(\"adapters/typescript/LICENSE\", \"^(\\\\w+) License\") is MIT",
+      "expected": "MIT",
+      "actual": "MIT"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 111,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "manifestField(\"adapters/typescript/package.json\", \"engines.node\") is >=22.12",
+      "expected": ">=22.12",
+      "actual": ">=22.12"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 121,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -295,7 +315,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 117,
+      "line": 123,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -305,7 +325,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 144,
+      "line": 150,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -313,7 +333,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 146,
+      "line": 152,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -321,7 +341,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 149,
+      "line": 155,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -329,7 +349,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 153,
+      "line": 159,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -339,7 +359,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 155,
+      "line": 161,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -349,7 +369,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 162,
+      "line": 168,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -359,7 +379,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 162,
+      "line": 168,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -369,7 +389,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 162,
+      "line": 168,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -379,7 +399,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 163,
+      "line": 169,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -389,7 +409,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 170,
+      "line": 176,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -399,7 +419,87 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 178,
+      "line": 182,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts:56 declares \"symbolMutants\" > \"resolves a surface's symbol through re-exports to the file that declares it\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 183,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts:73 declares \"symbolMutants\" > \"finds a constant a fact reads from source, with its surface or without one\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 184,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:23 declares \"literalMutants\" > \"adds one to a number, written as TypeScript reads a number\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 186,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:38 declares \"literalMutants\" > \"puts an x before the closing quote of a string, keeping its quotes and escapes\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 187,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:46 declares \"literalMutants\" > \"flips a boolean and leaves null and undefined alone\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 188,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:52 declares \"literalMutants\" > \"removes an array's last item before changing its items\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 189,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts:100 declares \"symbolMutants\" > \"reads the value of a name that a type shares, and keeps the length of a tuple\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 191,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:67 declares \"literalMutants\" > \"changes literals at any depth, string keys among them, in source order\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 191,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:83 declares \"literalMutants\" > \"changes nothing inside a function, a class or a type the value holds\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 193,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts:80 declares \"symbolMutants\" > \"says why a symbol has no edits: a function, no literal, or not found\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 201,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -409,7 +509,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 179,
+      "line": 202,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -419,7 +519,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 189,
+      "line": 212,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -429,7 +529,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 200,
+      "line": 223,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -437,7 +537,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 202,
+      "line": 225,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -447,7 +547,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 205,
+      "line": 228,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -455,7 +555,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 206,
+      "line": 229,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -463,7 +563,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 208,
+      "line": 231,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -471,7 +571,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 212,
+      "line": 235,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -479,7 +579,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 214,
+      "line": 237,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -487,7 +587,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 221,
+      "line": 244,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -495,7 +595,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 228,
+      "line": 251,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -503,7 +603,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 232,
+      "line": 255,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -511,7 +611,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 234,
+      "line": 257,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -519,7 +619,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 236,
+      "line": 259,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -527,7 +627,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 239,
+      "line": 262,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -537,7 +637,183 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 275,
+      "line": 300,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:11 declares \"chooseRunner\" > \"runs a file with the runner it imports, from the package that declares it\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 300,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:24 declares \"chooseRunner\" > \"runs a file that imports nothing with the runner the nearest package declares\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 300,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:36 declares \"chooseRunner\" > \"runs node:test with the adapter's Node from the nearest package\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 302,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:48 declares \"chooseRunner\" > \"has no runner for a file that names none, or whose runner is not installed\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 307,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/invocation.test.ts:47 declares \"invocationOf\" > \"runs Vitest on the file alone, selecting by name, with a JSON report\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 308,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/invocation.test.ts:63 declares \"invocationOf\" > \"runs Jest on exactly the file by its path, with its JSON report\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 311,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/invocation.test.ts:75 declares \"invocationOf\" > \"runs node:test with the adapter's reporter, stripping types where Node does not\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 314,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/invocation.test.ts:21 declares \"namePattern\" > \"matches exactly the full names, every character of a title taken literally\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 317,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/outcome.test.ts:16 declares \"outcomeOf\" > \"reads the test of exactly the cited path, not one whose titles join to the same name\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 317,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/protocol/run-tests.test.ts:104 declares \"runTests\" > \"runs node:test tests by their exact path, a case of a table one alone\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 319,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/outcome.test.ts:39 declares \"outcomeOf\" > \"passes a table cited as a whole only when every row does, and names a failing row\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 319,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/protocol/run-tests.test.ts:136 declares \"runTests\" > \"runs Vitest tests from the package that declares it, a table's rows together\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 322,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/invocation.test.ts:36 declares \"namePattern\" > \"selects every test under describe titles, for a table whose rows are not known\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 322,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/protocol/run-tests.test.ts:162 declares \"runTests\" > \"runs the rows of a table built as the file runs, by its describe titles, as one\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 323,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/outcome.test.ts:58 declares \"outcomeOf\" > \"fails a test whose subtest failed with the subtest's message, not the summary\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 325,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/outcome.test.ts:27 declares \"outcomeOf\" > \"gives a failure's own lines, without its stack\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 327,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/node-test-report.test.ts:37 declares \"readNodeTestReport\" > \"reads each test by the path of the tests around it, and leaves describe blocks out\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 327,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/json-report.test.ts:76 declares \"readJsonReport\" > \"reads the file's tests from Vitest's report by their titles, whatever else ran\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 329,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/outcome.test.ts:81 declares \"outcomeOf\" > \"runs nothing of a path the run selected no test by, or of a file that cannot run\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 330,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/protocol/run-tests.test.ts:186 declares \"runTests\" > \"runs nothing of a project in memory\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 332,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/protocol/run-tests.test.ts:178 declares \"runTests\" > \"fails every test of a run that does not finish in time\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 334,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [],
+      "message": "adapters/typescript/test/unit/language/test-runs/json-report.test.ts:96 declares \"readJsonReport\" > \"reads Jest's report, and a file that could not run\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 343,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -547,7 +823,7 @@ stdout 5909 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 287,
+      "line": 355,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -573,9 +849,9 @@ stdout 5909 lines
       "symbols": [
         "COMMANDS"
       ],
-      "message": "12 items match COMMANDS",
-      "expected": "[check, where, uncovered, index, refresh, skill, audit, inventory, impact, hooks, agents, conformance]",
-      "actual": "[check, where, uncovered, index, refresh, skill, audit, inventory, impact, hooks, agents, conformance]"
+      "message": "14 items match COMMANDS",
+      "expected": "[check, where, uncovered, index, explain, refresh, skill, audit, inventory, impact, mutate, hooks, agents, conformance]",
+      "actual": "[check, where, uncovered, index, explain, refresh, skill, audit, inventory, impact, mutate, hooks, agents, conformance]"
     },
     {
       "page": "docs/agents.md",
@@ -902,18 +1178,173 @@ stdout 5909 lines
       "message": "all assertions held"
     },
     {
-      "page": "docs/citations.md",
-      "line": 36,
-      "kind": "example",
+      "page": "docs/citation-shorthands.md",
+      "line": 54,
+      "kind": "cases",
       "status": "pass",
       "symbols": [
-        "createProject"
+        "createProject",
+        "Report"
       ],
-      "message": "all assertions held"
+      "message": "docs/citation-shorthands.md:54 a set of titles"
     },
     {
-      "page": "docs/citations.md",
+      "page": "docs/citation-shorthands.md",
+      "line": 55,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:55 a set with a missing title"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
       "line": 56,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:56 an empty set"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 57,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:57 a set that is not last"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 58,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:58 a title twice in a set"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 59,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:59 an alias"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 60,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:60 an alias below its citation"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 61,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:61 an alias and a set"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 62,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:62 an alias declared twice"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 63,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:63 an alias that looks like a path"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 64,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:64 an alias with its file quoted"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 65,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:65 an alias left unclosed"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 66,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:66 a name the page does not declare"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 67,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:67 an alias that is also a file"
+    },
+    {
+      "page": "docs/citation-shorthands.md",
+      "line": 68,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject",
+        "Report"
+      ],
+      "message": "docs/citation-shorthands.md:68 a `tests:` comment with no `=`"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 41,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -923,87 +1354,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/citations.md",
-      "line": 92,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/citations.md",
-      "line": 117,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/citations.md",
-      "line": 150,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/citations.md",
-      "line": 202,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/citations.md",
-      "line": 230,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/citations.md",
-      "line": 267,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/citations.md",
-      "line": 305,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/citations.md",
-      "line": 333,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/citations.md",
-      "line": 367,
+      "line": 72,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -1011,7 +1362,123 @@ stdout 5909 lines
     },
     {
       "page": "docs/citations.md",
-      "line": 389,
+      "line": 115,
+      "kind": "fact",
+      "status": "pass",
+      "symbols": [],
+      "message": "matched(\"core/src/project/check/cited_runs.rs\", `RUN_TIMEOUT_MS: u64 = ([0-9_]+);`) is 600_000",
+      "expected": "600_000",
+      "actual": "600_000"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 123,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 147,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 183,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 208,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 241,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 293,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 321,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 358,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 396,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 424,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 458,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/citations.md",
+      "line": 480,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -1051,7 +1518,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/cli.md",
-      "line": 208,
+      "line": 193,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -1059,7 +1526,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/cli.md",
-      "line": 269,
+      "line": 242,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -1067,7 +1534,23 @@ stdout 5909 lines
     },
     {
       "page": "docs/cli.md",
-      "line": 317,
+      "line": 303,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cli.md",
+      "line": 347,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/cli.md",
+      "line": 373,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -1360,6 +1843,130 @@ stdout 5909 lines
         "createProject"
       ],
       "message": "all assertions held"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 19,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every command printed what the block shows"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 36,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every command printed what the block shows"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 58,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every command printed what the block shows"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 73,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 105,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:105 `field=`: a value of the fenced block after it"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 106,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:106 `column=`: a column of the table after it"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 107,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:107 the list or fenced block on the line after it"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 108,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:108 the code span before it on its line"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 109,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:109 the number or version before it on its line"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 110,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:110 the code spans of the sentence it ends"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 111,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:111 the code span of the sentence it ends, on an earlier line"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 112,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:112 the list or fenced block after the paragraph it ends"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 113,
+      "kind": "cases",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "docs/explain.md:113 alone on the line above a sentence"
     },
     {
       "page": "docs/facts.md",
@@ -2575,13 +3182,13 @@ stdout 5909 lines
       "symbols": [
         "KINDS"
       ],
-      "message": "5 items match KINDS",
-      "expected": "[example, fact, cases, snapshot, test]",
-      "actual": "[example, fact, cases, snapshot, test]"
+      "message": "6 items match KINDS",
+      "expected": "[example, fact, cases, snapshot, test, problem]",
+      "actual": "[example, fact, cases, snapshot, test, problem]"
     },
     {
       "page": "docs/index.md",
-      "line": 49,
+      "line": 50,
       "kind": "fact",
       "status": "pass",
       "symbols": [
@@ -2613,7 +3220,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/manifests.md",
-      "line": 19,
+      "line": 21,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2623,6 +3230,124 @@ stdout 5909 lines
     },
     {
       "page": "docs/manifests.md",
+      "line": 50,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 86,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 109,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 136,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 167,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 207,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 243,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 282,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 319,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 350,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/manifests.md",
+      "line": 378,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/mutate.md",
+      "line": 18,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "every command printed what the block shows"
+    },
+    {
+      "page": "docs/mutate.md",
       "line": 48,
       "kind": "example",
       "status": "pass",
@@ -2632,8 +3357,8 @@ stdout 5909 lines
       "message": "all assertions held"
     },
     {
-      "page": "docs/manifests.md",
-      "line": 84,
+      "page": "docs/mutate.md",
+      "line": 74,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2642,8 +3367,8 @@ stdout 5909 lines
       "message": "all assertions held"
     },
     {
-      "page": "docs/manifests.md",
-      "line": 107,
+      "page": "docs/mutate.md",
+      "line": 106,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2652,28 +3377,16 @@ stdout 5909 lines
       "message": "all assertions held"
     },
     {
-      "page": "docs/manifests.md",
-      "line": 130,
+      "page": "docs/mutate.md",
+      "line": 161,
       "kind": "example",
       "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
+      "symbols": [],
+      "message": "every command printed what the block shows"
     },
     {
-      "page": "docs/manifests.md",
-      "line": 169,
-      "kind": "example",
-      "status": "pass",
-      "symbols": [
-        "createProject"
-      ],
-      "message": "all assertions held"
-    },
-    {
-      "page": "docs/manifests.md",
-      "line": 206,
+      "page": "docs/mutate.md",
+      "line": 181,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2683,7 +3396,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 14,
+      "line": 15,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2693,7 +3406,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 36,
+      "line": 37,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2703,7 +3416,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 59,
+      "line": 60,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2713,7 +3426,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 82,
+      "line": 83,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -2721,7 +3434,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 111,
+      "line": 112,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2731,7 +3444,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 133,
+      "line": 137,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2741,7 +3454,7 @@ stdout 5909 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 160,
+      "line": 165,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2751,7 +3464,27 @@ stdout 5909 lines
     },
     {
       "page": "docs/pages.md",
-      "line": 182,
+      "line": 189,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 216,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/pages.md",
+      "line": 238,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2869,7 +3602,15 @@ stdout 5909 lines
     },
     {
       "page": "docs/report.md",
-      "line": 152,
+      "line": 148,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/report.md",
+      "line": 227,
       "kind": "example",
       "status": "pass",
       "symbols": [],
@@ -2877,7 +3618,15 @@ stdout 5909 lines
     },
     {
       "page": "docs/report.md",
-      "line": 177,
+      "line": 244,
+      "kind": "example",
+      "status": "pass",
+      "symbols": [],
+      "message": "all assertions held"
+    },
+    {
+      "page": "docs/report.md",
+      "line": 278,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2989,9 +3738,10 @@ stdout 5909 lines
     }
   ],
   "coverage": {
-    "living": 24,
-    "covered": 23,
-    "uncovered": [
+    "living": 27,
+    "covered": 26,
+    "uncovered": [],
+    "prose": [
       "docs/why.md"
     ],
     "frozen": [
@@ -3001,14 +3751,14 @@ stdout 5909 lines
       "docs/design/PATTERN.md",
       "docs/design/SPEC.md"
     ],
-    "attestations": 298,
-    "proofs": 269,
+    "attestations": 380,
+    "proofs": 319,
     "weak": 0,
-    "cited": 29
+    "cited": 61
   },
   "surfaces": {
     "default": {
-      "symbols": 44,
+      "symbols": 52,
       "attested": 10,
       "unattested": [
         "Attestation",
@@ -3023,7 +3773,11 @@ stdout 5909 lines
         "Config",
         "Coverage",
         "ExampleAttestation",
+        "ExplainedAlias",
+        "ExplainedAttestation",
+        "Explanation",
         "FactAttestation",
+        "FactRule",
         "FactTarget",
         "Impact",
         "ImpactOptions",
@@ -3033,6 +3787,10 @@ stdout 5909 lines
         "Kind",
         "Member",
         "MemberReport",
+        "MutateOptions",
+        "MutatedProof",
+        "Mutation",
+        "Placement",
         "Project",
         "ProjectInput",
         "Reference",
@@ -3135,7 +3893,7 @@ stdout 5909 lines
               "parse_config",
               "SurfaceEntry"
             ],
-            "message": "src/config/mod.rs:353 declares \"tests\" > \"valid_config_gets_defaults\" (not run by docattest)"
+            "message": "src/config/mod.rs:297 declares \"tests\" > \"valid_config_gets_defaults\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3160,7 +3918,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 120,
+            "line": 122,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3172,7 +3930,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 121,
+            "line": 123,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3181,6 +3939,70 @@ stdout 5909 lines
             "message": "ROOT is {root}",
             "expected": "{root}",
             "actual": "{root}"
+          },
+          {
+            "page": "README.md",
+            "line": 246,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/mutate/effect.rs:66 declares \"tests\" > \"an_error_that_points_at_the_changed_file_is_the_code_not_building\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 246,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/mutate/effect.rs:83 declares \"tests\" > \"a_value_that_differs_and_an_error_about_something_else_are_how_the_code_behaves\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 246,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/mutate/verdict.rs:198 declares \"tests\" > \"a_stillborn_mutant_kills_nothing_and_a_proof_with_only_those_is_not_mutated\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 246,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/mutate/tests.rs:44 declares \"a_change_that_fails_a_proof_kills_it_one_that_breaks_the_project_is_stillborn\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 252,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/mutate/sibling.rs:117 declares \"tests\" > \"a_claim_is_a_locked_sibling_that_another_claim_skips_and_both_go_when_dropped\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 252,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/mutate/sibling.rs:144 declares \"tests\" > \"a_claim_is_removed_when_the_code_holding_it_panics\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 252,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/mutate_signal.rs:41 declares \"a_run_stopped_by_sigterm_removes_its_copies\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 252,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/mutate/sibling.rs:128 declares \"tests\" > \"a_copy_a_killed_run_left_is_cleared_and_one_a_live_run_holds_is_not\" (not run by docattest)"
           },
           {
             "page": "src/text.rs",
@@ -3198,10 +4020,10 @@ stdout 5909 lines
           "covered": 2,
           "uncovered": [],
           "frozen": [],
-          "attestations": 11,
+          "attestations": 19,
           "proofs": 10,
           "weak": 0,
-          "cited": 1
+          "cited": 9
         },
         "surfaces": {
           "default": {
@@ -3308,7 +4130,7 @@ stdout 5909 lines
         "results": [
           {
             "page": "CONTRIBUTING.md",
-            "line": 37,
+            "line": 38,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3316,7 +4138,7 @@ stdout 5909 lines
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 75,
+            "line": 78,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3382,7 +4204,7 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/workspace.rs:124 declares \"the_generated_crate_is_built_with_the_features_it_is_given\" (not run by docattest)"
+            "message": "tests/workspace.rs:125 declares \"the_generated_crate_is_built_with_the_features_it_is_given\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3414,7 +4236,7 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/workspace.rs:97 declares \"a_private_module_is_no_surface_and_says_why\" (not run by docattest)"
+            "message": "tests/workspace.rs:98 declares \"a_private_module_is_no_surface_and_says_why\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3466,7 +4288,7 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/session.rs:71 declares \"blocks_compile_and_run_each_as_a_program_of_its_own\" (not run by docattest)"
+            "message": "tests/session.rs:73 declares \"blocks_compile_and_run_each_as_a_program_of_its_own\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3502,7 +4324,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 200,
+            "line": 201,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3510,7 +4332,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 210,
+            "line": 211,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3518,7 +4340,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 215,
+            "line": 216,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3526,15 +4348,15 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 218,
+            "line": 219,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/session.rs:144 declares \"a_blocks_time_counts_from_when_its_code_starts\" (not run by docattest)"
+            "message": "tests/session.rs:146 declares \"a_blocks_time_counts_from_when_its_code_starts\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 220,
+            "line": 221,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3542,7 +4364,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 220,
+            "line": 221,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3550,7 +4372,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 226,
+            "line": 227,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3558,7 +4380,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 241,
+            "line": 242,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3566,7 +4388,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 246,
+            "line": 247,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3578,7 +4400,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 257,
+            "line": 258,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3590,7 +4412,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 266,
+            "line": 267,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3602,7 +4424,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 278,
+            "line": 279,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3610,19 +4432,11 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 294,
+            "line": 295,
             "kind": "example",
             "status": "pass",
             "symbols": [],
             "message": "every command printed what the block shows"
-          },
-          {
-            "page": "README.md",
-            "line": 320,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/session.rs:204 declares \"a_fact_without_a_value_says_why_and_costs_the_others_nothing\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3630,11 +4444,19 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/workspace.rs:109 declares \"a_fact_names_the_surface_exports_its_crate_paths_reach\" (not run by docattest)"
+            "message": "tests/session.rs:213 declares \"a_fact_without_a_value_says_why_and_costs_the_others_nothing\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 325,
+            "line": 324,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/workspace.rs:110 declares \"a_fact_names_the_surface_exports_its_crate_paths_reach\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 327,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3642,7 +4464,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 328,
+            "line": 330,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3650,7 +4472,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 341,
+            "line": 343,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3658,7 +4480,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 358,
+            "line": 360,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3666,19 +4488,11 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 369,
+            "line": 371,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "tests/constants.rs:90 declares \"a_fact_reads_constants_from_source\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 373,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/constants.rs:170 declares \"a_library_that_does_not_compile_fails_only_the_facts_that_need_it\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3686,11 +4500,19 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
+            "message": "tests/constants.rs:170 declares \"a_library_that_does_not_compile_fails_only_the_facts_that_need_it\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 377,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
             "message": "tests/constants.rs:90 declares \"a_fact_reads_constants_from_source\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 381,
+            "line": 383,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3698,7 +4520,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 385,
+            "line": 387,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3706,27 +4528,11 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 388,
+            "line": 390,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "tests/endtoend.rs:188 declares \"impact_of_a_constant_read_from_source\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 393,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/initializers.rs:117 declares \"a_value_read_attests_what_its_initializer_uses\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 393,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/initializers.rs:150 declares \"where_and_uncovered_follow_initializers\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3738,7 +4544,23 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 424,
+            "line": 395,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/initializers.rs:150 declares \"where_and_uncovered_follow_initializers\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 397,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/initializers.rs:117 declares \"a_value_read_attests_what_its_initializer_uses\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 426,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3746,7 +4568,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 429,
+            "line": 431,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3754,7 +4576,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 432,
+            "line": 434,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3762,7 +4584,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 437,
+            "line": 439,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3770,7 +4592,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 437,
+            "line": 439,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3778,7 +4600,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 441,
+            "line": 443,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3786,7 +4608,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 441,
+            "line": 443,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3794,7 +4616,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 444,
+            "line": 446,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3802,7 +4624,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 460,
+            "line": 462,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3810,7 +4632,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 462,
+            "line": 464,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3818,15 +4640,15 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 470,
+            "line": 472,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/session.rs:161 declares \"facts_show_values_as_rust_prints_them\" (not run by docattest)"
+            "message": "tests/session.rs:163 declares \"facts_show_values_as_rust_prints_them\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 475,
+            "line": 477,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -3836,19 +4658,31 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 505,
+            "line": 485,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/cells.rs:85 declares \"code_spans_are_what_a_column_fact_compares\" (not run by docattest)"
+            "message": "tests/session.rs:163 declares \"facts_show_values_as_rust_prints_them\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 507,
-            "kind": "example",
+            "line": 486,
+            "kind": "fact",
             "status": "pass",
             "symbols": [],
-            "message": "all assertions held"
+            "message": "matched(\"LICENSE\", r\"^(\\w+) License\") is MIT",
+            "expected": "MIT",
+            "actual": "MIT"
+          },
+          {
+            "page": "README.md",
+            "line": 487,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "manifestField(\"Cargo.toml\", \"package.name\") is docattest",
+            "expected": "docattest",
+            "actual": "docattest"
           },
           {
             "page": "README.md",
@@ -3856,11 +4690,27 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
+            "message": "tests/cells.rs:85 declares \"code_spans_are_what_a_column_fact_compares\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 519,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "all assertions held"
+          },
+          {
+            "page": "README.md",
+            "line": 529,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
             "message": "src/harness/cells/mod.rs:94 declares \"tests\" > \"a_cells_code_spans_are_the_shared_tables\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 520,
+            "line": 532,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3868,7 +4718,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 530,
+            "line": 542,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3876,7 +4726,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 535,
+            "line": 547,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3884,7 +4734,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 548,
+            "line": 560,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3892,7 +4742,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 550,
+            "line": 562,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3900,7 +4750,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 558,
+            "line": 570,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3908,15 +4758,99 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 570,
+            "line": 582,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "src/analysis/tests/mod.rs:120 declares \"listing\" > \"the_named_cases_of_parametrized_tests_are_tests\" (not run by docattest)"
+            "message": "src/analysis/tests/mod.rs:235 declares \"listing\" > \"the_named_cases_of_parametrized_tests_are_tests\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 576,
+            "line": 592,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/running/cited/selection.rs:106 declares \"tests\" > \"each_kind_of_target_is_selected_by_its_own_flag\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 594,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/running/cited/selection.rs:129 declares \"tests\" > \"a_file_belongs_to_the_target_whose_modules_lead_to_it\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 599,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/running/cited/selection.rs:116 declares \"tests\" > \"a_run_lists_then_runs_exactly_the_names_it_listed\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 602,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/tests/mod.rs:193 declares \"listing\" > \"a_test_is_printed_by_its_path_and_a_parametrized_one_by_its_cases\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 604,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/tests/parametrized.rs:149 declares \"tests\" > \"an_rstest_case_is_printed_after_its_position\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 606,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/tests/parametrized.rs:159 declares \"tests\" > \"a_test_case_case_is_printed_as_its_description_made_an_identifier\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 613,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/cited.rs:105 declares \"each_cited_test_is_run_exactly_and_reported_as_libtest_reports_it\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 615,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "TestRun"
+            ],
+            "message": "src/running/cited/report.rs:208 declares \"tests\" > \"a_test_passes_when_every_case_of_it_passed\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 617,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [
+              "TestRun"
+            ],
+            "message": "src/running/cited/report.rs:221 declares \"tests\" > \"a_run_whose_program_ended_early_fails_what_it_did_not_report\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 619,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/cited.rs:139 declares \"a_run_that_overruns_is_ended_and_fails_its_tests\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 623,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3928,7 +4862,111 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 615,
+            "line": 652,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:205 declares \"tests\" > \"an_integer_gains_one_in_decimal_and_keeps_its_suffix\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 653,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:218 declares \"tests\" > \"a_float_gains_one_written_as_a_float_and_keeps_its_suffix\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 655,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:232 declares \"tests\" > \"a_string_gains_an_x_before_its_closing_quote_whatever_its_kind\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 656,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:248 declares \"tests\" > \"a_character_and_a_byte_are_left_alone_and_a_boolean_flips\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 658,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:256 declares \"tests\" > \"a_slice_loses_its_last_item_before_its_items_change\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 658,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:268 declares \"tests\" > \"a_last_item_goes_with_the_comma_before_it_and_an_only_one_with_its_trailing_comma\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 658,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:281 declares \"tests\" > \"a_vec_loses_its_last_item_as_a_slice_does\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 660,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:297 declares \"tests\" > \"an_array_whose_length_its_type_writes_loses_no_item\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 661,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:308 declares \"tests\" > \"the_fields_of_tuples_and_structs_are_values_at_any_depth\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 663,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/analysis/mutants/literals.rs:317 declares \"tests\" > \"what_runs_when_called_types_and_lengths_are_left_alone\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 666,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/mutants.rs:55 declares \"a_reexported_constant_is_changed_where_it_is_declared\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 667,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/mutants.rs:77 declares \"a_constant_read_from_source_is_found_without_a_surface\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 670,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/mutants.rs:85 declares \"a_symbol_without_edits_says_why\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 689,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3936,11 +4974,19 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 629,
+            "line": 703,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "tests/helpers.rs:195 declares \"a_cargo_config_that_takes_the_place_of_build_rustflags_leaves_docs_helpers_out\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 707,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "src/project.rs:182 declares \"tests\" > \"copies_of_a_project_that_share_a_target_directory_build_apart\" (not run by docattest)"
           }
         ],
         "coverage": {
@@ -3948,10 +4994,10 @@ stdout 5909 lines
           "covered": 2,
           "uncovered": [],
           "frozen": [],
-          "attestations": 74,
-          "proofs": 24,
+          "attestations": 101,
+          "proofs": 26,
           "weak": 0,
-          "cited": 50
+          "cited": 75
         },
         "surfaces": {
           "default": {
@@ -3987,8 +5033,8 @@ stdout 5909 lines
             "warnings": []
           },
           "protocol": {
-            "symbols": 29,
-            "attested": 1,
+            "symbols": 35,
+            "attested": 2,
             "unattested": [
               "Adapter",
               "Answer",
@@ -4010,10 +5056,15 @@ stdout 5909 lines
               "Observation",
               "Evaluation",
               "SymbolRef",
+              "AskedSymbol",
+              "SymbolMutants",
+              "NoMutants",
+              "MutantEdit",
               "Kind",
               "Status",
               "Verdict",
               "Declared",
+              "CitedTest",
               "Observable",
               "SourceText",
               "DocProse",
@@ -4045,13 +5096,13 @@ stdout 5909 lines
             "kind": "fact",
             "status": "pass",
             "symbols": [],
-            "message": "4 items match [p.split(\".\")[1] + \"/\" for p in manifest(\"pyproject.toml\")[\"tool\"][\"setuptools\"][\"packages\"] if p.count(\".\") == 1]",
-            "expected": "[server/, session/, analysis/, workers/]",
-            "actual": "[analysis/, server/, session/, workers/]"
+            "message": "5 items match [p.split(\".\")[1] + \"/\" for p in manifest(\"pyproject.toml\")[\"tool\"][\"setuptools\"][\"packages\"] if p.count(\".\") == 1]",
+            "expected": "[server/, session/, analysis/, workers/, test_runs/]",
+            "actual": "[analysis/, server/, session/, test_runs/, workers/]"
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 49,
+            "line": 55,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -4063,7 +5114,7 @@ stdout 5909 lines
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 85,
+            "line": 91,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -4389,7 +5440,7 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/test_protocol.py:116 declares \"Text\" > \"test_assertions\" (not run by docattest)"
+            "message": "tests/test_protocol.py:118 declares \"Text\" > \"test_assertions\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -4489,7 +5540,7 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/test_workers.py:109 declares \"Interpreter\" > \"test_starting_the_interpreter_is_not_counted_against_a_block\" (not run by docattest)"
+            "message": "tests/test_workers.py:111 declares \"Interpreter\" > \"test_starting_the_interpreter_is_not_counted_against_a_block\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -4517,7 +5568,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 346,
+            "line": 347,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4525,7 +5576,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 351,
+            "line": 352,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4533,7 +5584,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 365,
+            "line": 366,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4541,7 +5592,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 371,
+            "line": 372,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4549,7 +5600,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 371,
+            "line": 372,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4557,7 +5608,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 373,
+            "line": 374,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4565,7 +5616,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 375,
+            "line": 376,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4573,19 +5624,11 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 381,
+            "line": 382,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "tests/test_initializers.py:61 declares \"Initializers\" > \"test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 381,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/test_initializers.py:78 declares \"InitializersInTheCore\" > \"test_where_uncovered_and_impact_count_the_names_an_initializer_uses\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -4597,7 +5640,15 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 393,
+            "line": 383,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_initializers.py:78 declares \"InitializersInTheCore\" > \"test_where_uncovered_and_impact_count_the_names_an_initializer_uses\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 394,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -4607,7 +5658,35 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 408,
+            "line": 402,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_protocol.py:354 declares \"Values\" > \"test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 403,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "matched(\"bin/docattest-adapter-python\", r\"^#!/usr/bin/env (\\S+)\") is python3",
+            "expected": "python3",
+            "actual": "python3"
+          },
+          {
+            "page": "README.md",
+            "line": 404,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "manifestField(\"pyproject.toml\", \"project.name\") is docattest",
+            "expected": "docattest",
+            "actual": "docattest"
+          },
+          {
+            "page": "README.md",
+            "line": 419,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -4615,7 +5694,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 422,
+            "line": 433,
             "kind": "example",
             "status": "pass",
             "symbols": [
@@ -4627,7 +5706,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 444,
+            "line": 455,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4635,7 +5714,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 447,
+            "line": 458,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4643,7 +5722,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 449,
+            "line": 460,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4651,7 +5730,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 455,
+            "line": 466,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4659,7 +5738,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 457,
+            "line": 468,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -4667,7 +5746,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 468,
+            "line": 479,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4675,7 +5754,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 479,
+            "line": 490,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4683,7 +5762,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 481,
+            "line": 492,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4691,7 +5770,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 487,
+            "line": 498,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4699,7 +5778,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 503,
+            "line": 514,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4707,7 +5786,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 509,
+            "line": 520,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4715,7 +5794,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 511,
+            "line": 522,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4723,7 +5802,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 516,
+            "line": 527,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4731,7 +5810,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 519,
+            "line": 530,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4739,7 +5818,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 520,
+            "line": 531,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4747,7 +5826,327 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 530,
+            "line": 538,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_cited_tests.py:133 declares \"CitedTestsOnDisk\" > \"test_each_cited_test_runs_and_ends_as_its_runner_reports\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 538,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_selection.py:185 declares \"Commands\" > \"test_the_tests_of_one_file_share_a_run_for_each_runner\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 540,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_cited_tests.py:169 declares \"CitedTestsOnDisk\" > \"test_a_run_that_overruns_its_time_fails_its_tests\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 541,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_cited_tests.py:206 declares \"CitedTestsInMemory\" > \"test_nothing_runs_in_a_project_in_memory\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 547,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_selection.py:71 declares \"Selection\" > \"test_pytest_selects_a_test_by_its_node_id_and_a_case_with_its_id_in_brackets\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 547,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_selection.py:144 declares \"Commands\" > \"test_pytest_gets_each_node_id_once_after_the_options_end\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 551,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_pytest_report.py:67 declares \"PytestReport\" > \"test_a_passed_failed_and_skipped_test_each_ends_as_its_testcase_says\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 551,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_pytest_report.py:75 declares \"PytestReport\" > \"test_an_expected_failure_is_skipped_and_an_error_in_setup_fails\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 551,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_pytest_report.py:82 declares \"PytestReport\" > \"test_a_case_ends_as_its_own_testcase_and_a_test_cited_whole_as_all_its_cases\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 551,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_pytest_report.py:96 declares \"PytestReport\" > \"test_a_test_with_no_testcase_did_not_run_and_the_message_quotes_pytest\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 553,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_pytest_report.py:119 declares \"PytestReport\" > \"test_a_run_pytest_refused_runs_again_one_test_at_a_time\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 557,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_selection.py:121 declares \"ModuleImports\" > \"test_a_file_is_imported_from_the_first_directory_above_it_that_is_not_a_package\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 557,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_cited_tests.py:133 declares \"CitedTestsOnDisk\" > \"test_each_cited_test_runs_and_ends_as_its_runner_reports\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 559,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_selection.py:88 declares \"Selection\" > \"test_unittest_runs_the_methods_of_classes_at_the_top_of_a_module\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 559,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_cited_tests.py:164 declares \"CitedTestsOnDisk\" > \"test_without_pytest_a_test_function_does_not_run\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 561,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_unittest_report.py:88 declares \"UnittestReport\" > \"test_a_failed_fixture_fails_its_tests_and_a_module_that_does_not_import_runs_none\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 561,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_unittest_report.py:51 declares \"UnittestReport\" > \"test_a_method_the_class_does_not_have_did_not_run\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 565,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_cited_tests.py:149 declares \"CitedTestsOnDisk\" > \"test_a_subtest_case_runs_with_its_test_and_ends_as_its_subtest\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 565,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_unittest_report.py:60 declares \"UnittestReport\" > \"test_a_subtest_case_ends_as_its_subtest_and_its_test_as_all_its_subtests\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 567,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_unittest_report.py:75 declares \"UnittestReport\" > \"test_a_subtest_case_its_test_never_reached_ends_as_its_test_or_did_not_run\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 577,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_mutants.py:50 declares \"Mutants\" > \"test_a_surface_symbol_is_changed_where_its_re_export_is_declared\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 577,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_mutants.py:58 declares \"Mutants\" > \"test_a_surface_reads_its_unexported_constants_from_source\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 578,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:145 declares \"Displays\" > \"test_nested_literals_come_in_source_order_and_dict_keys_are_literals\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 578,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_mutants.py:74 declares \"Mutants\" > \"test_at_most_limit_edits_the_first_in_source_order\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 580,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:46 declares \"Numbers\" > \"test_an_int_gains_one_written_in_decimal\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 580,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:50 declares \"Numbers\" > \"test_a_float_gains_one_written_as_python_writes_a_float\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 583,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:75 declares \"Strings\" > \"test_escapes_and_prefixes_are_kept\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 583,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:82 declares \"Strings\" > \"test_bytes_gain_x_too\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 583,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:86 declares \"Strings\" > \"test_a_triple_quoted_string_keeps_its_quotes\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 583,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:92 declares \"Strings\" > \"test_an_implicit_concatenation_is_one_literal_per_part\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 583,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:102 declares \"Strings\" > \"test_an_f_string_is_no_literal\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 584,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:59 declares \"Numbers\" > \"test_a_bool_is_flipped\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 586,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:118 declares \"Displays\" > \"test_a_list_offers_its_last_item_removed_before_its_items\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 586,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:136 declares \"Displays\" > \"test_a_single_item_leaves_an_empty_display_of_the_same_kind\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 587,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:145 declares \"Displays\" > \"test_nested_literals_come_in_source_order_and_dict_keys_are_literals\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 589,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:65 declares \"Numbers\" > \"test_none_and_ellipsis_are_left_alone\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 589,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:62 declares \"Numbers\" > \"test_an_annotation_is_not_the_value\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 589,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_literal_edits.py:162 declares \"Values\" > \"test_a_lambda_is_not_followed_but_a_call_is\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 591,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_mutants.py:79 declares \"Mutants\" > \"test_a_symbol_without_edits_says_why\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 593,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_workers.py:156 declares \"Bytecode\" > \"test_attested_code_writes_no_bytecode_into_the_project\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 603,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -4755,39 +6154,39 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 539,
+            "line": 612,
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:539 set"
+            "message": "README.md:612 set"
           },
           {
             "page": "README.md",
-            "line": 540,
+            "line": 613,
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:540 not set"
+            "message": "README.md:613 not set"
           },
           {
             "page": "README.md",
-            "line": 541,
+            "line": 614,
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:541 not set"
+            "message": "README.md:614 not set"
           },
           {
             "page": "README.md",
-            "line": 542,
+            "line": 615,
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:542 not set"
+            "message": "README.md:615 not set"
           },
           {
             "page": "README.md",
-            "line": 548,
+            "line": 621,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -4799,7 +6198,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 549,
+            "line": 622,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -4811,7 +6210,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 560,
+            "line": 633,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4823,10 +6222,10 @@ stdout 5909 lines
           "covered": 2,
           "uncovered": [],
           "frozen": [],
-          "attestations": 87,
-          "proofs": 46,
+          "attestations": 130,
+          "proofs": 48,
           "weak": 0,
-          "cited": 41
+          "cited": 82
         },
         "surfaces": {
           "default": {
@@ -4954,13 +6353,13 @@ stdout 5909 lines
             "kind": "fact",
             "status": "pass",
             "symbols": [],
-            "message": "13 items match Packages()",
-            "expected": "[launcher, bundled, coremodule, platform, protocol, protocoldata, language, session, analysis, running, toolchain, harness, guide]",
-            "actual": "[analysis, bundled, coremodule, guide, harness, language, launcher, platform, protocol, protocoldata, running, session, toolchain]"
+            "message": "14 items match Packages()",
+            "expected": "[launcher, bundled, coremodule, platform, protocol, protocoldata, language, session, analysis, running, citedtests, toolchain, harness, guide]",
+            "actual": "[analysis, bundled, citedtests, coremodule, guide, harness, language, launcher, platform, protocol, protocoldata, running, session, toolchain]"
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 50,
+            "line": 56,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4968,7 +6367,7 @@ stdout 5909 lines
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 64,
+            "line": 70,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -4980,7 +6379,7 @@ stdout 5909 lines
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 65,
+            "line": 71,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4988,7 +6387,7 @@ stdout 5909 lines
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 67,
+            "line": 73,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4996,7 +6395,7 @@ stdout 5909 lines
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 69,
+            "line": 75,
             "kind": "test",
             "status": "pass",
             "symbols": [
@@ -5006,7 +6405,7 @@ stdout 5909 lines
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 70,
+            "line": 76,
             "kind": "test",
             "status": "pass",
             "symbols": [
@@ -5017,7 +6416,7 @@ stdout 5909 lines
           },
           {
             "page": "CONTRIBUTING.md",
-            "line": 80,
+            "line": 86,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5037,17 +6436,17 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 20,
+            "line": 19,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
-            "message": "regexp.MustCompile(`(?m)^require (\\S+) `).FindStringSubmatch(file(\"go.mod\"))[1] is golang.org/x/tools",
-            "expected": "golang.org/x/tools",
-            "actual": "golang.org/x/tools"
+            "message": "2 items match Requirements(file(\"go.mod\"))",
+            "expected": "[golang.org/x/mod, golang.org/x/tools]",
+            "actual": "[golang.org/x/mod, golang.org/x/tools]"
           },
           {
             "page": "README.md",
-            "line": 35,
+            "line": 39,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -5057,7 +6456,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 47,
+            "line": 51,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -5069,7 +6468,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 66,
+            "line": 70,
             "kind": "test",
             "status": "pass",
             "symbols": [
@@ -5081,7 +6480,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 68,
+            "line": 72,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -5093,7 +6492,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 70,
+            "line": 74,
             "kind": "test",
             "status": "pass",
             "symbols": [
@@ -5102,58 +6501,6 @@ stdout 5909 lines
               "FindCore"
             ],
             "message": "internal/launcher/launcher_test.go:80 declares \"TestACoreSomeonePointsAtIsAsked\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 83,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Core",
-              "Machine",
-              "FindCore",
-              "Pin"
-            ],
-            "message": "README.md:83 any"
-          },
-          {
-            "page": "README.md",
-            "line": 84,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Core",
-              "Machine",
-              "FindCore",
-              "Pin"
-            ],
-            "message": "README.md:84 macOS"
-          },
-          {
-            "page": "README.md",
-            "line": 85,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Core",
-              "Machine",
-              "FindCore",
-              "Pin"
-            ],
-            "message": "README.md:85 Linux"
-          },
-          {
-            "page": "README.md",
-            "line": 86,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [
-              "Core",
-              "Machine",
-              "FindCore",
-              "Pin"
-            ],
-            "message": "README.md:86 Linux"
           },
           {
             "page": "README.md",
@@ -5166,7 +6513,7 @@ stdout 5909 lines
               "FindCore",
               "Pin"
             ],
-            "message": "README.md:87 Linux"
+            "message": "README.md:87 any"
           },
           {
             "page": "README.md",
@@ -5179,7 +6526,7 @@ stdout 5909 lines
               "FindCore",
               "Pin"
             ],
-            "message": "README.md:88 Windows"
+            "message": "README.md:88 macOS"
           },
           {
             "page": "README.md",
@@ -5192,11 +6539,63 @@ stdout 5909 lines
               "FindCore",
               "Pin"
             ],
-            "message": "README.md:89 Windows"
+            "message": "README.md:89 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 90,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore",
+              "Pin"
+            ],
+            "message": "README.md:90 Linux"
+          },
+          {
+            "page": "README.md",
+            "line": 91,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore",
+              "Pin"
+            ],
+            "message": "README.md:91 Linux"
           },
           {
             "page": "README.md",
             "line": 92,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore",
+              "Pin"
+            ],
+            "message": "README.md:92 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 93,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [
+              "Core",
+              "Machine",
+              "FindCore",
+              "Pin"
+            ],
+            "message": "README.md:93 Windows"
+          },
+          {
+            "page": "README.md",
+            "line": 96,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -5208,7 +6607,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 110,
+            "line": 114,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -5220,7 +6619,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 113,
+            "line": 117,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -5232,7 +6631,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 117,
+            "line": 121,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5240,7 +6639,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 121,
+            "line": 125,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5248,7 +6647,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 162,
+            "line": 166,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5256,7 +6655,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 172,
+            "line": 177,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5264,7 +6663,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 227,
+            "line": 232,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5272,7 +6671,7 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 281,
+            "line": 286,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -5284,7 +6683,63 @@ stdout 5909 lines
           },
           {
             "page": "README.md",
-            "line": 289,
+            "line": 298,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/mutants_test.go:116 declares \"TestMutantsChangeTheLiteralsOfAValue\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 300,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/mutants_test.go:185 declares \"TestARemovedItemLeavesAListGoReads\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 303,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/mutants_test.go:116 declares \"TestMutantsChangeTheLiteralsOfAValue\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 306,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/mutants_test.go:116 declares \"TestMutantsChangeTheLiteralsOfAValue\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 306,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/mutants_test.go:145 declares \"TestMutantsSayWhyAValueHasNone\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 308,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/mutants_test.go:145 declares \"TestMutantsSayWhyAValueHasNone\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 308,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/mutants_test.go:257 declares \"TestMutantsAreOfTheProjectsOwnFiles\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 316,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5337,16 +6792,27 @@ stdout 5909 lines
             "line": 70,
             "kind": "test",
             "status": "pass",
-            "symbols": [],
-            "message": "internal/analysis/setup_test.go:9 declares \"TestARunnerNamesWhatItsHelpersUse\" (not run by docattest)"
+            "symbols": [
+              "Core",
+              "Pin"
+            ],
+            "message": "internal/analysis/adapterversion_test.go:41 declares \"TestAnotherReleaseInTheSetupModuleIsAWarningOfTheProject\" (not run by docattest)"
           },
           {
             "page": "docs/cases.md",
-            "line": 72,
+            "line": 71,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
+            "message": "internal/analysis/adapterversion_test.go:12 declares \"TestARequirementOfAnotherReleaseIsNamed\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 76,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/setup_test.go:9 declares \"TestARunnerNamesWhatItsHelpersUse\" (not run by docattest)"
           },
           {
             "page": "docs/cases.md",
@@ -5354,15 +6820,15 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/cases_test.go:85 declares \"TestATablesRowsShareItsProcess\" (not run by docattest)"
+            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
           },
           {
             "page": "docs/cases.md",
-            "line": 80,
+            "line": 84,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/cases_test.go:106 declares \"TestTablesRunSideBySide\" (not run by docattest)"
+            "message": "internal/running/cases_test.go:85 declares \"TestATablesRowsShareItsProcess\" (not run by docattest)"
           },
           {
             "page": "docs/cases.md",
@@ -5370,15 +6836,87 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
+            "message": "internal/running/cases_test.go:106 declares \"TestTablesRunSideBySide\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 92,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
             "message": "internal/analysis/setup_test.go:89 declares \"TestASetupFileBehindABuildTagIsLeftOut\" (not run by docattest)"
           },
           {
             "page": "docs/cases.md",
-            "line": 88,
+            "line": 94,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "internal/analysis/setup_test.go:101 declares \"TestASetupPackageBehindTheDocsTagIsRead\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 107,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 132,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/setupmodule_test.go:38 declares \"TestASetupModuleIsReadWithTheProductsModule\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 135,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/toolchain/workspace_test.go:49 declares \"TestAWorkspaceKeepsTheUsersOwn\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 137,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/setupmodule_test.go:56 declares \"TestASetupModuleKeepsTheProjectsWorkspace\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 138,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/toolchain/workspace_test.go:25 declares \"TestAWorkspaceIsWrittenWhereItIsAsked\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 140,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/setupmodule_test.go:13 declares \"TestASetupModuleRequiresWhatTheProductDoesNot\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 144,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 154,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
           },
           {
             "page": "docs/citations.md",
@@ -5390,11 +6928,75 @@ stdout 5909 lines
           },
           {
             "page": "docs/citations.md",
-            "line": 22,
+            "line": 23,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "internal/analysis/symbols_test.go:82 declares \"TestSymbolsAreResolvedByType\" (not run by docattest)"
+          },
+          {
+            "page": "docs/citations.md",
+            "line": 35,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/citedtests/citedtests_test.go:80 declares \"TestCitedTestsRunInTheirPackages\" (not run by docattest)"
+          },
+          {
+            "page": "docs/citations.md",
+            "line": 40,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/citedtests/selection_test.go:9 declares \"TestReportedNamesAreRewrittenAsTestingRewritesThem\" (not run by docattest)"
+          },
+          {
+            "page": "docs/citations.md",
+            "line": 42,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/citedtests/citedtests_test.go:119 declares \"TestOnlyTheCitedTestRuns\" (not run by docattest)"
+          },
+          {
+            "page": "docs/citations.md",
+            "line": 44,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/citedtests/judge_test.go:49 declares \"TestEachTestIsJudgedByItsOwnEvents\" (not run by docattest)"
+          },
+          {
+            "page": "docs/citations.md",
+            "line": 48,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/citedtests/judge_test.go:96 declares \"TestEveryTestOfAPackageThatDoesNotBuildFailsWithTheBuildErrors\" (not run by docattest)"
+          },
+          {
+            "page": "docs/citations.md",
+            "line": 50,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/citedtests/citedtests_test.go:130 declares \"TestARunThatDoesNotEndInTimeFailsItsTests\" (not run by docattest)"
+          },
+          {
+            "page": "docs/citations.md",
+            "line": 51,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/citedtests/judge_test.go:112 declares \"TestARunThatEndsBeforeItsTestsFailsOrDoesNotRunThemAll\" (not run by docattest)"
+          },
+          {
+            "page": "docs/citations.md",
+            "line": 52,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/session/session_test.go:42 declares \"TestRunTestsRunsNothingInMemory\" (not run by docattest)"
           },
           {
             "page": "docs/examples.md",
@@ -5414,7 +7016,7 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/running_test.go:100 declares \"TestBlocksCompileAndRun\" (not run by docattest)"
+            "message": "internal/running/running_test.go:102 declares \"TestBlocksCompileAndRun\" (not run by docattest)"
           },
           {
             "page": "docs/examples.md",
@@ -5488,7 +7090,7 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/running_test.go:143 declares \"TestDocExamplesRunAsGoTestRunsThem\" (not run by docattest)"
+            "message": "internal/running/running_test.go:145 declares \"TestDocExamplesRunAsGoTestRunsThem\" (not run by docattest)"
           },
           {
             "page": "docs/examples.md",
@@ -5500,7 +7102,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 24,
+            "line": 25,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5508,15 +7110,15 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 28,
+            "line": 29,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:202 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:235 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 34,
+            "line": 35,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5524,7 +7126,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 40,
+            "line": 41,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5532,7 +7134,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 43,
+            "line": 44,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5540,7 +7142,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 56,
+            "line": 57,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5548,7 +7150,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 69,
+            "line": 70,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5556,7 +7158,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 71,
+            "line": 72,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5564,7 +7166,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 74,
+            "line": 75,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5572,7 +7174,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 76,
+            "line": 77,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5580,7 +7182,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 78,
+            "line": 79,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5588,15 +7190,15 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 80,
+            "line": 81,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:174 declares \"TestImpactOfAConstantReadFromSource\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:207 declares \"TestImpactOfAConstantReadFromSource\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 84,
+            "line": 85,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -5606,15 +7208,15 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 88,
+            "line": 89,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/running_test.go:191 declares \"TestEvaluateShowsValuesAsGoPrintsThem\" (not run by docattest)"
+            "message": "internal/running/running_test.go:193 declares \"TestEvaluateShowsValuesAsGoPrintsThem\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 97,
+            "line": 98,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5622,15 +7224,15 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 102,
+            "line": 103,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/running_test.go:191 declares \"TestEvaluateShowsValuesAsGoPrintsThem\" (not run by docattest)"
+            "message": "internal/running/running_test.go:193 declares \"TestEvaluateShowsValuesAsGoPrintsThem\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 106,
+            "line": 108,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -5640,15 +7242,15 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 108,
+            "line": 110,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/running_test.go:213 declares \"TestNumbersOfSnapshotsAndManifestsAreAsGoHoldsThem\" (not run by docattest)"
+            "message": "internal/running/running_test.go:215 declares \"TestNumbersOfSnapshotsAndManifestsAreAsGoHoldsThem\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 113,
+            "line": 115,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -5658,7 +7260,45 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 121,
+            "line": 124,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/running_test.go:232 declares \"TestMatchedAndFieldAreWhatTheCoreWorkedOutHeldAsGoHoldsThem\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 126,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "matched(\"LICENSE\", `^(\\w+) License`) is MIT",
+            "expected": "MIT",
+            "actual": "MIT"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 127,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "manifestField(\"conformance.json\", \"display.3.value\") is 1048576",
+            "expected": "1048576",
+            "actual": "1048576"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 128,
+            "kind": "fact",
+            "status": "pass",
+            "symbols": [],
+            "message": "fmt.Sprintf(\"%T\", manifestField(\"conformance.json\", \"display.3.value\")) is int64",
+            "expected": "int64",
+            "actual": "int64"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 145,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5666,67 +7306,11 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 125,
+            "line": 149,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "internal/analysis/literalvariables_test.go:82 declares \"TestALiteralVariableIsOneItsPackageOnlyReads\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 136,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/analysis/literalvariables_test.go:82 declares \"TestALiteralVariableIsOneItsPackageOnlyReads\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 138,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/running/variables_test.go:97 declares \"TestAVariableThatIsNoLiteralVariableIsRefused\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 146,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/running/variables_test.go:73 declares \"TestAFactReadsLiteralVariablesFromSource\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 148,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/running/variables_test.go:97 declares \"TestAVariableThatIsNoLiteralVariableIsRefused\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 150,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "endtoend/endtoend_test.go:202 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 156,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 159,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "endtoend/endtoend_test.go:136 declares \"TestTheIndexAndTheAudit\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
@@ -5734,7 +7318,7 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:222 declares \"TestImpactOfANameAValueIsBuiltFrom\" (not run by docattest)"
+            "message": "internal/analysis/literalvariables_test.go:82 declares \"TestALiteralVariableIsOneItsPackageOnlyReads\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
@@ -5742,47 +7326,39 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
+            "message": "internal/running/variables_test.go:97 declares \"TestAVariableThatIsNoLiteralVariableIsRefused\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 165,
+            "line": 170,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/variables_test.go:73 declares \"TestAFactReadsLiteralVariablesFromSource\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 172,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/variables_test.go:97 declares \"TestAVariableThatIsNoLiteralVariableIsRefused\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 174,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/endtoend_test.go:235 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 180,
             "kind": "test",
             "status": "pass",
             "symbols": [],
             "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 173,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/analysis/docsfiles_test.go:12 declares \"TestADocsHelperFileHoldsOnlyWithTheDocsTag\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 176,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/running/docshelpers_test.go:35 declares \"TestABlockIsBuiltWithoutTheDocsHelpers\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 178,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/running/docshelpers_test.go:22 declares \"TestAnUnexportedDocsHelperIsRefusedWithWhatToDo\" (not run by docattest)"
-          },
-          {
-            "page": "docs/facts.md",
-            "line": 182,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "internal/analysis/docsfiles_test.go:34 declares \"TestADocsHelperIsNoExportAndAttestsWhatItUses\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
@@ -5790,7 +7366,15 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:136 declares \"TestTheIndexAndTheAudit\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:169 declares \"TestTheIndexAndTheAudit\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 184,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/endtoend_test.go:255 declares \"TestImpactOfANameAValueIsBuiltFrom\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
@@ -5798,19 +7382,75 @@ stdout 5909 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
+            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 189,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 197,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/docsfiles_test.go:12 declares \"TestADocsHelperFileHoldsOnlyWithTheDocsTag\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 200,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/docshelpers_test.go:35 declares \"TestABlockIsBuiltWithoutTheDocsHelpers\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 202,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/docshelpers_test.go:22 declares \"TestAnUnexportedDocsHelperIsRefusedWithWhatToDo\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 206,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/docsfiles_test.go:34 declares \"TestADocsHelperIsNoExportAndAttestsWhatItUses\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 207,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/endtoend_test.go:169 declares \"TestTheIndexAndTheAudit\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 210,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
             "message": "internal/analysis/docsfiles_test.go:57 declares \"TestADocsHelperCreditsWhatItReads\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 188,
+            "line": 212,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:202 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:235 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 233,
+            "line": 257,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5818,7 +7458,7 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 256,
+            "line": 280,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5826,11 +7466,51 @@ stdout 5909 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 265,
+            "line": 289,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:136 declares \"TestTheIndexAndTheAudit\" (not run by docattest)"
+            "message": "internal/running/vet_test.go:10 declares \"TestVetReportsWhatItFindsInDocsHelperFiles\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 290,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/vet_test.go:28 declares \"TestAFindingInAPackageTwoSurfacesShareIsReportedOnce\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 292,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/endtoend_test.go:136 declares \"TestAVetFindingInADocsHelperFailsTheCheck\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 293,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/vet_test.go:40 declares \"TestCleanDocsHelpersSayNothing\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 296,
+            "kind": "example",
+            "status": "pass",
+            "symbols": [],
+            "message": "every command printed what the block shows"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 310,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/endtoend_test.go:169 declares \"TestTheIndexAndTheAudit\" (not run by docattest)"
           }
         ],
         "coverage": {
@@ -5838,10 +7518,10 @@ stdout 5909 lines
           "covered": 6,
           "uncovered": [],
           "frozen": [],
-          "attestations": 98,
-          "proofs": 37,
+          "attestations": 132,
+          "proofs": 44,
           "weak": 0,
-          "cited": 61
+          "cited": 88
         },
         "surfaces": {
           "default": {

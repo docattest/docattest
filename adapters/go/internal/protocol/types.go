@@ -119,6 +119,37 @@ type SymbolRef struct {
 	Surface string `json:"surface,omitempty"`
 }
 
+// SymbolMutants are the edits that change the literals of one symbol's declaration, each
+// alone; Why says why there are none, exactly when there are none.
+type SymbolMutants struct {
+	Edits []MutantEdit `json:"edits"`
+	Why   MutantsWhy   `json:"why,omitempty"`
+}
+
+// MutantsWhy is why a symbol has no edits.
+type MutantsWhy string
+
+const (
+	// WhyFunction is a function, a method or a type: what a proof reads of it is
+	// computed when it runs.
+	WhyFunction MutantsWhy = "function"
+	// WhyNoLiteral is a value whose declaration holds no literal.
+	WhyNoLiteral MutantsWhy = "noLiteral"
+	// WhyNotFound is a name no file of the project's own declares.
+	WhyNotFound MutantsWhy = "notFound"
+)
+
+// MutantEdit is one change to one file: the bytes from Start to End (UTF-8 offsets, End
+// excluded) replaced by Replacement.
+type MutantEdit struct {
+	Path        string `json:"path"`
+	Start       int    `json:"start"`
+	End         int    `json:"end"`
+	Replacement string `json:"replacement"`
+	// Description says what changes, as Go writes it: `8080 → 8081`.
+	Description string `json:"description"`
+}
+
 // Result is the verdict on one example, or on one row of a cases table.
 type Result struct {
 	Page     string   `json:"page"`
@@ -154,6 +185,32 @@ type TestListing struct {
 	Message string           `json:"message,omitempty"`
 }
 
+// CitedTest is a test a citation names, as its file declares it: the names that enclose
+// it, outermost first, and its own.
+type CitedTest struct {
+	File      string   `json:"file"`
+	Describes []string `json:"describes"`
+	Title     string   `json:"title"`
+}
+
+// TestRunStatus is how a cited test ran.
+type TestRunStatus string
+
+// The ways a cited test can have run.
+const (
+	TestPassed  TestRunStatus = "passed"
+	TestFailed  TestRunStatus = "failed"
+	TestSkipped TestRunStatus = "skipped"
+	TestNotRun  TestRunStatus = "notRun"
+)
+
+// TestRun is how a cited test ran. Message, what the runner said of it, is empty exactly
+// when the test passed.
+type TestRun struct {
+	Status  TestRunStatus `json:"status"`
+	Message string        `json:"message,omitempty"`
+}
+
 // ConfiguredSurface is a surface as the config names it.
 type ConfiguredSurface struct {
 	Name string `json:"name"`
@@ -179,6 +236,20 @@ type SurfaceResolution struct {
 type SurfaceDescription struct {
 	Resolution *SurfaceResolution `json:"resolution,omitempty"`
 	Warnings   []string           `json:"warnings"`
+}
+
+// Problem is a failure that belongs to no attestation, at a line of a project file.
+type Problem struct {
+	Path    string `json:"path"`
+	Line    int    `json:"line"`
+	Message string `json:"message"`
+}
+
+// ProjectProblems answers `problems`: the failures outside every attestation, and the
+// warnings about the whole project.
+type ProjectProblems struct {
+	Problems []Problem `json:"problems"`
+	Warnings []string  `json:"warnings"`
 }
 
 // Observable is a value a surface offers, with the fact expression that reads it.

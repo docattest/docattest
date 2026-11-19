@@ -315,6 +315,7 @@ fn report() -> Report {
             attestations: 1,
             weak: 0,
             cited: 0,
+            cited_run: None,
         },
         surfaces: Vec::new(),
         snapshots: Vec::new(),

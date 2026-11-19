@@ -1,11 +1,11 @@
 package running
 
 import (
-	"fmt"
 	"path/filepath"
 	"slices"
 
 	"github.com/docattest/docattest/adapters/go/internal/analysis"
+	"github.com/docattest/docattest/adapters/go/internal/protocol"
 	"github.com/docattest/docattest/adapters/go/internal/toolchain"
 )
 
@@ -14,17 +14,18 @@ import (
 // packages that have docs helper files with the tag, in one go command, whose cache keeps
 // the verdict on code that has not changed. Only the findings in docs helper files are
 // reported: the package's other files are the project's own vet's, and a file that does
-// not compile fails the facts that build it.
+// not compile fails the facts that build it. A finding belongs to no attestation, so it
+// is a problem of the project, which fails the check at its file and line.
 
 // vetPrefix begins each finding, so that it says where it comes from.
-const vetPrefix = "go vet -tags " + toolchain.DocsTag
+const vetPrefix = "go vet -tags " + toolchain.DocsTag + ": "
 
 // VetDocsHelpers vets the docs helper files of the surfaces and returns what go vet
-// finds in them, by surface name, each as `go vet -tags docattest: <page>:<line>: <message>`.
-func (r *Runner) VetDocsHelpers() map[string][]string {
+// finds in them, each at its file and line as `go vet -tags docattest: <message>`.
+func (r *Runner) VetDocsHelpers() []protocol.Problem {
 	files := r.project.DocsHelperFiles()
 	if len(files) == 0 {
-		return map[string][]string{}
+		return []protocol.Problem{}
 	}
 	return findingsIn(r.gotool.VetWithDocs(r.packagesOf(files)), r.project.Module.Dir, files)
 }
@@ -41,21 +42,19 @@ func (r *Runner) packagesOf(files []analysis.DocsHelperFile) []string {
 }
 
 // findingsIn are the problems go vet reported, run in `moduleDir`, that are in one of
-// `files`, by the surface of the file.
+// `files`, each at the file's path from the project root.
 func findingsIn(
 	problems []toolchain.Problem, moduleDir string, files []analysis.DocsHelperFile,
-) map[string][]string {
-	out := map[string][]string{}
+) []protocol.Problem {
+	out := []protocol.Problem{}
 	for _, problem := range problems {
 		path := problem.File
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(moduleDir, path)
 		}
-		for _, file := range files {
-			if file.Path == path {
-				finding := fmt.Sprintf("%s: %s:%d: %s", vetPrefix, file.Page, problem.Line, problem.Message)
-				out[file.Surface] = append(out[file.Surface], finding)
-			}
+		at := slices.IndexFunc(files, func(file analysis.DocsHelperFile) bool { return file.Path == path })
+		if at >= 0 {
+			out = append(out, protocol.Problem{Path: files[at].Page, Line: problem.Line, Message: vetPrefix + problem.Message})
 		}
 	}
 	return out

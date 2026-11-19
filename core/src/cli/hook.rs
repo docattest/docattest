@@ -9,7 +9,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use super::args::Options;
-use super::check::check_projects;
+use super::check::{Asked, check_projects};
 use super::command::find_root;
 use super::{Io, relative, resolve};
 use crate::adapter::Start;
@@ -19,6 +19,7 @@ use crate::files::source::DiskFiles;
 use crate::impact::brief::brief_impact;
 use crate::impact::commands::builds_any;
 use crate::impact::{Impact, Scope};
+use crate::project::check::CitedTests;
 use crate::project::state::{Started, start};
 use crate::report::Detail;
 use serde_json::{Map, Value};
@@ -150,7 +151,7 @@ pub(super) fn check_hook(stdin: &str, root: &Path, options: &Options, io: &mut I
     {
         return Ok(0);
     }
-    let checked = check_projects(&[], root, None)?;
+    let checked = check_projects(&[], root, Asked { base: None, cited: CitedTests::Declared })?;
     if checked.exit_code() == 0 {
         return Ok(0);
     }

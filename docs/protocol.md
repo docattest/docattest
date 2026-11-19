@@ -14,8 +14,8 @@ starts the built server, sends it requests and reads what it wrote, the way a co
 
 The answer to `hello` names the protocol version, the adapter, the info-string languages
 whose fenced blocks it runs, the project files that are its source files, the names that
-are never the project's own, and the optional methods it implements. The TypeScript adapter implements all four: `tests`, `observables`,
-`affected` and `display`. A protocol version it does not speak is a `user` error, and the server keeps
+are never the project's own, and the optional methods it implements. The TypeScript adapter implements six: `tests`, `runTests`,
+`observables`, `affected`, `display` and `mutants`. A protocol version it does not speak is a `user` error, and the server keeps
 running.
 
 The source files are given as globs, `include` minus `exclude`, which the core applies to
@@ -60,7 +60,7 @@ assert.deepEqual(hello.sourceFiles, {
 assert.deepEqual(hello.ignoredNames, ['node_modules']);
 assert.equal(hello.vocabulary.untitled, '(computed title)');
 assert.equal(hello.infoWords, undefined);
-assert.deepEqual(hello.capabilities, ['tests', 'observables', 'affected', 'display']);
+assert.deepEqual(hello.capabilities, ['tests', 'runTests', 'observables', 'affected', 'display', 'mutants']);
 assert.deepEqual(warm.of(1)?.result, hello);
 
 assert.deepEqual(run.of(2)?.error, {
