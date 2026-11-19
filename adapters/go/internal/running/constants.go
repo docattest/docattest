@@ -30,14 +30,19 @@ func (r *Runner) readConstants(of *analysis.Surface, names []string) (map[string
 	if err != nil {
 		return nil, err
 	}
-	program := r.project.Module.Path + "/" + blocksDir
 	out := map[string]sourceConstant{}
 	for _, name := range names {
 		if found, isConstant := pkg.Scope().Lookup(name).(*types.Const); isConstant {
-			out[name] = declared(found, program)
+			out[name] = declared(found, r.programPath())
 		}
 	}
 	return out, nil
+}
+
+// programPath is the import path of the generated programs: what decides which types
+// they can name.
+func (r *Runner) programPath() string {
+	return r.project.Module.Path + "/" + blocksDir
 }
 
 // declared is how a generated program declares a constant. Its type is named when a

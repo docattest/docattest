@@ -21,6 +21,28 @@ pub fn comment_ranges(text: &str) -> Vec<(usize, usize)> {
     out
 }
 
+/// Whether the line that `rest` starts on ends with no prose: only whitespace and whole HTML
+/// comments, which may run onto later lines, before its end. Comments that sit side by side
+/// are one group, so the order they are written in never decides whether one ends its line.
+pub fn ends_line_past_comments(rest: &str) -> bool {
+    let mut rest = rest;
+    loop {
+        let line = crate::text::first_line(rest);
+        let past_space = line.trim_start_matches(is_js_space);
+        if past_space.is_empty() {
+            return true;
+        }
+        let Some(body) = past_space.strip_prefix("<!--") else {
+            return false;
+        };
+        let body_start = line.len() - body.len();
+        let Some(close) = rest[body_start..].find("-->") else {
+            return false;
+        };
+        rest = &rest[body_start + close + 3..];
+    }
+}
+
 /// Prose for claims: HTML comments removed ([`without_comments`]), whitespace collapsed.
 /// Markup is kept.
 pub fn prose(source: &str) -> String {
@@ -160,6 +182,16 @@ mod tests {
         assert_eq!(prose("a <!-- x"), "a <!-- x");
         assert_eq!(prose("<!-- a --><!-- b -->x"), "x");
         assert_eq!(prose("<!-->x-->y"), "y");
+    }
+
+    #[test]
+    fn a_line_ends_past_the_comments_beside_it() {
+        assert!(ends_line_past_comments("  \nmore"));
+        assert!(ends_line_past_comments(" <!-- test: t > \"x\" --> <!-- b -->\r\nmore"));
+        assert!(ends_line_past_comments(" <!-- a\n spans --> \n"));
+        assert!(!ends_line_past_comments(" <!-- a --> prose"));
+        assert!(!ends_line_past_comments(" <!-- unclosed"));
+        assert!(!ends_line_past_comments(" | cell"));
     }
 
     #[test]

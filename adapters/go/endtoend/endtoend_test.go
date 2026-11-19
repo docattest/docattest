@@ -8,10 +8,12 @@ package endtoend
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -104,6 +106,10 @@ var statuses = map[string][]verdict{
 	"docs/shipping.md": {
 		{3, "fact", "pass"}, {10, "example", "pass"}, {21, "example", "skipped"}, {33, "cases", "pass"}, {34, "cases", "pass"},
 	},
+	"docs/sandbox.md": {
+		{3, "fact", "pass"}, {7, "fact", "pass"}, {11, "fact", "pass"}, {13, "fact", "pass"}, {17, "fact", "pass"},
+		{19, "fact", "pass"}, {23, "fact", "pass"},
+	},
 	"shop_test.go": {{10, "example", "pass"}, {17, "example", "pass"}},
 }
 
@@ -128,7 +134,9 @@ func TestCheckTheFixture(t *testing.T) {
 }
 
 func TestTheIndexAndTheAudit(t *testing.T) {
-	if out, _ := docattest(t, "../testdata/fixture", "uncovered"); strings.TrimSpace(out) != "ErrorCodes" {
+	// ErrorCodes is read by a helper of the setup package that a fact calls, and the
+	// sandbox's docs helpers are no exports.
+	if out, _ := docattest(t, "../testdata/fixture", "uncovered"); strings.TrimSpace(out) != "every public symbol is attested" {
 		t.Errorf("uncovered: %q", out)
 	}
 	if out, _ := docattest(t, "../testdata/fixture", "where", "Quote"); !strings.Contains(out, "docs/shipping.md:10 example") {
@@ -149,7 +157,8 @@ func TestImpactOfAChange(t *testing.T) {
 	root := committedFixture(t)
 	edit(t, root, "shipping/shipping.go", `"DE": 2`, `"DE": 3`)
 	out, _ := docattest(t, root, "impact")
-	for _, want := range []string{"affect 1 symbol", "Quote", "docs/shipping.md:10 proven example"} {
+	// days is a literal variable, which a fact could read from source.
+	for _, want := range []string{"affect 2 symbols", "Quote", "docs/shipping.md:10 proven example", "\ndays\n"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("impact: no %q in %q", want, out)
 		}
@@ -182,6 +191,45 @@ func TestImpactOfAConstantReadFromSource(t *testing.T) {
 	if got := strings.Join(facts, ", "); got != "listenPort fact, unserved fact" {
 		t.Errorf("got %q in %s", got, out)
 	}
+}
+
+func TestAFactThroughAHelperAttestsWhatTheHelperUses(t *testing.T) {
+	root := committedFixture(t)
+	if out, _ := docattest(t, root, "where", "ErrorCodes"); !strings.Contains(out, "docs/pricing.md:77 fact") {
+		t.Errorf("where: %q", out)
+	}
+	edit(t, root, "shop.go", "No carrier serves", "Nobody serves")
+	edit(t, root, "sandbox/sandbox.go", "forges packets", "fakes packets")
+	out, _ := docattest(t, root, "impact", "--json")
+	got := references(t, out)
+	// The fact at L13 calls a docs helper, which reads forbiddenCaps; L17 and L19 read it,
+	// and L23 calls Refuses, which reads it.
+	for _, want := range []string{"ErrorCodes docs/pricing.md:77", "ForbiddenCapNames docs/sandbox.md:13",
+		"forbiddenCaps docs/sandbox.md:17", "forbiddenCaps docs/sandbox.md:19", "Refuses docs/sandbox.md:23"} {
+		if !slices.Contains(got, want) {
+			t.Errorf("no %q in %s", want, out)
+		}
+	}
+}
+
+// references are the references of `impact --json`, each as its symbol, its page and its
+// line.
+func references(t *testing.T, out string) []string {
+	t.Helper()
+	var impact struct {
+		References []struct {
+			Symbol, Page string
+			Line         int
+		}
+	}
+	if err := json.Unmarshal([]byte(out), &impact); err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	found := []string{}
+	for _, r := range impact.References {
+		found = append(found, fmt.Sprintf("%s %s:%d", r.Symbol, r.Page, r.Line))
+	}
+	return found
 }
 
 // committedFixture is a copy of the fixture, committed to a git repository of its own.

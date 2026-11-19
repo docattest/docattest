@@ -111,14 +111,16 @@ pub struct Comment {
     pub body: String,
     pub line: usize,
     pub end_line: usize,
-    /// Nothing but whitespace follows it on its last line.
+    /// Nothing but whitespace and other comments follows it on its last line
+    /// ([`super::text::ends_line_past_comments`]).
     pub ends_line: bool,
     /// Index into [`Page::flow`] of the block that holds it: its paragraph, heading, HTML
     /// block or table.
     pub block: usize,
     /// Prose from the start of its paragraph, heading, list item or cell up to the comment.
     pub lead: String,
-    /// Leaves before it in the same phrasing container, since the previous comment.
+    /// Leaves before it in the same phrasing container, since the previous comment; for
+    /// comments side by side, with only whitespace between, those before the first of them.
     pub before: Vec<Leaf>,
     /// The table whose cell holds it.
     pub table: Option<usize>,
@@ -134,7 +136,7 @@ pub struct FirstSentence {
     pub block: usize,
     /// The line the sentence ends on.
     pub line: usize,
-    /// Nothing but whitespace follows the sentence on that line.
+    /// Nothing but whitespace and comments follows the sentence on that line.
     pub ends_line: bool,
     /// Prose from the start of the block to the sentence's end, as [`Comment::lead`].
     pub lead: String,

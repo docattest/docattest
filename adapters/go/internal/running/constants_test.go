@@ -60,22 +60,22 @@ func TestAFactReadsConstantsFromSource(t *testing.T) {
 	})
 }
 
-func TestOnlyConstantsAreReadFromSource(t *testing.T) {
+func TestOnlyConstantsAndLiteralVariablesAreReadFromSource(t *testing.T) {
 	got := withShopd(t).Evaluate([]protocol.Fact{
 		factOn("shopd", "variable", "started"),
 		factOn("shopd", "function", "main"),
 		factOn("shopd", "type", "verbosity(1)"),
-		factOn("shipping", "unexported", `days["NL"]`),
+		factOn("shipping", "literal", `days["NL"]`),
 		fact("private", "round(50)"),
 		factOn("shopd", "fine", "listenPort"),
 	})
 	expect(t, texts(got), map[string]string{
-		"variable":   "fact `started`: started is a variable of surface \"shopd\", a package main; of a package main, a fact reads only constants",
-		"function":   "fact `main`: main is a function of surface \"shopd\", a package main; of a package main, a fact reads only constants",
-		"type":       "fact `verbosity(1)`: verbosity is a type of surface \"shopd\", a package main; of a package main, a fact reads only constants",
-		"unexported": "fact `days[\"NL\"]`: days is a variable that surface \"shipping\" does not export; of its unexported names, a fact reads only constants",
-		"private":    "fact `round(50)`: round is a function that surface \"default\" does not export; of its unexported names, a fact reads only constants",
-		"fine":       "8080",
+		"variable": "fact `started`: started is a variable of surface \"shopd\" that a fact cannot read from source: its value, time.Now(), is not a composite literal",
+		"function": "fact `main`: main is a function of surface \"shopd\", a package main; of a package main, a fact reads only constants and literal variables",
+		"type":     "fact `verbosity(1)`: verbosity is a type of surface \"shopd\", a package main; of a package main, a fact reads only constants and literal variables",
+		"literal":  "1",
+		"private":  "fact `round(50)`: round is a function that surface \"default\" does not export; of its unexported names, a fact reads only constants and literal variables",
+		"fine":     "8080",
 	})
 }
 

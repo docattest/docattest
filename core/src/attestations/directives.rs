@@ -86,29 +86,48 @@ fn parse_fact(rest: &str, line: usize) -> Directive {
     let Some(colon) = remainder.find(':') else {
         return invalid(format!("fact at L{line} has no expression; expected <!-- fact: <expression> -->"));
     };
-    let mut surface = DEFAULT_SURFACE.to_string();
-    let mut ordered = false;
-    let modifiers = words(trim(&remainder[..colon]));
-    for word in &modifiers {
-        if !is_modifier(word) {
-            let unknown = format!("fact at L{line}: unknown modifier \"{word}\"");
-            return invalid(match bare_column {
-                Some(name) => format!("{unknown}; {}", quoting_hint(name, &modifiers)),
-                None => unknown,
-            });
-        }
-        match word.strip_prefix('@') {
-            Some(name) => surface = name.to_string(),
-            None => ordered = true,
-        }
-    }
+    let (surface, ordered) = match read_modifiers(&words(trim(&remainder[..colon])), bare_column) {
+        Ok(read) => read,
+        Err(why) => return invalid(format!("fact at L{line}: {why}")),
+    };
     let expression = trim(&remainder[colon + 1..]);
     if expression.is_empty() {
         return invalid(format!("fact at L{line} has no expression"));
     }
-    let column = column.map(|c| c.name).filter(|name| !name.is_empty());
+    let column = column.map(|c| c.name);
     Directive::Fact(FactDirective { expression: expression.to_string(), surface, ordered, column, field })
 }
+
+/// The surface and `ordered` of a fact, from the words before its colon that are not
+/// `column=` or `field=`. A fact reads one surface and selects with one `column=` or
+/// `field=`, so a second of either is refused rather than one silently winning.
+fn read_modifiers(modifiers: &[&str], bare_column: Option<&str>) -> Result<(String, bool), String> {
+    let mut surface: Option<&str> = None;
+    let mut ordered = false;
+    for word in modifiers {
+        if SELECTORS.iter().any(|key| word.starts_with(key)) {
+            return Err(format!("a fact selects with one column= or field=; \"{word}\" is a second"));
+        }
+        if !is_modifier(word) {
+            let unknown = format!("unknown modifier \"{word}\"");
+            return Err(match bare_column {
+                Some(name) => format!("{unknown}; {}", quoting_hint(name, modifiers)),
+                None => unknown,
+            });
+        }
+        match (word.strip_prefix('@'), surface) {
+            (Some(name), Some(first)) => {
+                return Err(format!("a fact reads one surface; it names @{first} and @{name}"));
+            }
+            (Some(name), None) => surface = Some(name),
+            (None, _) => ordered = true,
+        }
+    }
+    Ok((surface.unwrap_or(DEFAULT_SURFACE).to_string(), ordered))
+}
+
+/// The modifiers that pick what a fact binds.
+const SELECTORS: [&str; 2] = ["column=", "field="];
 
 /// `column=` and `field=`, which pick what a fact binds; at most one of them.
 fn take_selectors(rest: &str) -> Result<(Option<ColumnName>, Option<FieldPath>, String), String> {
@@ -122,6 +141,9 @@ fn take_selectors(rest: &str) -> Result<(Option<ColumnName>, Option<FieldPath>, 
         Some(name) => ColumnName { name: name.to_string(), quoted: true },
         None => ColumnName { name: written, quoted: false },
     });
+    if column.as_ref().is_some_and(|c| c.name.is_empty()) {
+        return Err("column= names no column".into());
+    }
     Ok((column, field, remainder))
 }
 
@@ -259,5 +281,22 @@ mod tests {
         assert_eq!(field("fact: f(\"field=x\")"), None);
         assert_eq!(message("fact field=a..b: P", 4), "fact at L4: field=a..b has an empty key");
         assert!(message("fact column=k field=a: P", 4).contains("column= and field= cannot both be given"));
+    }
+
+    #[test]
+    fn a_second_surface_or_selector_and_an_empty_column_are_refused() {
+        assert_eq!(
+            message("fact @api @shipping: P", 4),
+            "fact at L4: a fact reads one surface; it names @api and @shipping"
+        );
+        assert_eq!(
+            message("fact column=zone column=code: P", 4),
+            "fact at L4: a fact selects with one column= or field=; \"column=code\" is a second"
+        );
+        assert_eq!(
+            message("fact field=a field=b: P", 4),
+            "fact at L4: a fact selects with one column= or field=; \"field=b\" is a second"
+        );
+        assert_eq!(message("fact column=\"\": P", 4), "fact at L4: column= names no column");
     }
 }

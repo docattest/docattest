@@ -6,6 +6,7 @@ pub mod core_examples;
 pub mod directives;
 pub mod examples;
 pub mod field;
+pub mod group;
 pub mod judge;
 pub mod literals;
 pub mod placement;

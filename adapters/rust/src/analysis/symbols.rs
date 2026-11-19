@@ -3,12 +3,16 @@
 //! Read from tokens, so that what a macro is given counts (`assert_eq!(shop::total(…))`):
 //! a path that goes through a surface's module names the export after it, a `use` makes
 //! a shorter name stand for such a path, and a glob import of a surface's module, or
-//! code written in that module's own file, reaches its exports by their bare names.
+//! code written in that module's own file, reaches its exports by their bare names. A
+//! cases runner, and a function of the setup module or a docs helper that a fact calls,
+//! also names what the items of its own file that it calls name ([`reached`]).
 
 use super::Analysis;
 use super::modules::use_leaves;
+use super::reach::reached;
 use super::surfaces::Surface;
 use super::tests::{cited, declared};
+use crate::language::doc::named;
 use crate::language::text::Token;
 use crate::language::{blocks, is_source, text};
 use crate::protocol::{Attestation, SymbolRef};
@@ -40,13 +44,15 @@ impl<'ast> Visit<'ast> for Uses {
 /// Collects the surface symbols code names, each once, in order.
 struct Refs<'a> {
     analysis: &'a Analysis,
+    /// Which names of a surface are collected: its exports, or its docs helpers.
+    collected: &'a dyn Fn(&Surface, &str) -> bool,
     found: Vec<SymbolRef>,
 }
 
 impl Refs<'_> {
-    /// Records a name of a surface, when the surface exports it.
+    /// Records a name of a surface, when it is one of those collected.
     fn add(&mut self, name: &str, surface: &Surface) {
-        if self.analysis.exported(surface, name) {
+        if (self.collected)(surface, name) {
             self.record(name, surface);
         }
     }
@@ -106,7 +112,8 @@ fn through<'a>(path: &'a [String], import: &[&str], in_crate: bool) -> Option<&'
 impl Analysis {
     /// Answers `symbols` for one attestation.
     pub(crate) fn symbols(&self, attestation: &Attestation) -> Vec<SymbolRef> {
-        let mut refs = Refs { analysis: self, found: Vec::new() };
+        let exported = |surface: &Surface, name: &str| self.exported(surface, name);
+        let mut refs = Refs { analysis: self, collected: &exported, found: Vec::new() };
         match attestation.kind.as_str() {
             "example" => {
                 let own = is_source(&attestation.page).then(|| self.abs(&attestation.page));
@@ -121,24 +128,21 @@ impl Analysis {
                     None,
                 );
             }
-            "fact" => {
-                // A fact attests the constants it reads from source too, which no one can
-                // import.
-                if let Some(surface) = self.surface(&attestation.surface) {
-                    for name in text::identifiers(&attestation.expression) {
-                        if self.read_from_source(surface, name) {
-                            refs.record(name, surface);
-                        } else {
-                            refs.add(name, surface);
-                        }
-                    }
-                }
-                refs.collect(&attestation.expression, None, None);
-            }
+            "fact" => self.fact_symbols(&mut refs, attestation),
             "test" => self.citation_symbols(&mut refs, attestation),
             "cases" => self.runner_symbols(&mut refs, &attestation.runner),
             _ => {}
         }
+        refs.found
+    }
+
+    /// The docs helpers an example's code names, read as `symbols` reads what it names.
+    /// An example is built with them, but runs as the project's users build its crates,
+    /// without them, so naming one is a mistake.
+    pub(crate) fn docs_helpers_named(&self, code: &str) -> Vec<SymbolRef> {
+        let helper = |surface: &Surface, name: &str| self.docs_helper(surface, name).is_some();
+        let mut refs = Refs { analysis: self, collected: &helper, found: Vec::new() };
+        refs.collect(&blocks::visible(code), blocks::parsed(code).as_ref(), None);
         refs.found
     }
 
@@ -157,14 +161,71 @@ impl Analysis {
         }
     }
 
+    /// What a fact names: the exports and constants its expression reads, what the docs
+    /// helpers and the setup module's functions it calls reach, and the paths it writes.
+    fn fact_symbols(&self, refs: &mut Refs, fact: &Attestation) {
+        let names = text::identifiers(&fact.expression);
+        // A fact attests the constants it reads from source too, which no one can import.
+        if let Some(surface) = self.surface(&fact.surface) {
+            for &name in &names {
+                if self.read_from_source(surface, name) {
+                    refs.record(name, surface);
+                } else {
+                    refs.add(name, surface);
+                }
+            }
+            self.helper_symbols(refs, surface, &names);
+        }
+        let setup = self.setup_names();
+        let called: Vec<String> = names
+            .into_iter()
+            .filter(|name| setup.iter().any(|known| known == name))
+            .map(str::to_string)
+            .collect();
+        self.setup_symbols(refs, &called);
+        refs.collect(&fact.expression, None, None);
+    }
+
+    /// What the docs helpers a fact calls reach through the items of their module that are
+    /// no export: the fact attests each helper, and the constants they read, as it attests
+    /// those it reads itself, with the exports they use.
+    fn helper_symbols(&self, refs: &mut Refs, surface: &Surface, names: &[&str]) {
+        let called: Vec<String> = names
+            .iter()
+            .filter(|name| self.callable_helper(surface, name))
+            .map(|name| name.to_string())
+            .collect();
+        if called.is_empty() {
+            return;
+        }
+        let Some(items) = self.module_items(surface) else { return };
+        let module = syn::File { shebang: None, attrs: Vec::new(), items };
+        let attested =
+            |name: &String| self.read_from_source(surface, name) || self.docs_helper(surface, name).is_some();
+        for item in reached(&module.items, &called, &|name| !self.exported(surface, name)) {
+            if let Some((name, _)) = named(item).filter(|(name, _)| attested(name)) {
+                refs.record(&name, surface);
+            }
+            refs.collect(&item.to_token_stream().to_string(), Some(&module), surface.file());
+        }
+    }
+
+    /// What some items of the setup module reach: their own code, and that of the setup
+    /// module's items it names, at any depth.
+    fn setup_symbols(&self, refs: &mut Refs, roots: &[String]) {
+        if roots.is_empty() {
+            return;
+        }
+        let Some(file) = self.setup_file() else { return };
+        for item in reached(&file.items, roots, &|_| true) {
+            refs.collect(&item.to_token_stream().to_string(), Some(&file), None);
+        }
+    }
+
     /// What the runner of a cases table uses: the function the setup module's CASES
-    /// gives for its name.
+    /// gives for its name, and what it reaches.
     fn runner_symbols(&self, refs: &mut Refs, runner: &str) {
         let Some(file) = self.setup_file() else { return };
-        let functions = file.items.iter().filter_map(|item| match item {
-            syn::Item::Fn(function) => Some(function),
-            _ => None,
-        });
         let named: Vec<String> = file
             .items
             .iter()
@@ -176,9 +237,7 @@ impl Analysis {
             })
             .flat_map(|cases| runner_names(&cases, runner))
             .collect();
-        for function in functions.filter(|function| named.contains(&function.sig.ident.to_string())) {
-            refs.collect(&function.to_token_stream().to_string(), Some(&file), None);
-        }
+        self.setup_symbols(refs, &named);
     }
 }
 

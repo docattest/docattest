@@ -2,10 +2,11 @@
 //!
 //! A fact expression is a Rust expression. It is compiled in a program that imports
 //! everything its surface's module exports (`use ::shop::*`), so the exports are in scope
-//! by their own names and nothing else of the crate is; the setup module's `pub` items
-//! are in scope the same way; and `std` and the crates of the workspace are there by
-//! their names, as everywhere. The program names every crate from the root (`::shop`):
-//! a crate may declare a module of its own name, which the glob import brings in.
+//! by their own names and nothing else of the crate is, but for the module's `pub` docs
+//! helpers, which the glob brings in too; the setup module's `pub` items are in scope the
+//! same way; and `std` and the crates of the workspace are there by their names, as
+//! everywhere. The program names every crate from the root (`::shop`): a crate may
+//! declare a module of its own name, which the glob import brings in.
 //!
 //! A constant the surface's module does not export, and any constant of a binary crate,
 //! which nothing imports, is read from source instead: its declaration is written into

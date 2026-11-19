@@ -14,10 +14,11 @@ import (
 )
 
 // A fact expression is a Go expression. It is compiled in a file that imports its
-// surface with a dot, so the surface's exports are in scope by their own names; the
-// setup package's exports are in scope the same way; and a package of the standard
-// library is there by its name. Of what a program importing the surface cannot use, the
-// constants are declared in the fact's own function, read from source (constants.go).
+// surface with a dot, so the surface's exports, and the exported names of its docs helper
+// files, are in scope by their own names; the setup package's exports are in scope the
+// same way; and a package of the standard library is there by its name. Of what a program
+// importing the surface cannot use, the constants and the literal variables are declared
+// in the fact's own function, read from source (sourcevalues.go).
 
 var undefined = regexp.MustCompile(`^undefined: (\w+)$`)
 
@@ -65,69 +66,39 @@ func (r *Runner) refusal(fact protocol.Fact) string {
 		return fmt.Sprintf("cannot parse fact expression `%s`: %v", fact.Expression, err)
 	}
 	of := r.project.SurfaceNamed(fact.Surface)
-	exported, helpers := r.project.Exports(of), r.project.SetupExports()
+	importable, helpers := r.project.Importable(of), r.project.SetupExports()
 	for _, name := range language.Names(fact.Expression) {
-		if exported[name] && helpers[name] {
+		if importable[name] && helpers[name] {
 			return fmt.Sprintf("fact `%s`: %q is both an export of surface %q and of the setup package; rename the one in the setup package",
 				fact.Expression, name, fact.Surface)
 		}
 	}
 	for _, used := range r.sourceNames(of, fact.Expression) {
-		if used.what != analysis.Constant {
+		if used.what != analysis.Constant && used.what != analysis.Variable {
 			return fmt.Sprintf("fact `%s`: %s", fact.Expression, r.unreadable(used, of))
 		}
 	}
 	return ""
 }
 
-// unreadable says why a fact cannot read a name of its surface that is not a constant.
+// unreadable says why a fact cannot read a function or a type of its surface that a
+// program importing it cannot use.
 func (r *Runner) unreadable(used sourceName, of *analysis.Surface) string {
-	if r.project.IsProgram(of) {
-		return fmt.Sprintf("%s is a %s of surface %q, a package main; of a package main, a fact reads only constants",
+	switch {
+	case r.project.IsProgram(of):
+		return fmt.Sprintf("%s is a %s of surface %q, a package main; of a package main, a fact reads only constants and literal variables",
+			used.name, used.what, of.Name)
+	case r.project.DocsHelpers(of)[used.name] != "":
+		return fmt.Sprintf("%s is a %s of a docs helper file of surface %q that is not exported; export it there, since only docattest builds that file",
 			used.name, used.what, of.Name)
 	}
-	return fmt.Sprintf("%s is a %s that surface %q does not export; of its unexported names, a fact reads only constants",
+	return fmt.Sprintf("%s is a %s that surface %q does not export; of its unexported names, a fact reads only constants and literal variables",
 		used.name, used.what, of.Name)
-}
-
-// sourceName is a name of a surface that a program importing it cannot use.
-type sourceName struct {
-	name string
-	what analysis.Declares
-}
-
-// sourceNames are the names an expression uses that a program importing its surface
-// cannot use, each once, in order. A name that something is selected from and that names
-// a package of the standard library is that package, as it is in every other fact.
-func (r *Runner) sourceNames(of *analysis.Surface, expression string) []sourceName {
-	sourceOnly := r.project.SourceOnly(of)
-	skipped := map[string]bool{}
-	for _, name := range language.Qualifiers(expression) {
-		skipped[name] = r.standardPackage(name)
-	}
-	out := []sourceName{}
-	for _, name := range language.Names(expression) {
-		if what, found := sourceOnly[name]; found && !skipped[name] {
-			out, skipped[name] = append(out, sourceName{name, what}), true
-		}
-	}
-	return out
-}
-
-// constantsRead are the names of the constants an expression reads from source.
-func (r *Runner) constantsRead(of *analysis.Surface, expression string) []string {
-	names := []string{}
-	for _, used := range r.sourceNames(of, expression) {
-		if used.what == analysis.Constant {
-			names = append(names, used.name)
-		}
-	}
-	return names
 }
 
 // evaluateGroup evaluates the facts of one surface in one program.
 func (r *Runner) evaluateGroup(of *analysis.Surface, facts []protocol.Fact) map[string]protocol.Evaluation {
-	facts, constants, out := r.withConstants(of, facts)
+	facts, values, out := r.withSourceValues(of, facts)
 	if len(facts) == 0 {
 		return out
 	}
@@ -135,7 +106,7 @@ func (r *Runner) evaluateGroup(of *analysis.Surface, facts []protocol.Fact) map[
 	for k := range facts {
 		labels[k] = fmt.Sprintf("docattest_f%d.go", k)
 	}
-	program := r.buildProgram(labels, func(live []bool) string { return r.factsMain(of, facts, labels, live, constants) })
+	program := r.buildProgram(labels, func(live []bool) string { return r.factsMain(of, facts, labels, live, values) })
 	kept := []protocol.Fact{}
 	for k, fact := range facts {
 		label := fmt.Sprintf("fact `%s`", fact.Expression)
@@ -160,33 +131,6 @@ func (r *Runner) evaluateGroup(of *analysis.Surface, facts []protocol.Fact) map[
 		out[fact.ID] = r.evaluation(fact, answers[k])
 	}
 	return out
-}
-
-// withConstants reads the constants a surface's facts read from source. It returns the
-// facts that can go on, the constants, and the evaluations of the facts that cannot: all
-// that read a constant, when the package cannot be type-checked.
-func (r *Runner) withConstants(of *analysis.Surface, facts []protocol.Fact) ([]protocol.Fact, map[string]sourceConstant, map[string]protocol.Evaluation) {
-	failed := map[string]protocol.Evaluation{}
-	names := []string{}
-	for _, fact := range facts {
-		names = append(names, r.constantsRead(of, fact.Expression)...)
-	}
-	if len(names) == 0 {
-		return facts, nil, failed
-	}
-	constants, err := r.readConstants(of, names)
-	if err == nil {
-		return facts, constants, failed
-	}
-	kept := []protocol.Fact{}
-	for _, fact := range facts {
-		if len(r.constantsRead(of, fact.Expression)) > 0 {
-			failed[fact.ID] = protocol.Failed(fmt.Sprintf("surface %q failed to load: %v", of.Name, err))
-		} else {
-			kept = append(kept, fact)
-		}
-	}
-	return kept, nil, failed
 }
 
 // notExported words the compiler's `undefined: X` as what it means on a page.
@@ -215,8 +159,8 @@ func (r *Runner) evaluation(fact protocol.Fact, answer line) protocol.Evaluation
 }
 
 // factsMain writes the main of a facts program for the facts still in it. A fact's
-// function starts with the constants it reads from source, on the fact's first line.
-func (r *Runner) factsMain(of *analysis.Surface, facts []protocol.Fact, labels []string, live []bool, constants map[string]sourceConstant) string {
+// function starts with what it reads from source, on the fact's first line.
+func (r *Runner) factsMain(of *analysis.Surface, facts []protocol.Fact, labels []string, live []bool, values sourceValues) string {
 	imports := newImports()
 	var body strings.Builder
 	for k, fact := range facts {
@@ -224,12 +168,7 @@ func (r *Runner) factsMain(of *analysis.Surface, facts []protocol.Fact, labels [
 			continue
 		}
 		r.factImports(imports, of, fact.Expression)
-		declarations := ""
-		for _, name := range r.constantsRead(of, fact.Expression) {
-			if read, found := constants[name]; found {
-				declarations += read.declaration(imports) + "; "
-			}
-		}
+		declarations := values.prelude(r.sourceRead(of, fact.Expression), imports)
 		fmt.Fprintf(&body, "\t\tfunc() any {\n//line %s:1\n\t\t\t%sreturn (%s)\n\t\t},\n",
 			labels[k], declarations, strings.TrimSpace(fact.Expression))
 	}
@@ -241,7 +180,7 @@ func (r *Runner) factsMain(of *analysis.Surface, facts []protocol.Fact, labels [
 // package, each with a dot, when it uses a name of theirs that can be imported; and
 // standard packages.
 func (r *Runner) factImports(imports *programImports, of *analysis.Surface, expression string) {
-	exported, helpers := r.project.Exports(of), r.project.SetupExports()
+	exported, helpers := r.project.Importable(of), r.project.SetupExports()
 	importable := !r.project.IsProgram(of)
 	for _, name := range language.Names(expression) {
 		if exported[name] && importable {

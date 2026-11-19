@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import ast
 import os
+from collections.abc import Callable, Collection
 
 from .. import language
 from ..analysis.declared_tests.listing import cited, declared
@@ -47,14 +48,13 @@ class Symbols:
         except RecursionError:
             return []
 
-    def _known(self, refs: list[Ref]) -> list[SymbolRef]:
+    def _known(self, refs: list[Ref], attestable: Callable[[str], Collection[str]]) -> list[SymbolRef]:
+        """The refs whose name is among those ``attestable`` gives for their surface, each
+        once."""
         out: list[SymbolRef] = []
         seen: set[Ref] = set()
         for name, surface in refs:
-            if (name, surface) in seen:
-                continue
-            exported = self.workspace.exports(surface)
-            if exported is not None and name in exported:
+            if (name, surface) not in seen and name in attestable(surface):
                 seen.add((name, surface))
                 out.append({"name": name, "surface": surface})
         return out
@@ -84,6 +84,12 @@ class Symbols:
         if surface not in self.workspace.by_name:
             return {}
         return self.workspace.readable(surface).constants
+
+    def _exports_and_constants(self, surface: str) -> set[str]:
+        """What a fact, or a helper of the setup module, attests of a surface it reads: its
+        exports, and its constants, exported or not. A fact reads a constant from source; a
+        helper imports private names as any module may."""
+        return set(self._exports(surface)) | set(self._constants(surface))
 
     def _refs(self, imports: Imports, nodes: list[ast.AST] | None) -> list[Ref]:
         """Surface symbols reached through ``imports``: all of them when ``nodes`` is None
@@ -134,7 +140,7 @@ class Symbols:
             if e.owner:
                 own = self._owner(page, e.owner)
             refs += self._module_names_used(tree, page)
-        known = self._known(refs)
+        known = self._known(refs, self._exports)
         seen = {(r["name"], r.get("surface")) for r in own}
         return own + [r for r in known if (r["name"], r["surface"]) not in seen]
 
@@ -179,7 +185,7 @@ class Symbols:
         attests although they may not be exports."""
         names = expression_names(f.expression)
         exported = set(self._exports(f.surface))
-        read = exported | set(self._constants(f.surface))
+        read = self._exports_and_constants(f.surface)
         refs = [{"name": n, "surface": f.surface} for n in names if n in read]
         seen = {(r["name"], r["surface"]) for r in refs}
         for key in self.workspace.setup_entries("facts"):
@@ -209,7 +215,7 @@ class Symbols:
                 if isinstance(binding, Declaration) and chain[0] not in seen:
                     seen.add(chain[0])
                     queue.extend(binding.nodes)
-        return self._known(self._refs(imports, nodes))
+        return self._known(self._refs(imports, nodes), self._exports_and_constants)
 
     def _citation_symbols(self, t: TestCitation) -> list[SymbolRef]:
         if t.error is not None or not language.is_source(t.file):
@@ -225,7 +231,7 @@ class Symbols:
         ]
         if not found:
             return []
-        return self._known(self._refs(Imports(module.tree, module), found))
+        return self._known(self._refs(Imports(module.tree, module), found), self._exports)
 
     # --- tests ---------------------------------------------------------------------------
 

@@ -35,8 +35,8 @@ CI, cache a directory of its own to install into: cargo then finds that version 
 
 ```yaml
 - uses: actions/cache@v4
-  with: { path: ~/.docattest, key: "docattest-0.2.0-${{ runner.os }}-${{ runner.arch }}" }
-- run: cargo install docattest --version 0.2.0 --locked --root ~/.docattest
+  with: { path: ~/.docattest, key: "docattest-0.2.1-${{ runner.os }}-${{ runner.arch }}" }
+- run: cargo install docattest --version 0.2.1 --locked --root ~/.docattest
 - run: echo "$HOME/.docattest/bin" >> "$GITHUB_PATH"
 ```
 
@@ -92,8 +92,9 @@ To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher:
   (`"./src/bin/shopd.rs"`, `"./src/main.rs"`), the file of one of its modules, or the
   directory of a package that has no library and one binary. Facts read only its
   constants (see [Facts](#facts)). <!-- test: tests/constants.rs > "a_fact_reads_constants_from_source" -->
-- **What a surface exports** is every `pub` item its module declares, except modules, and
-  what it re-exports with `pub use` (a glob's by the exports of the module it names). <!-- test: src/analysis/modules.rs > "tests" > "exports_are_public_items_and_what_is_reexported" -->
+- **What a surface exports** is every `pub` item its module declares, except modules and
+  [docs helpers](#docs-helpers-cfgdocattest), and what it re-exports with `pub use` (a
+  glob's by the exports of the module it names). <!-- test: src/analysis/modules.rs > "tests" > "exports_are_public_items_and_what_is_reexported" -->
   `uncovered` lists the exports no page attests. A crate whose root only declares modules
   exports nothing at its root: name the modules as surfaces. A binary exports nothing.
 - **`sources`** are the Rust files whose doc-comment examples are checked (see below).
@@ -309,15 +310,25 @@ A discount is at most `50` percent. <!-- fact: MAX_DISCOUNT -->
 The carriers: <!-- fact @shipping: CARRIERS -->
 ```
 
-It may use the surface's exports, the `pub` items of the setup file, `snapshot("name")`,
-`manifest("path")`, `file("path")`, and by its path anything of `std`, of your crates or of
-what they depend on (`shop::shipping::CARRIERS`). A bare name the surface's module does
+It may use the surface's exports, its module's `pub`
+[docs helpers](#docs-helpers-cfgdocattest), the `pub` items of the setup file,
+`snapshot("name")`, `manifest("path")`, `file("path")`, and by its path anything of `std`,
+of your crates or of what they depend on (`shop::shipping::CARRIERS`). A bare name the surface's module does
 not declare is an error (`nowhere is not exported by surface "default"`), and so is a
 function, a type or a variable it declares and does not export (`round is a function that
 surface "default" does not export; of its unexported names, a fact reads only constants`),
 which is what keeps a page honest about what a user can see. <!-- test: tests/session.rs > "a_fact_without_a_value_says_why_and_costs_the_others_nothing" -->
 A path through a surface's module names that surface's export, as it does in an example,
 so `where`, `uncovered` and `impact` find the fact. <!-- test: tests/workspace.rs > "a_fact_names_the_surface_exports_its_crate_paths_reach" -->
+A call of a function of the setup file names what that function uses of the surfaces,
+and what the setup file's own functions it calls use, at any depth, as a cases table's
+runner does. So `where`, `uncovered` and `impact` find the fact under those exports. <!-- test: tests/helpers.rs > "a_fact_names_what_the_setup_functions_it_calls_reach" -->
+In the fixture, `error_messages()` reads `ERROR_CODES`:
+
+```console check cwd=tests/fixture
+$ docattest where ERROR_CODES
+docs/pricing.md:63 fact  The error messages, through a function of the setup module:
+```
 
 The page's literal is compared with the value as Rust displays it: `Display` when the type
 has it, else `Debug`. So `true`, `3`, `7.50 EUR` for a type that prints itself so, and
@@ -375,6 +386,59 @@ of primitive types and Duration`). <!-- test: tests/constants.rs > "only_constan
 A fact attests the constants it reads, exported or not, as `where` shows; `uncovered` lists
 only exports. So `impact` lists a change to such a constant as it lists a change to an
 export, with the facts that read it: a private constant, or any constant of a binary. <!-- test: tests/endtoend.rs > "impact_of_a_constant_read_from_source" -->
+
+#### Docs helpers: `#[cfg(docattest)]`
+
+A page may state a value the crate keeps private, of a type of its own, which no constant
+read from source can show: the names in a private `const CAPS: &[Cap]`. A docs helper
+shows it with no export. It is an item of the surface's module under `#[cfg(docattest)]`:
+
+```rust
+// src/caps.rs
+struct Cap { name: &'static str, watts: u32 }
+
+const CAPS: &[Cap] = &[Cap { name: "scan", watts: 2 }, Cap { name: "record", watts: 5 }];
+
+#[cfg(docattest)]
+pub fn cap_names() -> Vec<&'static str> {
+    CAPS.iter().map(|cap| cap.name).collect()
+}
+```
+
+```markdown
+The radio can: <!-- fact @caps: cap_names() -->
+- `scan`
+- `record`
+```
+
+Every program docattest builds compiles your crates with `--cfg docattest`, and nothing
+else does, so `cargo build`, `cargo test` and your users never compile a docs helper. As
+code of its module, a docs helper sees all the module sees, private items included, and a
+fact calls it by its name, as it calls an export. <!-- test: tests/helpers.rs > "a_fact_calls_a_docs_helper_by_its_name" -->
+An example stands for code your users write, and they build without the cfg. So a block
+of a page, or an example of a doc comment, that names a docs helper (by a path, a `use` or
+a glob import) is refused before it is built, at the line that names it: `uses cap_names, a
+docs helper of surface "caps": a page's example runs as users build the code, without
+#[cfg(docattest)] (block line 1)`. <!-- test: tests/helpers.rs > "a_page_states_what_only_helpers_say" -->
+It must be `pub`, since the fact's program is a crate of its own that imports the
+surface's module. One that is not `pub`, or one of a binary, is an error that says so
+(`hidden is a docs helper of surface "caps" that a fact cannot call: …`). <!-- test: tests/helpers.rs > "a_fact_calls_only_a_docs_helper_that_is_pub_in_a_library" -->
+A docs helper is no export, so `uncovered` never lists it. A fact attests the helper, and
+what it reaches through the items of its module that are not exported, at any depth: the
+exports it uses and the constants it reads. So `where CAPS` lists the fact, and `impact`
+lists it when `CAPS` or the helper changes. <!-- test: tests/helpers.rs > "a_fact_attests_a_docs_helper_and_what_it_reaches" --> <!-- test: tests/helpers.rs > "a_page_states_what_only_helpers_say" -->
+
+The cfg is added to `RUSTFLAGS` when that is set, else to cargo's `build.rustflags`, which
+cargo joins with those of your own config: the flags your crates build with are kept. <!-- test: src/toolchain/cargo.rs > "tests" > "the_docs_cfg_joins_the_flags_the_project_builds_with" -->
+The generated crate has a target directory of its own, so the cfg never makes cargo build
+your own target directory again, and every program there is built with the same flags, so
+your dependencies are compiled once. Declare the cfg in your manifest, so that your own builds do not
+warn of it:
+
+```toml
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(docattest)"] }
+```
 
 A fact with `field=` checks one value of a JSON, TOML or YAML block
 ([facts](../../docs/facts.md#a-fact-can-check-one-field-of-a-data-block)), which is
@@ -449,6 +513,9 @@ fn spans(row: &Row) -> Result<(), String> {
     if got == row["spans"] { Ok(()) } else { Err(format!("got {got}")) }
 }
 ```
+
+A table attests what its runner uses of the surfaces, and what the setup file's own
+functions it calls use, at any depth. <!-- test: tests/helpers.rs > "a_fact_names_what_the_setup_functions_it_calls_reach" -->
 
 A row is named by the page, its line and its first cell. A runner that panics fails its
 row, and the next row still runs:
@@ -544,6 +611,10 @@ a warning and the surface keeps the exports its source declares.
   inventory: 6 values
   ```
 - The network is not refused (see above).
+- A cargo config that sets `target.<triple>.rustflags` or `target.'cfg(…)'.rustflags`
+  takes the place of `build.rustflags`, so docattest's build lacks `--cfg docattest`, and
+  a fact that calls a docs helper says so. Set `RUSTFLAGS` to those flags for docattest's
+  run: the cfg is then added to it. <!-- test: tests/helpers.rs > "a_cargo_config_that_takes_the_place_of_build_rustflags_leaves_docs_helpers_out" -->
 - Two docattest runs on one project at the same time share `target/docattest`: cargo makes
   one build wait for the other, but they may rewrite each other's generated files.
 - This adapter has not been run on Windows.

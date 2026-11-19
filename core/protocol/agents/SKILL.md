@@ -49,13 +49,13 @@ language is the code: examples, fact expressions and the setup module. `"adapter
 | a block that runs | ```` ```ts check ```` | ```` ```python check ````, or ```` ```pycon check ```` for a `>>>` session | ```` ```go check ````: statements, declarations, or a whole `package main` | ```` ```rust check ````: the body of `main`, or a whole program with `fn main` |
 | a block that is only checked, not run | ```` ```ts compile ```` (type-checked) | ```` ```python compile ```` (syntax, imports, names) | ```` ```go compile ```` (compiled) | ```` ```rust compile ```` (compiled) |
 | an assertion | `assert.equal(a, b)`; `assert` is in scope | `assert a == b`; in a session, the output shown | a last comment `// Output: …` that what it prints must match, or `if a != b { panic(…) }` | `assert_eq!(a, b)`, `assert!(…)`, or an `unwrap()` |
-| a fact expression | `RETRY.max`, `errors.map((e) => e.field)`: the surface's exports by their own names, and the constants of its module, exported or not | `RETRY["max"]`, `[e.field for e in errors]`: the surface's exports, and the constants of its module, exported or not | `Retry.Max`, `len(Regions)`: the surface's exports by their own names, and the constants of its package, exported or not | `RETRY.max`, `REGIONS.len()`: the exports of the surface's module by their own names, and its constants, exported or not |
+| a fact expression | `RETRY.max`, `errors.map((e) => e.field)`: the surface's exports by their own names, and the constants of its module, exported or not | `RETRY["max"]`, `[e.field for e in errors]`: the surface's exports, and the constants of its module, exported or not | `Retry.Max`, `len(Regions)`: the surface's exports by their own names, the constants of its package and its literal variables (a `var` given a composite literal of constants that the package only reads), exported or not, and what its `//go:build docattest` files export | `RETRY.max`, `REGIONS.len()`: the exports of the surface's module by their own names, and its constants, exported or not |
 | how a value is written on the page | as JavaScript prints it: `true`, `3` | as Python prints it: `True`, `3` | as `fmt.Sprint` prints it: `true`, `3`, `[a b]` | as `Display` prints it, else `Debug`: `true`, `3`, `Some(3)` |
 | setup above the reader's view | lines above `// ---cut---` | none: put it in an earlier block and tag the next `continue` | none: a block is a whole program | lines that begin `# `, as in a doc test |
 | examples in source files | `@example` in a doc comment | `>>>` prompts in a docstring | `Example…` functions in a `_test.go` file | fenced blocks in `///` doc comments |
 | a test to cite | `it("title")`, inside `describe` blocks, or a row of `it.each` by the title its runner prints | a `test_…` function, inside classes, or a `parametrize` case or a `subTest` by the id its runner prints (`"test_total" > "big discount"`) | a `Test…` function, or a `t.Run("title", …)` inside one, a row of a literal table included | a `#[test]` function inside its `mod tests`, or a named case of an rstest or test-case test (`"tests" > "discount" > "quarter"`) |
 | a cell's code spans, in a cases runner | `codeSpans(cell)`, from `docattest` | `code_spans(cell)`, from `docattest.cells` | `cells.CodeSpans(cell)`, from `github.com/docattest/docattest/adapters/go/cells` | `docattest_harness::cells::code_spans(cell)` |
-| the setup module | `export const cases`, `export const facts` | `cases = {…}`, `facts = {…}` | a package with `var Cases = map[string]func(map[string]string) error{…}`; facts use its exports | a file with `pub const CASES: &[(&str, fn(&HashMap<String, String>) -> Result<(), String>)]`; facts use its `pub` items |
+| the setup module | `export const cases`, `export const facts` | `cases = {…}`, `facts = {…}` | a package with `var Cases = map[string]func(map[string]string) error{…}`; facts use its exports, and a fact that calls one attests what it uses | a file with `pub const CASES: &[(&str, fn(&HashMap<String, String>) -> Result<(), String>)]`; facts use its `pub` items |
 
 Syntax:
 
@@ -63,6 +63,10 @@ Syntax:
   (it is checked without running). Import what a user would import. One behaviour per
   block, at least one assertion. Setup the reader need not see must never perform the
   behaviour the section describes.
+- Fact: `<!-- fact[ @surface][ ordered][ column=<name> | field=<path>]: <expression> -->`,
+  the modifiers in any order before the colon. `@surface` reads a configured surface other
+  than `default`; `ordered` compares a list in order, and is an error on a single value or
+  a fenced block; `column=` and `field=` never go together.
 - Scalar fact: put the comment right after the literal: ``At most `3` tries. <!-- fact: RETRY.max -->``
   It binds the code span or bare number before it on the same line. With none there, it
   binds the code spans of the sentence it ends, which may wrap over lines: put the comment
@@ -70,8 +74,9 @@ Syntax:
   sentence, as `// @ts-expect-error` sits: it binds as it would at the sentence's end. A
   comment alone on a line with a blank line before the prose below it fails.
 - Citation: `<!-- test: file > "title" -->` at the end of the sentence a test proves, or
-  alone on the line directly above it; several may share that line. `where` shows the
-  sentence as the claim.
+  alone on the line directly above it; several may share that line. Next to a fact, before
+  or after it, a citation never changes what the fact binds. `where` shows the sentence as
+  the claim.
 - List fact: end the line before the list with the comment: `The server reads: <!-- fact: ENV_KEYS -->`.
   Or end a sentence of code spans with it, ``Keys are `A` and `B`. <!-- fact: KEYS -->``:
   every code span of the sentence is compared as a set, so a sentence that also names a
@@ -83,7 +88,12 @@ Syntax:
   or space is quoted (`limits."max retries"`). Several such facts may sit above one block.
 - Named facts: when an expression is awkward inline, add a helper to the setup module's
   `facts` and call it by bare name. The helper reads the surface; the expectation stays on
-  the page.
+  the page. A fact that calls a helper attests what the helper uses, as a cases runner does.
+- Docs helpers: never export something only for the docs. To state a private value that a
+  helper must work out, write the helper inside the surface where only docattest builds it
+  (Go: an exported name in a `//go:build docattest` file of the surface's package; Rust: a
+  `pub` item of the surface's module under `#[cfg(docattest)]`) and call it from the fact by
+  its bare name. A page's examples cannot call one.
 - Commands: a block tagged `console check` holds lines `$ command`, each followed by what it
   prints (stdout, then stderr). `...` on a line matches any lines; a last line `[exit N]`
   says the command fails with `N`. Commands run with `sh -c` in the project root, or in

@@ -209,11 +209,18 @@ impl Runner {
         if let Some(error) = &self.analysis.project.error {
             return Err(format!("cargo could not read the project: {error}"));
         }
-        let (dir, harness) = (self.crate_dir(), self.package_dir(Dependencies::Harness));
+        let dir = self.crate_dir();
         write_if_changed(&dir.join("Cargo.toml"), &self.manifest()?)?;
         // Cargo reads a package that has no target as no package, and the harness's builds
         // read this one before it has a program.
         write_if_changed(&dir.join("src/lib.rs"), "")?;
+        self.write_harness()?;
+        self.start_from_project_lock(&dir)
+    }
+
+    /// Writes the harness's package: its manifest, and its modules.
+    fn write_harness(&self) -> Result<(), String> {
+        let harness = self.package_dir(Dependencies::Harness);
         let harness_manifest = format!(
             "[package]\nname = \"{HARNESS_CRATE}\"\nversion = \"0.0.0\"\nedition = \"{}\"\npublish = false\n",
             self.edition()
@@ -223,6 +230,12 @@ impl Runner {
         for (name, text) in HARNESS {
             write_if_changed(&harness.join("src/harness").join(name), text)?;
         }
+        Ok(())
+    }
+
+    /// Copies the project's lock file over the generated crate's when it is newer, so the
+    /// crate is built from what the project's own build resolved.
+    fn start_from_project_lock(&self, dir: &Path) -> Result<(), String> {
         let (locked, ours) = (self.analysis.project.workspace.join("Cargo.lock"), dir.join("Cargo.lock"));
         let modified = |path: &Path| std::fs::metadata(path).and_then(|held| held.modified()).ok();
         if modified(&locked).is_some() && modified(&locked) > modified(&ours) {

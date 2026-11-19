@@ -3,8 +3,8 @@
 use markdown::mdast::{Html, Node};
 
 use super::model::{Comment, FirstSentence, Keyword, Leaf, LeafKind, Unclosed};
-use super::text::{comment_ranges, content_range, ends_sentence, prose, slice};
-use crate::text::{first_line, is_js_space, is_word, lines, trim};
+use super::text::{comment_ranges, content_range, ends_line_past_comments, ends_sentence, prose, slice};
+use crate::text::{is_js_space, is_word, lines, trim};
 
 /// Where found comments go, and the context they were found in.
 pub struct CommentContext<'a> {
@@ -62,31 +62,60 @@ fn line_of(node: &Node) -> usize {
 pub fn phrasing_comments(children: &[Node], ctx: &mut CommentContext) {
     let range = content_range(children, ctx.source);
     let start = range.map_or(0, |r| r.0);
-    let mut before: Vec<Leaf> = Vec::new();
+    let mut leaves = LeavesBefore::default();
     for child in children {
-        visit_phrasing(child, start, &mut before, ctx);
+        visit_phrasing(child, start, &mut leaves, ctx);
     }
     if let Some(range) = range.filter(|_| reads_first_sentence(ctx)) {
         let line = children.last().and_then(Node::position).map_or(0, |p| p.end.line);
-        push_first_sentence(ctx, range, line, before);
+        push_first_sentence(ctx, range, line, leaves.since_comment);
     }
 }
 
-fn visit_phrasing(node: &Node, start: usize, before: &mut Vec<Leaf>, ctx: &mut CommentContext) {
+/// The leaves read so far in a phrasing container, as the next comment sees them.
+#[derive(Default)]
+struct LeavesBefore {
+    /// Since the previous comment.
+    since_comment: Vec<Leaf>,
+    /// What the previous comment saw.
+    seen_by_previous: Option<Vec<Leaf>>,
+}
+
+impl LeavesBefore {
+    /// The leaves since the previous comment; or, when only whitespace parts the two, what
+    /// that comment saw: comments side by side are one group, and each sees what is before
+    /// the group, whatever their order.
+    fn seen_by_comment(&self) -> Vec<Leaf> {
+        let blank = self.since_comment.iter().all(|l| l.kind == LeafKind::Text && trim(&l.value).is_empty());
+        match &self.seen_by_previous {
+            Some(seen) if blank => seen.clone(),
+            _ => self.since_comment.clone(),
+        }
+    }
+
+    fn comment_found(&mut self, seen: Vec<Leaf>) {
+        self.since_comment.clear();
+        self.seen_by_previous = Some(seen);
+    }
+}
+
+fn visit_phrasing(node: &Node, start: usize, leaves: &mut LeavesBefore, ctx: &mut CommentContext) {
     match node {
-        Node::Text(t) => visit_text(node, &t.value, start, before, ctx),
+        Node::Text(t) => visit_text(node, &t.value, start, &mut leaves.since_comment, ctx),
         Node::InlineCode(c) => {
-            before.push(Leaf { kind: LeafKind::Code, value: c.value.clone(), line: line_of(node) })
+            let leaf = Leaf { kind: LeafKind::Code, value: c.value.clone(), line: line_of(node) };
+            leaves.since_comment.push(leaf);
         }
         Node::Html(html) => {
-            if inline_comment(html, start, before, ctx) {
-                before.clear();
+            let seen = leaves.seen_by_comment();
+            if inline_comment(html, start, &seen, ctx) {
+                leaves.comment_found(seen);
             }
         }
         _ => {
             if let Some(children) = node.children() {
                 for child in children {
-                    visit_phrasing(child, start, before, ctx);
+                    visit_phrasing(child, start, leaves, ctx);
                 }
             }
         }
@@ -151,11 +180,10 @@ fn sentence_end_offset(node: &Node, source: &str) -> usize {
 /// Record the first sentence of the block being read: from `range.0` to `range.1` in the page,
 /// ending on `line`.
 fn push_first_sentence(ctx: &mut CommentContext, range: (usize, usize), line: usize, before: Vec<Leaf>) {
-    let rest = first_line(ctx.source.get(range.1..).unwrap_or(""));
     ctx.first_sentences.push(FirstSentence {
         block: ctx.block,
         line,
-        ends_line: trim(rest).is_empty(),
+        ends_line: ends_line_past_comments(ctx.source.get(range.1..).unwrap_or("")),
         lead: prose(slice(ctx.source, range.0, range.1)),
         before,
     });
@@ -171,12 +199,11 @@ fn inline_comment(node: &Html, start: usize, before: &[Leaf], ctx: &mut CommentC
         return false;
     };
     let (from, to) = (position.start.offset, position.end.offset);
-    let rest = first_line(ctx.source.get(to..).unwrap_or(""));
     ctx.comments.push(Comment {
         body: value[4..value.len() - 3].to_string(),
         line: position.start.line,
         end_line: position.end.line,
-        ends_line: trim(rest).is_empty(),
+        ends_line: ends_line_past_comments(ctx.source.get(to..).unwrap_or("")),
         block: ctx.block,
         lead: prose(slice(ctx.source, start, from)),
         before: before.to_vec(),
@@ -194,12 +221,11 @@ pub fn flow_comments(node: &Html, ctx: &mut CommentContext) {
     let alone = prose(value).is_empty();
     let mut consumed = 0;
     for (start, end) in comment_ranges(value) {
-        let rest = first_line(&value[end..]);
         ctx.comments.push(Comment {
             body: value[start + 4..end - 3].to_string(),
             line: line_at(start),
             end_line: line_at(end),
-            ends_line: trim(rest).is_empty(),
+            ends_line: ends_line_past_comments(&value[end..]),
             block: ctx.block,
             lead: prose(&value[..start]),
             before: Vec::new(),

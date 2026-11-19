@@ -150,18 +150,31 @@ func pointee(of types.Type) types.Type {
 	return of
 }
 
-// factSymbols adds what a fact reads of its surface: the exports it names, and the
-// constants it reads from source, which are attested although no one can import them.
+// factSymbols adds what a fact reads of its surface: the exports it names; the constants
+// and literal variables it reads from source, which are attested although no one can
+// import them; and the helpers it calls, of the setup package or of the surface's docs
+// helper files, with what each uses, as a cases table's runner is followed. A docs helper
+// is attested itself too, so that a change to what it uses that is no export, which makes
+// it affected, reaches the fact.
 func (p *Project) factSymbols(found *refs, a protocol.Attestation) {
 	of := p.SurfaceNamed(a.Surface)
-	if of == nil {
+	if of == nil || of.Dir == "" {
 		return
 	}
-	sourceOnly := p.SourceOnly(of)
+	surface, setup := p.tree().at(of.Dir), p.setupPackage()
+	sourceOnly, docs, helpers := p.SourceOnly(of), surface.docsNames(), p.SetupExports()
 	for _, name := range language.Names(a.Expression) {
-		if sourceOnly[name] == Constant {
+		switch {
+		case docs[name] != "" && sourceOnly[name] == "":
 			found.record(name, of)
-		} else {
+			found.collectReached(surface, surface.declarationOf(name), nil)
+		case sourceOnly[name] != "":
+			if surface.readFromSource(declared{Name: name, What: sourceOnly[name]}) {
+				found.record(name, of)
+			}
+		case helpers[name]:
+			found.collectReached(setup, setup.declarationOf(name), setup.Types.Scope().Lookup(casesVariable))
+		default:
 			found.add(name, of)
 		}
 	}
@@ -207,13 +220,20 @@ func (p *Project) runnerSymbols(found *refs, runner string) {
 		return
 	}
 	for _, file := range sorted(setup.Files) {
-		body := runnerBody(setup, file, runner)
-		if body == nil {
-			continue
-		}
-		for _, part := range setup.reached(body, setup.Types.Scope().Lookup(casesVariable)) {
-			found.collect(part, setup.Info)
-		}
+		found.collectReached(setup, runnerBody(setup, file, runner), setup.Types.Scope().Lookup(casesVariable))
+	}
+}
+
+// collectReached adds what a piece of a package's code uses, and what the package's own
+// functions, methods, variables and constants it uses use, at any depth, but for the
+// declaration of `skip`. A piece that is not there (a type, which declares no code that
+// runs) adds nothing.
+func (r *refs) collectReached(pkg *goPackage, start ast.Node, skip types.Object) {
+	if start == nil {
+		return
+	}
+	for _, part := range pkg.reached(start, skip) {
+		r.collect(part, pkg.Info)
 	}
 }
 

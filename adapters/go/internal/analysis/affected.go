@@ -12,8 +12,9 @@ import (
 	"github.com/docattest/docattest/adapters/go/internal/protocol"
 )
 
-// `affected`: the surface exports a change to the code affects, and the constants a
-// fact reads from source (see SourceOnly), which are attested as exports are.
+// `affected`: the surface exports a change to the code affects, and the constants and
+// literal variables a fact reads from source (see SourceOnly), which are attested as
+// exports are.
 //
 // A package of the module is cut into units, one for each name it declares at its top
 // level; a type's methods are part of the type's unit, and the constants of one
@@ -40,8 +41,9 @@ type revision struct {
 	units map[unitKey]*unit
 	// names are the top-level names of each package of the module, in order.
 	names map[string][]string
-	// constants are the units of the names that declare constants.
-	constants map[unitKey]bool
+	// fromSource are the units of the names a fact reads from source: constants and
+	// literal variables.
+	fromSource map[unitKey]bool
 	// dirs are the directories of the module's packages, by import path.
 	dirs map[string]string
 }
@@ -49,7 +51,7 @@ type revision struct {
 // newRevision cuts the module's packages of a load into units. The overlay holds the
 // text of the files that differ from the disk.
 func newRevision(module Module, code *loaded, overlay map[string][]byte) (*revision, error) {
-	r := &revision{units: map[unitKey]*unit{}, names: map[string][]string{}, constants: map[unitKey]bool{}, dirs: map[string]string{}}
+	r := &revision{units: map[unitKey]*unit{}, names: map[string][]string{}, fromSource: map[unitKey]bool{}, dirs: map[string]string{}}
 	modulePackages := []*goPackage{}
 	for dir := range code.byDir {
 		if pkg := code.at(dir); pkg != nil && within(module.Dir, dir) {
@@ -78,7 +80,7 @@ func (r *revision) add(pkg *goPackage, overlay map[string][]byte) error {
 	for _, file := range files {
 		for _, d := range declarations(file) {
 			r.names[pkg.Dir] = append(r.names[pkg.Dir], d.Name)
-			r.constants[unitKey{pkg.Dir, d.Name}] = d.What == Constant
+			r.fromSource[unitKey{pkg.Dir, d.Name}] = pkg.readFromSource(d)
 		}
 	}
 	for _, file := range files {
@@ -222,7 +224,7 @@ func (p *Project) Affected(base map[string]*string) ([]protocol.SymbolRef, error
 	for _, of := range p.surfaces {
 		for _, name := range unionInOrder(now.names[of.Dir], before.names[of.Dir]) {
 			key := unitKey{of.Dir, name}
-			if of.Dir != "" && touched[key] && (ast.IsExported(name) || now.constants[key] || before.constants[key]) {
+			if of.Dir != "" && touched[key] && (ast.IsExported(name) || now.fromSource[key] || before.fromSource[key]) {
 				out = append(out, protocol.SymbolRef{Name: name, Surface: of.Name})
 			}
 		}

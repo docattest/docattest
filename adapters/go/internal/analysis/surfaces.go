@@ -142,23 +142,24 @@ func (p *Project) SurfaceNamed(name string) *Surface {
 	return nil
 }
 
-// ExportsOf are the names a surface exports; ok is false when it did not resolve.
+// ExportsOf are the names a surface exports, which its docs helper files do not; ok is
+// false when it did not resolve.
 func (p *Project) ExportsOf(found *Surface) (names []string, ok bool) {
 	if found == nil || found.Dir == "" {
 		return nil, false
 	}
 	names = []string{}
-	for _, d := range p.tree().at(found.Dir).exported() {
+	for _, d := range p.tree().at(found.Dir).published() {
 		names = append(names, d.Name)
 	}
 	return names, true
 }
 
 // ExportedValues are the exported constants and variables of a surface that resolved,
-// in the order of its files.
+// in the order of its files, but for those of its docs helper files.
 func (p *Project) ExportedValues(found *Surface) []string {
 	names := []string{}
-	for _, d := range p.tree().at(found.Dir).exported() {
+	for _, d := range p.tree().at(found.Dir).published() {
 		if d.isValue() {
 			names = append(names, d.Name)
 		}
@@ -174,6 +175,25 @@ func (p *Project) Exports(found *Surface) map[string]bool {
 		set[name] = true
 	}
 	return set
+}
+
+// Importable is the set of names a program that imports a surface can use: its exports
+// and the exported names of its docs helper files. Empty when it did not resolve.
+func (p *Project) Importable(found *Surface) map[string]bool {
+	set := map[string]bool{}
+	if found == nil || found.Dir == "" {
+		return set
+	}
+	for _, d := range p.tree().at(found.Dir).exported() {
+		set[d.Name] = true
+	}
+	return set
+}
+
+// DocsHelpers are the names the docs helper files of a surface that resolved declare, by
+// what each declares.
+func (p *Project) DocsHelpers(found *Surface) map[string]Declares {
+	return p.tree().at(found.Dir).docsNames()
 }
 
 // DescribeSurfaces answers `describeSurfaces`: where each surface resolved, and what is

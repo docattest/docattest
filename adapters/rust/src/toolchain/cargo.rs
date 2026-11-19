@@ -21,6 +21,36 @@ pub fn features() -> Option<String> {
     std::env::var(FEATURES_VARIABLE).ok().filter(|features| !features.is_empty())
 }
 
+/// The cfg every build of the generated crate sets on every crate, so that the items of a
+/// project under `#[cfg(docattest)]`, its docs helpers, exist in docattest's builds and in
+/// no other. One configuration for every program keeps one build of the dependencies.
+pub const DOCS_CFG: &str = "docattest";
+
+/// Where a build adds `--cfg` [`DOCS_CFG`]. Cargo takes a crate's flags from the first of
+/// `CARGO_ENCODED_RUSTFLAGS`, `RUSTFLAGS` and its config that is set, so the cfg joins the
+/// variable that is set, else the config's `build.rustflags`, which cargo joins with those
+/// of the project's own config: the flags the project builds with are kept.
+#[derive(Debug, PartialEq)]
+enum DocsCfg {
+    /// A variable, with the flags it holds and the cfg.
+    Variable(&'static str, String),
+    /// A `--config` value.
+    Config(String),
+}
+
+/// Where a build adds the cfg, given what the two variables hold.
+fn docs_cfg(encoded: Option<String>, spaced: Option<String>) -> DocsCfg {
+    let joined = |held: String, separator: &str| {
+        let added = ["--cfg", DOCS_CFG].join(separator);
+        if held.is_empty() { added } else { format!("{held}{separator}{added}") }
+    };
+    match (encoded, spaced) {
+        (Some(held), _) => DocsCfg::Variable("CARGO_ENCODED_RUSTFLAGS", joined(held, "\x1f")),
+        (None, Some(held)) => DocsCfg::Variable("RUSTFLAGS", joined(held, " ")),
+        (None, None) => DocsCfg::Config(format!("build.rustflags=[\"--cfg\", \"{DOCS_CFG}\"]")),
+    }
+}
+
 /// `cargo metadata` of a workspace, as far as the adapter reads it.
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct Metadata {
@@ -135,18 +165,26 @@ impl Span {
 
 /// Builds programs of a crate, by name, into a target directory, with some features, and
 /// reads what the compiler complains of. A program that does not compile does not stop
-/// the others. The problems are empty exactly when every program was built.
+/// the others. The problems are empty exactly when every program was built. Every crate
+/// is built with the cfg [`DOCS_CFG`].
 pub fn build(krate: &Path, target: &Path, programs: &[String], features: Option<String>) -> Vec<Problem> {
     let mut args: Vec<String> =
         ["build", "--keep-going", "--message-format=json", "--target-dir"].map(String::from).to_vec();
     args.push(target.to_string_lossy().into_owned());
+    let mut env = Vec::new();
+    let variable = |name: &str| std::env::var(name).ok();
+    match docs_cfg(variable("CARGO_ENCODED_RUSTFLAGS"), variable("RUSTFLAGS")) {
+        DocsCfg::Variable(name, flags) => env.push((name.to_string(), flags)),
+        DocsCfg::Config(value) => args.extend(["--config".to_string(), value]),
+    }
     if let Some(features) = features {
         args.extend(["--features".to_string(), features]);
     }
     for name in programs {
         args.extend(["--bin".to_string(), name.clone()]);
     }
-    let built = run(&Command { program: program(), args, dir: krate.to_path_buf(), ..Command::default() });
+    let built =
+        run(&Command { program: program(), args, dir: krate.to_path_buf(), env, ..Command::default() });
     if let Some(error) = built.error {
         return vec![Problem {
             target: String::new(),
@@ -214,5 +252,21 @@ mod tests {
         };
         assert_eq!(errors(messages), vec![want]);
         assert_eq!(last_error("warning: x\nerror: no such package\n\n"), "error: no such package");
+    }
+
+    #[test]
+    fn the_docs_cfg_joins_the_flags_the_project_builds_with() {
+        let held = |text: &str| Some(text.to_string());
+        let variable = |name, flags: &str| DocsCfg::Variable(name, flags.to_string());
+        assert_eq!(
+            docs_cfg(None, None),
+            DocsCfg::Config("build.rustflags=[\"--cfg\", \"docattest\"]".to_string())
+        );
+        assert_eq!(docs_cfg(None, held("-D warnings")), variable("RUSTFLAGS", "-D warnings --cfg docattest"));
+        assert_eq!(docs_cfg(None, held("")), variable("RUSTFLAGS", "--cfg docattest"));
+        assert_eq!(
+            docs_cfg(held("-Dwarnings"), held("ignored")),
+            variable("CARGO_ENCODED_RUSTFLAGS", "-Dwarnings\x1f--cfg\x1fdocattest")
+        );
     }
 }

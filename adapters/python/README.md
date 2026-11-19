@@ -432,6 +432,15 @@ facts = {"error_messages": lambda: list(ERROR_CODES.values())}
 expression may use (`<!-- fact: error_messages() -->`). A runner may be `async`. Asserts
 in the setup module report both sides, like asserts in a block.
 
+A runner or a named fact may read what the surface does not export: the setup module
+imports `_PORT`, or a name left out of `__all__`, as any module may. So no name needs
+exporting only for a page. <!-- test: tests/test_setup_helpers.py > "SetupHelpers" > "test_a_named_fact_reads_what_the_surface_does_not_export" -->
+A runner, and a fact that calls a named fact, attest what the helper reads of the surface,
+in its own body and in the functions of the setup module it calls: the exports, and the
+constants, exported or not. A computed private value is neither, so it attests nothing. <!-- test: tests/test_setup_helpers.py > "SetupHelpers" > "test_a_named_fact_and_a_runner_attest_the_exports_and_constants_they_reach" -->
+So `where` lists the fact under them, `uncovered` no longer lists them, and `impact` lists
+the fact when one of them changes. <!-- test: tests/test_setup_helpers.py > "SetupHelpersInTheCore" > "test_where_uncovered_and_impact_count_what_a_named_fact_reaches" -->
+
 A runner gets each cell's text as the page writes it, code spans included: a cell
 `` `print(1)` `` reaches it with its backticks
 ([docs/cases.md](../../docs/cases.md#a-runner-receives-each-cell-as-written)).

@@ -154,6 +154,22 @@ only exports. <!-- test: adapters/typescript/test/unit/language/run/facts.test.t
 So `impact` lists a change to such a constant as it lists a change to an export, with the
 facts that read it. <!-- test: adapters/typescript/test/unit/language/run/facts.test.ts > "a constant a fact reads" > "is listed by `impact` when it changes, with the facts that read it" -->
 
+A value that is not a constant, such as a `Set` the module builds, is read only by loading
+a module that exports it: no other module, the setup module included, can reach a module's
+private names. A module of the package exports such a value when the package's other
+modules use it. When the package's entry does not re-export it, that module can be a
+surface of its own (`"internal": "./src/caps.ts"`): facts read and attest the value there,
+and the package's API stays as it is. <!-- test: adapters/typescript/test/unit/language/run/facts.test.ts > "a value the package entry does not re-export" > "is read and attested on a surface of the module that exports it" -->
+
+### Named facts: the setup module
+
+A fact may call a named fact of the setup module's `facts` export
+([facts](../../docs/facts.md#facts-can-call-named-helpers-from-the-setup-module)). It
+attests the exports the helper reaches, in its own code and in the setup module's functions
+it calls, as a cases runner does. So `where` lists the fact under them, and `uncovered` no
+longer lists them. <!-- test: adapters/typescript/test/unit/language/symbols.test.ts > "a fact that calls a named fact of the setup module" > "attests the exports its helper reaches, as `where` and `uncovered` show" -->
+`impact` lists the fact when one of them changes. <!-- test: adapters/typescript/test/unit/language/symbols.test.ts > "a fact that calls a named fact of the setup module" > "is listed by `impact` when one of those exports changes" -->
+
 ### Cases tables: the setup module
 
 A cases runner is a function of the setup module's `cases` export, called once per row with

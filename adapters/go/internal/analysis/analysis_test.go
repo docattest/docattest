@@ -102,9 +102,12 @@ func TestSymbols(t *testing.T) {
 		{"a fact names the exports its expression reads",
 			protocol.Attestation{Kind: protocol.KindFact, Surface: "default", Expression: "len(TaxRates) + MaxDiscount + x.Total"},
 			"default:TaxRates default:MaxDiscount"},
-		{"a fact names the constants it reads from source, and no other unexported name",
+		{"a fact names the constants and literal variables it reads from source, and no other unexported name",
+			protocol.Attestation{Kind: protocol.KindFact, Surface: "default", Expression: `fmt.Sprint(round(1), days["XX"]) + DefaultCurrency`},
+			"default:DefaultCurrency"},
+		{"a fact names the constants and literal variables it reads from source",
 			protocol.Attestation{Kind: protocol.KindFact, Surface: "shipping", Expression: `fmt.Sprintf(unserved, days["XX"]) + Carriers[0]`},
-			"shipping:unserved shipping:Carriers"},
+			"shipping:unserved shipping:days shipping:Carriers"},
 		{"a citation names what the cited test uses",
 			protocol.Attestation{Kind: protocol.KindTest, File: "shop_test.go", Title: "rejects big discounts", Describes: []string{"TestTotals"}},
 			"default:ApplyDiscount default:EUR default:ErrBadDiscount"},
@@ -271,7 +274,8 @@ func TestAffected(t *testing.T) {
 		{"a constant reaches what reads it", "shop.go", "MaxDiscount = 50", "MaxDiscount = 40", "default:MaxDiscount default:ApplyDiscount"},
 		{"a method is part of its type", "shop.go", `"%d.%02d %s"`, `"%d,%02d %s"`, "default:Money default:EUR default:ApplyDiscount default:Total"},
 		{"layout and comments change nothing", "shop.go", "// round divides", "//   round    divides", ""},
-		{"an unexported variable of another surface", "shipping/shipping.go", `"DE": 2`, `"DE": 3`, "shipping:Quote"},
+		// A fact reads a literal variable from source, so a change to it is listed.
+		{"a literal variable of another surface", "shipping/shipping.go", `"DE": 2`, `"DE": 3`, "shipping:days shipping:Quote"},
 		{"an export that was not there at the base", "shipping/shipping.go", "// Quote is", "func Old() {}\n\n// Quote is", "shipping:Old"},
 		// A fact reads an unexported constant from source, so a change to it is listed.
 		{"an unexported constant", "shipping/shipping.go", "serves %q", "delivers to %q", "shipping:unserved shipping:Quote"},
@@ -282,7 +286,7 @@ func TestAffected(t *testing.T) {
 			t.Errorf("%s: got %q", c.name, got)
 		}
 	}
-	if found, err := p.Affected(map[string]*string{"shipping/shipping.go": nil}); err != nil || names(found) != "shipping:Carriers shipping:unserved shipping:Quote" {
+	if found, err := p.Affected(map[string]*string{"shipping/shipping.go": nil}); err != nil || names(found) != "shipping:Carriers shipping:days shipping:unserved shipping:Quote" {
 		t.Errorf("a file the base did not have: got %q, %v", names(found), err)
 	}
 }
@@ -296,7 +300,8 @@ func TestAffectedListsTheConstantsOfAPackageMain(t *testing.T) {
 	was := strings.Replace(string(text), "listenPort = 8080", "listenPort = 80", 1)
 	was = strings.Replace(was, "time.Now()", "time.Unix(0, 0)", 1)
 	found, err := p.Affected(map[string]*string{"cmd/shopd/main.go": &was})
-	// started is a variable, which no fact reads: it is not listed.
+	// started is a variable whose value is no composite literal, which no fact reads: it
+	// is not listed.
 	if err != nil || names(found) != "shopd:listenPort" {
 		t.Fatalf("got %q, %v", names(found), err)
 	}

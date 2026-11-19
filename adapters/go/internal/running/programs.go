@@ -30,7 +30,8 @@ type built struct {
 }
 
 // buildProgram writes and builds a program whose main is made of labelled pieces of
-// attested code. `render` writes the main for the pieces still in it. A piece the
+// attested code, with the packages' docs helper files. `render` writes the main for the
+// pieces still in it. A piece the
 // compiler complains of is taken out, with the complaint, and the rest is built again:
 // one wrong fact does not cost a page its other facts.
 func (r *Runner) buildProgram(labels []string, render func(live []bool) string) built {
@@ -55,7 +56,7 @@ func (r *Runner) buildProgram(labels []string, render func(live []bool) string) 
 			out.failure = err.Error()
 			return out
 		}
-		problems := r.gotool.Build(bin, []string{filepath.Join(blocksDir, name)})
+		problems := r.gotool.BuildWithDocs(bin, []string{filepath.Join(blocksDir, name)})
 		if len(problems) == 0 {
 			out.binary = filepath.Join(bin, toolchain.Executable(name))
 			return out

@@ -7,8 +7,8 @@
 //! a unit through the paths it writes, in the working tree or at the base. It is read
 //! from syntax, which errs towards too much: a path stands for any unit of that name, a
 //! method is found through its type, and a trait is not followed to what implements it.
-//! A constant a fact reads from source is listed as an export is, since the fact attests
-//! it.
+//! A constant a fact reads from source, and a docs helper, is listed as an export is,
+//! since a fact attests it.
 //!
 //! What a macro writes has no declaration to read. So the macro calls of a module are
 //! one unit, and a name that nothing declares stands for it: an export only the
@@ -18,6 +18,7 @@
 
 use super::Analysis;
 use super::constants::Constants;
+use super::docs_helpers::docs_helpers;
 use super::modules::{Crate, Module, calls_macro, use_leaves};
 use super::surfaces::Located;
 use crate::language::doc::{impl_owner, named};
@@ -71,7 +72,7 @@ fn without_docs(stream: TokenStream) -> TokenStream {
 
 /// The name whose unit an item is part of: its own, its type's for an `impl` block, or
 /// the one of its module's macro calls.
-fn owner(item: &Item) -> Option<String> {
+pub(super) fn owner(item: &Item) -> Option<String> {
     match item {
         Item::Impl(block) => impl_owner(block),
         call if calls_macro(call) => Some(BY_MACROS.to_string()),
@@ -217,7 +218,7 @@ impl Analysis {
                     let unit = krate.origin(module, &export.name);
                     (export.name, unit)
                 }));
-                exports.extend(read_from_source(krate, module));
+                exports.extend(attested_beyond_exports(krate, module));
             }
             let from = out.len();
             for (name, unit) in exports {
@@ -230,12 +231,13 @@ impl Analysis {
     }
 }
 
-/// The constants of a module a fact may read from source, each its own unit: a fact
-/// attests them as it attests an export.
-fn read_from_source(krate: &Crate, module: &[String]) -> Vec<(String, Key)> {
+/// What a fact attests of a module that it does not export, each its own unit: the
+/// constants it may read from source, and its docs helpers.
+fn attested_beyond_exports(krate: &Crate, module: &[String]) -> Vec<(String, Key)> {
     let Some(items) = krate.module(module).map(|module| &module.items) else { return Vec::new() };
-    let constants = Constants::of(items);
-    constants.names().map(|name| (name.to_string(), (module.to_vec(), name.to_string()))).collect()
+    let constants = Constants::of(items).names().map(str::to_string).collect::<Vec<_>>();
+    let helpers = docs_helpers(items).into_iter().map(|helper| helper.name);
+    constants.into_iter().chain(helpers).map(|name| (name.clone(), (module.to_vec(), name))).collect()
 }
 
 /// What a change did to a crate's units.

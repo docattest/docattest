@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/docattest/docattest/adapters/go/internal/toolchain"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -22,7 +23,8 @@ import (
 // cannot read, and nothing is compiled or run. Function bodies are checked in the module
 // and in the surfaces' packages; elsewhere they are dropped before checking, since
 // nothing a page attests is in them and they are most of the work. The errors of a
-// package whose bodies were dropped are never looked at.
+// package whose bodies were dropped are never looked at. Packages are listed with the
+// tag of docs helper files (docsfiles.go), as docattest's own programs are built.
 //
 // The go command lists without compiling: a file that uses cgo is checked as it is
 // written, its `C.` names unknown and never an error, which costs nothing a page attests
@@ -95,6 +97,7 @@ func (l *loader) list(r request) (*listing, error) {
 	}
 	config := &packages.Config{
 		Mode: listMode, Dir: l.module.Dir, Env: loaderEnvironment(l.module), Overlay: r.overlay,
+		BuildFlags: []string{"-tags=" + toolchain.DocsTag},
 	}
 	var err error
 	if out.roots, err = packages.Load(config, append(slices.Clone(r.patterns), out.tests.imports()...)...); err != nil {

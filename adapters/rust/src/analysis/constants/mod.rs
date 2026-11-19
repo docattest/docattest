@@ -184,6 +184,9 @@ impl Analysis {
     /// Why a name a fact's program could not find is not read, when the surface's module
     /// declares it.
     pub(crate) fn unread(&self, surface: &Surface, name: &str) -> Option<String> {
+        if let Some(why) = self.unread_helper(surface, name) {
+            return Some(why);
+        }
         let at = &surface.name;
         let why = self.with_constants(surface, |constants| match constants.declarations(name) {
             Some(Err(why)) => Some(format!(

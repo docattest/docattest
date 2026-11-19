@@ -88,7 +88,7 @@ fn own_line_and_multi_line_comments_in_html_blocks() {
         page.comments.iter().map(|c| (trim(&c.body).to_string(), c.line, c.end_line, c.ends_line)).collect();
     assert_eq!(
         found,
-        vec![("a".into(), 1, 1, false), ("b".into(), 1, 1, true), ("fact: X".into(), 3, 5, true)]
+        vec![("a".into(), 1, 1, true), ("b".into(), 1, 1, true), ("fact: X".into(), 3, 5, true)]
     );
     assert!(page.comments.iter().all(|c| c.alone));
     assert!(!parse_page("<!-- a --> <b>x</b>\n").comments[0].alone);

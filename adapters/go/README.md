@@ -141,7 +141,8 @@ docs/shipping.md
 ```
 
 - **`surfaces`** name what pages are allowed to observe. A surface is one Go package, a
-  `package main` included (its constants are what [facts](docs/facts.md) can read). An entry is
+  `package main` included (its constants and literal variables are what
+  [facts](docs/facts.md) can read). An entry is
   - a path, `"."` or `"./shipping"` (or a file of the package, `"./shipping/quote.go"`):
     the package in that directory of the project, imported under its import path in the
     module;
@@ -150,8 +151,9 @@ docs/shipping.md
   - both, `{ "import": "example.com/shop", "path": "internal/shop" }`: examples import
     `import`, and the package is read from `path`.
 - **What a surface exports** is every exported name its package declares at the top
-  level: functions, types, variables and constants. Methods and fields belong to their
-  type. `uncovered` lists the exports no page attests.
+  level: functions, types, variables and constants, but for what its docs helper files
+  declare ([facts](docs/facts.md#docs-helpers)). Methods and fields belong to their type.
+  `uncovered` lists the exports no page attests.
 - **What an attestation uses** (what `where` and `uncovered` count) is read as `go/types`
   resolves its names. A local name that shadows an export is not a use of it, and a method
   or field selected on a value is a use of the type that declares it, which for one
@@ -232,7 +234,7 @@ docs/broken.md
 ...
   ✗ L48 fact: expected 60, got 50 from MaxDiscount
   ✗ L50 fact: missing: DE, FR; unexpected: BE (2 items on the page, 3 in TaxRates)
-  ! L54 fact: fact `round(50)`: round is a function that surface "default" does not export; of its unexported names, a fact reads only constants
+  ! L54 fact: fact `round(50)`: round is a function that surface "default" does not export; of its unexported names, a fact reads only constants and literal variables
   ✗ L59 cases: docs/broken.md:59 wrong on purpose: expected 800, got 750
   ✗ L60 cases: docs/broken.md:60 too much: The discount is outside the allowed range
   ! L62 cases: cases runner "nope" at L62 is not in Cases of docs/docattest_setup.go (known: delivery, discount, total)

@@ -4,6 +4,53 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-11-19
+
+### Added
+
+- Docs helpers: code inside a surface that only docattest builds, so a page can state what a
+  helper works out from a private value with no export made for the docs. In Go, a file of
+  the surface's package behind `//go:build docattest` (docattest lists packages and builds
+  its own programs with that tag, `go build ./...` leaves the file out, and a fact calls what
+  it exports); in Rust, a `pub` item of the surface's module under `#[cfg(docattest)]`, built
+  with `--cfg docattest` (added to `RUSTFLAGS` when it is set, else to cargo's
+  `build.rustflags`). A docs helper is no export, so `uncovered` never lists it, and a fact
+  that calls one attests it and what it uses. A page's example cannot call one: Go builds a
+  block without the tag, and Rust, which builds every program with the cfg so dependencies
+  compile once, refuses a block or doc-comment example that names a docs helper, at that line. In Go a setup
+  package behind the tag is now read too.
+- Go: a fact reads a literal variable from source, as it reads a constant: a `var` of its
+  surface's package, exported or not, of a `package main` too, that its declaration gives a
+  composite literal of constants and that the package only reads (no assignment, no address
+  taken, and no use that shares its storage beyond `len`, `cap`, `copy`'s source,
+  `append(x, v...)` or a `range` whose items share nothing). A struct type the program cannot
+  name is copied without its methods, so a slice of structs prints as Go prints it. `where`
+  and `impact` treat such a variable as a constant read from source.
+
+### Changed
+
+- A fact that calls a helper of the setup module attests what the helper uses of the
+  surfaces, through the setup module's own helpers at any depth, as a cases table attests
+  what its runner uses, in every language: `where` lists the fact under those exports,
+  `uncovered` stops listing them, and `impact` lists the fact when one of them changes.
+  TypeScript and Python did this already; Go and Rust now do, and in Rust a runner is now
+  followed through the setup functions it calls too. In Python, a runner or a named fact
+  also attests the private constants it reads (`_PORT`), as a fact that reads them does.
+- A fact directive that names a second `@surface`, a second `column=` or `field=`, or an
+  empty `column=""` is an error that says so, where the last surface won silently and an
+  empty column meant none.
+
+### Fixed
+
+- Directives side by side are one group, and the order they are written in no longer changes
+  what any of them binds. A fact followed on its line only by other directives, such as a
+  citation, ends its line, its sentence, its paragraph or its table cell as it does when
+  written last: `Tax applies in `NL` and: <!-- fact: … --> <!-- test: … -->` above a list
+  bound the sentence's `NL`, not the list, and a citation before a fact at the end of a
+  sentence or in a cell left the fact with no target. A fact that ends its line also binds
+  what starts after the lines of only directives directly below it, as it did when it was
+  the last of them.
+
 ## [0.2.0] - 2026-11-19
 
 ### Added
@@ -288,6 +335,7 @@ First public release.
   run time: macOS arm64 and x64, Linux x64 and arm64 (static builds, for glibc and musl), and
   Windows x64.
 
+[0.2.1]: https://github.com/docattest/docattest/releases/tag/v0.2.1
 [0.2.0]: https://github.com/docattest/docattest/releases/tag/v0.2.0
 [0.1.5]: https://github.com/docattest/docattest/releases/tag/v0.1.5
 [0.1.4]: https://github.com/docattest/docattest/releases/tag/v0.1.4

@@ -1,8 +1,8 @@
 # index --json
-# recorded from: block time from the code's start; Rust harness package
+# recorded from: docattest 0.2.1
 === index --json
 exit 0
-stdout 790 lines
+stdout 820 lines
 {
   "CHANGE_TYPES": [
     {
@@ -15,7 +15,7 @@ stdout 790 lines
   "COMMANDS": [
     {
       "page": "README.md",
-      "line": 306,
+      "line": 308,
       "kind": "fact",
       "claim": "Commands"
     },
@@ -29,7 +29,7 @@ stdout 790 lines
   "CONFIG_KEYS": [
     {
       "page": "README.md",
-      "line": 512,
+      "line": 514,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     }
@@ -37,7 +37,7 @@ stdout 790 lines
   "DEFAULT_SNAPSHOT_MAX_AGE_DAYS": [
     {
       "page": "README.md",
-      "line": 522,
+      "line": 524,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -51,7 +51,7 @@ stdout 790 lines
   "DEFAULT_TIMEOUT_MS": [
     {
       "page": "README.md",
-      "line": 523,
+      "line": 525,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -71,7 +71,7 @@ stdout 790 lines
   "KINDS": [
     {
       "page": "README.md",
-      "line": 283,
+      "line": 285,
       "kind": "fact",
       "claim": "Kinds of proof"
     },
@@ -85,13 +85,19 @@ stdout 790 lines
   "Report": [
     {
       "page": "docs/facts.md",
-      "line": 65,
+      "line": 47,
+      "kind": "cases",
+      "claim": "A fact is ` ` and may span lines. `@<surface>` evaluates the expression against that surface of the config ([surfaces](surfaces.md)), not `default`. `ordered` compares a list in order, not as a set: the items of a list, a table column, the code spans of a sentence or a list in a data block. `column=<name>` binds a column of the next table, and `field=<path>` one value of the next fenced block; a fact names at most one of the two. So ` ` compares the column `zone`, in order, with `ZONES` from the surface `shipping`. Anything else before the colon is an error that names it as an unknown modifier. A fact reads one surface and selects with one of `column=` and `field=`, so a second `@surface`, `column=` or `field=` is an error that says so, and so is a `column=` that names nothing (`column=\"\"`). `column=` with `field=` is an error, and so is `ordered` with no list to compare: on a single value, a fenced block or a field that holds one value. A fact with no colon, or nothing after it, is an error that says it has no expression."
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 114,
       "kind": "cases",
       "claim": "A set failure leads with what differs: `missing:` the values the expression has and the page does not, `unexpected:` those the page has and the expression does not, an empty one as `\"\"`. It gives the counts only when they differ, counting distinct values when a column repeats one. A block compares token by token, a token being a run of letters, digits, `_` and `$` or any other single character, so whitespace counts only where it parts two runs: `[1,2]` matches `[1, 2]`, and `letx` does not match `let x`. A block failure names the first line of the block that differs."
     },
     {
       "page": "docs/facts.md",
-      "line": 138,
+      "line": 196,
       "kind": "cases",
       "claim": "A fact with `field=<path>` before a fenced block of JSON, TOML or YAML (`json`, `toml`, `yaml` or `yml`) compares one value in the block, not the whole block. The block is read as a manifest of its format is ([manifests](manifests.md)), so it holds an object at the top. A path is keys parted by dots, and a key of digits picks a list's item by its index, counted from 0: `field=jobs.0.retries`. A key with a dot or a space in it is quoted: `field=limits.\"max retries\"`. The block is written as its format writes values, and the fact's value as the project's language displays it, so the two are compared as the same value, not as the same spelling: the adapter displays the block's value as its language displays a fact's. A JSON `1.0` is a TypeScript `1`, and in a Python project the block's `true` is Python's `True` ([the Python guide](../adapters/python/README.md#facts)). A string is its text, and a list of scalars compares as a list does, in order with `fact ordered:`. A field that holds an object, or a list of objects, is an error that says so. So is a block in another language, a block that does not parse, with the parser's message and its lines counted from the line after the fence, and a path that is not there, with the keys found where it stops."
     }
@@ -107,7 +113,7 @@ stdout 790 lines
   "codeSpans": [
     {
       "page": "adapters/typescript/README.md",
-      "line": 165,
+      "line": 181,
       "kind": "example",
       "claim": "A cases runner is a function of the setup module's `cases` export, called once per row with the row's cells by column. It gets each cell's text as the page writes it, code spans with their backticks ([cases](../../docs/cases.md#a-runner-receives-each-cell-as-written)). `codeSpans`, which this package exports, takes the code out: it gives the content of every code span in a cell, in order, as a fact over the cell's column compares it."
     },
@@ -127,7 +133,7 @@ stdout 790 lines
   "createProject": [
     {
       "page": "README.md",
-      "line": 498,
+      "line": 500,
       "kind": "example",
       "claim": "Use it from code"
     },
@@ -151,19 +157,37 @@ stdout 790 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 178,
+      "line": 162,
+      "kind": "test",
+      "claim": "When the package's entry does not re-export it, that module can be a surface of its own (`\"internal\": \"./src/caps.ts\"`): facts read and attest the value there, and the package's API stays as it is."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 170,
+      "kind": "test",
+      "claim": "So `where` lists the fact under them, and `uncovered` no longer lists them."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 171,
+      "kind": "test",
+      "claim": "`impact` lists the fact when one of them changes."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 194,
       "kind": "test",
       "claim": "Each cell of that table is also written into a page under a `fact column=` that lists what `codeSpans` gives, and the core must agree."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 215,
+      "line": 231,
       "kind": "example",
       "claim": "So the tests of a table the file writes can be cited, each by the title its runner prints for its row: `it.each(table)`, `test.each`, `describe.each` and `test.for` with a literal array, or with a template-literal table, by their title's placeholders (`%s`, `%i`, `%#`, `$name` and the rest); a `for (const c of table)` loop or a `table.forEach((c) => …)` over a literal array (or `Object.entries` of a literal object), by the title its body computes. The table is written in the call or held by a `const` above it that the file never changes. Vitest and Jest print some values differently: Vitest quotes a string that `$name` names, Jest does not. The runner is the one the file imports its test functions from (`vitest`, or `@jest/globals`); when it imports them from neither, a title counts only where the two print the same. The titles Vitest prints are checked against Vitest itself, in a table-driven test whose rows are cited so. What cannot be told stays uncitable: a table the file imports, builds with a call or changes (`cases.push(…)`), and a value a title would show as an object or an array. The title as written, `\"adds %i\"`, still cites the table's test as a whole."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 251,
+      "line": 267,
       "kind": "example",
       "claim": "From code"
     },
@@ -511,49 +535,55 @@ stdout 790 lines
     },
     {
       "page": "docs/facts.md",
-      "line": 65,
+      "line": 47,
+      "kind": "cases",
+      "claim": "A fact is ` ` and may span lines. `@<surface>` evaluates the expression against that surface of the config ([surfaces](surfaces.md)), not `default`. `ordered` compares a list in order, not as a set: the items of a list, a table column, the code spans of a sentence or a list in a data block. `column=<name>` binds a column of the next table, and `field=<path>` one value of the next fenced block; a fact names at most one of the two. So ` ` compares the column `zone`, in order, with `ZONES` from the surface `shipping`. Anything else before the colon is an error that names it as an unknown modifier. A fact reads one surface and selects with one of `column=` and `field=`, so a second `@surface`, `column=` or `field=` is an error that says so, and so is a `column=` that names nothing (`column=\"\"`). `column=` with `field=` is an error, and so is `ordered` with no list to compare: on a single value, a fenced block or a field that holds one value. A fact with no colon, or nothing after it, is an error that says it has no expression."
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 114,
       "kind": "cases",
       "claim": "A set failure leads with what differs: `missing:` the values the expression has and the page does not, `unexpected:` those the page has and the expression does not, an empty one as `\"\"`. It gives the counts only when they differ, counting distinct values when a column repeats one. A block compares token by token, a token being a run of letters, digits, `_` and `$` or any other single character, so whitespace counts only where it parts two runs: `[1,2]` matches `[1, 2]`, and `letx` does not match `let x`. A block failure names the first line of the block that differs."
     },
     {
       "page": "docs/facts.md",
-      "line": 138,
+      "line": 196,
       "kind": "cases",
       "claim": "A fact with `field=<path>` before a fenced block of JSON, TOML or YAML (`json`, `toml`, `yaml` or `yml`) compares one value in the block, not the whole block. The block is read as a manifest of its format is ([manifests](manifests.md)), so it holds an object at the top. A path is keys parted by dots, and a key of digits picks a list's item by its index, counted from 0: `field=jobs.0.retries`. A key with a dot or a space in it is quoted: `field=limits.\"max retries\"`. The block is written as its format writes values, and the fact's value as the project's language displays it, so the two are compared as the same value, not as the same spelling: the adapter displays the block's value as its language displays a fact's. A JSON `1.0` is a TypeScript `1`, and in a Python project the block's `true` is Python's `True` ([the Python guide](../adapters/python/README.md#facts)). A string is its text, and a list of scalars compares as a list does, in order with `fact ordered:`. A field that holds an object, or a list of objects, is an error that says so. So is a block in another language, a block that does not parse, with the parser's message and its lines counted from the line after the fence, and a path that is not there, with the keys found where it stops."
     },
     {
       "page": "docs/facts.md",
-      "line": 165,
+      "line": 223,
       "kind": "example",
       "claim": "Like `column=`, `field=` binds the next fenced block across blank lines and the other directives stacked above it, so several facts may each check one field of the same block."
     },
     {
       "page": "docs/facts.md",
-      "line": 192,
+      "line": 250,
       "kind": "example",
       "claim": "A failure names both sides and the line"
     },
     {
       "page": "docs/facts.md",
-      "line": 236,
+      "line": 296,
       "kind": "example",
-      "claim": "What a constant is differs by language: a `const` written in literals in TypeScript, a name assigned once to literals in Python, any top-level `const` in Go, and a `const` or `static` of primitive types in Rust. Each guide says it exactly: [TypeScript](../adapters/typescript/README.md#facts-read-constants-from-source), [Python](../adapters/python/README.md#facts), [Go](../adapters/go/docs/facts.md) and [Rust](../adapters/rust/README.md#facts)."
+      "claim": "What a constant is differs by language: a `const` written in literals in TypeScript, a name assigned once to literals in Python, any top-level `const` in Go, and a `var` its package declares with a composite literal of constants and only reads (a literal variable), and a `const` or `static` of primitive types in Rust. Each guide says it exactly: [TypeScript](../adapters/typescript/README.md#facts-read-constants-from-source), [Python](../adapters/python/README.md#facts), [Go](../adapters/go/docs/facts.md) and [Rust](../adapters/rust/README.md#facts)."
     },
     {
       "page": "docs/facts.md",
-      "line": 262,
+      "line": 350,
       "kind": "example",
       "claim": "A surface whose values are asynchronous is still observable."
     },
     {
       "page": "docs/facts.md",
-      "line": 282,
+      "line": 374,
       "kind": "example",
-      "claim": "Some values are awkward to write inline. The setup module may export `facts`, an object of named helpers, and a fact expression calls them by bare name. The helper is glue: it reads the surface and returns a value; the expectation is still the literal on the page."
+      "claim": "Some values are awkward to write inline. The setup module may export `facts`, an object of named helpers, and a fact expression calls them by bare name. The helper is glue: it reads the surface and returns a value; the expectation is still the literal on the page. A fact that calls a helper attests what the helper uses of the surfaces, through the setup module's own helpers at any depth, as a cases table attests what its runner uses: `where` lists the fact under those exports, `uncovered` stops listing them, and `impact` lists the fact when one of them changes."
     },
     {
       "page": "docs/facts.md",
-      "line": 307,
+      "line": 401,
       "kind": "example",
       "claim": "A helper may not share a name with a surface export: the expression would be ambiguous, so it is an error rather than a guess."
     },

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"slices"
 	"sort"
+	"sync"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -28,6 +29,9 @@ type goPackage struct {
 	// declaredBy is the code that declares each of its top-level functions, methods,
 	// variables and constants: the function, or the spec that names it.
 	declaredBy map[types.Object]ast.Node
+	// changes are its package-level variables that its code may change, found once
+	// (variablechanges.go).
+	changes func() map[types.Object]string
 }
 
 // newPackage is a listed package as it was checked: its errors are the go command's,
@@ -42,6 +46,7 @@ func newPackage(listed *packages.Package, checked *checkedPackage, fset *token.F
 		pkg.Files[filepath.Base(fset.File(file.FileStart).Name())] = file
 	}
 	pkg.declaredBy = pkg.declarationsByObject()
+	pkg.changes = sync.OnceValue(pkg.findChanges)
 	return pkg
 }
 
@@ -52,6 +57,12 @@ func (l *loaded) at(dir string) *goPackage {
 		return pkg
 	}
 	return nil
+}
+
+// declarationOf is the code that declares a top-level name of the package; nil for a
+// type, or a name it does not declare.
+func (pkg *goPackage) declarationOf(name string) ast.Node {
+	return pkg.declaredBy[pkg.Types.Scope().Lookup(name)]
 }
 
 // declarationsByObject maps each object a package declares at its top level, its

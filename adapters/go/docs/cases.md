@@ -78,9 +78,12 @@ Tables never share a process, and run side by side, with each other and with blo
 `runtime.workers` processes at once in all. <!-- test: internal/running/cases_test.go > "TestTablesRunSideBySide" -->
 
 The setup package is an ordinary package of your module: `go build ./...` and
-`go vet ./...` see it too, and a build constraint cannot hide it, since the adapter reads
-the package as the go command builds it by default (a file behind a tag such as
-`//go:build docattest` is left out, and a setup package with no other file is not found). <!-- test: internal/analysis/setup_test.go > "TestASetupFileBehindABuildTagIsLeftOut" -->
+`go vet ./...` see it too. The adapter reads it as the go command builds it with one tag,
+`docattest`, the tag of [docs helper files](facts.md#docs-helpers): a file behind any other
+tag, such as `//go:build integration`, is left out, and a setup package with no other file
+is not found. <!-- test: internal/analysis/setup_test.go > "TestASetupFileBehindABuildTagIsLeftOut" -->
+So a setup package whose files are all behind `//go:build docattest` is read, and
+`go build ./...` and `go vet ./...` leave it out. <!-- test: internal/analysis/setup_test.go > "TestASetupPackageBehindTheDocsTagIsRead" -->
 No program of yours links it unless one imports it, so it changes no binary. A CI rule
 that rebuilds on any change to `**/*.go` still fires on a change made for the pages only:
 keep the setup package beside the pages (`docs/`) and leave that directory out of such

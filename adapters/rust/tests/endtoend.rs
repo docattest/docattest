@@ -118,7 +118,8 @@ fn check_judges_every_attestation_of_the_fixture() {
 #[test]
 fn the_index_and_the_audit_read_the_fixture() {
     let root = fixture();
-    assert_eq!(docattest(&root, &["uncovered"], &[]).0.trim(), "ERROR_CODES");
+    // `ERROR_CODES` is attested through the setup function a fact calls.
+    assert_eq!(docattest(&root, &["uncovered"], &[]).0.trim(), "every public symbol is attested");
     assert!(docattest(&root, &["where", "quote"], &[]).0.contains("docs/shipping.md:10 example"));
     let audit = docattest(&root, &["audit"], &[]).0;
     for want in ["L5 list matches CARRIERS", "L11 column drifts from ERROR_CODES (missing: no_carrier)"] {

@@ -1,7 +1,8 @@
 # Facts in Go
 
-What a fact expression may use, how a value is compared with the page, and the constants a
-fact reads from source. The [guide](../README.md) has the rest.
+What a fact expression may use, how a value is compared with the page, the constants and
+variables a fact reads from source, and the docs helpers that keep a package from exporting
+anything for its pages. The [guide](../README.md) has the rest.
 
 A fact expression is a Go expression over the surface's exports, by their own names:
 
@@ -10,22 +11,32 @@ A discount is at most `50` percent. <!-- fact: MaxDiscount -->
 The carriers: <!-- fact @shipping: Carriers -->
 ```
 
-It may use the surface's exports and its constants (below), the exported names of the
-setup package, the builtins, `snapshot("name")`, `manifest("path")`, `file("path")`, and
-any package of the standard library that is imported by one word
-(`strings.ToUpper(DefaultCurrency)`, `len(TaxRates)`): a fact cannot `import`. An
-expression has one value; put a function that returns a value and an error behind a helper
-in the setup package.
+It may use the surface's exports, its constants and literal variables (below), the
+exported names of its docs helper files (below), the exported names of the setup package,
+the builtins, `snapshot("name")`, `manifest("path")`, `file("path")`, and any package of
+the standard library that is imported by one word (`strings.ToUpper(DefaultCurrency)`,
+`len(TaxRates)`): a fact cannot `import`. An expression has one value; put a function that
+returns a value and an error behind a helper in the setup package.
 
-A fact runs in a program that imports the surface, so a function, variable or type the
-surface does not export is an error that says only constants can be read there
-(`round is a function that surface "default" does not export; of its unexported names, a
-fact reads only constants`), which is what keeps a page honest about what a user can see. <!-- test: internal/running/constants_test.go > "TestOnlyConstantsAreReadFromSource" -->
+A fact that calls a function of the setup package, or reads one of its variables, attests
+what that helper uses of the surfaces, at any depth, as a cases table attests what its
+runner uses ([cases](cases.md)). <!-- test: internal/analysis/setup_test.go > "TestAFactNamesWhatTheSetupHelpersItCallsUse" -->
+So `where` lists the fact under each export the helper reads, `uncovered` does not list
+them, and `impact` lists the fact when one of them changes. In this package's fixture, the
+setup's `ErrorMessages()` reads `shop.ErrorCodes`, which no page names: a fact that calls
+it attests `ErrorCodes`. <!-- test: endtoend/endtoend_test.go > "TestAFactThroughAHelperAttestsWhatTheHelperUses" -->
+
+A fact runs in a program that imports the surface, so a function or a type the surface
+does not export is an error that says only constants and literal variables can be read
+there (`round is a function that surface "default" does not export; of its unexported
+names, a fact reads only constants and literal variables`), which is what keeps a page
+honest about what a user can see. <!-- test: internal/running/constants_test.go > "TestOnlyConstantsAndLiteralVariablesAreReadFromSource" -->
 
 Constants are read from source instead, since a service's most documented values, its
 port or its default timeout, are often unexported or in its `package main`. A fact may name
 any constant declared at the top level of its surface's package, exported or not, and a
-surface may be a `package main`, of which only constants can be read. <!-- test: internal/running/constants_test.go > "TestAFactReadsConstantsFromSource" -->
+surface may be a `package main`, of which only constants and literal variables (below) can
+be read. <!-- test: internal/running/constants_test.go > "TestAFactReadsConstantsFromSource" -->
 The package and what it imports are type-checked from source with `go/types`, as the go
 command lists them, and the fact gets the value the type checker gives the constant:
 nothing imports the package, and nothing of it runs. <!-- test: internal/running/constants_test.go > "TestNothingOfThePackageRuns" -->
@@ -99,3 +110,134 @@ a number not written as an integer is a `float64`. <!-- test: internal/running/r
 for the `strings` and `regexp` packages:
 ``regexp.MustCompile(`USER (\d+)`).FindStringSubmatch(file("Dockerfile"))[1]`` reads the
 user a `Dockerfile` runs as. This module's license is read so: it is `MIT`. <!-- fact: regexp.MustCompile(`^(\w+) License`).FindStringSubmatch(file("LICENSE"))[1] -->
+
+## Variables read from source
+
+A fact also reads a variable from source when it is a literal variable: its surface's
+package declares it at the top level with a composite literal (of a slice, an array, a map
+or a struct) whose elements and keys are constants or such literals, and only reads it.
+Such a variable is read as a constant is, exported or not, of a `package main` too, and
+nothing of the package runs. <!-- test: internal/running/variables_test.go > "TestAFactReadsLiteralVariablesFromSource" -->
+A variable is no literal variable when its value calls anything or names a variable, holds
+a pointer, or is missing; a fact that reads it says why (`started is a variable of surface
+"shopd" that a fact cannot read from source: its value, time.Now(), is not a composite
+literal`). <!-- test: internal/analysis/literalvariables_test.go > "TestALiteralVariableIsOneItsPackageOnlyReads" -->
+
+A package only reads a variable when none of its files (its tests aside, which no program
+runs) uses it in a way that may change it. A use is the variable with any index, slice or
+field selected from it, and it may change the variable when it is assigned to, incremented,
+or ranged into; when its address is taken, also to call a method with a pointer receiver;
+or when it shares the variable's storage (a slice, a map, a pointer or an interface) with
+anything but `len`, `cap`, the source of `copy`, the `s...` of `append`, or a `range` whose
+items share nothing. A value that shares nothing, such as a string, a number, or an array or
+struct of them, is copied wherever it goes, so it may go anywhere. The rule is sound and
+does not look into functions: passing a slice to `strings.Join` makes it no literal
+variable, although `strings.Join` only reads it. <!-- test: internal/analysis/literalvariables_test.go > "TestALiteralVariableIsOneItsPackageOnlyReads" -->
+A fact that reads a variable that is reassigned or appended to is an error that says where
+(`the package may change it (main.go:53 assigns to it)`). <!-- test: internal/running/variables_test.go > "TestAVariableThatIsNoLiteralVariableIsRefused" -->
+
+The variable is declared in the fact's program with the value its source writes. A type
+the program can name (exported, of a package it may import, with exported fields) keeps
+its name, so a `map[string]time.Duration` prints `map[read:5s]`. Any other type, such as
+one the package declares unexported, is copied with its name and its fields, and without
+its methods, as a constant's type of a `package main` loses its `String` method. So a slice
+of structs prints as Go prints the struct, `[{CAP_SYS_ADMIN 2} {CAP_NET_RAW 1}]`, and a
+fact may use its fields, in a function literal that maps it, for one. <!-- test: internal/running/variables_test.go > "TestAFactReadsLiteralVariablesFromSource" -->
+A type that holds a function, a channel, a pointer, an interface with methods, or an
+instance of a generic type cannot be copied, and a fact that reads such a variable says so. <!-- test: internal/running/variables_test.go > "TestAVariableThatIsNoLiteralVariableIsRefused" -->
+A fact attests the literal variables it reads, as it attests constants, and `impact` lists
+a change to one with the facts that read it. <!-- test: endtoend/endtoend_test.go > "TestAFactThroughAHelperAttestsWhatTheHelperUses" -->
+
+## Docs helpers
+
+A setup package cannot read what a surface does not export, so a helper that derives what a
+page states from an unexported variable would force an export. A docs helper file is a file
+of the surface's package whose build constraint holds only with the tag `docattest`
+(`//go:build docattest`): it reads the package's unexported names, and only docattest
+builds it. <!-- test: internal/analysis/docsfiles_test.go > "TestADocsHelperFileHoldsOnlyWithTheDocsTag" -->
+The adapter lists packages, and builds the programs it generates for facts, cases tables
+and `audit`, with that tag. A block of a page is built as `go build` builds it, without the
+tag, so a page cannot show code that calls a docs helper. <!-- test: internal/running/docshelpers_test.go > "TestABlockIsBuiltWithoutTheDocsHelpers" -->
+A fact calls a docs helper by its name, so a docs helper a fact calls is exported in its
+file, which costs nothing since nothing else builds it; one that is not says to export it. <!-- test: internal/running/docshelpers_test.go > "TestAnUnexportedDocsHelperIsRefusedWithWhatToDo" -->
+What a docs helper file declares is no export of the surface: `uncovered` never lists it.
+A fact that calls a docs helper attests the helper and what it uses of the surfaces, as a
+fact that calls a setup helper does. <!-- test: internal/analysis/docsfiles_test.go > "TestADocsHelperIsNoExportAndAttestsWhatItUses" -->
+So `impact` lists the fact when anything the helper uses changes, an unexported variable
+included. <!-- test: endtoend/endtoend_test.go > "TestAFactThroughAHelperAttestsWhatTheHelperUses" -->
+A fact never imports a `package main`, so its docs helpers cannot be called: of a program,
+a fact reads constants and literal variables, and a helper goes in an importable package.
+
+## Zero exports for the docs
+
+This package's fixture has a package, `sandbox`, that exports only what its users call. Its
+pages state an environment list, a slice of structs, and names that a helper derives from
+them, with nothing exported for them:
+
+```go
+// sandbox/sandbox.go
+package sandbox
+
+type capability struct {
+	Name   string
+	Reason string
+}
+
+var forbiddenCaps = []capability{
+	{Name: "CAP_SYS_ADMIN", Reason: "mounts filesystems"},
+	{Name: "CAP_NET_RAW", Reason: "forges packets"},
+}
+
+var sessionEnv = []string{"LANG=C.UTF-8", "TZ=UTC"}
+
+func Refuses(name string) bool { … } // ranges over forbiddenCaps
+
+func Env(parent []string) []string { return append(parent, sessionEnv...) }
+```
+
+```go
+// sandbox/sandbox_docattest.go
+//go:build docattest
+
+package sandbox
+
+func ForbiddenCapNames() []string { … } // the Name of each of forbiddenCaps
+
+func SessionEnvNames() []string { … } // what comes before the = of each of sessionEnv
+```
+
+The environment list and the slice of structs are literal variables, which a fact reads as
+they are; the names come from the docs helpers:
+
+```markdown check fixture=testdata/fixture
+A sandboxed command's environment adds these variables to its parent's: <!-- fact @sandbox: sessionEnv -->
+- `LANG=C.UTF-8`
+- `TZ=UTC`
+
+Their names: <!-- fact @sandbox: SessionEnvNames() -->
+- `LANG`
+- `TZ`
+
+It is refused these capabilities: <!-- fact @sandbox: ForbiddenCapNames() -->
+- `CAP_SYS_ADMIN`
+- `CAP_NET_RAW`
+
+Go prints them as `[{CAP_SYS_ADMIN mounts filesystems} {CAP_NET_RAW forges packets}]`. <!-- fact @sandbox: forbiddenCaps -->
+
+Each for a reason: <!-- fact @sandbox: func() (reasons []string) { for _, c := range forbiddenCaps { reasons = append(reasons, c.Reason) }; return }() -->
+- mounts filesystems
+- forges packets
+```
+
+`go build ./...` and `go vet ./...` leave the docs helper file out, as the go command
+lists it:
+
+```console check cwd=testdata/fixture
+$ go list -f '{{.GoFiles}} {{.IgnoredGoFiles}}' ./sandbox
+[sandbox.go] [sandbox_docattest.go]
+$ go list -tags docattest -f '{{.GoFiles}}' ./sandbox
+[sandbox.go sandbox_docattest.go]
+```
+
+The sandbox's exports are `Refuses` and `Env`, which its pages attest, so `uncovered`
+lists nothing of it. <!-- test: endtoend/endtoend_test.go > "TestTheIndexAndTheAudit" -->

@@ -20,6 +20,51 @@ export const VERSION = '1.2.3-rc.1';
 export const STRICT = true;
 ```
 
+and, where a fact names the surface `shipping`, against this one:
+
+```ts
+export const FREE_FROM = 50;
+export const ZONES = ['EU', 'UK', 'US'];
+```
+
+## How a fact is written
+
+A fact is `<!-- fact`, then up to three modifiers in any order, then a colon and the
+expression, which runs to `-->` and may span lines. `@<surface>` evaluates the expression
+against that surface of the config ([surfaces](surfaces.md)), not `default`. `ordered`
+compares a list in order, not as a set: the items of a list, a table column, the code spans
+of a sentence or a list in a data block. `column=<name>` binds a column of the next table,
+and `field=<path>` one value of the next fenced block; a fact names at most one of the two.
+So `<!-- fact @shipping ordered column=zone: ZONES -->` compares the column `zone`, in
+order, with `ZONES` from the surface `shipping`. Anything else before the colon is an error
+that names it as an unknown modifier. A fact reads one surface and selects with one of
+`column=` and `field=`, so a second `@surface`, `column=` or `field=` is an error that says
+so, and so is a `column=` that names nothing (`column=""`). `column=`
+with `field=` is an error, and so is `ordered` with no list to compare: on a single value,
+a fenced block or a field that holds one value. A fact with no colon, or nothing after it,
+is an error that says it has no expression.
+
+<!-- cases: factBinding -->
+| case                                 | page                                                                     | result                        |
+|--------------------------------------|--------------------------------------------------------------------------|-------------------------------|
+| `@surface`                           | Free shipping from `50`. <!-- fact @shipping: FREE_FROM -->              | pass                          |
+| `@surface` and `field=`              | <!-- fact @shipping field=free_from: FREE_FROM -->¶```json¶{ "free_from": 50 }¶``` | pass                |
+| `@surface`, `ordered` and `column=`  | <!-- fact @shipping ordered column=zone: ZONES -->¶\| zone \|¶\|---\|¶\| `EU` \|¶\| `UK` \|¶\| `US` \| | pass |
+| the same, out of order               | <!-- fact @shipping ordered column=zone: ZONES -->¶\| zone \|¶\|---\|¶\| `UK` \|¶\| `EU` \|¶\| `US` \| | fail: order |
+| modifiers in another order           | <!-- fact column=zone ordered @shipping: ZONES -->¶\| zone \|¶\|---\|¶\| `EU` \|¶\| `UK` \|¶\| `US` \| | pass |
+| `ordered` and `field=` over a list   | <!-- fact ordered field=zones @shipping: ZONES -->¶```yaml¶zones: [EU, UK, US]¶``` | pass                |
+| `column=` with `field=`              | <!-- fact column=zone field=zones @shipping: ZONES -->                   | error: column= and field= cannot both be given |
+| a second `column=`                   | <!-- fact column=zone column=code @shipping: ZONES -->¶\| zone \|¶\|---\|¶\| `EU` \| | error: a fact selects with one column= or field=; "column=code" is a second |
+| a second `@surface`                  | Free shipping from `50`. <!-- fact @shipping @default: FREE_FROM -->     | error: a fact reads one surface; it names @shipping and @default |
+| a `column=` that names nothing       | <!-- fact column="": KEYS -->¶\| key \|¶\|---\|¶\| `A` \|               | error: column= names no column |
+| unknown modifier                     | <!-- fact sorted: KEYS -->¶- `A`¶- `B`¶- `C`                             | error: unknown modifier "sorted" |
+| `ordered` on a single value          | At most `3` tries. <!-- fact ordered: N -->                              | error: column= and ordered apply to lists and tables, not scalars |
+| `column=` on a single value          | At most `3` <!-- fact column=zone: N --> tries.                          | error: column= and ordered apply to lists and tables, not scalars |
+| `ordered` on a fenced block          | <!-- fact ordered: SHAPE -->¶```ts¶export interface Point { x: number; y: number }¶``` | error: not fenced blocks |
+| `ordered` on a field of one value    | <!-- fact @shipping ordered field=free_from: FREE_FROM -->¶```json¶{ "free_from": 50 }¶``` | error: is a single value; ordered applies to a list |
+| no colon                             | <!-- fact KEYS -->¶- `A`¶- `B`¶- `C`                                     | error: has no expression      |
+| nothing after the colon              | At most `3` tries. <!-- fact ordered: -->                                | error: has no expression      |
+
 ## How a fact finds its target
 
 Binding is positional and strict. A fact that ends its line binds the list, table or fenced
@@ -42,7 +87,11 @@ name with spaces is quoted, as in `column="route path"` or `column='route path'`
 with `field=` binds one value of the next fenced block in the same way
 ([below](#a-fact-can-check-one-field-of-a-data-block)). A
 directive may span lines; it binds from the line where it ends. Inside a table cell it binds
-the same way, within that cell. Anything else is an error, not a silent skip.
+the same way, within that cell. Directives side by side are one group, whatever their order:
+a fact followed on its line only by other directives, such as a citation, ends that line,
+its sentence, its paragraph or its cell as if it were last, and a fact that ends its line
+binds what starts after the lines of only directives directly below it. Anything else is
+an error, not a silent skip.
 
 A fact may also sit alone on the line directly above a sentence, as `// @ts-expect-error`
 sits above the line it applies to: a line that holds only directives applies each of them
@@ -111,6 +160,15 @@ line of the block that differs.
 | expression throws                      | At most `3` tries. <!-- fact: N.missing.deeper -->                      | error: Cannot read            |
 | unknown surface                        | At most `3` tries. <!-- fact @nope: N -->                               | error: unknown surface        |
 | directive spanning two lines           | <!-- fact:¶  KEYS -->¶- `A`¶- `B`¶- `C`                                 | pass                          |
+| citation after, line before a list     | The keys, `A` among them: <!-- fact: KEYS --> <!-- test: keys.test.ts > "lists keys" -->¶- `C`¶- `A`¶- `B` | pass |
+| citation before, line before a list    | The keys, `A` among them: <!-- test: keys.test.ts > "lists keys" --> <!-- fact: KEYS -->¶- `C`¶- `A`¶- `B` | pass |
+| citation after, end of a sentence      | Keys are `C`, `A` and `B`. <!-- fact: KEYS --> <!-- test: keys.test.ts > "lists keys" --> | pass |
+| citation before, end of a sentence     | Keys are `C`, `A` and `B`. <!-- test: keys.test.ts > "lists keys" --> <!-- fact: KEYS --> | pass |
+| citation after, line above a list      | <!-- fact: KEYS --> <!-- test: keys.test.ts > "lists keys" -->¶- `C`¶- `A`¶- `B` | pass |
+| citation before, line above a list     | <!-- test: keys.test.ts > "lists keys" --> <!-- fact: KEYS -->¶- `C`¶- `A`¶- `B` | pass |
+| citation on the line below the fact    | The keys: <!-- fact: KEYS -->¶<!-- test: keys.test.ts > "lists keys" -->¶- `C`¶- `A`¶- `B` | pass |
+| citation after, lead-in, blank line    | The keys: <!-- fact: KEYS --> <!-- test: keys.test.ts > "lists keys" -->¶¶- `C`¶- `A`¶- `B` | pass |
+| citation before, in a table cell       | \| limit \| value \|¶\|---\|---\|¶\| tries \| `3` <!-- test: keys.test.ts > "lists keys" --> <!-- fact: N --> \| | pass |
 | scalar inside a table cell             | \| limit \| value \|¶\|---\|---\|¶\| tries \| `3` <!-- fact: N --> \| | pass        |
 | unclosed directive                     | At most `3` tries. <!-- fact: N                                         | error: not closed             |
 
@@ -214,8 +272,9 @@ assert.equal(report.exitCode, 1);
 
 An expression may use what the surface exports, and the constants its module declares at
 the top level, exported or not. A fact over any other name the module does not export, a
-function, a type or a variable, is an error that says only constants can be read there,
-which is how a page is kept honest about what a user can observe.
+function, a type or a variable, is an error that says only constants (and in Go literal
+variables) can be read there, which is how a page is kept honest about what a user can
+observe.
 
 Constants are read from the source, since a program's most documented values, its port or
 its default timeout, are often unexported, or in a program that nothing imports. A fact
@@ -227,8 +286,9 @@ lists only exports, and `impact` lists a change to such a constant with the fact
 it.
 
 What a constant is differs by language: a `const` written in literals in TypeScript, a name
-assigned once to literals in Python, any top-level `const` in Go, and a `const` or `static`
-of primitive types in Rust. Each guide says it exactly:
+assigned once to literals in Python, any top-level `const` in Go, and a `var` its package
+declares with a composite literal of constants and only reads (a literal variable), and a
+`const` or `static` of primitive types in Rust. Each guide says it exactly:
 [TypeScript](../adapters/typescript/README.md#facts-read-constants-from-source),
 [Python](../adapters/python/README.md#facts), [Go](../adapters/go/docs/facts.md) and
 [Rust](../adapters/rust/README.md#facts).
@@ -255,6 +315,34 @@ What a package declares rather than exports, such as the Node it needs, is read 
 manifest with `manifest("package.json")`, and what any other file says with
 `file("<path>")` ([manifests](manifests.md)).
 
+## Docs helpers say what a surface keeps private
+
+A value a page states should not have to be exported for the page's sake. A constant needs
+nothing: it is read from source. A value a helper must work out, such as the names in a
+private list of records, needs code that can see the private value, and each language has
+its way:
+
+- **Go:** a docs helper is a file of the surface's package behind `//go:build docattest`.
+  Only docattest builds it, so it sees the package's unexported names, and a fact calls what
+  it exports ([Go guide](../adapters/go/docs/facts.md#docs-helpers)).
+- **Rust:** a docs helper is a `pub` item of the surface's module under `#[cfg(docattest)]`,
+  built with `--cfg docattest` only by docattest, so it sees the module's private items
+  ([Rust guide](../adapters/rust/README.md#docs-helpers-cfgdocattest)).
+- **Python:** nothing stops a module from importing another's `_private` names, so a setup
+  helper reads them as they are ([Python guide](../adapters/python/README.md#cases-tables-and-named-facts-the-setup-module)).
+- **TypeScript:** nothing outside a module reaches what it does not export. A value is
+  exported by the module that declares it, not re-exported from the package entry, and that
+  module is configured as a surface of its own, so the package's API is unchanged
+  ([TypeScript guide](../adapters/typescript/README.md#named-facts-the-setup-module)).
+
+A docs helper is no export, so `uncovered` never lists it. A fact that calls one attests it
+and what it uses, so `impact` lists the fact when a private value it reads changes. A page's
+example runs as users build the code, without docs helpers: in Go a block is built without
+the tag, and in Rust a block or doc-comment example that names a docs helper is an error at
+the line that names it. A program (a Go
+`package main`, a Rust binary crate) is never imported, so a docs helper there cannot be
+called; its constants, and in Go its literal variables, are read from source instead.
+
 ## Facts may await
 
 A surface whose values are asynchronous is still observable.
@@ -277,7 +365,11 @@ assert.equal(report.results[0].status, 'pass');
 
 Some values are awkward to write inline. The setup module may export `facts`, an object of
 named helpers, and a fact expression calls them by bare name. The helper is glue: it reads
-the surface and returns a value; the expectation is still the literal on the page.
+the surface and returns a value; the expectation is still the literal on the page. A fact
+that calls a helper attests what the helper uses of the surfaces, through the setup
+module's own helpers at any depth, as a cases table attests what its runner uses: `where`
+lists the fact under those exports, `uncovered` stops listing them, and `impact` lists the
+fact when one of them changes.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -299,6 +391,8 @@ const table = '<!-- fact column=Field: errorFields() -->\n| Field | Meaning |\n|
 const report = await project(helpers, table).check();
 assert.equal(report.results[0].status, 'pass');
 assert.deepEqual(report.results[0].symbols, ['ERRORS']);
+assert.deepEqual((await project(helpers, table).where('ERRORS')).map((r) => r.line), [1]);
+assert.deepEqual(await project(helpers, table).uncovered(), ['N']);
 ```
 
 A helper may not share a name with a surface export: the expression would be ambiguous, so

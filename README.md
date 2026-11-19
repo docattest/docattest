@@ -20,7 +20,7 @@ Try it in your browser: the [playground](https://docattest.github.io/docattest/p
 lets you break a small project's code and watch docattest catch its docs. The
 [website](https://docattest.github.io/docattest/) has the short tour.
 
-> **Status:** `0.2.0` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
+> **Status:** `0.2.1` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
 > crates.io, and for Go by `go install` (see [Install](#install)).
 
 ## What it looks like
@@ -232,8 +232,9 @@ runners, and which interpreter runs your code.
 
 The [Go guide](adapters/go/README.md) has a page for each kind of proof:
 [examples](adapters/go/docs/examples.md) (statements, declarations or a whole program, and
-testable `Example` functions), [facts](adapters/go/docs/facts.md) (constants read from
-source, a `package main`'s too), [cases](adapters/go/docs/cases.md) (the setup package and
+testable `Example` functions), [facts](adapters/go/docs/facts.md) (constants and literal
+variables read from source, a `package main`'s too, and docs helper files that spare a
+package exports made only for its pages), [cases](adapters/go/docs/cases.md) (the setup package and
 `cells.CodeSpans`) and [citations](adapters/go/docs/citations.md) (the subtests of a
 table-driven test).
 
@@ -272,8 +273,9 @@ table-driven test).
    ```
 
 The [Rust guide](adapters/rust/README.md) covers doc-comment examples, facts that read
-constants from source (a binary's too), citations of rstest and test-case cases, the setup
-file and `docattest_harness::cells::code_spans`, and where blocks are built.
+constants from source (a binary's too), `#[cfg(docattest)]` docs helpers, citations of
+rstest and test-case cases, the setup file and `docattest_harness::cells::code_spans`, and
+where blocks are built.
 
 The rest of this README writes commands as `npx docattest …`; in a Python, Go or Rust
 project drop the `npx`.
@@ -365,7 +367,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --if-present
-      - uses: docattest/docattest@v0.2.0
+      - uses: docattest/docattest@v0.2.1
         with:
           args: --base origin/main
 ```

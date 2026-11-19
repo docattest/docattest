@@ -1,7 +1,9 @@
 //! What a session keeps of a crate once it is read: where its modules are, what each
-//! exports, which of them the crate's users can import, and the constants each declares.
+//! exports, which of them the crate's users can import, and the constants and docs helpers
+//! each declares.
 
 use super::constants::Constants;
+use super::docs_helpers::{DocsHelper, docs_helpers};
 use super::modules::{Crate, Export};
 use std::path::{Path, PathBuf};
 
@@ -20,6 +22,7 @@ struct Outline {
     /// Whether its parent declares it `pub`.
     public: bool,
     constants: Constants,
+    helpers: Vec<DocsHelper>,
 }
 
 impl Summary {
@@ -32,6 +35,7 @@ impl Summary {
             opaque: krate.opaque(&module.path),
             public: krate.declared_public(&module.path),
             constants: Constants::of(&module.items),
+            helpers: docs_helpers(&module.items),
         });
         Summary { modules: modules.collect() }
     }
@@ -66,6 +70,11 @@ impl Summary {
     /// The constants the module at a path declares, which facts read from source.
     pub fn constants(&self, path: &[String]) -> Option<&Constants> {
         self.at(path).map(|module| &module.constants)
+    }
+
+    /// The docs helpers the module at a path declares.
+    pub fn docs_helpers(&self, path: &[String]) -> &[DocsHelper] {
+        self.at(path).map_or(&[], |module| &module.helpers)
     }
 
     fn at(&self, path: &[String]) -> Option<&Outline> {

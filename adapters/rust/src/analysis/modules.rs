@@ -1,6 +1,7 @@
 //! A crate's modules, read from syntax and never compiled: which files they are, what
 //! they declare, and what they export.
 
+use super::docs_helpers::is_docs_helper;
 use crate::language::doc::named;
 use std::path::{Path, PathBuf};
 use syn::{Item, UseTree, Visibility};
@@ -35,12 +36,12 @@ pub struct Export {
 }
 
 /// Whether an item is `pub`, with no restriction.
-fn is_public(vis: &Visibility) -> bool {
+pub(super) fn is_public(vis: &Visibility) -> bool {
     matches!(vis, Visibility::Public(_))
 }
 
 /// The visibility of an item that has a name.
-fn visibility(item: &Item) -> Option<&Visibility> {
+pub(super) fn visibility(item: &Item) -> Option<&Visibility> {
     Some(match item {
         Item::Const(i) => &i.vis,
         Item::Static(i) => &i.vis,
@@ -139,8 +140,9 @@ impl Crate {
         declaration.and_then(visibility).is_some_and(is_public)
     }
 
-    /// The names a module exports: its own `pub` items that are not modules, and what it
-    /// re-exports with `pub use`, a glob's by the exports of the module it names.
+    /// The names a module exports: its own `pub` items that are neither modules nor docs
+    /// helpers, and what it re-exports with `pub use`, a glob's by the exports of the
+    /// module it names.
     pub fn exports(&self, path: &[String]) -> Vec<Export> {
         self.exports_within(path, &mut Vec::new())
     }
@@ -159,6 +161,7 @@ impl Crate {
                     }
                 }
                 Item::Mod(_) => {}
+                helper if is_docs_helper(helper) => {}
                 other => {
                     if let Some((name, _)) = named(other).filter(|_| visibility(other).is_some_and(is_public))
                     {
@@ -268,7 +271,7 @@ mod tests {
         let files: HashMap<&str, &str> = HashMap::from([
             (
                 "/c/src/lib.rs",
-                "mod retry;\npub mod deep;\npub use retry::{retry, RETRY as DEFAULTS};\npub use deep::*;\npub const N: u8 = 1;\nfn private() {}\npub(crate) fn inner() {}\npub mod here { pub fn inline() {} }",
+                "mod retry;\npub mod deep;\npub use retry::{retry, RETRY as DEFAULTS};\npub use deep::*;\npub const N: u8 = 1;\nfn private() {}\npub(crate) fn inner() {}\npub mod here { pub fn inline() {} }\n#[cfg(docattest)]\npub fn for_pages() {}",
             ),
             ("/c/src/retry.rs", "pub fn retry() {}\npub const RETRY: u8 = 3;"),
             ("/c/src/deep/mod.rs", "mod below;\npub use below::Low;\npub fn deep() {}"),

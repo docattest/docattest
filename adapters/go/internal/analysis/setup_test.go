@@ -48,14 +48,64 @@ func unused() { exit.Unused() }
 	}
 }
 
+func TestAFactNamesWhatTheSetupHelpersItCallsUse(t *testing.T) {
+	root := written(t, map[string]string{
+		"go.mod":         "module example.com/tool\n\ngo 1.21\n",
+		"guard/guard.go": "package guard\n\ntype Capability struct{ Name string }\n\nvar ForbiddenCaps = []Capability{{Name: \"CAP_SYS_ADMIN\"}}\n\nvar CommandPath = \"/bin/sh\"\n\nfunc Unused() {}\n",
+		"docs/setup.go": `package docs
+
+import "example.com/tool/guard"
+
+var Cases = map[string]func(row map[string]string) error{"unused": func(map[string]string) error { guard.Unused(); return nil }}
+
+// ForbiddenCapNames calls a helper of its own, which reads the surface.
+func ForbiddenCapNames() []string { return names() }
+
+func names() (out []string) {
+	for _, c := range guard.ForbiddenCaps {
+		out = append(out, c.Name)
+	}
+	return out
+}
+
+// Shell is a variable of the setup package, which reads another.
+var Shell = guard.CommandPath
+`,
+	})
+	p := read(t, Config{Root: root, InMemory: true, Surfaces: entries("guard", "./guard"), Setup: "docs/setup.go"})
+	cases := map[string]string{
+		"ForbiddenCapNames()":      "guard:ForbiddenCaps guard:Capability",
+		"len(Shell)":               "guard:CommandPath",
+		"len(ForbiddenCapNames())": "guard:ForbiddenCaps guard:Capability",
+	}
+	for expression, want := range cases {
+		found, err := symbolsOf(p, protocol.Attestation{Kind: protocol.KindFact, Surface: "guard", Expression: expression})
+		if got := names(found); err != nil || got != want {
+			t.Errorf("%s: got %q, %v, want %q", expression, got, err, want)
+		}
+	}
+}
+
 func TestASetupFileBehindABuildTagIsLeftOut(t *testing.T) {
+	root := written(t, map[string]string{
+		"go.mod":        "module example.com/tool\n\ngo 1.21\n",
+		"tool.go":       "package tool\n",
+		"docs/setup.go": "//go:build integration\n\npackage docs\n\nfunc Helper() int { return 1 }\n",
+	})
+	p := read(t, Config{Root: root, InMemory: true, Surfaces: entries("default", "."), Setup: "docs/setup.go"})
+	if p.SetupFound() {
+		t.Fatal("a setup file behind a build tag was read")
+	}
+}
+
+func TestASetupPackageBehindTheDocsTagIsRead(t *testing.T) {
 	root := written(t, map[string]string{
 		"go.mod":        "module example.com/tool\n\ngo 1.21\n",
 		"tool.go":       "package tool\n",
 		"docs/setup.go": "//go:build docattest\n\npackage docs\n\nfunc Helper() int { return 1 }\n",
 	})
 	p := read(t, Config{Root: root, InMemory: true, Surfaces: entries("default", "."), Setup: "docs/setup.go"})
-	if p.SetupFound() {
-		t.Fatal("a setup file behind a build tag was read")
+	if !p.SetupFound() || !p.SetupExports()["Helper"] {
+		t.Fatal("a setup package behind the docs tag was not read")
 	}
 }

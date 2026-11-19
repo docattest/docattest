@@ -7,6 +7,7 @@ use std::collections::HashSet;
 use super::prose::{SentenceCandidate, sentences_of};
 use super::{Target, distinct};
 use crate::attestations::directives::{Directive, parse_directive};
+use crate::attestations::group::block_after_group;
 use crate::attestations::placement::{attested_from_above, place};
 use crate::markdown::model::{Block, BlockKind, Page};
 use crate::markdown::parse::{Positionless, parse_page};
@@ -171,7 +172,7 @@ fn bound_blocks(page: &Page) -> HashSet<usize> {
         if !comment.ends_line {
             continue;
         }
-        let next = page.flow.iter().position(|b| b.start > comment.end_line);
+        let next = block_after_group(page, comment).map(|(index, _)| index);
         if let Some(at) = next
             && matches!(
                 page.flow[at].kind,

@@ -7,7 +7,7 @@ use super::programs::PROGRAM_STARTUP;
 use crate::harness::started;
 use crate::language::{NETWORK_SKIPPED, SHOULD_PANIC, blocks, text};
 use crate::protocol::{Cases, Diagnostic, Example, Kind, Status, Verdict};
-use crate::toolchain::cargo::Problem;
+use crate::toolchain::cargo::{DOCS_CFG, Problem};
 use crate::toolchain::{Command, Outcome, Start, Stopped, run};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -17,6 +17,7 @@ use std::sync::{Arc, Mutex};
 const PANICKED: i32 = 101;
 
 /// One example as a program.
+#[derive(Default)]
 struct Block {
     /// Its program's name in the generated crate.
     name: String,
@@ -24,6 +25,8 @@ struct Block {
     offset: usize,
     /// Why it does not compile: the line of the block, and the complaint.
     problems: Vec<(usize, String)>,
+    /// Why it is not built at all: the line of the block, and the reason.
+    refused: Option<(usize, String)>,
     /// Its program, when one was built.
     binary: Option<PathBuf>,
 }
@@ -47,16 +50,19 @@ impl Runner {
         let mut by_id = self.blocks.by_id.lock().unwrap_or_else(|p| p.into_inner());
         let mut fresh: Vec<(String, Block)> = Vec::new();
         let mut sources: Vec<(String, String)> = Vec::new();
+        let mut refusals: Vec<(String, Block)> = Vec::new();
         for example in examples.iter().filter(|e| e.error.is_none() && !by_id.contains_key(&e.id)) {
+            if let Some(refused) = self.helper_refusal(&example.code) {
+                refusals.push((example.id.clone(), Block { refused: Some(refused), ..Block::default() }));
+                continue;
+            }
             let program =
                 blocks::program(&example.code, &format!("::{HARNESS_CRATE}::harness::started::signal();"));
             let name = program_name("e", &program.source);
             sources.push((name.clone(), program.source));
-            fresh.push((
-                example.id.clone(),
-                Block { name, offset: program.offset, problems: Vec::new(), binary: None },
-            ));
+            fresh.push((example.id.clone(), Block { name, offset: program.offset, ..Block::default() }));
         }
+        by_id.extend(refusals.into_iter().map(|(id, block)| (id, Arc::new(block))));
         if !fresh.is_empty() {
             let problems = self.build(Dependencies::Project, &sources);
             for (id, mut block) in fresh {
@@ -65,6 +71,20 @@ impl Runner {
             }
         }
         by_id.clone()
+    }
+
+    /// Why an example is refused before it is built, when it names a docs helper: the line
+    /// of the block that first names one, and what to say. The example would compile, since
+    /// every program is built with the docs helpers, but users build without them.
+    fn helper_refusal(&self, code: &str) -> Option<(usize, String)> {
+        let helper = self.analysis.docs_helpers_named(code).into_iter().next()?;
+        let names = |line: &&str| text::identifiers(line).contains(&helper.name.as_str());
+        let line = code.lines().position(|line| names(&line)).map_or(1, |k| k + 1);
+        let why = format!(
+            "uses {}, a docs helper of surface \"{}\": a page's example runs as users build the code, without #[cfg({DOCS_CFG})]",
+            helper.name, helper.surface
+        );
+        Some((line, why))
     }
 
     /// Gives a block its program, or what the build complained of about it. A complaint
@@ -92,7 +112,10 @@ impl Runner {
         let built = self.ensure(examples);
         let mut out = Vec::new();
         for example in examples {
-            for (line, message) in built.get(&example.id).map_or(&[][..], |block| &block.problems[..]) {
+            let block = built.get(&example.id);
+            let refused = block.and_then(|block| block.refused.as_ref());
+            let problems = block.map_or(&[][..], |block| &block.problems[..]);
+            for (line, message) in refused.into_iter().chain(problems) {
                 out.push(Diagnostic { id: example.id.clone(), message: message.clone(), line: *line });
             }
         }
@@ -127,6 +150,9 @@ impl Runner {
             return Outcomes::of(Status::Skipped, NETWORK_SKIPPED);
         }
         let Some(block) = block else { return Outcomes::fail("the block was not built") };
+        if let Some((line, why)) = &block.refused {
+            return Outcomes::fail(format!("{why} (block line {line})"));
+        }
         if let Some((line, message)) = block.problems.first() {
             return Outcomes::fail(format!("does not compile: {message} (block line {line})"));
         }

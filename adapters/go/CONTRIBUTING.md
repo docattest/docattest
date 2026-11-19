@@ -27,8 +27,8 @@ there to the protocol's types and the go command. The packages: <!-- fact: Packa
   packages that follow.
 - **`analysis`** loads the project with `golang.org/x/tools/go/packages` and type-checks it
   from source, and never compiles or runs it: its module and surfaces, `symbols`,
-  `affected` and `inCode`, and the constants facts read from source; `tests` it reads from
-  syntax. The project at a base revision is the working tree with the changed files put
+  `affected` and `inCode`, the constants and literal variables facts read from source,
+  and the docs helper files of a package; `tests` it reads from syntax. The project at a base revision is the working tree with the changed files put
   back through the loader's overlay, so it is read by the same code.
 - **`running`** builds and runs attested code: blocks of pages, testable examples of source
   files, and the programs it generates for facts, cases tables and `observables`. What it

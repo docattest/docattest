@@ -104,7 +104,8 @@ func (g *Go) run(verb string, args ...string) []Problem {
 }
 
 // output runs `go <verb>` as run does, and is also what it wrote to its standard output.
-// Every command runs with the same flags, so that what one builds the next finds cached.
+// Every command runs with the same flags, so that what one builds the next finds cached;
+// DocsTag changes what is compiled only of a package with docs helper files.
 func (g *Go) output(verb string, args ...string) (string, []Problem) {
 	overlay, err := g.overlayFile()
 	if err != nil {
@@ -125,14 +126,31 @@ func (g *Go) output(verb string, args ...string) (string, []Problem) {
 	return "", problems
 }
 
-// Build builds packages of the module, given by their directories relative to it, and
-// writes the program of each main package into `out`.
+// DocsTag is the build tag of docs helper files: the files of a package that only
+// docattest's own programs build (generated programs, and the analysis), so that they
+// may read the package's unexported names for the pages and nothing else links them.
+const DocsTag = "docattest"
+
+// Build builds packages of the module, given by their directories relative to it, as the
+// go command builds them by default, and writes the program of each main package into
+// `out`.
 func (g *Go) Build(out string, packages []string) []Problem {
+	return g.run("build", buildArgs(out, packages)...)
+}
+
+// BuildWithDocs builds packages as Build does, with the docs helper files of every
+// package they import (DocsTag).
+func (g *Go) BuildWithDocs(out string, packages []string) []Problem {
+	return g.run("build", append([]string{"-tags=" + DocsTag}, buildArgs(out, packages)...)...)
+}
+
+// buildArgs are the arguments of `go build` that put the programs of packages in `out`.
+func buildArgs(out string, packages []string) []string {
 	args := []string{"-o", out + string(filepath.Separator)}
 	for _, pkg := range packages {
 		args = append(args, "./"+filepath.ToSlash(pkg))
 	}
-	return g.run("build", args...)
+	return args
 }
 
 // TestBinary builds the test program of one package of the module into the file `out`.

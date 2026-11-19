@@ -2,24 +2,20 @@
 
 use super::directives::FactDirective;
 use super::field::bind_field;
+use super::group::{GroupEnd, block_after_group};
 use super::literals::literals;
 use crate::api::attestation::{CasesRow, FactTarget, SetFrom};
 use crate::markdown::model::{Block, BlockKind, Comment, Leaf, LeafKind, Page};
 use crate::markdown::text::sentence_ends;
 use crate::text::trim;
 
-/// The first block that starts after the comment's last line.
-fn next_block<'p>(page: &'p Page, comment: &Comment) -> Option<&'p Block> {
-    page.flow.iter().find(|b| b.start > comment.end_line)
-}
-
 /// Bind a fact written on line `written` to its target, positionally and strictly, from
 /// `comment`, the place it takes effect ([`super::placement`]). A directive that ends its line
-/// binds the list, table (with `column=`) or fenced block that starts on the next line;
-/// `column=` binds the next table, and `field=` a value in the next fenced block, across blank
-/// lines. Otherwise it binds what is before it in its sentence (see [`bind_inline`]); when
-/// nothing there is a target, a directive that ends its block binds the list or fenced block
-/// right after that block, across blank lines. Anything else is an error.
+/// binds the list, table (with `column=`) or fenced block that starts on the line after its
+/// group ([`super::group`]); `column=` binds the next table, and `field=` a value in the next
+/// fenced block, across blank lines. Otherwise it binds what is before it in its sentence (see
+/// [`bind_inline`]); when nothing there is a target, a directive that ends its block binds the
+/// list or fenced block right after that block, across blank lines. Anything else is an error.
 pub fn bind_fact(
     fact: &FactDirective,
     written: usize,
@@ -32,20 +28,26 @@ pub fn bind_fact(
         let next = next_past_comments(page, comment).filter(|_| comment.ends_line);
         return bind_field(&at, field, ordered, next);
     }
-    let next = next_block(page, comment);
     if let Some(column) = column.filter(|c| !c.is_empty())
         && comment.ends_line
     {
         return bind_column(&at, column, next_past_comments(page, comment), page);
     }
-    let adjacent = next.filter(|b| comment.ends_line && b.start == comment.end_line + 1);
+    let after = block_after_group(page, comment);
+    let adjacent = after
+        .filter(|&(next, end)| comment.ends_line && page.flow[next].start == end.line + 1)
+        .map(|(next, _)| &page.flow[next]);
     if let Some(bound) = bind_block(&at, adjacent, ordered) {
         return bound;
     }
     if let Some(candidate) = last_candidate(comment).or_else(|| last_sentence_span(comment)) {
         return bind_inline(&at, candidate, comment, column, ordered);
     }
-    let following = next.filter(|b| ends_its_block(comment, page) && b.previous == Some(comment.block));
+    let following = after
+        .filter(|&(next, end)| {
+            ends_its_block(comment, page, end) && page.flow[next].previous == Some(end.block)
+        })
+        .map(|(next, _)| &page.flow[next]);
     bind_block(&at, following, ordered).unwrap_or_else(|| {
         let hint = "put it after a code span or number on the same line, at the end of a \
                     sentence with code spans, or at the end of a line or paragraph before a \
@@ -54,9 +56,10 @@ pub fn bind_fact(
     })
 }
 
-/// Nothing follows the directive in the paragraph, heading or HTML block that holds it.
-fn ends_its_block(comment: &Comment, page: &Page) -> bool {
-    comment.ends_line && page.flow.get(comment.block).is_some_and(|b| b.end == comment.end_line)
+/// Nothing but its group follows the directive in the paragraph, heading or HTML block that
+/// holds it.
+fn ends_its_block(comment: &Comment, page: &Page, group: GroupEnd) -> bool {
+    comment.ends_line && page.flow.get(comment.block).is_some_and(|b| b.end <= group.line)
 }
 
 /// The first block after the comment's own that is not an HTML block of comments, so that
@@ -195,7 +198,7 @@ fn starts_a_sentence(text: &str) -> bool {
 /// Bind a cases directive to the table after it. A directive that ends its line can only
 /// mean a table, so blank lines may separate them; anything else in between is an error.
 pub fn bind_cases(comment: &Comment, page: &Page) -> Result<(usize, Vec<String>, Vec<CasesRow>), String> {
-    let next = next_block(page, comment);
+    let next = block_after_group(page, comment).map(|(index, _)| &page.flow[index]);
     let table_index = match next.map(|b| &b.kind) {
         Some(BlockKind::Table(t)) if comment.ends_line => *t,
         _ => {
@@ -295,6 +298,35 @@ mod tests {
                 .unwrap_err()
                 .contains("names no column")
         );
+    }
+
+    #[test]
+    fn directives_side_by_side_bind_alike_in_either_order() {
+        let set = |items: &[&str], from: SetFrom| {
+            Ok(FactTarget::Set { items: items.iter().map(|s| s.to_string()).collect(), from })
+        };
+        let cite = "<!-- test: t > \"x\" -->";
+        let pages = [
+            ("Tax in `NL` and: {group}\n- `NL`\n- `DE`", set(&["NL", "DE"], SetFrom::List)),
+            ("{group}\n- `a`\n- `b`", set(&["a", "b"], SetFrom::List)),
+            ("{stack}\n- `a`\n- `b`", set(&["a", "b"], SetFrom::List)),
+            ("Three keys: {group}\n\n- `a`", set(&["a"], SetFrom::List)),
+            ("Three keys: {stack}\n\n- `a`", set(&["a"], SetFrom::List)),
+            ("Keys are `a` and `b`. {group}", set(&["a", "b"], SetFrom::Sentence)),
+            ("| k |\n|---|\n| `a` and `b` {group} |", set(&["a", "b"], SetFrom::Sentence)),
+            ("At most `3` tries. {group}", Ok(FactTarget::Scalar("3".into()))),
+        ];
+        for (page, target) in pages {
+            for (first, second) in [("<!-- f -->", cite), (cite, "<!-- f -->")] {
+                let text = page
+                    .replace("{group}", &format!("{first} {second}"))
+                    .replace("{stack}", &format!("{first}\n{second}"));
+                let parsed = parse_page(&text).unwrap_or_default();
+                let fact = parsed.comments.iter().find(|c| trim(&c.body) == "f").expect("the fact");
+                let got = bind_fact(&directive(false, None, None), fact.line, fact, &parsed);
+                assert_eq!(got, target, "{text}");
+            }
+        }
     }
 
     #[test]

@@ -117,3 +117,28 @@ describe('a constant a fact reads', () => {
     expect(impact.references.map((r) => [r.symbol, r.kind])).toEqual([['listenPort', 'fact']]);
   });
 });
+
+describe('a value the package entry does not re-export', () => {
+  const files = {
+    'docattest.config.json': JSON.stringify({
+      pages: ['docs/**/*.md'],
+      surfaces: { default: './src/index.ts', internal: './src/caps.ts' },
+      adapter: 'typescript',
+    }),
+    'src/caps.ts': "export const FORBIDDEN = new Set(['sys_admin'].map((c) => c.toUpperCase()));",
+    'src/index.ts': [
+      "import { FORBIDDEN } from './caps.js';",
+      'export const allowed = (cap: string) => !FORBIDDEN.has(cap);',
+    ].join('\n'),
+    'docs/a.md': 'Never granted: <!-- fact @internal: [...FORBIDDEN] -->\n\n- `SYS_ADMIN`\n',
+  };
+
+  it('is read and attested on a surface of the module that exports it', async () => {
+    const project = createProject({ files });
+    expect((await project.check()).results.map((r) => r.status)).toEqual(['pass']);
+    expect((await project.where('FORBIDDEN')).map((r) => [r.page, r.kind])).toEqual([
+      ['docs/a.md', 'fact'],
+    ]);
+    expect(await project.uncovered()).toEqual(['allowed']);
+  });
+});
