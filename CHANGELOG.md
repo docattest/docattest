@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.3.0] - 2026-11-19
 
 ### Added
 
@@ -468,6 +468,7 @@ First public release.
   run time: macOS arm64 and x64, Linux x64 and arm64 (static builds, for glibc and musl), and
   Windows x64.
 
+[0.3.0]: https://github.com/docattest/docattest/releases/tag/v0.3.0
 [0.2.2]: https://github.com/docattest/docattest/releases/tag/v0.2.2
 [0.2.1]: https://github.com/docattest/docattest/releases/tag/v0.2.1
 [0.2.0]: https://github.com/docattest/docattest/releases/tag/v0.2.0
