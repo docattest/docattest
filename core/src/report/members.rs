@@ -116,6 +116,7 @@ mod tests {
             living: 1,
             covered: 0,
             uncovered: vec!["README.md".into()],
+            prose: vec![],
             frozen: vec![],
             attestations: 0,
             weak: 0,

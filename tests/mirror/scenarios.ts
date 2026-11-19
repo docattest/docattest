@@ -88,6 +88,32 @@ const FACTS: Agreement[] = [
     expect: (out) => gave(out, 0, ['fact:pass']),
   },
   {
+    id: 'file-02',
+    title: 'matched("path", regex) gives what the core matched, and no match is an error',
+    ...checked(
+      lines(
+        'It runs as user `10001`. <!-- fact: matched("Dockerfile", "^USER (\\\\d+)$") -->',
+        '',
+        'It starts `server`. <!-- fact: matched("Dockerfile", "^ENTRYPOINT (\\\\w+)$") -->',
+      ),
+      { Dockerfile: 'FROM scratch\nUSER 10001\n' },
+    ),
+    expect: (out) => gave(out, 1, ['fact:pass', 'fact:error']),
+  },
+  {
+    id: 'file-03',
+    title:
+      'manifestField("path", keys) gives the value at a path of a manifest, as the language holds it',
+    ...checked(
+      lines(
+        'Version `0.2.2`, <!-- fact: manifestField("ci.yml", "deploy.variables.VERSION") -->',
+        'on `3` replicas. <!-- fact: manifestField("ci.yml", "deploy.replicas") -->',
+      ),
+      { 'ci.yml': 'deploy:\n  replicas: 3\n  variables:\n    VERSION: 0.2.2\n' },
+    ),
+    expect: (out) => gave(out, 0, ['fact:pass', 'fact:pass']),
+  },
+  {
     id: 'field-01',
     title: "field= compares a JSON block's true, 1.0 and null with the language's own values",
     files: project(

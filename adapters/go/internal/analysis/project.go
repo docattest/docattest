@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/docattest/docattest/adapters/go/internal/protocol"
+	"github.com/docattest/docattest/adapters/go/internal/toolchain"
 )
 
 // Config is what `open` says of a project that reading it needs.
@@ -22,6 +23,9 @@ type Config struct {
 	Surfaces []protocol.ConfiguredSurface
 	// Setup is the setup package as the config names it; empty when none is configured.
 	Setup string
+	// Work is a directory of the adapter's own, where the workspace of a setup package
+	// that is a module of its own is written (setupmodule.go).
+	Work string
 }
 
 // Project is a project as the type checker reads it.
@@ -29,9 +33,15 @@ type Project struct {
 	Root   string
 	Module Module
 	// Setup is the setup package as the config names it; empty when none is configured.
-	Setup    string
-	surfaces []*Surface
-	loader   *loader
+	Setup string
+	// SetupModule is the module of the setup package: Module, unless the setup package
+	// is a module of its own.
+	SetupModule Module
+	// Workspace is the go.work the go command runs with; empty when the setup package is
+	// in Module.
+	Workspace toolchain.Workspace
+	surfaces  []*Surface
+	loader    *loader
 	// tree is the working tree's surfaces, setup package, and what they import, checked
 	// in the background from when the project is read, while the requests that follow
 	// list what they need; it waits for the check.
@@ -55,10 +65,13 @@ func Read(config Config) (*Project, error) {
 	if p.Module, err = findModule(p.moduleStart(entries), p.Root, config.InMemory); err != nil {
 		return nil, err
 	}
+	if err = p.joinSetupModule(config.Work, config.InMemory); err != nil {
+		return nil, err
+	}
 	for k, configured := range config.Surfaces {
 		p.surfaces = append(p.surfaces, p.resolve(configured.Name, entries[k]))
 	}
-	p.loader = newLoader(p.Module, p.surfaceDirs())
+	p.loader = newLoader(p.Module, p.Workspace, p.surfaceDirs())
 	p.startTree()
 	return p, nil
 }

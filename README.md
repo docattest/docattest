@@ -294,7 +294,9 @@ project drop the `npx`.
 A fact reads your code through the surface, and a project file such as `package.json`,
 `pyproject.toml` or `go.mod` through `manifest("path")`, so a claim like "Node 22.12 or
 later" is held to what the package declares. Any other file, such as a `Dockerfile`, it
-reads as text through `file("path")` ([manifests](docs/manifests.md)).
+reads as text through `file("path")`, and one value of a file in one call through
+`matched("path", "regex")` or `manifestField("path", "keys")`
+([manifests](docs/manifests.md)).
 
 Examples in doc comments (`@example` in TypeScript, `>>>` in Python docstrings, fenced
 blocks in Rust) and Go's testable `Example` functions are checked too, when the config
@@ -314,6 +316,7 @@ report.
 | `where` | `where <symbol>` | The pages, lines and sentences that describe a symbol. |
 | `uncovered` | `uncovered` | Public symbols no page describes yet. |
 | `index` | `index` | The whole symbol-to-pages map. |
+| `explain` | `explain <page>[:<line>]` | What each directive on the line, or on the page, binds and why, the sentence it defends, and what checking it gives. |
 | `audit` | `audit` | Lists, tables, blocks and values in sentences that look copied from the code and have no proof, with the directive to add. |
 | `inventory` | `inventory [text]` | Values a fact could read, each with its expression, the setup module's named facts included. |
 | `impact` | `impact [--base <ref>]` | The documented symbols your diff affects and the prose that names them. |
@@ -483,12 +486,13 @@ A fact reads the manifest, and reads any other file, such as a `Dockerfile`, as 
 ```md check fixture=docs/.fixtures/acme-client
 Node 22.12 or later. <!-- fact: manifest("package.json").engines.node.replace(">=", "") -->
 
-The image runs as user `10001`. <!-- fact: file("Dockerfile").match(/^USER (\d+)$/m)[1] -->
+The image runs as user `10001`. <!-- fact: matched("Dockerfile", "^USER (\\d+)$") -->
 ```
 
-JSON, TOML, YAML and `go.mod` are read as data, with `manifest("path")`; `file("path")`
-reads any file as its text. The path is relative to the project root. See
-[manifests](docs/manifests.md).
+JSON, TOML, YAML and `go.mod` are read as data, with `manifest("path")`, and one value of
+them with `manifestField("path", "keys")`; `file("path")` reads any file as its text, and
+`matched("path", "regex")` what a regex matches in it. The path is relative to the project
+root. See [manifests](docs/manifests.md).
 
 ### Keep a page out of the check
 
@@ -520,6 +524,7 @@ test it.
 | `undocumented` | By surface, globs of the symbols that are not meant to be documented, written as `uncovered` prints their names: `{ "default": ["internal*", "Program*"] }`. `uncovered` leaves them out, the report counts them apart, and a glob that matches no symbol is a warning. See [duality](docs/duality.md#symbols-not-meant-to-be-documented-are-counted-apart). |
 | `sources` | Globs of source files whose doc-comment examples are checked. |
 | `frozen` | Globs of pages that are listed in the report but never checked. |
+| `prose` | Globs of pages with nothing to prove: still checked, and counted apart instead of as uncovered. Frontmatter `docattest: prose` marks one page. See [pages](docs/pages.md#a-page-with-nothing-to-prove-is-prose). |
 | `setup` | A module that provides `cases` runners and named `facts`. |
 | `snapshots` | `{ "dir": "docs/.snapshots", "maxAgeDays": 30 }`. A snapshot is old after `90` <!-- fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS --> days unless `maxAgeDays` says otherwise. |
 | `runtime` | `{ "timeoutMs": 5000, "workers": 4 }`. The defaults are `10000` <!-- fact: DEFAULT_TIMEOUT_MS --> ms per block and one worker per CPU. |
@@ -542,12 +547,14 @@ repository; all but [why](docs/why.md), which is reasoning, carry proofs.
 | [facts](docs/facts.md) | binding a value, list, column or block to an expression |
 | [cases](docs/cases.md) | tables run row by row |
 | [citations](docs/citations.md) | binding a sentence to an existing test |
+| [citation shorthands](docs/citation-shorthands.md) | a set of titles in one citation, and an alias for a test file |
 | [snapshots](docs/snapshots.md) | pinning facts about outside systems, and `refresh` |
 | [manifests](docs/manifests.md) | facts over project files: `package.json`, `pyproject.toml`, `go.mod`, and any file as text |
-| [pages](docs/pages.md) | living and frozen pages, doc comments, checking some pages |
+| [pages](docs/pages.md) | living, prose and frozen pages, doc comments, checking some pages |
 | [surfaces](docs/surfaces.md) | what pages import and where it resolves |
 | [duality](docs/duality.md) | `where`, `uncovered` and the symbol index |
 | [audit](docs/audit.md) | finding lists, tables and values nobody has attested yet |
+| [explain](docs/explain.md) | what a directive binds and why, and what checking it gives |
 | [inventory](docs/inventory.md) | the values a fact could read, and the expressions that read them |
 | [changes](docs/changes.md) | `check --base`: removed, frozen, downgraded and weakened proofs |
 | [impact](docs/impact.md) | from a code diff to the prose it touches |

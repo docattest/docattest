@@ -15,6 +15,7 @@ import (
 	"github.com/docattest/docattest/adapters/go/internal/launcher"
 	"github.com/docattest/docattest/adapters/go/internal/platform"
 	"github.com/docattest/docattest/adapters/go/internal/protocoldata"
+	"golang.org/x/mod/modfile"
 )
 
 // Cases are the runners of the guide's cases tables, by name.
@@ -43,6 +44,21 @@ func Packages() []string {
 		}
 	}
 	return names
+}
+
+// Requirements are the modules a go.mod requires directly, in its order.
+func Requirements(goMod string) []string {
+	parsed, err := modfile.Parse("go.mod", []byte(goMod), nil)
+	if err != nil {
+		panic(err)
+	}
+	paths := []string{}
+	for _, required := range parsed.Require {
+		if !required.Indirect {
+			paths = append(paths, required.Mod.Path)
+		}
+	}
+	return paths
 }
 
 // home stands for the user's home directory, written `~` in the table.

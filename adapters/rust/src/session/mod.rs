@@ -6,7 +6,7 @@ use crate::analysis::Analysis;
 use crate::analysis::surfaces::{Configured, workspace_start};
 use crate::project::{self, Project};
 use crate::protocol::{Answer, Attestation, Cases, Error, Example, Fact, decode};
-use crate::running::{Limits, Runner, Snapshots};
+use crate::running::{FactFiles, Limits, Runner, Snapshots};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -30,10 +30,8 @@ struct Params {
     workers: f64,
     network: bool,
     snapshots: Snapshots,
-    manifests: Value,
-    /// Absent when no fact reads a file with `file`.
-    #[serde(default)]
-    texts: Value,
+    #[serde(flatten)]
+    fact_files: FactFiles,
     examples: Vec<Example>,
 }
 
@@ -62,8 +60,7 @@ pub fn open(params: Value) -> Result<Arc<dyn crate::protocol::Session>, Error> {
     let analysis = Arc::new(Analysis::new(root, project, told.setup, &told.surfaces));
     let timeout_ms = if told.timeout_ms > 0.0 { told.timeout_ms } else { DEFAULT_TIMEOUT_MS };
     let limits = Limits { timeout_ms, workers: told.workers as usize, network: told.network };
-    let runner =
-        Arc::new(Runner::new(Arc::clone(&analysis), limits, told.snapshots, told.manifests, told.texts));
+    let runner = Arc::new(Runner::new(Arc::clone(&analysis), limits, told.snapshots, told.fact_files));
     // Building is most of the time a check takes, so it starts now: `compile` and `run`
     // find the examples `open` named already built, or wait for them.
     let early = Arc::clone(&runner);

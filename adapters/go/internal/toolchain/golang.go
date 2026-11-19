@@ -21,6 +21,8 @@ type Go struct {
 	Module string
 	// Work is a directory of the adapter's own, for overlay files.
 	Work string
+	// Workspace is the go.work the command runs with; empty for none.
+	Workspace Workspace
 
 	lock    sync.Mutex
 	overlay map[string]string
@@ -112,7 +114,7 @@ func (g *Go) output(verb string, args ...string) (string, []Problem) {
 		return "", []Problem{{Message: err.Error()}}
 	}
 	full := append([]string{verb, "-trimpath", "-overlay", overlay}, args...)
-	outcome := Run(Command{Path: GoCommand(), Args: full, Dir: g.Module})
+	outcome := Run(Command{Path: GoCommand(), Args: full, Dir: g.Module, Env: g.Workspace.Environment()})
 	if outcome.Err != nil {
 		return "", []Problem{{Message: fmt.Sprintf("the go command could not be run: %v", outcome.Err)}}
 	}
@@ -144,6 +146,16 @@ func (g *Go) BuildWithDocs(out string, packages []string) []Problem {
 	return g.run("build", append([]string{"-tags=" + DocsTag}, buildArgs(out, packages)...)...)
 }
 
+// VetWithDocs runs go vet on packages of the module, given by their directories relative
+// to it, with their docs helper files (DocsTag); the problems are its findings.
+func (g *Go) VetWithDocs(packages []string) []Problem {
+	args := []string{"-tags=" + DocsTag}
+	for _, pkg := range packages {
+		args = append(args, "./"+filepath.ToSlash(pkg))
+	}
+	return g.run("vet", args...)
+}
+
 // buildArgs are the arguments of `go build` that put the programs of packages in `out`.
 func buildArgs(out string, packages []string) []string {
 	args := []string{"-o", out + string(filepath.Separator)}
@@ -166,7 +178,9 @@ func (g *Go) Env(name string) string {
 		g.env = map[string]string{}
 	}
 	if _, asked := g.env[name]; !asked {
-		outcome := Run(Command{Path: GoCommand(), Args: []string{"env", name}, Dir: g.Module})
+		outcome := Run(Command{
+			Path: GoCommand(), Args: []string{"env", name}, Dir: g.Module, Env: g.Workspace.Environment(),
+		})
 		g.env[name] = strings.TrimSpace(outcome.Stdout)
 	}
 	return g.env[name]

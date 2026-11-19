@@ -23,17 +23,19 @@ there to the protocol's types and the go command. The packages: <!-- fact: Packa
 - **`language`** answers `hello` and the questions about text, which need no project: how a
   block is read as a Go file, assertions, mentions and expression shapes, doc comments and
   testable examples.
-- **`session`** is the project `open` creates. It answers each method from one of the two
-  packages that follow.
+- **`session`** is the project `open` creates. It answers each method from the two packages
+  that follow.
 - **`analysis`** loads the project with `golang.org/x/tools/go/packages` and type-checks it
   from source, and never compiles or runs it: its module and surfaces, `symbols`,
   `affected` and `inCode`, the constants and literal variables facts read from source,
-  and the docs helper files of a package; `tests` it reads from syntax. The project at a base revision is the working tree with the changed files put
+  the docs helper files of a package, and the release of this module its `go.mod` files
+  require; `tests` it reads from syntax. The project at a base revision is the working tree with the changed files put
   back through the loader's overlay, so it is read by the same code.
 - **`running`** builds and runs attested code: blocks of pages, testable examples of source
-  files, and the programs it generates for facts, cases tables and `observables`. What it
-  knows of the project it asks the analysis.
-- **`toolchain`** runs the go command with a build overlay, and programs with a time limit.
+  files, and the programs it generates for facts, cases tables and `observables`; and it
+  vets docs helper files. What it knows of the project it asks the analysis.
+- **`toolchain`** runs the go command with a build overlay, in a workspace when the setup
+  package is a module of its own, and programs with a time limit.
 - **`harness`** is the Go source compiled into generated programs: `program/` is an
   ordinary package, tested here, whose files are embedded as text and written beside a
   generated `main`.
@@ -45,7 +47,8 @@ there to the protocol's types and the go command. The packages: <!-- fact: Packa
 
 `conformance.json` is this adapter's kit for the protocol's conformance suite,
 `endtoend/` tests the two commands as built, and `testdata/fixture/` is a small Go project
-the tests and the smoke test check. `endtoend/` also checks the guide's pages and this
+the tests and the smoke test check; `testdata/setupmodule/` is one whose setup package is a
+module of its own. `endtoend/` also checks the guide's pages and this
 one; the page the guide shows under "A page" is an `md check` block, checked as a page of
 the fixture. <!-- test: endtoend/guide_test.go > "TestTheGuideHolds" --> This directory is one of the `members` of the repository's root config, so the
 one `docattest check` at the root checks these pages too.

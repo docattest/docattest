@@ -9,6 +9,34 @@ use crate::markdown::model::{Block, BlockKind, Comment, Leaf, LeafKind, Page};
 use crate::markdown::text::sentence_ends;
 use crate::text::trim;
 
+/// What a fact bound, and the rule that bound it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Bound {
+    pub target: FactTarget,
+    pub rule: FactRule,
+}
+
+/// The rules [`bind_fact`] binds a fact by, in the order it tries them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FactRule {
+    /// `field=`: a value in the fenced block after it.
+    Field,
+    /// `column=`: a column of the table after it.
+    Column,
+    /// The list or fenced block that starts on the line after it.
+    BlockBelow,
+    /// The code span before it on its line.
+    CodeSpan,
+    /// The bare number or version before it on its line.
+    Literal,
+    /// The code spans of the sentence it ends, as a set.
+    SentenceSpans,
+    /// The one code span of the sentence it ends, on an earlier line of the sentence.
+    SentenceSpan,
+    /// The list or fenced block after the paragraph it ends, across blank lines.
+    BlockAfter,
+}
+
 /// Bind a fact written on line `written` to its target, positionally and strictly, from
 /// `comment`, the place it takes effect ([`super::placement`]). A directive that ends its line
 /// binds the list, table (with `column=`) or fenced block that starts on the line after its
@@ -21,39 +49,67 @@ pub fn bind_fact(
     written: usize,
     comment: &Comment,
     page: &Page,
-) -> Result<FactTarget, String> {
+) -> Result<Bound, String> {
     let (ordered, column) = (fact.ordered, fact.column.as_deref());
     let at = format!("fact at L{written}");
+    let by = |rule: FactRule| move |target: FactTarget| Bound { target, rule };
     if let Some(field) = &fact.field {
         let next = next_past_comments(page, comment).filter(|_| comment.ends_line);
-        return bind_field(&at, field, ordered, next);
+        return bind_field(&at, field, ordered, next).map(by(FactRule::Field));
     }
     if let Some(column) = column.filter(|c| !c.is_empty())
         && comment.ends_line
     {
-        return bind_column(&at, column, next_past_comments(page, comment), page);
+        return bind_column(&at, column, next_past_comments(page, comment), page).map(by(FactRule::Column));
     }
     let after = block_after_group(page, comment);
     let adjacent = after
         .filter(|&(next, end)| comment.ends_line && page.flow[next].start == end.line + 1)
         .map(|(next, _)| &page.flow[next]);
     if let Some(bound) = bind_block(&at, adjacent, ordered) {
-        return bound;
+        return bound.map(by(FactRule::BlockBelow));
     }
-    if let Some(candidate) = last_candidate(comment).or_else(|| last_sentence_span(comment)) {
-        return bind_inline(&at, candidate, comment, column, ordered);
+    if let Some(bound) = bind_in_sentence(&at, comment, column, ordered) {
+        return bound;
     }
     let following = after
         .filter(|&(next, end)| {
             ends_its_block(comment, page, end) && page.flow[next].previous == Some(end.block)
         })
         .map(|(next, _)| &page.flow[next]);
-    bind_block(&at, following, ordered).unwrap_or_else(|| {
+    let bound = bind_block(&at, following, ordered).unwrap_or_else(|| {
         let hint = "put it after a code span or number on the same line, at the end of a \
                     sentence with code spans, or at the end of a line or paragraph before a \
                     list, table or fenced block";
         Err(format!("{at} has no target: {hint}"))
-    })
+    });
+    bound.map(by(FactRule::BlockAfter))
+}
+
+/// What a fact binds in the sentence it ends: the candidate before it on its line, else the
+/// code span of its sentence; none when neither is there.
+fn bind_in_sentence(
+    at: &str,
+    comment: &Comment,
+    column: Option<&str>,
+    ordered: bool,
+) -> Option<Result<Bound, String>> {
+    let on_line = last_candidate(comment).map(|c| (c, true));
+    let (candidate, on_line) = on_line.or_else(|| last_sentence_span(comment).map(|c| (c, false)))?;
+    let scalar = inline_rule(&candidate, on_line);
+    Some(bind_inline(at, candidate, comment, column, ordered).map(|target| {
+        let rule = if matches!(target, FactTarget::Set { .. }) { FactRule::SentenceSpans } else { scalar };
+        Bound { target, rule }
+    }))
+}
+
+/// The rule an inline candidate binds by, as a scalar: from its own line, or from its sentence.
+fn inline_rule(candidate: &Candidate, on_line: bool) -> FactRule {
+    match (candidate, on_line) {
+        (Candidate::Literal(_), _) => FactRule::Literal,
+        (Candidate::Code(_), true) => FactRule::CodeSpan,
+        (Candidate::Code(_), false) => FactRule::SentenceSpan,
+    }
 }
 
 /// Nothing but its group follows the directive in the paragraph, heading or HTML block that
@@ -230,144 +286,4 @@ pub fn bind_cases(comment: &Comment, page: &Page) -> Result<(usize, Vec<String>,
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::api::field::as_json_writes;
-    use crate::attestations::field::parse_field_path;
-    use crate::markdown::parse::parse_page;
-
-    fn directive(ordered: bool, column: Option<&str>, field: Option<&str>) -> FactDirective {
-        FactDirective {
-            expression: "E".into(),
-            surface: "default".into(),
-            ordered,
-            column: column.map(Into::into),
-            field: field.map(|written| parse_field_path(written).expect("a path")),
-        }
-    }
-
-    fn bound(text: &str, ordered: bool) -> Result<FactTarget, String> {
-        let page = parse_page(text).unwrap_or_default();
-        let last = page.comments.last().expect("a comment");
-        bind_fact(&directive(ordered, None, None), last.line, last, &page)
-    }
-
-    fn sentence(items: &[&str]) -> Result<FactTarget, String> {
-        Ok(FactTarget::Set { items: items.iter().map(|s| s.to_string()).collect(), from: SetFrom::Sentence })
-    }
-
-    #[test]
-    fn a_sentence_of_code_spans_binds_them_all() {
-        assert_eq!(bound("Keys are `a`, `b` and `c`. <!-- f -->", false), sentence(&["a", "b", "c"]));
-        assert_eq!(bound("Keys are `a`,\n`b` and `c`. <!-- f -->", true), sentence(&["a", "b", "c"]));
-        assert_eq!(bound("See `x`. Keys are `a` and `b`. <!-- f -->", false), sentence(&["a", "b"]));
-        assert_eq!(bound("See `x`.\nKeys are `a` and `b`. <!-- f -->", false), sentence(&["a", "b"]));
-        assert_eq!(bound("`x` <!-- c --> `a` and `b`. <!-- f -->", false), sentence(&["a", "b"]));
-        assert_eq!(bound("| k |\n|---|\n| `a` and `b` <!-- f --> |", false), sentence(&["a", "b"]));
-        assert_eq!(bound("- `x`. Keys: `a`, `b`. <!-- f -->", false), sentence(&["a", "b"]));
-        assert_eq!(bound("Keys are `a` and `b`\nhere. <!-- f -->", false), sentence(&["a", "b"]));
-    }
-
-    #[test]
-    fn a_single_value_stays_a_scalar() {
-        assert_eq!(bound("Keys are `a`. <!-- f -->", false), Ok(FactTarget::Scalar("a".into())));
-        assert_eq!(bound("`a` and `b` take 3 tries. <!-- f -->", false), Ok(FactTarget::Scalar("3".into())));
-        assert_eq!(bound("`a` and `b`. Then more. <!-- f -->", false), Ok(FactTarget::Scalar("b".into())));
-        assert_eq!(
-            bound("Released as 1.2.3-rc.1. <!-- f -->", false),
-            Ok(FactTarget::Scalar("1.2.3-rc.1".into()))
-        );
-        assert!(bound("Keys are `a`. <!-- f -->", true).is_err());
-        assert_eq!(bound("The key is `a`\nhere. <!-- f -->", false), Ok(FactTarget::Scalar("a".into())));
-        assert!(bound("See `x`. No value\nhere. <!-- f -->", false).is_err());
-    }
-
-    #[test]
-    fn a_directive_ending_a_paragraph_with_no_target_binds_the_list_after_it() {
-        let list = |items: &[&str]| {
-            Ok(FactTarget::Set { items: items.iter().map(|s| s.to_string()).collect(), from: SetFrom::List })
-        };
-        assert_eq!(bound("Three keys: <!-- f -->\n\n- `a`\n- `b`", false), list(&["a", "b"]));
-        assert_eq!(bound("<!-- f -->\n\n\n- `a`", false), list(&["a"]));
-        assert_eq!(bound("Shape: <!-- f -->\n\n```ts\nx\n```", false), Ok(FactTarget::Text("x".into())));
-        assert_eq!(bound("Keys are `a`. <!-- f -->\n\n- `b`", false), Ok(FactTarget::Scalar("a".into())));
-        assert!(bound("Three keys: <!-- f --> more\n\n- `a`", false).is_err());
-        assert!(bound("Three keys: <!-- f -->\n\nProse.\n\n- `a`", false).is_err());
-        assert!(
-            bound("Three keys: <!-- f -->\n\n| a |\n|---|\n| b |", false)
-                .unwrap_err()
-                .contains("names no column")
-        );
-    }
-
-    #[test]
-    fn directives_side_by_side_bind_alike_in_either_order() {
-        let set = |items: &[&str], from: SetFrom| {
-            Ok(FactTarget::Set { items: items.iter().map(|s| s.to_string()).collect(), from })
-        };
-        let cite = "<!-- test: t > \"x\" -->";
-        let pages = [
-            ("Tax in `NL` and: {group}\n- `NL`\n- `DE`", set(&["NL", "DE"], SetFrom::List)),
-            ("{group}\n- `a`\n- `b`", set(&["a", "b"], SetFrom::List)),
-            ("{stack}\n- `a`\n- `b`", set(&["a", "b"], SetFrom::List)),
-            ("Three keys: {group}\n\n- `a`", set(&["a"], SetFrom::List)),
-            ("Three keys: {stack}\n\n- `a`", set(&["a"], SetFrom::List)),
-            ("Keys are `a` and `b`. {group}", set(&["a", "b"], SetFrom::Sentence)),
-            ("| k |\n|---|\n| `a` and `b` {group} |", set(&["a", "b"], SetFrom::Sentence)),
-            ("At most `3` tries. {group}", Ok(FactTarget::Scalar("3".into()))),
-        ];
-        for (page, target) in pages {
-            for (first, second) in [("<!-- f -->", cite), (cite, "<!-- f -->")] {
-                let text = page
-                    .replace("{group}", &format!("{first} {second}"))
-                    .replace("{stack}", &format!("{first}\n{second}"));
-                let parsed = parse_page(&text).unwrap_or_default();
-                let fact = parsed.comments.iter().find(|c| trim(&c.body) == "f").expect("the fact");
-                let got = bind_fact(&directive(false, None, None), fact.line, fact, &parsed);
-                assert_eq!(got, target, "{text}");
-            }
-        }
-    }
-
-    #[test]
-    fn column_facts_stacked_above_one_table_each_bind_it() {
-        let column = |items: &[&str], name: &str| {
-            Ok(FactTarget::Set {
-                items: items.iter().map(|s| s.to_string()).collect(),
-                from: SetFrom::Table { column: name.into() },
-            })
-        };
-        let table = "| method | path |\n|---|---|\n| GET | `/a` |";
-        for gap in ["\n", "\n\n"] {
-            let page = parse_page(&format!("<!-- f -->{gap}<!-- g -->\n{table}")).unwrap_or_default();
-            let [first, second] = &page.comments[..] else { panic!("two comments") };
-            assert_eq!(
-                bind_fact(&directive(false, Some("method"), None), first.line, first, &page),
-                column(&["GET"], "method")
-            );
-            assert_eq!(
-                bind_fact(&directive(false, Some("path"), None), second.line, second, &page),
-                column(&["/a"], "path")
-            );
-        }
-    }
-
-    #[test]
-    fn field_facts_stacked_above_one_block_each_bind_it() {
-        let block = "```json\n{\"port\": 2222, \"hosts\": [\"a\", \"b\"]}\n```";
-        for gap in ["\n", "\n\n"] {
-            let page =
-                parse_page(&format!("The job: <!-- f -->{gap}<!-- g -->\n{block}")).unwrap_or_default();
-            let [first, second] = &page.comments[..] else { panic!("two comments") };
-            let spelled = |target: Result<FactTarget, String>| target.map(|t| t.spelled(as_json_writes));
-            let port = spelled(bind_fact(&directive(false, None, Some("port")), first.line, first, &page));
-            assert_eq!(port, Ok(FactTarget::Scalar("2222".into())));
-            let hosts = spelled(bind_fact(&directive(true, None, Some("hosts")), second.line, second, &page));
-            let items = vec!["a".to_string(), "b".to_string()];
-            assert_eq!(hosts, Ok(FactTarget::Set { items, from: SetFrom::Field { path: "hosts".into() } }));
-        }
-        let page = parse_page(&format!("Port `1` <!-- f --> here.\n{block}")).unwrap_or_default();
-        let inline = bind_fact(&directive(false, None, Some("port")), 1, &page.comments[0], &page);
-        assert_eq!(inline, Err("fact at L1 has field=port but no fenced block follows it".into()));
-    }
-}
+mod tests;

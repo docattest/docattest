@@ -121,6 +121,10 @@ export interface AdapterContext {
   manifests: ReadonlyMap<string, unknown>;
   /** The text of each file the facts read with `file`, by the path as they write it. */
   texts: ReadonlyMap<string, string>;
+  /** What each regex facts give `matched` matches, by the path, then the regex, as written. */
+  matches: ReadonlyMap<string, Readonly<Record<string, string>>>;
+  /** The value of each field facts read with `manifestField`, by the path, then the keys. */
+  manifestFields: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
   /** The examples this session will compile; the program is built around them. */
   examples: readonly ExampleAttestation[];
 }

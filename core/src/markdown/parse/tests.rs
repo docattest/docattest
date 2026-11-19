@@ -3,12 +3,13 @@ use super::*;
 fn parse_page(text: &str) -> Page {
     super::parse_page(text).unwrap_or_default()
 }
-use crate::markdown::model::{Keyword, LeafKind};
+use crate::markdown::model::{Declared, Keyword, LeafKind};
 
 #[test]
 fn frontmatter_freezes_and_invalid_yaml_does_not() {
-    assert!(parse_page("---\ndocattest: false\ntitle: x\n---\n# H").frozen);
-    assert!(!parse_page("---\n: : :\n---\n# H").frozen);
+    assert!(parse_page("---\ndocattest: false\ntitle: x\n---\n# H").is_frozen());
+    assert!(!parse_page("---\n: : :\n---\n# H").is_frozen());
+    assert_eq!(parse_page("---\ndocattest: prose\n---\n# H").declared, Declared::Prose);
 }
 
 #[test]
@@ -102,6 +103,8 @@ fn unclosed_openings() {
     assert_eq!((page.unclosed[0].keyword, page.unclosed[0].line), (Keyword::Fact, 1));
     let page = parse_page("<!-- cases: t");
     assert_eq!((page.unclosed[0].keyword, page.unclosed[0].line), (Keyword::Cases, 1));
+    let page = parse_page("# A\n\n<!-- tests: launch = a_test.go\n\nIt runs.");
+    assert_eq!((page.unclosed[0].keyword, page.unclosed[0].line), (Keyword::Tests, 3));
 }
 
 #[test]

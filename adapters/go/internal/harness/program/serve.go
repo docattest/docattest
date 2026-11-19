@@ -16,9 +16,11 @@ type docattestJob struct {
 		Dir  string         `json:"dir"`
 		Data map[string]any `json:"data"`
 	} `json:"snapshots"`
-	Manifests map[string]map[string]any `json:"manifests"`
-	Texts     map[string]string         `json:"texts"`
-	Cases     docattestTable            `json:"cases"`
+	Manifests map[string]map[string]any    `json:"manifests"`
+	Texts     map[string]string            `json:"texts"`
+	Matches   map[string]map[string]string `json:"matches"`
+	Fields    map[string]map[string]any    `json:"manifestFields"`
+	Cases     docattestTable               `json:"cases"`
 }
 
 // docattestLine is one line of a program's results: an item's value, or that it
@@ -57,7 +59,7 @@ func docattestStart() int {
 	return first
 }
 
-// docattestReadJob reads the job, the numbers of its snapshots and manifests as
+// docattestReadJob reads the job, the numbers of its snapshots, manifests and fields as
 // DocattestNumbers reads them.
 func docattestReadJob(path string) error {
 	text, err := os.ReadFile(path)
@@ -77,6 +79,11 @@ func docattestReadJob(path string) error {
 	for name, data := range docattestTold.Manifests {
 		if _, err := DocattestNumbers(data); err != nil {
 			return fmt.Errorf("manifest %q: %w", name, err)
+		}
+	}
+	for name, fields := range docattestTold.Fields {
+		if _, err := DocattestNumbers(fields); err != nil {
+			return fmt.Errorf("field of %q: %w", name, err)
 		}
 	}
 	return nil
@@ -162,4 +169,33 @@ func file(path string) string {
 		panic(fmt.Sprintf("file %q was not read: name it in the fact itself, as file(%q)", path, path))
 	}
 	return text
+}
+
+// matched is what a regex matches in a file of the project, as the core matched it: the
+// text of the regex's first group in its first match, or of the whole match, so that a
+// fact reads it at once: matched("Dockerfile", `^USER (\d+)$`). A fact expression calls it
+// by this name. The core matches a regex only when a fact writes both arguments out.
+func matched(path, pattern string) string {
+	text, found := docattestTold.Matches[path][pattern]
+	if !found {
+		panic(docattestNotRead("matched", path, pattern))
+	}
+	return text
+}
+
+// manifestField is the value at a path of keys in a manifest of the project, as the core
+// looked it up, held as manifest holds the manifest's data, so that a fact reads a deep
+// field without a type assertion:
+// manifestField(".gitlab-ci.yml", "deploy.variables.VERSION"). A fact expression calls it
+// by this name. The core looks a field up only when a fact writes both arguments out.
+func manifestField(path, keys string) any {
+	value, found := docattestTold.Fields[path][keys]
+	if !found {
+		panic(docattestNotRead("manifestField", path, keys))
+	}
+	return value
+}
+
+func docattestNotRead(name, path, argument string) string {
+	return fmt.Sprintf("%s(%q, %q) was not read: write both arguments out in the fact itself, as string literals", name, path, argument)
 }

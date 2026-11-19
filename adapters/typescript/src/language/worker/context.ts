@@ -5,7 +5,7 @@ import { ModuleRegistry } from './registry.js';
 import type { Strays } from './strays.js';
 
 /** What every fact expression may call besides the surface, each by its name here. */
-export const FACT_FUNCTIONS = ['snapshot', 'manifest', 'file'] as const;
+export const FACT_FUNCTIONS = ['snapshot', 'manifest', 'file', 'matched', 'manifestField'] as const;
 
 /** What a job executor needs from its worker. */
 export interface WorkerContext {
@@ -17,6 +17,10 @@ export interface WorkerContext {
   manifest: (path: string) => unknown;
   /** A file's text by path; throws for a file no fact names. */
   file: (path: string) => string;
+  /** What a regex matches in a file; throws for a call no fact writes out. */
+  matched: (path: string, pattern: string) => string;
+  /** The value at a path of keys in a manifest; throws for a call no fact writes out. */
+  manifestField: (path: string, keys: string) => unknown;
   post: (message: WorkerMessage) => void;
 }
 

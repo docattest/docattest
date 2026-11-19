@@ -69,6 +69,8 @@ class Session:
             "snapshots": settings.snapshots,
             "manifests": settings.manifests,
             "texts": settings.texts,
+            "matches": settings.matches,
+            "manifest_fields": settings.manifest_fields,
             "preload": ["doctest"] if sessions else [],
             "no_fork": bool(os.environ.get("DOCATTEST_PYTHON_NO_FORK")),
         }

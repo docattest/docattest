@@ -96,7 +96,7 @@ func (l *loader) list(r request) (*listing, error) {
 		out.tests = l.readTests(r)
 	}
 	config := &packages.Config{
-		Mode: listMode, Dir: l.module.Dir, Env: loaderEnvironment(l.module), Overlay: r.overlay,
+		Mode: listMode, Dir: l.module.Dir, Env: loaderEnvironment(l.module, l.workspace), Overlay: r.overlay,
 		BuildFlags: []string{"-tags=" + toolchain.DocsTag},
 	}
 	var err error
@@ -169,10 +169,11 @@ func nothingLoaded() *loaded {
 }
 
 // loaderEnvironment is the go command's environment for a load: the adapter's own, with
-// no package driver but the go command. A project with no go.mod is listed outside
-// module mode, where a directory is a package as it is.
-func loaderEnvironment(module Module) []string {
-	env := append(os.Environ(), "GOPACKAGESDRIVER=off")
+// no package driver but the go command, in the project's workspace if it has one. A
+// project with no go.mod is listed outside module mode, where a directory is a package
+// as it is.
+func loaderEnvironment(module Module, workspace toolchain.Workspace) []string {
+	env := append(append(os.Environ(), "GOPACKAGESDRIVER=off"), workspace.Environment()...)
 	if module.Path == "" {
 		env = append(env, "GO111MODULE=off")
 	}

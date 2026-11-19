@@ -120,7 +120,7 @@ mod tests {
     }
 
     fn attestation(claim: &str) -> Attestation {
-        let body = Body::Test(Test { file: "t.ts".into(), title: String::new(), describes: Vec::new() });
+        let body = Body::Test(Test { file: "t.ts".into(), ..Test::default() });
         let (id, page) = ("x".to_string(), "p.md".to_string());
         Attestation { id, page, line: 1, claim: claim.to_string(), error: None, body }
     }

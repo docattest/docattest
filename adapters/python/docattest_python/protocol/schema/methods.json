@@ -195,6 +195,12 @@
         "texts": {
           "$ref": "project.json#/$defs/Texts"
         },
+        "matches": {
+          "$ref": "project.json#/$defs/Matches"
+        },
+        "manifestFields": {
+          "$ref": "project.json#/$defs/ManifestFields"
+        },
         "examples": {
           "description": "Every example a compile or run of this session may name: all the well-formed examples of the pages being checked, in page order.",
           "type": "array",

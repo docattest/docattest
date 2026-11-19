@@ -14,7 +14,7 @@ func (s *Session) Methods() map[string]protocol.Handler {
 		"run":              s.onRun,
 		"symbols":          s.onSymbols,
 		"exports":          s.onExports,
-		"describeSurfaces": func(json.RawMessage) (any, error) { return s.project.DescribeSurfaces(), nil },
+		"describeSurfaces": s.onDescribeSurfaces,
 		"tests":            s.onTests,
 		"observables":      s.onObservables,
 		"affected":         s.onAffected,
@@ -55,6 +55,18 @@ func (s *Session) onRun(raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	return s.runner.Run(params.Examples, params.Cases), nil
+}
+
+// onDescribeSurfaces says where each surface resolved and what is wrong with it: what
+// the analysis finds, and what go vet finds in its docs helper files.
+func (s *Session) onDescribeSurfaces(json.RawMessage) (any, error) {
+	described := s.project.DescribeSurfaces()
+	for name, findings := range s.runner.VetDocsHelpers() {
+		surface := described[name]
+		surface.Warnings = append(surface.Warnings, findings...)
+		described[name] = surface
+	}
+	return described, nil
 }
 
 func (s *Session) onSymbols(raw json.RawMessage) (any, error) {

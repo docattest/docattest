@@ -174,6 +174,9 @@ export const go: Language = {
     // An unexported Go name begins with a small letter.
     ['fact: PORT', 'fact: port'],
     ['@cli: PORT', '@cli: port'],
+    // A regex is written as a raw string.
+    ['"^USER (\\\\d+)$"', '`^USER (\\d+)$`'],
+    ['"^ENTRYPOINT (\\\\w+)$"', '`^ENTRYPOINT (\\w+)$`'],
   ],
   code: {
     ...AGREEMENTS,

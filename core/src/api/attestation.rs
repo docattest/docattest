@@ -166,11 +166,14 @@ pub struct Cases {
     pub rows: Vec<CasesRow>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Test {
     pub file: String,
     pub title: String,
     pub describes: Vec<String>,
+    /// The page's alias the citation names its file by, when it does. The core's own: the
+    /// adapter is sent the file.
+    pub alias: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

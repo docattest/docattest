@@ -73,15 +73,17 @@ reads the directives on a page, binds each to its claim and plans what must run,
 `project` then runs the check: `compare` judges facts against the values the adapter reads,
 the adapter runs examples, citations are judged against the tests it lists, and
 `snapshots` supplies recorded values and their age, and `fact_files` the project files facts
-read with `manifest("<path>")`, parsed by `manifests`, and with `file("<path>")`, as text.
-`report` orders the results, counts
+read with `manifest("<path>")`, parsed by `manifests`, and with `file("<path>")`, as text,
+and what `manifestField` and `matched` take out of them. `report` orders the results, counts
 coverage and prints the text or JSON report.
 
 The other commands reuse that pipeline and add one concern each. `changes` is `check
 --base`: it plans the project as committed at a ref, in memory and without running
 anything, and judges what the change did to every attestation. `impact` finds the pages
 that name what a change affects; `audit` finds the lists, tables, blocks and values in
-sentences that look copied from a surface and carry no proof; `agents` reads the descriptors of coding agents,
+sentences that look copied from a surface and carry no proof; `explain` says what the
+planner decided for each directive on a page, beside the results `check` would give it;
+`agents` reads the descriptors of coding agents,
 which the commands that install hooks and the skill apply. `conformance` stands apart from
 the pipeline: it drives an adapter the way `adapter` does, but to hold it to the protocol
 (PROTOCOL.md §5), with `schema`, the protocol's JSON Schemas and a validator for them.
@@ -190,7 +192,8 @@ both as the agent's descriptor says), `hooks install [--agent <name or file>]`,
 - `refresh` is the only command that touches the network. Its client is built when a
   snapshot is fetched; no other command runs any of its code.
 
-`audit [--json]` and `inventory [text] [--json]` are implemented too.
+`audit [--json]`, `inventory [text] [--json]` and `explain <page>[:<line>] [--json]` are
+implemented too.
 `check --base <ref> [pages…] [--json] [--quiet]` is implemented too: git (a child process)
 reads the base on a thread that starts as soon as the adapter has been started. It first
 finds the base (the repository, the ref, the files committed there, a valid config among

@@ -228,7 +228,7 @@ impl Runner {
     fn facts_main(&self, scope: Scope, expressions: &[String], live: &[bool], serves: &str) -> Rendered {
         let (imported, setup) = self.project_lines(scope);
         let mut source = format!(
-            "#![allow(unused, ambiguous_glob_imports)]\nuse ::{HARNESS_CRATE}::harness::serve::{{file, manifest, snapshot}};\nuse ::{HARNESS_CRATE}::observe;\n{imported}\n{setup}\nfn main() {{\n    ::{HARNESS_CRATE}::harness::serve::{serves}(vec![\n",
+            "#![allow(unused, ambiguous_glob_imports)]\nuse ::{HARNESS_CRATE}::harness::serve::{{file, manifest, manifestField, matched, snapshot}};\nuse ::{HARNESS_CRATE}::observe;\n{imported}\n{setup}\nfn main() {{\n    ::{HARNESS_CRATE}::harness::serve::{serves}(vec![\n",
         );
         let mut lines = HashMap::new();
         for (k, expression) in expressions.iter().enumerate().filter(|(k, _)| live[*k]) {

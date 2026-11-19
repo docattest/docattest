@@ -7,8 +7,8 @@
 // DocattestNumbers, so that it shows a data block's numbers as a fact's program holds
 // those of a manifest, and DocattestStartLine, which a block's program writes as the
 // block's own code begins. Every name it declares at package level begins `docattest` or
-// `Docattest` (but `snapshot`, `manifest` and `file`, which fact expressions call), so
-// none can meet a name of the project's.
+// `Docattest` (but `snapshot`, `manifest`, `file`, `matched` and `manifestField`, which
+// fact expressions call), so none can meet a name of the project's.
 package harness
 
 import (

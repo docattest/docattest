@@ -16,6 +16,9 @@ pub const USAGE: &str = r#"usage: docattest <command> [options]
   where <symbol>                  pages, lines and claims that attest a symbol. --json
   uncovered [--surface <name>]    public symbols of a surface no page attests. --json
   index                           the whole symbol → references map (parsing only). --json
+  explain <page>[:<line>]         what each directive on the line, or on the page, binds
+                                  and why, the sentence it defends, and what checking it
+                                  gives. --json
   refresh [name]                  refetch snapshots from their source and rewrite them
   audit                           lists, tables and blocks that look copied from a surface
                                   and carry no directive; advisory, exit 0 (1 when a

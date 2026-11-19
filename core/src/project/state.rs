@@ -22,6 +22,8 @@ pub struct State {
     pub adapter: Adapter,
     /// Living pages: matched by `pages`, not frozen, plus sources with doc-comment examples.
     pub living: Vec<String>,
+    /// Living pages marked as prose that carry no attestation.
+    pub prose: Vec<String>,
     pub frozen: Vec<String>,
     /// Every attestation on every living page.
     pub attestations: Vec<Attestation>,
@@ -115,7 +117,8 @@ impl Greeted {
         let ignored_by_git =
             ignored_by_git.join().map_err(|_| Error::internal("listing what git ignores failed"))?;
         files.ignore_what_git_ignores(ignored_by_git);
-        let Plan { living, frozen, mut attestations, warnings } = plan_project(&files, &config, &adapter)?;
+        let Plan { living, prose, frozen, mut attestations, warnings } =
+            plan_project(&files, &config, &adapter)?;
         let snapshots = load_snapshots(&files, config.snapshots_dir.as_deref(), now, config.max_age_days);
         let fact_files = load_fact_files(&files, &attestations);
         fact_files.refuse_unreadable(&mut attestations);
@@ -125,6 +128,7 @@ impl Greeted {
             config,
             adapter,
             living,
+            prose,
             frozen,
             attestations,
             warnings,

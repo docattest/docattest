@@ -21,6 +21,10 @@ export interface WorkerData {
   manifests: Record<string, unknown>;
   /** The text of each file facts read with `file`, by the path facts write it. */
   texts: Record<string, string>;
+  /** What facts' regexes match with `matched`, by the path, then the regex, as facts write them. */
+  matches: Record<string, Readonly<Record<string, string>>>;
+  /** The fields facts read with `manifestField`, by the path, then the keys, as written. */
+  manifestFields: Record<string, Readonly<Record<string, unknown>>>;
 }
 
 /** Run one example block. */
@@ -158,7 +162,9 @@ export function isWorkerData(value: unknown): value is WorkerData {
     value.signal instanceof Int32Array &&
     isObject(value.snapshots) &&
     isObject(value.manifests) &&
-    isObject(value.texts)
+    isObject(value.texts) &&
+    isObject(value.matches) &&
+    isObject(value.manifestFields)
   );
 }
 

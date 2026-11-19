@@ -48,6 +48,7 @@ mod tests {
             living: 2,
             covered: 1,
             uncovered: vec!["docs/plain.md".into()],
+            prose: vec![],
             frozen: vec!["docs/old.md".into()],
             attestations: results.len(),
             weak: 0,

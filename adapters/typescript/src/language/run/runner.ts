@@ -115,10 +115,15 @@ export class Runner {
       dir: this.ctx.snapshots.dir,
       data: Object.fromEntries(this.ctx.snapshots.data),
     };
-    const manifests = Object.fromEntries(this.ctx.manifests);
-    const texts = Object.fromEntries(this.ctx.texts);
+    const read = {
+      snapshots,
+      manifests: Object.fromEntries(this.ctx.manifests),
+      texts: Object.fromEntries(this.ctx.texts),
+      matches: Object.fromEntries(this.ctx.matches),
+      manifestFields: Object.fromEntries(this.ctx.manifestFields),
+    };
     this.pool ??= new WorkerPool(this.ctx.workers, () =>
-      spawnWorker(this.host, this.ctx.files.root, { snapshots, manifests, texts }),
+      spawnWorker(this.host, this.ctx.files.root, read),
     );
     return this.pool;
   }

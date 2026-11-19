@@ -312,7 +312,8 @@ The carriers: <!-- fact @shipping: CARRIERS -->
 
 It may use the surface's exports, its module's `pub`
 [docs helpers](#docs-helpers-cfgdocattest), the `pub` items of the setup file,
-`snapshot("name")`, `manifest("path")`, `file("path")`, and by its path anything of `std`,
+`snapshot("name")`, `manifest("path")`, `file("path")`, `matched("path", "regex")`,
+`manifestField("path", "keys")`, and by its path anything of `std`,
 of your crates or of what they depend on (`shop::shipping::CARRIERS`). A bare name the surface's module does
 not declare is an error (`nowhere is not exported by surface "default"`), and so is a
 function, a type or a variable it declares and does not export (`round is a function that
@@ -473,6 +474,16 @@ never read.
 
 `file("path")` is the text of any other project file, a `String`, read by the same rules,
 for the methods of `str`: this crate is released under the `MIT` license. <!-- fact: file("LICENSE").split_whitespace().next().unwrap() -->
+
+`matched("path", "regex")` and `manifestField("path", "keys")` take one value out of a
+file in one call, worked out by the core as for every language
+([manifests](../../docs/manifests.md#one-value-of-a-file-in-one-call)). The Rust crate a
+fact runs in needs no regex crate: `matched` is a `String`, the text of the regex's first
+group in its first match, with `^` and `$` at the ends of each line. `manifestField` is
+the value at a path of keys of a manifest, written as `field=` writes one, as the same
+JSON value `manifest` gives. <!-- test: tests/session.rs > "facts_show_values_as_rust_prints_them" -->
+A regex is written as a raw string: read so, the license is `MIT`, <!-- fact: matched("LICENSE", r"^(\w+) License") -->
+and the crate is `docattest`. <!-- fact: manifestField("Cargo.toml", "package.name") -->
 
 ### Cases tables and named facts: the setup file
 

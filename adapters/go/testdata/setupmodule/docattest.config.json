@@ -1,0 +1,6 @@
+{
+  "pages": ["docs/*.md"],
+  "surfaces": { "default": "." },
+  "setup": "./docs",
+  "adapter": "go"
+}

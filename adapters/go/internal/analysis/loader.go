@@ -24,6 +24,8 @@ import (
 // Nothing changes the files of the project on disk while a session reads it.
 type loader struct {
 	module Module
+	// workspace is the go.work the go command lists with; empty for none.
+	workspace toolchain.Workspace
 	// bodies are the directories outside the module whose function bodies are checked.
 	bodies []string
 	fset   *token.FileSet
@@ -36,10 +38,11 @@ type loader struct {
 
 // newLoader is the loader of a module. It asks the go command what platform it builds
 // for at once, while the first load lists.
-func newLoader(module Module, bodies []string) *loader {
+func newLoader(module Module, workspace toolchain.Workspace, bodies []string) *loader {
 	l := &loader{
-		module: module, bodies: bodies, fset: token.NewFileSet(), checked: map[packageKey]*checkedPackage{},
-		sizes: sync.OnceValues(func() (types.Sizes, error) { return targetSizes(module) }),
+		module: module, workspace: workspace, bodies: bodies,
+		fset: token.NewFileSet(), checked: map[packageKey]*checkedPackage{},
+		sizes: sync.OnceValues(func() (types.Sizes, error) { return targetSizes(module, workspace) }),
 	}
 	go func() { _, _ = l.sizes() }()
 	return l
@@ -48,8 +51,10 @@ func newLoader(module Module, bodies []string) *loader {
 // targetSizes are the sizes of what the go command builds for: they decide, among
 // others, what `unsafe.Sizeof` and an untyped constant converted to `int` give. They are
 // asked of the go command the package loader lists with, the first on the PATH.
-func targetSizes(module Module) (types.Sizes, error) {
-	asked := toolchain.Run(toolchain.Command{Path: "go", Args: []string{"env", "GOARCH"}, Dir: module.Dir})
+func targetSizes(module Module, workspace toolchain.Workspace) (types.Sizes, error) {
+	asked := toolchain.Run(toolchain.Command{
+		Path: "go", Args: []string{"env", "GOARCH"}, Dir: module.Dir, Env: workspace.Environment(),
+	})
 	switch {
 	case asked.Err != nil:
 		return nil, fmt.Errorf("the go command could not be run: %w", asked.Err)

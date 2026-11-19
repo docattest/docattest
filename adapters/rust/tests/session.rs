@@ -24,6 +24,8 @@ fn open(examples: &[Value]) -> Arc<dyn Session> {
         "snapshots": { "dir": "docs/.snapshots", "data": { "regions": ["NL", "DE"] } },
         "manifests": { "Cargo.toml": { "package": { "name": "shop", "rust-version": "1.80" } } },
         "texts": { "Dockerfile": "FROM rust:1.80\nUSER 10001\n" },
+        "matches": { "Dockerfile": { "^USER (\\d+)$": "10001" } },
+        "manifestFields": { "ci.yml": { "deploy.variables.VERSION": "0.2.2", "deploy.replicas": 3 } },
         "examples": examples,
     });
     project::open_session(Path::new(FIXTURE), surfaces, told)
@@ -175,6 +177,9 @@ fn facts_show_values_as_rust_prints_them() {
         ),
         fact("plain", "1 + 1", "default"),
         fact("elsewhere", "CARRIERS", "shipping"),
+        fact("matched", "matched(\"Dockerfile\", r\"^USER (\\d+)$\")", "default"),
+        fact("field", "manifestField(\"ci.yml\", \"deploy.variables.VERSION\")", "default"),
+        fact("number", "manifestField(\"ci.yml\", \"deploy.replicas\")", "default"),
     ]);
     let got = call(&session, "evaluate", json!({ "facts": facts }));
     let texts = [
@@ -186,6 +191,9 @@ fn facts_show_values_as_rust_prints_them() {
         ("snapshot", "[\"NL\",\"DE\"]"),
         ("manifest", "1.80"),
         ("file", "10001"),
+        ("matched", "10001"),
+        ("field", "0.2.2"),
+        ("number", "3"),
     ];
     for (id, text) in texts {
         assert_eq!(
@@ -198,6 +206,7 @@ fn facts_show_values_as_rust_prints_them() {
     assert_eq!(got["keys"]["value"]["items"], json!(["NL", "DE", "FR"]));
     assert_eq!(got["elsewhere"]["value"]["items"], json!(["post", "courier", "drone"]));
     assert_eq!((&got["text"]["value"]["kind"], got["scalar"]["value"].get("kind")), (&json!("text"), None));
+    assert_eq!((&got["field"]["value"]["kind"], got["number"]["value"].get("kind")), (&json!("text"), None));
 }
 
 #[test]
@@ -207,6 +216,8 @@ fn a_fact_without_a_value_says_why_and_costs_the_others_nothing() {
         fact("missing", "snapshot(\"none\")", "default"),
         fact("unread", "manifest(\"Cargo.lock\")", "default"),
         fact("unread_file", "file(\"Dockerfile.dev\")", "default"),
+        fact("unread_match", "matched(\"Dockerfile\", \"USER\")", "default"),
+        fact("unread_field", "manifestField(\"ci.yml\", \"deploy.image\")", "default"),
         fact("private", "round(50)", "default"),
         fact("syntax", "MAX_DISCOUNT +", "default"),
         fact("panics", "TAX_RATES[7]", "default"),
@@ -227,6 +238,11 @@ fn a_fact_without_a_value_says_why_and_costs_the_others_nothing() {
             "unread_file",
             "panicked: file \"Dockerfile.dev\" was not read: name it in the fact itself, as file(\"Dockerfile.dev\")",
         ),
+        (
+            "unread_match",
+            "panicked: matched(\"Dockerfile\", \"USER\") was not read: write both arguments out in the fact itself, as string literals",
+        ),
+        ("unread_field", "panicked: manifestField(\"ci.yml\", \"deploy.image\") was not read"),
         (
             "private",
             "fact `round(50)`: round is a function that surface \"default\" does not export; of its unexported names, a fact reads only constants",

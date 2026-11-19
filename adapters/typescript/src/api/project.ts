@@ -1,4 +1,5 @@
 import type { AuditReport, InventoryEntry } from './audit.js';
+import type { Explanation } from './explain.js';
 import type { Impact, ImpactOptions } from './impact.js';
 import type { Reference, Report } from './report.js';
 
@@ -49,6 +50,11 @@ export interface Project {
   uncovered(surface?: string): Promise<string[]>;
   /** The whole symbol → references map. Parsing only. */
   index(): Promise<Record<string, Reference[]>>;
+  /**
+   * What each directive on a page, or on one line of it, binds and why, the sentence it
+   * defends, and what checking it gives. Rejects when the page or line holds no directive.
+   */
+  explain(page: string, line?: number): Promise<Explanation>;
   /** The exports a change since `base` affects, and the prose that names them. Reads only. */
   impact(options?: ImpactOptions): Promise<Impact>;
   /**

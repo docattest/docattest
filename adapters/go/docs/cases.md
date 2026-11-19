@@ -63,6 +63,12 @@ if len(spans) != 1 {
 package imports only the standard library, so the go command downloads this module's
 source and none of the cores the commands carry. <!-- test: endtoend/cells_test.go > "TestCellsImportsOnlyTheStandardLibrary" -->
 A module whose `go` line is lower than this module's, `1.23`, has it raised to that. <!-- fact: manifest("go.mod")["go"] -->
+The `docattest` that runs and the release your `go.mod` requires are upgraded together.
+When the `go.mod` of your module, or of a [setup module](#a-setup-module), requires
+`github.com/docattest/docattest/adapters/go` at another release, `check` warns, naming the
+file and both versions. The protocol carries no warning of a whole project, so the warning
+is given under the first surface the config names. <!-- test: internal/analysis/adapterversion_test.go > "TestAnotherReleaseInTheSetupModuleIsAWarningOfTheFirstSurface" -->
+A `replace` of the module, or a pseudo-version, names no release, and is not compared. <!-- test: internal/analysis/adapterversion_test.go > "TestARequirementOfAnotherReleaseIsNamed" -->
 
 A row is named by the page, its line and its first cell. A runner that panics fails its
 row, and the next row still runs. A table attests the exports its runner uses (what
@@ -90,3 +96,62 @@ No program of yours links it unless one imports it, so it changes no binary. A C
 that rebuilds on any change to `**/*.go` still fires on a change made for the pages only:
 keep the setup package beside the pages (`docs/`) and leave that directory out of such
 rules (`paths-ignore: ["docs/**"]` in a GitHub Actions workflow).
+
+## A setup module
+
+The setup package can be a module of its own, so that your product's `go.mod` requires
+nothing that only the pages need, and an image built from it downloads nothing for them.
+Its `go.mod` requires your module, which a `replace` takes from your tree. This package's
+`testdata/setupmodule` is laid out so:
+
+```console check cwd=testdata/setupmodule
+$ cat go.mod
+module example.com/greet
+
+go 1.21
+$ cat docs/go.mod
+module example.com/greet/docs
+
+go 1.21
+
+require example.com/greet v0.0.0
+
+replace example.com/greet => ../
+$ cat docattest.config.json
+{
+  "pages": ["docs/*.md"],
+  "surfaces": { "default": "." },
+  "setup": "./docs",
+  "adapter": "go"
+}
+$ docattest check --quiet
+ok
+```
+
+The adapter runs the go command in a workspace of the two modules: a `go.work` it writes
+into a directory of its own, so nothing is written into your tree. <!-- test: internal/analysis/setupmodule_test.go > "TestASetupModuleIsReadWithTheProductsModule" -->
+When your project already builds through a `go.work` of its own, the adapter's is a copy of
+it with the setup module added: its `go` line, raised if the setup module needs a later Go,
+the modules it uses, made absolute, and its `replace` directives. Yours is left as it is. <!-- test: internal/toolchain/workspace_test.go > "TestAWorkspaceKeepsTheUsersOwn" -->
+So the product builds as you build it, even when it requires a module of your repository
+that only your `go.work` resolves. <!-- test: internal/running/setupmodule_test.go > "TestASetupModuleKeepsTheProjectsWorkspace" -->
+With `GOWORK=off` set, yours is left out, as the go command leaves it out. <!-- test: internal/toolchain/workspace_test.go > "TestAWorkspaceIsWrittenWhereItIsAsked" -->
+A runner that reads its cells with `cells` has `docs/go.mod` require this module, and your
+product's `go.mod` still requires nothing. <!-- test: internal/running/setupmodule_test.go > "TestASetupModuleRequiresWhatTheProductDoesNot" -->
+Facts and runners attest the exports of your surfaces, as from a setup package of your
+module:
+
+```console check cwd=testdata/setupmodule
+$ docattest where Hello
+docs/greeting.md:6 cases  Every greeting starts with `Hello`. Shouted, it is `HELLO`.
+$ docattest uncovered
+Wave
+```
+
+`go build ./...` and `go vet ./...` in your module's root stop at the setup module, as they
+stop at any directory with a `go.mod`, so run them in `docs/` too:
+
+```console check cwd=testdata/setupmodule
+$ go list ./...
+example.com/greet
+```

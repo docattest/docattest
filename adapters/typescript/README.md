@@ -98,11 +98,17 @@ name resolved as Node would, or both (`{ "import": "@acme/client", "path":
 build.
 
 A fact expression reads the surface's exports by their names, `snapshot("name")`,
-`manifest("path")` and `file("path")`. `manifest` gives the parsed data of a project file
-such as `package.json`, so a claim about what the package declares needs no setup code. The
+`manifest("path")`, `file("path")`, `matched("path", "regex")` and
+`manifestField("path", "keys")`. `manifest` gives the parsed data of a project file such as
+`package.json`, so a claim about what the package declares needs no setup code. The
 versions at the top of this page are read so ([manifests](../../docs/manifests.md)). `file`
 gives any other project file's text, a string, for its own methods and regular
 expressions: this package is released under the `MIT` license. <!-- fact: file("adapters/typescript/LICENSE").match(/^(\w+) License/)[1] -->
+`matched` and `manifestField` take one value out of a file in one call, worked out by the
+core ([manifests](../../docs/manifests.md#one-value-of-a-file-in-one-call)): what a regex
+matches, a string, and the value at a path of keys of a manifest. A regex is a string, its
+backslashes doubled: the license is `MIT`, <!-- fact: matched("adapters/typescript/LICENSE", "^(\\w+) License") -->
+for Node `>=22.12`. <!-- fact: manifestField("adapters/typescript/package.json", "engines.node") -->
 
 ### Facts read constants from source
 

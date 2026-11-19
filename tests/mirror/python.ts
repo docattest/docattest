@@ -113,6 +113,9 @@ export const python: Language = {
       'tests/test_retry.py > "test_throws_the_last_error"',
     ],
     ['test/price.test.ts > "price" > ', 'tests/test_price.py > "test_price" > '],
+    // A regex is written as a raw string.
+    ['"^USER (\\\\d+)$"', 'r"^USER (\\d+)$"'],
+    ['"^ENTRYPOINT (\\\\w+)$"', 'r"^ENTRYPOINT (\\w+)$"'],
   ],
   code: {
     ...AGREEMENTS,

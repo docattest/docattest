@@ -33,12 +33,17 @@ text: write it as a fact.
 | "X is 3", "defaults to `eu`", "exports A, B, C" | a fact bound to the literal or list               |
 | "Rule 1… Rule 2… Rule 3…" over one operation    | a `<!-- cases: runner -->` table, one row per rule|
 | "The service accepts these regions"             | a fact over `snapshot('name')`                    |
-| "Needs Node 22.12 or later" (a manifest says so) | a fact over `manifest('package.json')`           |
-| "Runs as user 10001" (another file says so)     | a fact over `file('Dockerfile')`, with the language's string functions |
+| "Needs Node 22.12 or later" (a manifest says so) | a fact over `manifest('package.json')`, or `manifestField('package.json', 'engines.node')` for one value |
+| "Runs as user 10001" (another file says so)     | a fact over `matched('Dockerfile', '^USER ([0-9]+)$')`, or `file('Dockerfile')` with the language's string functions |
 | "Running `tool x` prints…" (a command's output) | a `console check` block: `$ tool x`, then its output |
 | a sample page the docs show a user writing      | an `md check fixture=<dir>` block                 |
 | a behaviour an existing test already proves     | `<!-- test: file > "title" -->` after the sentence, or alone on the line above it |
 | "We chose this because…"                        | prose under `## Why`, no proof                    |
+
+A page that only guides, with nothing in it to prove (an index of the docs, a contributing
+guide), is not uncovered: mark it with `docattest: prose` in its frontmatter, or list it
+under `prose` in the config. It is still checked, and once it has a proof the marker is a
+warning to remove it.
 
 Directives and commands are the same in every language. What is written in the project's
 language is the code: examples, fact expressions and the setup module. `"adapter"` in
@@ -76,7 +81,10 @@ Syntax:
 - Citation: `<!-- test: file > "title" -->` at the end of the sentence a test proves, or
   alone on the line directly above it; several may share that line. Next to a fact, before
   or after it, a citation never changes what the fact binds. `where` shows the sentence as
-  the claim.
+  the claim. Several tests in one place are one citation with a set as its last segment,
+  `<!-- test: file > "TestRun" > {"python", "node"} -->`, each title cited as if written
+  apart. `<!-- tests: run = path/to/run_test.go -->`, anywhere on the page, lets the page's
+  citations write `run` for the file.
 - List fact: end the line before the list with the comment: `The server reads: <!-- fact: ENV_KEYS -->`.
   Or end a sentence of code spans with it, ``Keys are `A` and `B`. <!-- fact: KEYS -->``:
   every code span of the sentence is compared as a set, so a sentence that also names a
@@ -133,7 +141,10 @@ Syntax:
 ## Workflow when you write or edit a page
 
 1. Write the claim sentence, then its proof right after it.
-2. Run `docattest check <page>` and read every `fail` and `error`.
+2. Run `docattest check <page>` and read every `fail` and `error`. To see what a directive
+   binds and why, the sentence it defends and the value its expression gives, run
+   `docattest explain <page>:<line>` (or `docattest explain <page>` for every directive on
+   it) instead of breaking the page to find out.
 3. Fix the prose or the proof until the page passes, then run `docattest check`.
 4. `docattest audit` reports lists, tables, blocks and values in sentences on the pages that
    look copied from the code and carry no fact. Add the suggested directive; where it reports drift, fix the page.

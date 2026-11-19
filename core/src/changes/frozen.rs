@@ -7,9 +7,9 @@ use super::change::{Change, ChangeType};
 use super::side::Side;
 use super::signature::proof_of;
 use crate::api::errors::{Error, Result};
-use crate::attestations::examples::ExampleOptions;
 use crate::attestations::plan::plan_page;
 use crate::config::matcher;
+use crate::project::plan::example_options;
 
 /// Frozen-page changes, and the base pages they cover (their claims are not judged).
 #[derive(Debug, Default)]
@@ -69,11 +69,7 @@ fn is_markdown_file(file: &str) -> bool {
 // A vanished page whose proofs turn up in a new file that is not living was moved out of
 // the checked docs (into a frozen directory, say): freezing by another route.
 fn moved_out_of_living(gone: &[&str], base: &Side, head: &Side, frozen: &mut Frozen) -> Result<()> {
-    let options = ExampleOptions {
-        languages: head.project.language.block_languages(),
-        ignore_tags: &head.project.config.ignore_tags,
-        info_words: head.project.language.info_words(),
-    };
+    let options = example_options(head.project.config, head.project.language);
     let fresh = head
         .project
         .files

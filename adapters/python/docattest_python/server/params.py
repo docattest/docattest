@@ -58,6 +58,8 @@ class Params(Fields):
             snapshots={"dir": snapshots.optional_string("dir"), "data": snapshots.json_object("data")},
             manifests=self.json_object("manifests"),
             texts=self.string_map("texts") if self.has("texts") else {},
+            matches=self.string_maps("matches") if self.has("matches") else {},
+            manifest_fields=self.json_objects("manifestFields") if self.has("manifestFields") else {},
             examples=self.examples("examples"),
         )
 

@@ -35,7 +35,7 @@ fn dump(page: &Page) -> Value {
         v
     };
     json!({
-        "frozen": page.frozen,
+        "frozen": page.is_frozen(),
         "flow": page.flow.iter().map(block).collect::<Vec<_>>(),
         "blocks": page.blocks,
         "tables": page.tables.iter().map(|t| json!({

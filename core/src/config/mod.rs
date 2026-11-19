@@ -13,19 +13,22 @@ use serde_json::{Map, Value};
 
 mod commands;
 mod members;
+mod surfaces;
 mod undocumented;
 pub use commands::Command;
 pub use members::Member;
+pub use surfaces::SurfaceEntry;
 
 /// The config file, at the project root.
 pub const CONFIG_FILE: &str = "docattest.config.json";
 /// The surface every config must name, and the one a fact or an import uses unless it names another.
 pub const DEFAULT_SURFACE: &str = "default";
 
-const KEYS: [&str; 13] = [
+const KEYS: [&str; 14] = [
     "$schema",
     "pages",
     "frozen",
+    "prose",
     "sources",
     "surfaces",
     "setup",
@@ -38,40 +41,20 @@ const KEYS: [&str; 13] = [
     "undocumented",
 ];
 const RESERVED_TAGS: [&str; 3] = ["check", "compile", "network"];
-/// What an entry may be. What a string names, or what is imported from which file, is the
-/// adapter's to say, and it says so when it opens the project.
-const SHAPE: &str = "a string, or { \"import\": \"<name>\", \"path\": \"<file>\" }";
 /// Why a glob of files cannot start with `!`.
 const FILE_NEGATION: &str = "a glob starting with \"!\" matches every file but the ones it names, so it cannot leave files out; \"frozen\" leaves pages out of the check";
-
 /// Time budget for one block, one fact or one table row, in milliseconds.
 pub const DEFAULT_TIMEOUT_MS: u64 = 10_000;
 /// Age after which a snapshot is reported as stale, in days.
 pub const DEFAULT_SNAPSHOT_MAX_AGE_DAYS: u64 = 90;
-
-/// A surface as written in the config: a string, or an object naming an import and a path.
-/// What either means is the adapter's to say; the core passes it on as written.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum SurfaceEntry {
-    Specifier(String),
-    Both { import: String, path: String },
-}
-
-impl SurfaceEntry {
-    /// The entry as the config wrote it.
-    pub fn to_json(&self) -> serde_json::Value {
-        match self {
-            SurfaceEntry::Specifier(written) => serde_json::json!(written),
-            SurfaceEntry::Both { import, path } => serde_json::json!({ "import": import, "path": path }),
-        }
-    }
-}
 
 /// A validated config with every default filled in.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProjectConfig {
     pub pages: Vec<String>,
     pub frozen: Vec<String>,
+    /// Globs of living pages that have nothing to prove: checked, never reported uncovered.
+    pub prose: Vec<String>,
     pub sources: Vec<String>,
     /// In the order the config writes them.
     pub surfaces: Vec<(String, SurfaceEntry)>,
@@ -214,8 +197,9 @@ fn string_array(value: &Value) -> Option<Vec<String>> {
 fn read_config(fields: &mut Fields) -> ProjectConfig {
     let pages = fields.required_globs("pages");
     let frozen = fields.optional_globs("frozen");
+    let prose = fields.optional_globs("prose");
     let sources = fields.optional_globs("sources");
-    let surfaces = read_surfaces(fields);
+    let surfaces = surfaces::read_surfaces(fields);
     let setup = fields.string("setup");
     let (snapshots_dir, max_age_days) = read_snapshots(fields);
     let adapter = read_adapter(fields);
@@ -231,6 +215,7 @@ fn read_config(fields: &mut Fields) -> ProjectConfig {
     ProjectConfig {
         pages,
         frozen,
+        prose,
         sources,
         surfaces,
         setup,
@@ -249,47 +234,6 @@ fn read_config(fields: &mut Fields) -> ProjectConfig {
 /// How many programs the machine can run at once.
 fn available_parallelism() -> u64 {
     std::thread::available_parallelism().map_or(1, |n| n.get() as u64)
-}
-
-fn read_surfaces(fields: &mut Fields) -> Vec<(String, SurfaceEntry)> {
-    let Some(Value::Object(value)) = fields.object.get("surfaces") else {
-        fields.problems.push("\"surfaces\" must name a \"default\" surface".into());
-        return Vec::new();
-    };
-    if value.get(DEFAULT_SURFACE).is_none() {
-        fields.problems.push("\"surfaces\" must name a \"default\" surface".into());
-        return Vec::new();
-    }
-    let mut out = Vec::new();
-    for (name, entry) in value.iter() {
-        match surface_entry(entry) {
-            Some(surface) => out.push((name.to_string(), surface)),
-            None => fields.problems.push(format!("\"surfaces.{name}\" must be {SHAPE}")),
-        }
-    }
-    out
-}
-
-fn surface_entry(entry: &Value) -> Option<SurfaceEntry> {
-    match entry {
-        Value::String(s) => (!trim(s).is_empty()).then(|| SurfaceEntry::Specifier(s.clone())),
-        Value::Object(o) => {
-            let mut keys: Vec<&str> = o.keys().map(String::as_str).collect();
-            keys.sort_by(|a, b| crate::text::compare_utf16(a, b));
-            if keys != ["import", "path"] {
-                return None;
-            }
-            match (o.get("import"), o.get("path")) {
-                (Some(Value::String(import)), Some(Value::String(path)))
-                    if !import.is_empty() && !path.is_empty() =>
-                {
-                    Some(SurfaceEntry::Both { import: import.clone(), path: path.clone() })
-                }
-                _ => None,
-            }
-        }
-        _ => None,
-    }
 }
 
 fn read_snapshots(fields: &mut Fields) -> (Option<String>, u64) {
@@ -375,7 +319,7 @@ mod tests {
     fn every_problem_at_once_in_order() {
         assert_eq!(
             problem(r#"{"pagez":[],"surfaces":{},"adapter":"Python 3","runtime":{"timeoutMs":0}}"#),
-            "docattest: invalid docattest.config.json: unknown key \"pagez\" (known: $schema, pages, frozen, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); \"pages\" must be an array of globs; \"surfaces\" must name a \"default\" surface; \"adapter\" must name a language adapter, such as \"typescript\", in lower-case letters, digits and \"_\" (got \"Python 3\"); \"runtime.timeoutMs\" must be a positive integer"
+            "docattest: invalid docattest.config.json: unknown key \"pagez\" (known: $schema, pages, frozen, prose, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); \"pages\" must be an array of globs; \"surfaces\" must name a \"default\" surface; \"adapter\" must name a language adapter, such as \"typescript\", in lower-case letters, digits and \"_\" (got \"Python 3\"); \"runtime.timeoutMs\" must be a positive integer"
         );
         assert!(problem("[]").ends_with("must contain a JSON object"));
         assert!(problem("{").starts_with("docattest: docattest.config.json is not valid JSON: "));

@@ -349,6 +349,30 @@ class Values(unittest.TestCase):
         self.assertEqual((got["read"]["value"]["text"], got["read"]["value"]["kind"]), ("10001", "text"))
         self.assertIn('file "Dockerfile.dev" was not read', got["unread"]["message"])
 
+    def test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes(self):
+        facts = [
+            fact("matched('Dockerfile', r'USER (\\d+)')", id="matched"),
+            fact("manifestField('ci.yml', 'deploy.replicas')", id="field"),
+            fact("matched('Dockerfile', 'USER')", id="unread-match"),
+            fact("manifestField('ci.yml', 'deploy.image')", id="unread-field"),
+        ]
+        read = {
+            "matches": {"Dockerfile": {"USER (\\d+)": "10001"}},
+            "manifestFields": {"ci.yml": {"deploy.replicas": 3}},
+        }
+        talk = Talk(
+            HELLO,
+            opened({"lib.py": "N = 3\n"}, **read),
+            {"id": 3, "method": "evaluate", "params": {"facts": facts}},
+        )
+        got = talk.result(3)
+        self.assertEqual(
+            (got["matched"]["value"]["text"], got["matched"]["value"]["kind"]), ("10001", "text")
+        )
+        self.assertEqual(got["field"]["value"], {"text": "3", "description": "int 3"})
+        self.assertIn("matched('Dockerfile', 'USER') was not read", got["unread-match"]["message"])
+        self.assertIn("manifestField('ci.yml', 'deploy.image') was not read", got["unread-field"]["message"])
+
 
 if __name__ == "__main__":
     unittest.main()

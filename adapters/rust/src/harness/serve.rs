@@ -140,6 +140,37 @@ pub fn file(path: &str) -> String {
     text.to_string()
 }
 
+/// What a regex matches in a file of the project, as the core matched it: the text of the
+/// regex's first group in its first match, or of the whole match, so that a fact reads it at
+/// once: `matched("Dockerfile", r"^USER (\d+)$")`. A fact expression calls it by this name.
+/// The core matches a regex only when a fact writes both arguments out.
+pub fn matched(path: &str, pattern: &str) -> String {
+    let Some(text) = job()["matches"][path][pattern].as_str() else {
+        panic!("{}", not_read("matched", path, pattern));
+    };
+    text.to_string()
+}
+
+/// The value at a path of keys in a manifest of the project, as the core looked it up, as
+/// `manifest` gives the manifest's data:
+/// `manifestField(".gitlab-ci.yml", "deploy.variables.VERSION")`. A fact expression calls
+/// it by this name, which is the same in every language so that the core finds one
+/// spelling. The core looks a field up only when a fact writes both arguments out.
+#[allow(non_snake_case)]
+pub fn manifestField(path: &str, keys: &str) -> Json {
+    let fields = &job()["manifestFields"][path];
+    if !fields.keys().contains(&keys) {
+        panic!("{}", not_read("manifestField", path, keys));
+    }
+    fields[keys].clone()
+}
+
+fn not_read(name: &str, path: &str, argument: &str) -> String {
+    format!(
+        "{name}({path:?}, {argument:?}) was not read: write both arguments out in the fact itself, as string literals"
+    )
+}
+
 /// Serves the rows of the job's table with the runner the setup module names for it:
 /// each item is "" for a row that holds, else why it does not. `columns` are the columns
 /// each runner says its table must have.

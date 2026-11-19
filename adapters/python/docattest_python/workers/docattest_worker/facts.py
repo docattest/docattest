@@ -18,7 +18,7 @@ from .values import observe
 
 #: What every fact expression may call besides the surface: methods of the environment, by
 #: the names facts call them.
-FACT_FUNCTIONS = ("snapshot", "manifest", "file")
+FACT_FUNCTIONS = ("snapshot", "manifest", "file", "matched", "manifestField")
 
 
 def run_facts(job: FactsJob, env: Environment, channel: Channel, start: int) -> None:

@@ -33,6 +33,13 @@ export type {
 } from './api/audit.js';
 export type { Impact, ImpactOptions, ImpactReference } from './api/impact.js';
 export type {
+  ExplainedAlias,
+  ExplainedAttestation,
+  Explanation,
+  FactRule,
+  Placement,
+} from './api/explain.js';
+export type {
   Attestation,
   CasesAttestation,
   CasesRow,

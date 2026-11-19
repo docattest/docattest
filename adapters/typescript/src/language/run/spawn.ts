@@ -12,7 +12,7 @@ const WORKER = new URL('../worker/main.js', import.meta.url);
 export function spawnWorker(
   host: ModuleHost,
   root: string,
-  { snapshots, manifests, texts }: Pick<WorkerData, 'snapshots' | 'manifests' | 'texts'>,
+  read: Pick<WorkerData, 'snapshots' | 'manifests' | 'texts' | 'matches' | 'manifestFields'>,
 ): Worker {
   const { port1, port2 } = new MessageChannel();
   const signal = new Int32Array(new SharedArrayBuffer(4));
@@ -21,7 +21,7 @@ export function spawnWorker(
     Atomics.store(signal, 0, 1);
     Atomics.notify(signal, 0);
   });
-  const workerData: WorkerData = { root, port: port2, signal, snapshots, manifests, texts };
+  const workerData: WorkerData = { root, port: port2, signal, ...read };
   // Attested code may print; its output must not mix with the report or its JSON.
   const worker = new Worker(WORKER, {
     workerData,

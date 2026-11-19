@@ -36,6 +36,8 @@ const ctx: WorkerContext = {
   snapshot,
   manifest,
   file,
+  matched,
+  manifestField,
   post,
 };
 
@@ -89,4 +91,25 @@ function file(path: string): string {
     throw new Error(`file "${path}" was not read: name it in the fact itself, as file("${path}")`);
   }
   return text;
+}
+
+// The core matches a regex, and looks up a field, only when a fact writes both arguments out.
+function matched(path: string, pattern: string): string {
+  const text = Object.hasOwn(data.matches, path) ? data.matches[path] : undefined;
+  const found = text !== undefined && Object.hasOwn(text, pattern) ? text[pattern] : undefined;
+  if (found === undefined) throw new Error(notRead('matched', path, pattern));
+  return found;
+}
+
+function manifestField(path: string, keys: string): unknown {
+  const fields = Object.hasOwn(data.manifestFields, path) ? data.manifestFields[path] : undefined;
+  if (fields === undefined || !Object.hasOwn(fields, keys)) {
+    throw new Error(notRead('manifestField', path, keys));
+  }
+  return structuredClone(fields[keys]);
+}
+
+function notRead(name: string, path: string, argument: string): string {
+  const call = `${name}(${JSON.stringify(path)}, ${JSON.stringify(argument)})`;
+  return `${call} was not read: write both arguments out in the fact itself, as string literals`;
 }

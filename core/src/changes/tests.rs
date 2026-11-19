@@ -233,7 +233,7 @@ fn treats_a_vanished_attestation_of_another_kind_the_same_way() {
         line: 3,
         claim: String::new(),
         error: None,
-        body: Body::Test(Test { file: "t.ts".into(), title: String::new(), describes: Vec::new() }),
+        body: Body::Test(Test { file: "t.ts".into(), ..Test::default() }),
     };
     let mut base = plan(&files);
     base.attestations.push(cited.clone());
@@ -310,6 +310,7 @@ fn report() -> Report {
             living: 1,
             covered: 1,
             uncovered: Vec::new(),
+            prose: Vec::new(),
             frozen: Vec::new(),
             attestations: 1,
             weak: 0,

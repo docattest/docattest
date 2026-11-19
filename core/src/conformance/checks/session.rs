@@ -6,7 +6,9 @@ use serde_json::{Value, json};
 use super::answer::{items, sorted_keys};
 use crate::conformance::expect::{Checked, all_hold, ensure, same};
 use crate::conformance::kit::{Facts, Kit};
-use crate::conformance::requests::{MANIFEST, MANIFEST_VERSION, TEXT, TEXT_FILE};
+use crate::conformance::requests::{
+    FIELD, FIELD_VALUE, MANIFEST, MANIFEST_VERSION, PATTERN, PATTERN_MATCHES, TEXT, TEXT_FILE,
+};
 use crate::conformance::suite::{Check, Suite};
 use crate::conformance::talk::Conversation;
 use crate::fact_files::calls::Reader;
@@ -97,6 +99,10 @@ fn evaluates(suite: &Suite) -> Checked<Conversation> {
         requests.fact("unread", &facts.manifest.replace(MANIFEST, UNREAD)),
         requests.fact("file", &Reader::File.call(TEXT_FILE)),
         requests.fact("unread-file", &Reader::File.call(UNREAD_TEXT)),
+        requests.fact("matched", &two_literals("matched", TEXT_FILE, PATTERN)),
+        requests.fact("unread-match", &two_literals("matched", TEXT_FILE, UNREAD_ARGUMENT)),
+        requests.fact("field", &two_literals("manifestField", MANIFEST, FIELD)),
+        requests.fact("unread-field", &two_literals("manifestField", MANIFEST, UNREAD_ARGUMENT)),
     ]);
     let t = suite.session(
         &[("evaluate", json!({ "facts": asked })), ("evaluate", json!({ "facts": [] }))],
@@ -109,9 +115,17 @@ fn evaluates(suite: &Suite) -> Checked<Conversation> {
     Ok(t)
 }
 
-/// A manifest and a file the session was not opened with.
+/// A manifest and a file the session was not opened with, and a second argument of
+/// `matched` and of `manifestField` that it was not.
 const UNREAD: &str = "unread.json";
 const UNREAD_TEXT: &str = "unread.txt";
+const UNREAD_ARGUMENT: &str = "unread.argument";
+
+/// A call of `function` with two arguments, each in double quotes, as every language writes
+/// a string that holds no quote or backslash.
+fn two_literals(function: &str, path: &str, argument: &str) -> String {
+    format!("{function}(\"{path}\", \"{argument}\")")
+}
 
 /// A value for every fact, each displayed as the kit says; none for the invalid one, nor for
 /// a file the session does not have.
@@ -120,10 +134,24 @@ fn expect_values(values: &Value, facts: &Facts) -> Checked {
     all_hold([
         same(
             &json!(sorted_keys(values)),
-            &json!(["file", "invalid", "list", "manifest", "scalar", "text", "unread", "unread-file"]),
+            &json!([
+                "field",
+                "file",
+                "invalid",
+                "list",
+                "manifest",
+                "matched",
+                "scalar",
+                "text",
+                "unread",
+                "unread-field",
+                "unread-file",
+                "unread-match"
+            ]),
             "a value for every fact",
         ),
         expect_files_read(values),
+        expect_values_read(values),
         same(&scalar["text"], &json!(facts.scalar.text), "the scalar's text"),
         ensure(scalar.get("kind").is_none(), "only text says what kind it is"),
         same(&values["list"]["value"]["items"], &json!(facts.list.items), "the list's items"),
@@ -154,6 +182,34 @@ fn expect_files_read(values: &Value) -> Checked {
         same(&json!([file["text"], file["kind"]]), &json!([TEXT, "text"]), "a file's text, which is text"),
         same(&unread_file["ok"], &json!(false), "a file the session was not opened with"),
         ensure(names(unread_file, UNREAD_TEXT), "a file that cannot be read is named in the message"),
+    ])
+}
+
+/// What `matched` and `manifestField` give, as the session was opened with them: a match is
+/// text, a field's integer is displayed as the language displays one; a failure that names
+/// both arguments for each the session was not opened with.
+fn expect_values_read(values: &Value) -> Checked {
+    let (matched, unread_match) = (&values["matched"]["value"], &values["unread-match"]);
+    let (field, unread_field) = (&values["field"]["value"], &values["unread-field"]);
+    let names = |failure: &Value, file: &str| {
+        failure["message"].as_str().is_some_and(|m| m.contains(file) && m.contains(UNREAD_ARGUMENT))
+    };
+    all_hold([
+        same(
+            &json!([matched["text"], matched["kind"]]),
+            &json!([PATTERN_MATCHES, "text"]),
+            "what a regex matches, which is text",
+        ),
+        same(
+            &field["text"],
+            &json!(FIELD_VALUE.to_string()),
+            "a manifest's field, displayed as an integer is",
+        ),
+        ensure(field.get("kind").is_none(), "a field that holds a number is not text"),
+        same(&unread_match["ok"], &json!(false), "a match the session was not opened with"),
+        ensure(names(unread_match, TEXT_FILE), "a match that was not read names its file and regex"),
+        same(&unread_field["ok"], &json!(false), "a field the session was not opened with"),
+        ensure(names(unread_field, MANIFEST), "a field that was not read names its file and path"),
     ])
 }
 

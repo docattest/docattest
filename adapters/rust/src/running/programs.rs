@@ -142,7 +142,12 @@ impl Runner {
     ) -> Result<Vec<Line>, String> {
         let dir = self.scratch(binary)?;
         let snapshots = &self.snapshots;
-        let job = json!({ "timeoutMs": self.limits.timeout_ms, "snapshots": { "dir": snapshots.dir, "data": snapshots.data }, "manifests": self.manifests, "texts": self.texts, "cases": cases });
+        let read = &self.fact_files;
+        let job = json!({
+            "timeoutMs": self.limits.timeout_ms, "snapshots": { "dir": snapshots.dir, "data": snapshots.data },
+            "manifests": read.manifests, "texts": read.texts, "matches": read.matches,
+            "manifestFields": read.manifest_fields, "cases": cases
+        });
         let (job_file, results) = (dir.join("job.json"), dir.join("results"));
         std::fs::write(&job_file, job.to_string())
             .map_err(|err| format!("cannot write {}: {err}", job_file.display()))?;

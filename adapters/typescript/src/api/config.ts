@@ -7,6 +7,11 @@ export interface Config {
   pages: string[];
   /** Globs of pages that are listed but never parsed. */
   frozen?: string[] | undefined;
+  /**
+   * Globs of living pages that have nothing to prove: checked like any other, and counted
+   * apart from the uncovered ones while they carry no attestation.
+   */
+  prose?: string[] | undefined;
   /** Globs of source files whose doc comments may hold examples. */
   sources?: string[] | undefined;
   /** Surfaces by name; `default` is required. */

@@ -161,6 +161,9 @@ export const rust: Language = {
     ['test/retry.test.ts > "throws the last error"', 'tests/retry.rs > "throws_the_last_error"'],
     ['test/price.test.ts > "price" > "rounds up"', 'tests/price.rs > "price" > "rounds_up"'],
     ['test/price.test.ts > "price" > "rounds over"', 'tests/price.rs > "price" > "rounds_over"'],
+    // A regex is written as a raw string.
+    ['"^USER (\\\\d+)$"', 'r"^USER (\\d+)$"'],
+    ['"^ENTRYPOINT (\\\\w+)$"', 'r"^ENTRYPOINT (\\w+)$"'],
   ],
   code: {
     ...AGREEMENTS,

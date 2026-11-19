@@ -55,6 +55,12 @@ describe('createProject, running the core', () => {
     expect(await p.uncovered()).toEqual(['M']);
     expect((await p.inventory('4')).map((e) => e.expression)).toEqual(['M']);
     expect(await p.audit()).toEqual({ suggestions: [] });
+    const explained = await p.explain('docs/a.md', 1);
+    expect(explained.directives).toMatchObject([
+      { line: 1, kind: 'fact', placed: { where: 'written' }, rule: 'code-span' },
+    ]);
+    expect(explained).toEqual(await p.explain('docs/a.md'));
+    await expect(p.explain('docs/a.md', 2)).rejects.toThrow(/docs\/a\.md:2 holds no directive/);
     expect(await p.check({ pages: ['docs/none.md'] }).catch((e: unknown) => e)).toBeInstanceOf(
       UserError,
     );

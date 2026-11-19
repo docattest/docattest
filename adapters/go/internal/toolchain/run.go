@@ -19,6 +19,8 @@ type Command struct {
 	Args []string
 	// Dir is the working directory.
 	Dir string
+	// Env is what the program's environment adds to this process's.
+	Env []string
 	// Timeout ends the program, and everything it started, when it is positive.
 	Timeout time.Duration
 	// Start, when given, has Timeout count from the moment the program says its own code
@@ -71,6 +73,12 @@ func Run(command Command) Outcome {
 	defer end(nil)
 	cmd := exec.CommandContext(ctx, command.Path, command.Args...)
 	cmd.Dir = command.Dir
+	if len(command.Env) > 0 {
+		// Environ, and not os.Environ, keeps the PWD that exec gives the program's Dir: a
+		// go command whose PWD is another directory takes the path of its working directory
+		// with every symbolic link resolved, which is not the path its overlay names.
+		cmd.Env = append(cmd.Environ(), command.Env...)
+	}
 	var stdout, stderr capped
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	// Without a start there is nothing to watch for, and `started` is nil: never closed.

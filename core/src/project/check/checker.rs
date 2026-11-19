@@ -72,12 +72,13 @@ impl<'s> Checker<'s> {
         Started { evaluated, displayed, listings, tables }
     }
 
+    /// The results of each attestation, in a list of its own, in the order given.
     pub(super) fn check(
         &mut self,
         attestations: &[&Attestation],
         started: Started,
         compiled: Option<Pending>,
-    ) -> Result<Vec<Outcome>> {
+    ) -> Result<Vec<Vec<Outcome>>> {
         let adapter = &self.state.adapter;
         let ok = self.emit_errors(attestations)?;
         let of =
@@ -97,7 +98,7 @@ impl<'s> Checker<'s> {
         self.cite(&citations, listings)?;
         self.emit_runs(&runnable, runs)?;
         self.emit_runs(&cases, tables)?;
-        Ok(attestations.iter().flat_map(|a| self.by_attestation.remove(&a.id).unwrap_or_default()).collect())
+        Ok(attestations.iter().map(|a| self.by_attestation.remove(&a.id).unwrap_or_default()).collect())
     }
 
     /// Emits the attestations planning found in error; returns the others.

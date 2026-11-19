@@ -3,6 +3,7 @@
 // the two; it is reported where the answer arrives, naming the command.
 import type { AuditReport, InventoryEntry } from '../api/audit.js';
 import { InternalError } from '../api/errors.js';
+import type { Explanation } from '../api/explain.js';
 import type { Impact } from '../api/impact.js';
 import type { Reference, Report } from '../api/report.js';
 import { isObject, isStringArray } from '../json.js';
@@ -25,6 +26,14 @@ export const asIndex = (value: unknown): Record<string, Reference[]> =>
 /** `where --json`: the references to one symbol. */
 export const asReferences = (value: unknown): Reference[] =>
   fits(value, 'where', Array.isArray) as Reference[];
+
+/** `explain --json`: the directives on a page, explained. */
+export const asExplanation = (value: unknown): Explanation =>
+  fits(
+    value,
+    'explain',
+    (v) => isObject(v) && typeof v.page === 'string' && Array.isArray(v.directives),
+  ) as Explanation;
 
 /** `uncovered --json`: the names no page attests. */
 export const asNames = (value: unknown): string[] =>

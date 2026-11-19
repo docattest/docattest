@@ -318,8 +318,8 @@ assert.deepEqual(await project.uncovered(), ['PUBLIC']);
 ```
 
 What a package declares rather than exports, such as the Node it needs, is read from its
-manifest with `manifest("package.json")`, and what any other file says with
-`file("<path>")` ([manifests](manifests.md)).
+manifest with `manifest("package.json")` or `manifestField`, and what any other file says
+with `file("<path>")` or `matched` ([manifests](manifests.md)).
 
 ## Docs helpers say what a surface keeps private
 

@@ -23,6 +23,10 @@ exactly, and when they are left out any test with that title in the file matches
 configuration is needed. Deleting or renaming the cited test fails the build at the
 sentence, and the sentence shows up in `where` and the index.
 
+Two shorthands save writing the same file and titles again: a set of titles cites several
+tests of one place in one directive, and an alias names a test file once for a whole page
+([shorthands](citation-shorthands.md)).
+
 ## What a citation does not prove
 
 A citation is weaker than an example, and the report keeps it apart as its own kind,

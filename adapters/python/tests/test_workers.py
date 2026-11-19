@@ -27,6 +27,8 @@ SETTINGS: Settings = {
     "snapshots": {"dir": None, "data": {}},
     "manifests": {},
     "texts": {},
+    "matches": {},
+    "manifest_fields": {},
     "preload": [],
     "no_fork": False,
 }

@@ -118,7 +118,7 @@ fn check_project(
 /// project. An absolute path and the project's root are both followed through symbolic
 /// links first (macOS's `/var` is `/private/var`), so the path names its page however its
 /// directories were reached.
-fn page_argument(root: &Path, given: &str) -> String {
+pub(super) fn page_argument(root: &Path, given: &str) -> String {
     if !Path::new(given).has_root() {
         return given.to_string();
     }

@@ -32,6 +32,10 @@ export function contextOf(params: Params, ignored: Ignored): AdapterContext {
     },
     manifests: new Map(Object.entries(params.has('manifests') ? params.object('manifests') : {})),
     texts: new Map(Object.entries(params.has('texts') ? params.textMap('texts') : {})),
+    matches: new Map(Object.entries(params.has('matches') ? params.textMaps('matches') : {})),
+    manifestFields: new Map(
+      Object.entries(params.has('manifestFields') ? params.objects('manifestFields') : {}),
+    ),
     examples: params.has('examples') ? params.attestations('examples', 'example') : [],
   };
 }

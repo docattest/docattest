@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "docattest adapter protocol, version 1: the project as open describes it, its surfaces, snapshots, manifests and texts",
+  "title": "docattest adapter protocol, version 1: the project as open describes it, its surfaces, snapshots, manifests, texts and what facts read of them",
   "description": "Every value the protocol carries. Optional fields are omitted, never null, unless a type says null. Paths are relative to the project root, with / separators.",
   "$defs": {
     "ConfiguredSurface": {
@@ -114,6 +114,23 @@
       "type": "object",
       "additionalProperties": {
         "type": "string"
+      }
+    },
+    "Matches": {
+      "description": "What fact expressions match in a file with matched(\"<path>\", \"<regex>\"), by the path, then by the regex, as the expression writes them: the text of the regex's first group in its first match, or of the whole match when it has no group. Absent when no fact matches one.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    },
+    "ManifestFields": {
+      "description": "The values fact expressions read with manifestField(\"<path>\", \"<keys>\"), by the path of the manifest, then by the path of keys, as the expression writes them: any JSON value. Absent when no fact reads one.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
       }
     }
   }

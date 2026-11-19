@@ -1,6 +1,8 @@
-//! Directive syntax: `<!-- fact[ modifiers]: <expression> -->`, `<!-- cases: <runner> -->` and
-//! `<!-- test: <file> > "<title>" -->`. Other comments are ordinary comments and are ignored.
+//! Directive syntax: `<!-- fact[ modifiers]: <expression> -->`, `<!-- cases: <runner> -->`,
+//! `<!-- test: <file> > "<title>" -->` and `<!-- tests: <name> = <file> -->`. Other comments
+//! are ordinary comments and are ignored.
 
+use super::alias::{Alias, parse_alias};
 use super::citation::{Citation, parse_citation};
 use super::field::{FieldPath, parse_field_path};
 use super::quoted::{first_outside_quotes, unquoted};
@@ -24,24 +26,33 @@ pub enum Directive {
     Fact(FactDirective),
     Cases { runner: String },
     Test(Citation),
+    Alias(Alias),
     Invalid { as_kind: Keyword, message: String },
 }
 
 /// Parse a comment body; None when the comment is not a docattest directive.
 pub fn parse_directive(body: &str, line: usize) -> Option<Directive> {
     let text = trim(body);
-    let keyword = leading_keyword(text)?;
-    match keyword {
-        "cases" => Some(parse_cases(text, line)),
-        "fact" => Some(parse_fact(&text[4..], line)),
-        "test" => parse_citation(text, line),
-        "facts" | "case" => {
-            let meant = if keyword == "facts" { "fact" } else { "cases" };
-            let message = format!("unknown directive \"{keyword}\" at L{line}; did you mean \"{meant}\"?");
-            Some(Directive::Invalid { as_kind: Keyword::Fact, message })
-        }
-        _ => None,
+    let word = leading_keyword(text)?;
+    match Keyword::named(word) {
+        Some(Keyword::Cases) => Some(parse_cases(text, line)),
+        Some(Keyword::Fact) => Some(parse_fact(&text[word.len()..], line)),
+        Some(Keyword::Test) => parse_citation(text, line),
+        Some(Keyword::Tests) => parse_alias(text, line),
+        None => near_miss(word, line),
     }
+}
+
+/// A word one letter from a keyword, written where a directive would be: an error that says
+/// which keyword was meant. None for any other word.
+fn near_miss(word: &str, line: usize) -> Option<Directive> {
+    let meant = match word {
+        "facts" => Keyword::Fact,
+        "case" => Keyword::Cases,
+        _ => return None,
+    };
+    let message = format!("unknown directive \"{word}\" at L{line}; did you mean \"{}\"?", meant.as_str());
+    Some(Directive::Invalid { as_kind: Keyword::Fact, message })
 }
 
 /// `/^([A-Za-z]+)\b/`: the leading letters, when a word boundary follows them.

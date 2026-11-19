@@ -4,6 +4,64 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `matched("<path>", "<regex>")` and `manifestField("<path>", "<keys>")` in fact
+  expressions, in every language: one value of a project file in one call, worked out by
+  the core so that every language gets the same value. `matched` is the text of the
+  regex's first group in its first match (the whole match when it has no group), with `^`
+  and `$` at the ends of each line and `\r\n` read as `\n`, in the core's regex syntax;
+  `manifestField` is the value at a path of keys of a manifest, written as `field=` writes
+  one, in the language's own kind of value, so a deep field needs no type assertions in
+  Go. No match, an invalid regex and a path that is not there are each an error at the
+  fact that says what is there instead. A changed file reaches `impact` through them as
+  through `file` and `manifest`. `open` carries what they give as `matches` and
+  `manifestFields`, each absent when no fact makes such a call, and the conformance suite
+  checks both.
+- A call's arguments may be raw string literals (`r"…"`, `r'…'`, `r#"…"#`, `` `…` ``), and a
+  quoted one may escape a backslash and its own quote; the core reads no other escape, since
+  each language reads it differently. This holds for `manifest` and `file` too.
+- `docattest explain <page>:<line>`, or `<page>` for every directive on it, and
+  `project.explain(page, line)`: for each directive, what it binds and the rule that bound
+  it (a `column=` or `field=`, the list or block below it, the code span or number before it,
+  the code spans of its sentence), where it takes effect (where written, on the sentence
+  below it, or nowhere), the target as the page has it, the sentence it defends, and what
+  checking it gives: a fact's value and verdict, a citation's file and whether it declares
+  the test, a table's rows and their results. `--json` gives the same as an object.
+- A citation's last segment may be a set of titles, `> {"python", "node"}`, each cited as if
+  written apart, with its own result.
+- `<!-- tests: <name> = <file> -->` names a test file for its page, and the page's citations
+  may write the name in its place. An alias holds on the whole page; a name is declared once,
+  never looks like a path, and must not also be a file of the project.
+- Prose pages: `prose` in the config, globs as `frozen` takes, or frontmatter
+  `docattest: prose`, marks a living page that has nothing to prove. It is still checked and
+  audited, but never reported as uncovered: the report lists it under `coverage.prose`, and
+  the coverage line counts it (`1 uncovered, 2 prose, 0 frozen`) in a project that has some.
+  A page marked as prose that has an attestation counts as covered, and its marker is a
+  warning.
+- Go: a setup package can be a module of its own: a `docs/go.mod` that requires your module,
+  with a `replace` to the project root, so your product's `go.mod` requires nothing only the
+  pages need, such as `github.com/docattest/docattest/adapters/go` for `cells`. The adapter
+  runs the go command in a workspace of the two modules, a `go.work` it writes into its own
+  temporary directory, built from the project's own `go.work` when it has one (its `go`
+  line, modules and `replace` directives, with the setup module added) unless `GOWORK=off`;
+  nothing is written into the project.
+- Go: `check` runs `go vet -tags docattest` on each surface package that has docs helper
+  files and reports what vet finds in those files, with the file and line, which a plain
+  `go vet ./...` never vets. The Go guide shows how to give the tag to `go vet` in CI and to
+  golangci-lint (`run.build-tags`).
+- Go: `check` warns when your `go.mod`, or the setup module's, requires
+  `github.com/docattest/docattest/adapters/go` at another release than the docattest that
+  runs, naming the file and both versions; a `replace` of the module or a pseudo-version is
+  not compared.
+
+### Changed
+
+- Go: the adapter imports `golang.org/x/mod` directly (it was already required through
+  `golang.org/x/tools`), to read `go.mod` and `go.work` files.
+
 ## [0.2.2] - 2026-11-19
 
 ### Fixed

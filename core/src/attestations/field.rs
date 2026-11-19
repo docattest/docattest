@@ -19,22 +19,36 @@ pub struct FieldPath {
     keys: Vec<String>,
 }
 
-/// The path `written` names: keys parted by dots, a key that holds a dot or a space in
-/// quotes (`servers."eu.west".port`); or why it names none, as a phrase.
+/// The path `written` names, as `field=` gives it; or why it names none, as a phrase.
 pub fn parse_field_path(written: &str) -> Result<FieldPath, String> {
-    let mut keys = Vec::new();
-    let mut rest = written;
-    loop {
-        let end = first_outside_quotes(rest, |c| c == '.').unwrap_or(rest.len());
-        let key = &rest[..end];
-        if key.is_empty() {
-            return Err(format!("field={written} has an empty key"));
+    FieldPath::parse(written).map_err(|why| format!("field={why}"))
+}
+
+impl FieldPath {
+    /// The path `written` names: keys parted by dots, a key that holds a dot or a space in
+    /// quotes (`servers."eu.west".port`); or why it names none, as a phrase that starts with
+    /// the path. A fact's `manifestField("<file>", "<path>")` names a path in a manifest so
+    /// too.
+    pub fn parse(written: &str) -> Result<FieldPath, String> {
+        let mut keys = Vec::new();
+        let mut rest = written;
+        loop {
+            let end = first_outside_quotes(rest, |c| c == '.').unwrap_or(rest.len());
+            let key = &rest[..end];
+            if key.is_empty() {
+                return Err(format!("{written} has an empty key"));
+            }
+            keys.push(unquoted(key).unwrap_or(key).to_string());
+            if end == rest.len() {
+                return Ok(FieldPath { written: written.to_string(), keys });
+            }
+            rest = &rest[end + 1..];
         }
-        keys.push(unquoted(key).unwrap_or(key).to_string());
-        if end == rest.len() {
-            return Ok(FieldPath { written: written.to_string(), keys });
-        }
-        rest = &rest[end + 1..];
+    }
+
+    /// The value at this path in `data`; or, where the path stops, what is there instead.
+    pub fn value_in<'v>(&self, data: &'v Value) -> Result<&'v Value, String> {
+        value_at(data, &self.keys)
     }
 }
 
@@ -59,8 +73,7 @@ pub fn bind_field(
     };
     let block = format!("the {language} block at L{start}");
     let data = parsed.map_err(|why| format!("{at}: {block} cannot be read: {why}"))?;
-    let value =
-        value_at(&data, &path.keys).map_err(|why| format!("{at}: {block} has no {written}: {why}"))?;
+    let value = path.value_in(&data).map_err(|why| format!("{at}: {block} has no {written}: {why}"))?;
     target_of(value, written, ordered).map_err(|why| format!("{at}: {written} in {block} {why}"))
 }
 

@@ -16,6 +16,7 @@ The CLI exposes these commands, whichever adapter serves a project: <!-- fact: C
 - `where`
 - `uncovered`
 - `index`
+- `explain`
 - `refresh`
 - `skill`
 - `audit`

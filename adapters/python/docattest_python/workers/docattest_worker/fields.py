@@ -87,5 +87,19 @@ class Fields:
         strings = {k: v for k, v in found.items() if isinstance(v, str)}
         return strings if len(strings) == len(found) else self._fail(name, "a map of strings")
 
+    def string_maps(self, name: str) -> dict[str, dict[str, str]]:
+        """An object whose values are each a map of strings."""
+        found = self.object(name)
+        return {key: found.string_map(key) for key in found.keys()}
+
+    def json_objects(self, name: str) -> dict[str, dict[str, object]]:
+        """An object whose values are each an object passed on, not read here."""
+        found = self.object(name)
+        return {key: found.json_object(key) for key in found.keys()}
+
+    def keys(self) -> list[str]:
+        """The object's keys, in order."""
+        return list(self._fields)
+
     def _fail(self, name: str, what: str) -> NoReturn:
         raise MalformedMessage(f'{self.where}: "{name}" must be {what}')

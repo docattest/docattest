@@ -22,6 +22,7 @@ pub mod config;
 mod conformance;
 mod console;
 mod counted;
+mod explain;
 mod fact_files;
 mod files;
 mod git;

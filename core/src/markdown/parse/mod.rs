@@ -12,7 +12,7 @@ use markdown::{Constructs, ParseOptions};
 
 use super::autolink::transform_fires;
 use super::comments::{CommentContext, flow_comments, phrasing_comments};
-use super::frontmatter::freezes;
+use super::frontmatter::declared;
 use super::model::{Block, BlockKind, CodeRef, ListItem, Page, Table, TableCell, TableRow};
 use super::text::{cell_values, content_range, item_value, prose, slice};
 use crate::api::errors::Error;
@@ -69,7 +69,7 @@ pub fn parse_page(text: &str) -> Result<Page, Positionless> {
         let mut previous = None;
         for node in &root.children {
             if let Node::Yaml(yaml) = node {
-                builder.page.frozen = freezes(&yaml.value);
+                builder.page.declared = declared(&yaml.value);
             } else {
                 let index = builder.visit(node, None, previous);
                 builder.page.blocks.push(index);

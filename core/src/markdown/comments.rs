@@ -17,8 +17,8 @@ pub struct CommentContext<'a> {
     pub first_sentences: &'a mut Vec<FirstSentence>,
 }
 
-/// `/<!--\s*(fact|cases|test(?=\s*:))\b/.exec(text)`: the byte index of the opening and its
-/// keyword. `test` opens a directive only with its colon; `<!-- testing` is prose.
+/// `/<!--\s*(fact|cases|tests?(?=\s*:))\b/.exec(text)`: the byte index of the opening and its
+/// keyword. `test` and `tests` open a directive only with their colon; `<!-- testing` is prose.
 pub fn opening(text: &str) -> Option<(usize, Keyword)> {
     let mut from = 0;
     while let Some(found) = text.get(from..).and_then(|t| t.find("<!--")) {
@@ -34,23 +34,14 @@ pub fn opening(text: &str) -> Option<(usize, Keyword)> {
 }
 
 fn keyword_at(rest: &str) -> Option<Keyword> {
-    let boundary = |tail: &str| !tail.chars().next().is_some_and(is_word);
-    if let Some(tail) = rest.strip_prefix("fact")
-        && boundary(tail)
-    {
-        return Some(Keyword::Fact);
-    }
-    if let Some(tail) = rest.strip_prefix("cases")
-        && boundary(tail)
-    {
-        return Some(Keyword::Cases);
-    }
-    if let Some(tail) = rest.strip_prefix("test")
-        && tail.trim_start_matches(is_js_space).starts_with(':')
-    {
-        return Some(Keyword::Test);
-    }
-    None
+    let opens = |keyword: &Keyword| {
+        let Some(tail) = rest.strip_prefix(keyword.as_str()) else { return false };
+        match keyword.needs_colon() {
+            true => tail.trim_start_matches(is_js_space).starts_with(':'),
+            false => !tail.chars().next().is_some_and(is_word),
+        }
+    };
+    Keyword::ALL.into_iter().find(opens)
 }
 
 fn line_of(node: &Node) -> usize {
@@ -256,6 +247,8 @@ mod tests {
         assert_eq!(opening("<!-- testing"), None);
         assert_eq!(opening("<!-- test :"), Some((0, Keyword::Test)));
         assert_eq!(opening("<!-- test"), None);
+        assert_eq!(opening("<!-- tests: a = b"), Some((0, Keyword::Tests)));
+        assert_eq!(opening("<!-- tests pending"), None);
         assert_eq!(opening("<!-- x <!-- fact"), Some((7, Keyword::Fact)));
         assert_eq!(opening("<!-- factй"), Some((0, Keyword::Fact)));
     }

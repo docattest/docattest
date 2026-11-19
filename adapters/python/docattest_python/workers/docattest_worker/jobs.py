@@ -30,6 +30,11 @@ class Settings(TypedDict):
     manifests: dict[str, object]
     #: The text of each file the facts read with ``file``, by the path as they write it.
     texts: dict[str, str]
+    #: What each regex facts give ``matched`` matches, by the path, then the regex, as written.
+    matches: dict[str, dict[str, str]]
+    #: The value of each field facts read with ``manifestField``, by the path, then the keys,
+    #: as written.
+    manifest_fields: dict[str, dict[str, object]]
     #: Modules imported once, before any job is forked.
     preload: list[str]
     #: Run every job in a fresh process, even where ``os.fork`` exists.
@@ -133,6 +138,8 @@ def read_settings(value: object) -> Settings:
         "snapshots": {"dir": snapshots.optional_string("dir"), "data": snapshots.json_object("data")},
         "manifests": fields.json_object("manifests"),
         "texts": fields.string_map("texts"),
+        "matches": fields.string_maps("matches"),
+        "manifest_fields": fields.json_objects("manifest_fields"),
         "preload": fields.strings("preload"),
         "no_fork": fields.boolean("no_fork"),
     }

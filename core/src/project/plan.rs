@@ -5,14 +5,15 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::adapter::Language;
-use crate::api::attestation::{Attestation, Kind};
+use crate::api::attestation::{Attestation, Body, Kind, Test};
 use crate::api::errors::{Error, Result};
 use crate::attestations::examples::{ExampleOptions, checks, mark_weak};
 use crate::attestations::plan::plan_parsed;
 use crate::config::{ProjectConfig, matcher};
+use crate::counted::counted;
 use crate::files::glob::GlobMatcher;
 use crate::files::project_files::ProjectFiles;
-use crate::markdown::model::Page;
+use crate::markdown::model::{Declared, Page};
 use crate::markdown::parse::parse_page;
 use crate::project::config_warnings::config_warnings;
 
@@ -21,6 +22,9 @@ use crate::project::config_warnings::config_warnings;
 pub struct Plan {
     /// Matched by `pages` and not frozen, then the sources whose doc comments hold examples.
     pub living: Vec<String>,
+    /// The living pages marked as prose, by `prose` or by their frontmatter, that carry no
+    /// attestation: they have nothing to prove, so they are not uncovered.
+    pub prose: Vec<String>,
     pub frozen: Vec<String>,
     /// Every attestation on every living page, in plan order.
     pub attestations: Vec<Attestation>,
@@ -39,21 +43,31 @@ pub fn plan_project(
     let pages: Vec<&String> = all.iter().filter(|f| is_page.is_match(f)).collect();
     let parsed = parse_pages(files, &pages, &matcher(&config.frozen)?)?;
     crate::trace::mark("pages parsed");
-    let options = ExampleOptions {
-        languages: language.block_languages(),
-        ignore_tags: &config.ignore_tags,
-        info_words: language.info_words(),
-    };
-    let mut plan = Plan::of_pages(&pages, parsed, &options);
+    let options = example_options(config, language);
+    let mut plan = Plan::of_pages(&pages, parsed, &options, &matcher(&config.prose)?);
     // A citation is checked against what the adapter reads in the cited file. One that
     // cannot read tests leaves every citation unproven, and the page should say so.
     if !language.reads_tests() {
         plan.refuse_citations(language.name());
     }
+    plan.refuse_aliases_that_are_files(files);
     let sources = source_texts(files, &all, config, language)?;
     plan.ask_language(language, &sources)?;
-    plan.warnings = config_warnings(files, &all, config, &plan.attestations)?;
+    let stale_prose = std::mem::take(&mut plan.warnings);
+    plan.warnings = [config_warnings(files, &all, config, &plan.attestations)?, stale_prose].concat();
     Ok(plan)
+}
+
+/// What planning a page needs to know of the config and the language.
+pub(crate) fn example_options<'a>(
+    config: &'a ProjectConfig,
+    language: &'a dyn Language,
+) -> ExampleOptions<'a> {
+    ExampleOptions {
+        languages: language.block_languages(),
+        ignore_tags: &config.ignore_tags,
+        info_words: language.info_words(),
+    }
 }
 
 /// Parse every page that is not frozen by glob, in parallel; None for those frozen pages.
@@ -87,19 +101,65 @@ fn source_texts(
         .collect()
 }
 
+/// How a page is marked as prose.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ProseMarker {
+    Config,
+    Frontmatter,
+}
+
+impl ProseMarker {
+    /// How a page is marked, if it is: the config's `prose` first, then its frontmatter.
+    fn of(page: &str, parsed: &Page, prose: &GlobMatcher) -> Option<ProseMarker> {
+        if prose.is_match(page) {
+            return Some(ProseMarker::Config);
+        }
+        (parsed.declared == Declared::Prose).then_some(ProseMarker::Frontmatter)
+    }
+
+    fn removal(self) -> &'static str {
+        match self {
+            ProseMarker::Config => "take it out of \"prose\" in the config",
+            ProseMarker::Frontmatter => "drop \"docattest: prose\" from its frontmatter",
+        }
+    }
+}
+
 impl Plan {
-    fn of_pages(pages: &[&String], parsed: Vec<Option<Page>>, options: &ExampleOptions) -> Plan {
+    fn of_pages(
+        pages: &[&String],
+        parsed: Vec<Option<Page>>,
+        options: &ExampleOptions,
+        prose: &GlobMatcher,
+    ) -> Plan {
         let mut plan = Plan::default();
         for (page, parsed) in pages.iter().zip(parsed) {
             match parsed {
-                Some(parsed) if !parsed.frozen => {
+                Some(parsed) if !parsed.is_frozen() => {
                     plan.living.push((*page).clone());
-                    plan.attestations.extend(plan_parsed(page, &parsed, options));
+                    let planned = plan_parsed(page, &parsed, options);
+                    if let Some(marker) = ProseMarker::of(page, &parsed, prose) {
+                        plan.mark_prose(page, marker, planned.len());
+                    }
+                    plan.attestations.extend(planned);
                 }
                 _ => plan.frozen.push((*page).clone()),
             }
         }
         plan
+    }
+
+    /// A page marked as prose is prose while it carries no attestation. Once it gains one it
+    /// is covered like any other page, and the marker, which now says something false about
+    /// it, is a warning.
+    fn mark_prose(&mut self, page: &str, marker: ProseMarker, attestations: usize) {
+        if attestations == 0 {
+            self.prose.push(page.to_string());
+            return;
+        }
+        let has = counted(attestations, "attestation");
+        let removal = marker.removal();
+        self.warnings.push(format!("{page} is marked as prose but has {has}: {removal}"));
     }
 
     fn refuse_citations(&mut self, adapter: &str) {
@@ -108,6 +168,22 @@ impl Plan {
                 "test at L{} cannot be cited: the {adapter} adapter does not read test files",
                 a.line
             ));
+        }
+    }
+
+    /// A citation that names its file by an alias must not name a file of the project too:
+    /// which of the two it cites would be anyone's guess.
+    fn refuse_aliases_that_are_files(&mut self, files: &dyn ProjectFiles) {
+        for a in self.attestations.iter_mut().filter(|a| a.ok()) {
+            if let Body::Test(Test { alias: Some(name), .. }) = &a.body
+                && files.exists(name)
+            {
+                a.error = Some(format!(
+                    "test at L{} names {name}, which is both an alias on its page and a file of the \
+                     project: rename the alias",
+                    a.line
+                ));
+            }
         }
     }
 
@@ -174,6 +250,57 @@ mod tests {
         assert_eq!(
             planned.err(),
             Some(Error::User("docattest: cannot read docs/a.md: permission denied".into()))
+        );
+    }
+
+    #[test]
+    fn a_page_marked_as_prose_is_living_and_its_marker_goes_stale_with_a_proof() {
+        let config = parse_config(
+            r#"{"pages":["docs/*.md"],"prose":["docs/guide*.md"],"surfaces":{"default":"x"},"adapter":"typescript"}"#,
+        )
+        .unwrap();
+        let fact = "N is `3`. <!-- fact: N -->\n";
+        let files = crate::files::memory::MemoryFiles::new(
+            [
+                ("docs/guide.md", "# Guide\n"),
+                ("docs/guide-old.md", fact),
+                ("docs/notes.md", "---\ndocattest: prose\n---\n# Notes\n"),
+                ("docs/howto.md", &format!("---\ndocattest: prose\n---\n{fact}")),
+                ("docs/plain.md", "Prose.\n"),
+            ]
+            .map(|(page, text)| (page.to_string(), text.to_string())),
+        );
+        let plan = plan_project(&files, &config, &typescript()).unwrap();
+        assert_eq!(plan.living.len(), 5);
+        assert_eq!(plan.prose, ["docs/guide.md", "docs/notes.md"]);
+        assert_eq!(
+            plan.warnings,
+            [
+                "docs/guide-old.md is marked as prose but has 1 attestation: take it out of \"prose\" in the config",
+                "docs/howto.md is marked as prose but has 1 attestation: drop \"docattest: prose\" from its frontmatter",
+            ]
+        );
+    }
+
+    #[test]
+    fn an_alias_named_like_a_file_of_the_project_is_an_error_where_it_is_cited() {
+        let config =
+            parse_config(r#"{"pages":["docs/*.md"],"surfaces":{"default":"x"},"adapter":"typescript"}"#)
+                .unwrap();
+        let page = "<!-- tests: launch = t/launch.test.ts -->\n\nIt runs. <!-- test: launch > \"runs\" -->\n";
+        let errors = |extra: &[&str]| {
+            let listed = [("docs/a.md", page), ("t/launch.test.ts", "")]
+                .into_iter()
+                .chain(extra.iter().map(|f| (*f, "")));
+            let files =
+                crate::files::memory::MemoryFiles::new(listed.map(|(f, t)| (f.to_string(), t.to_string())));
+            let plan = plan_project(&files, &config, &typescript()).unwrap();
+            plan.attestations.iter().map(|a| a.problem().map(String::from)).collect::<Vec<_>>()
+        };
+        assert_eq!(errors(&[]), [None]);
+        assert_eq!(
+            errors(&["launch"]),
+            [Some("test at L3 names launch, which is both an alias on its page and a file of the project: rename the alias".into())]
         );
     }
 

@@ -19,6 +19,8 @@ pub struct Coverage {
     pub living: usize,
     pub covered: usize,
     pub uncovered: Vec<String>,
+    /// Living pages marked as having nothing to prove, and carrying no attestation.
+    pub prose: Vec<String>,
     pub frozen: Vec<String>,
     /// The results the living pages produce: one for each attestation, one for each row of a
     /// cases table.
@@ -98,29 +100,54 @@ pub fn exit_code_for(results: &[Outcome]) -> i32 {
     i32::from(results.iter().any(Outcome::is_failure))
 }
 
+/// A project's pages by how they stand.
+pub struct PageSets<'a> {
+    pub living: &'a [String],
+    /// Living pages with nothing to prove.
+    pub prose: &'a [String],
+    pub frozen: &'a [String],
+}
+
 /// Page coverage from the number of results each page produced. Results on other files (a
-/// broken snapshot file) are not attestations, and are left out of the count.
-pub fn coverage_for(
-    living: &[String],
-    frozen: &[String],
-    counts: &HashMap<String, usize>,
-    weak: usize,
-    cited: usize,
-) -> Coverage {
-    let mut uncovered: Vec<String> =
-        living.iter().filter(|p| counts.get(*p).copied().unwrap_or(0) == 0).cloned().collect();
-    uncovered.sort_by(|a, b| compare_utf16(a, b));
-    let mut frozen = frozen.to_vec();
-    frozen.sort_by(|a, b| compare_utf16(a, b));
+/// broken snapshot file) are not attestations, and are left out of the count. A prose page
+/// with no result is counted apart, never as uncovered.
+pub fn coverage_for(pages: PageSets, counts: &HashMap<String, usize>, weak: usize, cited: usize) -> Coverage {
+    let unproven = |p: &&String| counts.get(*p).copied().unwrap_or(0) == 0;
+    let sorted = |mut pages: Vec<String>| {
+        pages.sort_by(|a, b| compare_utf16(a, b));
+        pages
+    };
+    let (prose, uncovered): (Vec<String>, Vec<String>) =
+        pages.living.iter().filter(unproven).cloned().partition(|p| pages.prose.contains(p));
+    let (prose, uncovered) = (sorted(prose), sorted(uncovered));
     Coverage {
-        living: living.len(),
-        covered: living.len() - uncovered.len(),
+        living: pages.living.len(),
+        covered: pages.living.len() - uncovered.len() - prose.len(),
         uncovered,
-        frozen,
-        attestations: living.iter().filter_map(|p| counts.get(p)).sum(),
+        prose,
+        frozen: sorted(pages.frozen.to_vec()),
+        attestations: pages.living.iter().filter_map(|p| counts.get(p)).sum(),
         weak,
         cited,
     }
+}
+
+/// Coverage as `--json` prints it. Prose pages are listed only in a project that has some,
+/// so a project that marks none reports what it always did.
+fn coverage_json(c: &Coverage) -> Value {
+    let mut m = Map::new();
+    m.insert("living".into(), json!(c.living));
+    m.insert("covered".into(), json!(c.covered));
+    m.insert("uncovered".into(), json!(c.uncovered));
+    if !c.prose.is_empty() {
+        m.insert("prose".into(), json!(c.prose));
+    }
+    m.insert("frozen".into(), json!(c.frozen));
+    m.insert("attestations".into(), json!(c.attestations));
+    m.insert("proofs".into(), json!(c.proofs()));
+    m.insert("weak".into(), json!(c.weak));
+    m.insert("cited".into(), json!(c.cited));
+    Value::Object(m)
 }
 
 /// A number as JSON, a whole one (a snapshot's age in days) as an integer: `90`, not `90.0`.
@@ -131,7 +158,6 @@ fn number(n: f64) -> Value {
 impl Report {
     /// The report as `--json` prints it, keys in the order the recordings hold.
     pub fn to_json(&self) -> Value {
-        let c = &self.coverage;
         let mut surfaces = Map::new();
         for (name, s) in &self.surfaces {
             let mut m = Map::new();
@@ -157,11 +183,7 @@ impl Report {
             .collect();
         let mut report = json!({
             "results": self.results.iter().map(Outcome::to_json).collect::<Vec<_>>(),
-            "coverage": {
-                "living": c.living, "covered": c.covered, "uncovered": c.uncovered,
-                "frozen": c.frozen, "attestations": c.attestations, "proofs": c.proofs(),
-                "weak": c.weak, "cited": c.cited,
-            },
+            "coverage": coverage_json(&self.coverage),
             "surfaces": surfaces,
             "snapshots": snapshots,
             "exitCode": self.exit_code,
@@ -222,12 +244,14 @@ impl Report {
 
     /// The coverage line, then the uncovered pages by name unless only some pages were run.
     /// Proofs and citations are always counted apart, and summed: a citation only says where
-    /// to look, so a total alone would make coverage look stronger than it is. Frozen pages
-    /// are counted, never named: freezing them was the config's decision.
+    /// to look, so a total alone would make coverage look stronger than it is. Prose and
+    /// frozen pages are counted, never named: marking them was the project's decision. Prose
+    /// is counted only in a project that has some.
     fn coverage_lines(&self, detail: Detail) -> Vec<String> {
         let c = &self.coverage;
+        let prose = if c.prose.is_empty() { String::new() } else { format!(", {} prose", c.prose.len()) };
         let mut lines = vec![format!(
-            "coverage: {}, {} covered ({}: {}, {} of them weak, and {}), {} uncovered, {} frozen",
+            "coverage: {}, {} covered ({}: {}, {} of them weak, and {}), {} uncovered{prose}, {} frozen",
             counted(c.living, "living page"),
             c.covered,
             counted(c.attestations, "attestation"),
@@ -317,7 +341,7 @@ fn snapshot_age(s: &SnapshotStatus) -> String {
 }
 
 /// The mark a finding of this status is printed with.
-fn status_mark(status: Status) -> &'static str {
+pub(crate) fn status_mark(status: Status) -> &'static str {
     match status {
         Status::Pass => "✓",
         Status::Fail => "✗",

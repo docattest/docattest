@@ -1,13 +1,14 @@
 //! Finding and binding every attestation on a Markdown page.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
-use super::bind::{bind_cases, bind_fact};
+use super::alias::Aliases;
+use super::bind::{Bound, FactRule, bind_cases, bind_fact};
 use super::citation::Citation;
 use super::core_examples::plan_core_example;
-use super::directives::{Directive, parse_directive};
+use super::directives::{Directive, FactDirective, parse_directive};
 use super::examples::{ExampleOptions, plan_example};
-use super::placement::{detached_error, place};
+use super::placement::{Placed, detached_error, place};
 use crate::api::attestation::{Attestation, Body, Cases, Fact, Test};
 use crate::config::DEFAULT_SURFACE;
 use crate::markdown::model::{BlockKind, Comment, Keyword, Page, Unclosed};
@@ -27,7 +28,7 @@ pub struct PagePlan {
 /// Find and bind every attestation on a Markdown page.
 pub fn plan_page(page: &str, text: &str, options: &ExampleOptions) -> Result<PagePlan, Positionless> {
     let parsed = parse_page(text)?;
-    if parsed.frozen {
+    if parsed.is_frozen() {
         return Ok(PagePlan { frozen: true, attestations: Vec::new() });
     }
     Ok(PagePlan { frozen: false, attestations: plan_parsed(page, &parsed, options) })
@@ -35,7 +36,34 @@ pub fn plan_page(page: &str, text: &str, options: &ExampleOptions) -> Result<Pag
 
 /// The attestations of a parsed page that is not frozen, in line order.
 pub fn plan_parsed(page: &str, parsed: &Page, options: &ExampleOptions) -> Vec<Attestation> {
-    Planner { page, parsed, seq: 0 }.plan(options)
+    plan_explained(page, parsed, options).attestations
+}
+
+/// Why a directive's attestation is what it is: where the directive takes effect and, for a
+/// fact that bound a target, the rule that bound it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Why {
+    pub placed: Placed,
+    pub rule: Option<FactRule>,
+}
+
+/// A page's attestations, with what `explain` says of its directives.
+#[derive(Debug, Clone)]
+pub struct Explained {
+    /// In line order, as [`plan_parsed`] plans them.
+    pub attestations: Vec<Attestation>,
+    /// Why each directive's attestation is what it is, by attestation id. A fenced block,
+    /// which attests itself, has no entry.
+    pub whys: HashMap<String, Why>,
+    /// The page's test file aliases, which no attestation carries.
+    pub aliases: Aliases,
+}
+
+/// [`plan_parsed`], with why each directive's attestation is what it is.
+pub fn plan_explained(page: &str, parsed: &Page, options: &ExampleOptions) -> Explained {
+    let mut planner = Planner { page, parsed, seq: 0, aliases: Aliases::default(), whys: HashMap::new() };
+    let attestations = planner.plan(options);
+    Explained { attestations, whys: planner.whys, aliases: planner.aliases }
 }
 
 /// The claim a directive defends, given the comment where it takes effect
@@ -76,6 +104,9 @@ struct Planner<'a> {
     page: &'a str,
     parsed: &'a Page,
     seq: usize,
+    /// The page's test file aliases, which hold on the whole page.
+    aliases: Aliases,
+    whys: HashMap<String, Why>,
 }
 
 struct Base {
@@ -109,12 +140,13 @@ impl Planner<'_> {
         let examples = self.examples(options);
         let mut attestations = examples;
         attestations.extend(cases);
-        for (comment, directive) in &found {
-            if is_table_cases(comment, directive) || in_bound(comment.table) {
-                continue;
-            }
-            let a = self.directive(comment, directive);
-            attestations.push(a);
+        // A directive in a table that cases bind is that table's data, an alias too.
+        let found: Vec<&(&Comment, Directive)> =
+            found.iter().filter(|(c, d)| !is_table_cases(c, d) && !in_bound(c.table)).collect();
+        attestations.extend(self.declare_aliases(&found));
+        for (comment, directive) in found {
+            let planned = self.directive(comment, directive);
+            attestations.extend(planned);
         }
         for u in &self.parsed.unclosed {
             if !in_bound(u.table) {
@@ -130,6 +162,29 @@ impl Planner<'_> {
         let id = format!("{}:{line}:{kind}:{}", self.page, self.seq);
         self.seq += 1;
         Base { id, line, claim }
+    }
+
+    /// A base for a directive's attestation, with why it is what it is.
+    fn explained(&mut self, line: usize, kind: &str, claim: &str, why: Why) -> Base {
+        let base = self.base(line, kind, claim.to_string());
+        self.whys.insert(base.id.clone(), why);
+        base
+    }
+
+    /// Declare the page's aliases before any citation is planned, since they hold on the
+    /// whole page; a name declared again is an error where it is.
+    fn declare_aliases(&mut self, found: &[&(&Comment, Directive)]) -> Vec<Attestation> {
+        let mut errors = Vec::new();
+        for (comment, directive) in found.iter().copied() {
+            let Directive::Alias(alias) = directive else { continue };
+            if let Err(error) = self.aliases.declare(alias, comment.line) {
+                let claim = comment_claim(self.parsed, comment);
+                let why = Why { placed: Placed::Written, rule: None };
+                let base = self.explained(comment.line, Keyword::Tests.as_str(), &claim, why);
+                errors.push(self.plan_error(Keyword::Tests, base, error));
+            }
+        }
+        errors
     }
 
     fn attestation(&self, base: Base, body: Body, error: Option<String>) -> Attestation {
@@ -164,7 +219,8 @@ impl Planner<'_> {
     }
 
     fn table_cases(&mut self, comment: &Comment, runner: &str, bound: &mut HashSet<usize>) -> Attestation {
-        let base = self.base(comment.line, "cases", comment_claim(self.parsed, comment));
+        let why = Why { placed: Placed::Written, rule: None };
+        let base = self.explained(comment.line, "cases", &comment_claim(self.parsed, comment), why);
         match bind_cases(comment, self.parsed) {
             Err(error) => self.cases_error(base, runner, error),
             Ok((table, header, rows)) => {
@@ -175,45 +231,69 @@ impl Planner<'_> {
         }
     }
 
-    fn directive(&mut self, comment: &Comment, directive: &Directive) -> Attestation {
+    /// A directive's attestations: one, one for each title a citation names, or none for an
+    /// alias, which only names a file.
+    fn directive(&mut self, comment: &Comment, directive: &Directive) -> Vec<Attestation> {
         let kind = match directive {
             Directive::Invalid { as_kind, .. } => as_kind.as_str(),
             Directive::Fact(_) => "fact",
             Directive::Cases { .. } => "cases",
             Directive::Test(_) => "test",
+            Directive::Alias(_) => Keyword::Tests.as_str(),
         };
         let placed = place(self.parsed, comment, directive);
         let effective = placed.comment().unwrap_or(comment);
-        let base = self.base(comment.line, kind, comment_claim(self.parsed, effective));
+        let claim = comment_claim(self.parsed, effective);
         let detached = placed.comment().is_none().then(|| detached_error(kind, comment.line));
+        let why = Why { placed: placed.placed(), rule: None };
+        let base = |planner: &mut Self| planner.explained(comment.line, kind, &claim, why);
         match directive {
-            Directive::Invalid { as_kind, message } => self.plan_error(*as_kind, base, message.clone()),
-            Directive::Test(citation) => self.citation(base, citation, detached),
+            Directive::Test(citation) => {
+                let mut cite = |title: &String| {
+                    let base = base(self);
+                    self.citation(base, citation, title, detached.clone())
+                };
+                citation.titles.iter().map(&mut cite).collect()
+            }
+            Directive::Fact(f) => {
+                let bound = match detached {
+                    Some(error) => Err(error),
+                    None => bind_fact(f, comment.line, effective, self.parsed),
+                };
+                let why = Why { rule: bound.as_ref().ok().map(|bound| bound.rule), ..why };
+                let base = self.explained(comment.line, kind, &claim, why);
+                vec![self.fact(base, f, bound)]
+            }
             Directive::Cases { runner } => {
                 let why = "a directive in a table cell cannot bind one";
                 let error = format!("cases at L{} has no table: {why}", comment.line);
-                self.cases_error(base, runner, error)
+                let base = base(self);
+                vec![self.cases_error(base, runner, error)]
             }
-            Directive::Fact(f) => {
-                let body = Body::Fact(Fact {
-                    expression: f.expression.clone(),
-                    surface: f.surface.clone(),
-                    ordered: f.ordered,
-                    column: f.column.clone(),
-                    field: f.field.as_ref().map(|path| path.written.clone()),
-                    target: match detached {
-                        Some(error) => Err(error),
-                        None => bind_fact(f, comment.line, effective, self.parsed),
-                    },
-                });
-                self.attestation(base, body, None)
+            Directive::Invalid { as_kind, message } => {
+                let base = base(self);
+                vec![self.plan_error(*as_kind, base, message.clone())]
             }
+            Directive::Alias(_) => Vec::new(),
         }
     }
 
+    fn fact(&self, base: Base, f: &FactDirective, bound: Result<Bound, String>) -> Attestation {
+        let body = Body::Fact(Fact {
+            expression: f.expression.clone(),
+            surface: f.surface.clone(),
+            ordered: f.ordered,
+            column: f.column.clone(),
+            field: f.field.as_ref().map(|path| path.written.clone()),
+            target: bound.map(|bound| bound.target),
+        });
+        self.attestation(base, body, None)
+    }
+
     fn unclosed(&mut self, u: &Unclosed) -> Attestation {
-        let claim = prose_before(self.parsed, u.block).unwrap_or_default().to_string();
-        let base = self.base(u.line, u.keyword.as_str(), claim);
+        let claim = prose_before(self.parsed, u.block).unwrap_or_default();
+        let why = Why { placed: Placed::Written, rule: None };
+        let base = self.explained(u.line, u.keyword.as_str(), claim, why);
         let error = format!("directive at L{} is not closed: end it with -->", u.line);
         self.plan_error(u.keyword, base, error)
     }
@@ -221,9 +301,8 @@ impl Planner<'_> {
     fn plan_error(&self, kind: Keyword, base: Base, error: String) -> Attestation {
         match kind {
             Keyword::Cases => self.cases_error(base, "", error),
-            Keyword::Test => {
-                let body =
-                    Body::Test(Test { file: String::new(), title: String::new(), describes: Vec::new() });
+            Keyword::Test | Keyword::Tests => {
+                let body = Body::Test(Test::default());
                 self.attestation(base, body, Some(error))
             }
             Keyword::Fact => {
@@ -241,16 +320,19 @@ impl Planner<'_> {
     }
 
     // A citation defends a sentence; one with nothing before it to defend is misplaced, and
-    // so is a detached one.
-    fn citation(&self, base: Base, c: &Citation, detached: Option<String>) -> Attestation {
+    // so is a detached one. A file that the page aliases is cited by the file it names.
+    fn citation(&self, base: Base, c: &Citation, title: &str, detached: Option<String>) -> Attestation {
         let error = detached.or_else(|| {
             base.claim.is_empty().then(|| {
                 let hint = "put it at the end of the sentence it defends, or alone on the line above it";
                 format!("test at L{} defends no sentence: {hint}", base.line)
             })
         });
-        let body =
-            Body::Test(Test { file: c.file.clone(), title: c.title.clone(), describes: c.describes.clone() });
+        let (file, alias) = match self.aliases.named(&c.file) {
+            Some(alias) => (alias.file.clone(), Some(alias.name.clone())),
+            None => (c.file.clone(), None),
+        };
+        let body = Body::Test(Test { file, title: title.to_string(), describes: c.describes.clone(), alias });
         self.attestation(base, body, error)
     }
 
@@ -261,74 +343,4 @@ impl Planner<'_> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::api::attestation::{FactTarget, SetFrom};
-
-    fn planned(text: &str) -> Vec<Attestation> {
-        let languages = ["ts".to_string()];
-        let options = ExampleOptions { languages: &languages, ignore_tags: &[], info_words: &[] };
-        plan_page("p.md", text, &options).unwrap_or_else(|e| panic!("{e}")).attestations
-    }
-
-    fn claims(text: &str) -> Vec<(usize, String)> {
-        planned(text).into_iter().map(|a| (a.line, a.claim)).collect()
-    }
-
-    /// What each fact on a page binds, and each citation's error.
-    fn outcomes(text: &str) -> Vec<Result<String, String>> {
-        let outcome = |a: Attestation| match (a.body, a.error) {
-            (_, Some(error)) => Err(error),
-            (Body::Fact(fact), None) => fact.target.map(|t| format!("{t:?}")),
-            (_, None) => Ok("cited".into()),
-        };
-        planned(text).into_iter().map(outcome).collect()
-    }
-
-    #[test]
-    fn a_directive_after_prose_claims_that_prose() {
-        let page =
-            "Plain prose.\n\nDoubling `4` gives `8`. <!-- fact: D -->\n\n## Port `80` <!-- fact: P -->";
-        assert_eq!(claims(page), vec![(3, "Doubling `4` gives `8`.".into()), (5, "Port `80`".into())]);
-    }
-
-    #[test]
-    fn a_block_claims_the_paragraph_before_it_in_its_container() {
-        let page = "Intro.\n\n- Item one.\n  <!-- test: t.ts > \"x\" -->\n- ```ts check\n  x\n  ```\n\n> Quoted.\n>\n> <!-- fact: K -->\n> - `a`";
-        assert_eq!(claims(page), vec![(4, "Item one.".into()), (5, "Intro.".into()), (11, "Quoted.".into())]);
-    }
-
-    #[test]
-    fn a_fact_in_a_cell_claims_the_prose_before_its_table() {
-        let table = "| a |\n|---|\n| `3` <!-- fact: N --> |";
-        assert_eq!(claims(&format!("Limits:\n\n{table}")), vec![(5, "Limits:".into())]);
-        assert_eq!(claims(table), vec![(3, "`3`".into())]);
-    }
-
-    #[test]
-    fn directives_alone_on_the_line_above_a_sentence_claim_it() {
-        let page = "# Agent\n\n<!-- test: a.ts > \"x\" --> <!-- test: b.ts > \"y\" -->\nScripts run\nthe same way. Then more.";
-        let claim = "Scripts run the same way.".to_string();
-        assert_eq!(claims(page), vec![(3, claim.clone()), (3, claim)]);
-        assert_eq!(outcomes(page), [Ok("cited".into()), Ok("cited".into())]);
-    }
-
-    #[test]
-    fn a_fact_alone_on_the_line_above_a_sentence_binds_as_at_its_end() {
-        let scalar = |value: &str| Ok(format!("{:?}", FactTarget::Scalar(value.into())));
-        let page = "<!-- fact: CURRENCY -->\nPrices are in `EUR` unless told otherwise. Not `USD`.";
-        assert_eq!(outcomes(page), [scalar("EUR")]);
-        assert_eq!(claims(page), [(1, "Prices are in `EUR` unless told otherwise.".into())]);
-        let set = FactTarget::Set { items: vec!["a".into(), "b".into()], from: SetFrom::Sentence };
-        assert_eq!(outcomes("<!-- fact: KEYS -->\nKeys are `a`\nand `b`.\n"), [Ok(format!("{set:?}"))]);
-        let list = FactTarget::Set { items: vec!["a".into()], from: SetFrom::List };
-        assert_eq!(outcomes("<!-- fact: KEYS -->\nThe keys:\n\n- `a`\n"), [Ok(format!("{list:?}"))]);
-    }
-
-    #[test]
-    fn a_directive_alone_then_a_blank_line_then_prose_is_an_error_there() {
-        let page = "Intro.\n\n<!-- fact: CURRENCY -->\n\nPrices are in `EUR`.\n\n<!-- test: a.ts > \"x\" -->\n\nMore.";
-        let error = |kind: &str, line: usize| Err(detached_error(kind, line));
-        assert_eq!(outcomes(page), [error("fact", 3), error("test", 7)]);
-    }
-}
+mod tests;

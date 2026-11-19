@@ -45,10 +45,11 @@ fn the_session_carries_what_could_be_read_and_each_fact_over_the_rest_is_an_erro
     let (files, mut attestations) = project(&page, &extra);
     let fact_files = load_fact_files(&files, &attestations);
     assert_eq!(
-        Value::Object(fact_files.read_with(Reader::Manifest)),
-        json!({ "package.json": { "engines": { "node": "22" } }, "./go.mod": { "module": "m", "go": "1.23" } })
+        Value::Object(fact_files.session_params()),
+        json!({ "manifests": {
+            "package.json": { "engines": { "node": "22" } }, "./go.mod": { "module": "m", "go": "1.23" }
+        } })
     );
-    assert_eq!(Value::Object(fact_files.read_with(Reader::File)), json!({}));
     fact_files.refuse_unreadable(&mut attestations);
     let errors: Vec<Option<&str>> = attestations.iter().map(Attestation::problem).collect();
     assert_eq!(
@@ -78,10 +79,9 @@ fn a_file_is_read_as_its_text_and_by_the_same_rules() {
     let (files, mut attestations) = project(&page, &[("Dockerfile", "FROM scratch\nUSER 10001\n")]);
     let fact_files = load_fact_files(&files, &attestations);
     assert_eq!(
-        Value::Object(fact_files.read_with(Reader::File)),
-        json!({ "Dockerfile": "FROM scratch\nUSER 10001\n" })
+        Value::Object(fact_files.session_params()),
+        json!({ "manifests": {}, "texts": { "Dockerfile": "FROM scratch\nUSER 10001\n" } })
     );
-    assert_eq!(Value::Object(fact_files.read_with(Reader::Manifest)), json!({}));
     fact_files.refuse_unreadable(&mut attestations);
     let errors: Vec<Option<&str>> = attestations.iter().map(Attestation::problem).collect();
     assert_eq!(
@@ -117,10 +117,16 @@ impl ProjectFiles for Binary {
 
 #[test]
 fn a_file_that_is_not_utf8_is_refused_not_repaired() {
-    for reader in [Reader::File, Reader::Manifest] {
-        let named = read(&Binary, reader, "logo.png");
-        let why = format!("{} \"logo.png\": not UTF-8 text (invalid byte at offset 5)", reader.name());
-        assert_eq!(named.read, Err(why));
+    let path = || "logo.png".to_string();
+    let calls = [
+        Call::File { path: path() },
+        Call::Manifest { path: path() },
+        Call::Matched { path: path(), pattern: "USER".into() },
+        Call::ManifestField { path: path(), keys: "a".into() },
+    ];
+    for call in calls {
+        let why = format!("{} \"logo.png\": not UTF-8 text (invalid byte at offset 5)", call.function());
+        assert_eq!(read(&Binary, call).read, Err(why));
     }
 }
 
@@ -135,6 +141,10 @@ fn the_readers_of_a_changed_file_are_the_facts_that_name_it() {
         "",
         "D `{` <!-- fact: file(\"p.json\")[0] -->",
         "",
+        "E `1` <!-- fact: manifestField(\"p.json\", \"a\") -->",
+        "",
+        "F `2` <!-- fact: matched(\"./p.json\", \"b.:(\\\\d)\") -->",
+        "",
     ]
     .join("\n");
     let extra = [("p.json", r#"{"a":1,"b":2}"#), ("q.json", r#"{"c":3}"#)];
@@ -145,6 +155,82 @@ fn the_readers_of_a_changed_file_are_the_facts_that_name_it() {
         readers.iter().map(|r| (r.reader, r.file.as_str(), r.fact.line)).collect();
     assert_eq!(
         lines,
-        [(Reader::Manifest, "p.json", 1), (Reader::Manifest, "p.json", 3), (Reader::File, "p.json", 7)]
+        [
+            (Reader::Manifest, "p.json", 1),
+            (Reader::Manifest, "p.json", 3),
+            (Reader::File, "p.json", 7),
+            (Reader::Manifest, "p.json", 9),
+            (Reader::File, "p.json", 11),
+        ]
+    );
+}
+
+#[test]
+fn matched_and_field_carry_their_values_by_path_then_argument() {
+    let page = [
+        "User `10001` <!-- fact: matched(\"Dockerfile\", r\"USER (\\d+)\") -->",
+        "",
+        "Image `node:22` <!-- fact: matched(\"Dockerfile\", `FROM (\\S+)`) -->",
+        "",
+        "Version `0.2.2` <!-- fact: manifestField(\".gitlab-ci.yml\", \"docattest.variables.VERSION\") -->",
+        "",
+        "Replicas `3` <!-- fact: manifestField(\".gitlab-ci.yml\", 'deploy.\"replica count\"') -->",
+        "",
+        "Tags <!-- fact: manifestField(\".gitlab-ci.yml\", \"deploy.tags\") -->",
+        "- `a`",
+        "",
+    ]
+    .join("\n");
+    let ci = "docattest:\n  variables:\n    VERSION: 0.2.2\ndeploy:\n  replica count: 3\n  tags: [a]\n";
+    let extra = [("Dockerfile", "FROM node:22\nUSER 10001\n"), (".gitlab-ci.yml", ci)];
+    let (files, attestations) = project(&page, &extra);
+    let fact_files = load_fact_files(&files, &attestations);
+    assert_eq!(
+        Value::Object(fact_files.session_params()),
+        json!({
+            "manifests": {},
+            "matches": { "Dockerfile": { "USER (\\d+)": "10001", "FROM (\\S+)": "node:22" } },
+            "manifestFields": { ".gitlab-ci.yml": {
+                "docattest.variables.VERSION": "0.2.2", "deploy.\"replica count\"": 3, "deploy.tags": ["a"]
+            } },
+        })
+    );
+}
+
+#[test]
+fn a_call_that_gives_nothing_makes_its_fact_an_error_that_says_why() {
+    let page = [
+        "A `1` <!-- fact: matched(\"Dockerfile\", \"USER (\\\\d+):\") -->",
+        "",
+        "B `1` <!-- fact: matched(\"Dockerfile\", \"USER (\") -->",
+        "",
+        "C `1` <!-- fact: manifestField(\"ci.yml\", \"deploy.version\") -->",
+        "",
+        "D `1` <!-- fact: manifestField(\"ci.yml\", \"deploy..x\") -->",
+        "",
+        "E `1` <!-- fact: matched(\"gone.txt\", \"x\") + manifestField(\"../up.json\", \"x\") -->",
+        "",
+        "F `1` <!-- fact: manifestField(\"Dockerfile\", \"x\") -->",
+        "",
+    ]
+    .join("\n");
+    let extra = [("Dockerfile", "USER 10001\n"), ("ci.yml", "deploy:\n  image: app\n  replicas: 3\n")];
+    let (files, mut attestations) = project(&page, &extra);
+    load_fact_files(&files, &attestations).refuse_unreadable(&mut attestations);
+    let errors: Vec<&str> = attestations.iter().filter_map(Attestation::problem).collect();
+    assert_eq!(errors[0], r#"matched "Dockerfile": "USER (\d+):" matches nothing"#);
+    assert!(
+        errors[1].starts_with(r#"matched "Dockerfile": "USER (" is not a valid regex: "#),
+        "{}",
+        errors[1]
+    );
+    assert_eq!(
+        errors[2..],
+        [
+            r#"manifestField "ci.yml" has no deploy.version: deploy has keys image, replicas"#,
+            r#"manifestField "ci.yml": deploy..x has an empty key"#,
+            r#"matched "gone.txt": no such file"#,
+            r#"manifestField "Dockerfile": not a format docattest reads: JSON (.json), TOML (.toml), YAML (.yaml, .yml) or go.mod"#,
+        ]
     );
 }

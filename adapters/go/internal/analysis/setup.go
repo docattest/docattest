@@ -6,8 +6,9 @@ import (
 	"go/types"
 )
 
-// The setup of a Go project is a package of its module, named in the config by its
-// directory or by one of its files. It may declare
+// The setup of a Go project is a package of its module, or of a module of its own that
+// requires the project's (setupmodule.go), named in the config by its directory or by one
+// of its files. It may declare
 //
 //	var Cases = map[string]func(row map[string]string) error{…}
 //
@@ -25,7 +26,7 @@ func (p *Project) setupPackage() *goPackage {
 
 // SetupImport is the import path of the setup package; empty when it is in no module.
 func (p *Project) SetupImport() string {
-	return p.Module.importPath(p.packageDir(p.Setup))
+	return p.SetupModule.importPath(p.packageDir(p.Setup))
 }
 
 // SetupFound says whether the setup package is there to be imported.

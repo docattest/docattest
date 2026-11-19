@@ -20,6 +20,15 @@ pub const MANIFEST_VERSION: &str = "1.2.0";
 pub const TEXT_FILE: &str = "Dockerfile";
 pub const TEXT: &str = "FROM scratch\nUSER 10001\n";
 
+/// A regex a fact matches in that file with `matched`, and what it matches.
+pub const PATTERN: &str = "USER ([0-9]+)";
+pub const PATTERN_MATCHES: &str = "10001";
+
+/// A field of the manifest that a fact reads with `manifestField`, and its value: an
+/// integer, which every language displays as it does a constant's.
+pub const FIELD: &str = "limits.size";
+pub const FIELD_VALUE: u64 = 1_048_576;
+
 /// The greeting every conversation starts with.
 pub fn hello() -> Value {
     request(1, "hello", json!({ "protocol": crate::adapter::PROTOCOL }))
@@ -95,6 +104,8 @@ impl<'a> Requests<'a> {
             "snapshots": { "data": {} },
             "manifests": { MANIFEST: { "version": MANIFEST_VERSION } },
             "texts": { TEXT_FILE: TEXT },
+            "matches": { TEXT_FILE: { PATTERN: PATTERN_MATCHES } },
+            "manifestFields": { MANIFEST: { FIELD: FIELD_VALUE } },
             "examples": examples,
         });
         if let Some(setup) = &self.kit.setup {

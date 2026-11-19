@@ -1,11 +1,14 @@
 ---
 title: Why
+docattest: prose
 ---
 
 # Why
 
 Rationale for the design, kept apart from the pages that make claims so that it can
-stay general and therefore stay true. This page is expected to appear as uncovered.
+stay general and therefore stay true. It has nothing to prove, so its frontmatter marks it as
+[prose](pages.md#a-page-with-nothing-to-prove-is-prose): checked, and never reported as
+uncovered.
 
 ## Why execution and not change detection
 

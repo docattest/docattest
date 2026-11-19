@@ -4,6 +4,8 @@ import (
 	"go/ast"
 	"go/build/constraint"
 	"go/token"
+	"maps"
+	"path/filepath"
 	"slices"
 
 	"github.com/docattest/docattest/adapters/go/internal/toolchain"
@@ -39,6 +41,33 @@ func (pkg *goPackage) docsNames() map[string]Declares {
 		if isDocsFile(file) {
 			for _, d := range declarations(file) {
 				out[d.Name] = d.What
+			}
+		}
+	}
+	return out
+}
+
+// DocsHelperFile is a docs helper file of a surface's package in the project's module.
+type DocsHelperFile struct {
+	Surface string
+	// Path is the file's absolute path, and Page its path relative to the project root.
+	Path, Page string
+}
+
+// DocsHelperFiles are the docs helper files of the surfaces whose packages are in the
+// project's module, surface by surface in the config's order, each surface's in the order
+// of their names. A package of another module is not the project's to vet.
+func (p *Project) DocsHelperFiles() []DocsHelperFile {
+	out := []DocsHelperFile{}
+	for _, found := range p.surfaces {
+		pkg := p.tree().at(found.Dir)
+		if found.Dir == "" || pkg == nil || !within(p.Module.Dir, found.Dir) {
+			continue
+		}
+		for _, name := range slices.Sorted(maps.Keys(pkg.Files)) {
+			if isDocsFile(pkg.Files[name]) {
+				path := filepath.Join(found.Dir, name)
+				out = append(out, DocsHelperFile{Surface: found.Name, Path: path, Page: p.rel(path)})
 			}
 		}
 	}

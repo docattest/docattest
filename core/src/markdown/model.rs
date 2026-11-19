@@ -161,25 +161,42 @@ impl FirstSentence {
     }
 }
 
-/// The directive keyword of an opening that never closes.
+/// A directive's keyword: the word a docattest directive starts with. The one list of them,
+/// which finding a directive and finding one left unclosed both read.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Keyword {
     Fact,
     Cases,
     Test,
+    /// A test file alias, `<!-- tests: <name> = <file> -->`.
+    Tests,
 }
 
 impl Keyword {
+    pub const ALL: [Keyword; 4] = [Keyword::Fact, Keyword::Cases, Keyword::Test, Keyword::Tests];
+
     pub fn as_str(self) -> &'static str {
         match self {
             Keyword::Fact => "fact",
             Keyword::Cases => "cases",
             Keyword::Test => "test",
+            Keyword::Tests => "tests",
         }
+    }
+
+    /// The keyword a word is, if it is one.
+    pub fn named(word: &str) -> Option<Keyword> {
+        Keyword::ALL.into_iter().find(|k| k.as_str() == word)
+    }
+
+    /// Whether the keyword opens a directive only with a colon after it: `test` and `tests`
+    /// are words of prose too (`<!-- testing -->`, `<!-- tests pending -->`).
+    pub fn needs_colon(self) -> bool {
+        matches!(self, Keyword::Test | Keyword::Tests)
     }
 }
 
-/// A `<!-- fact`, `<!-- cases` or `<!-- test:` opening that never closes.
+/// A `<!-- fact`, `<!-- cases`, `<!-- test:` or `<!-- tests:` opening that never closes.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Unclosed {
     pub keyword: Keyword,
@@ -196,11 +213,22 @@ pub struct CodeRef {
     pub block: usize,
 }
 
+/// What a page's frontmatter declares about it with its `docattest` key.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum Declared {
+    #[default]
+    Nothing,
+    /// `docattest: false`: the page is never checked.
+    Frozen,
+    /// `docattest: prose`: the page is checked, and has nothing to prove.
+    Prose,
+}
+
 /// A parsed page.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Page {
-    /// Frontmatter that parses as YAML and says `docattest: false`.
-    pub frozen: bool,
+    /// What its frontmatter declares, when it parses as YAML.
+    pub declared: Declared,
     /// Every block-level node in document order, nested ones included. Binding and claims
     /// look here.
     pub flow: Vec<Block>,
@@ -215,6 +243,11 @@ pub struct Page {
 }
 
 impl Page {
+    /// Whether its frontmatter freezes it.
+    pub fn is_frozen(&self) -> bool {
+        self.declared == Declared::Frozen
+    }
+
     /// Whether the block at `index` is an HTML block of directives: one the page's comments
     /// sit in, which a reader never sees, and not prose.
     pub fn is_only_comments(&self, index: usize) -> bool {

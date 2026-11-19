@@ -80,6 +80,22 @@ class Environment:
             )
         return texts[path]
 
+    def matched(self, path: str, pattern: str) -> str:
+        # The core matches a regex, and looks up a field, only when a fact writes both
+        # arguments out.
+        found = self.settings["matches"].get(path, {})
+        if pattern not in found:
+            raise LookupError(_not_read("matched", path, pattern))
+        return found[pattern]
+
+    def manifestField(self, path: str, keys: str) -> object:
+        import copy
+
+        found = self.settings["manifest_fields"].get(path, {})
+        if keys not in found:
+            raise LookupError(_not_read("manifestField", path, keys))
+        return copy.deepcopy(found[keys])
+
     def fresh_main(self, filename: str) -> dict[str, object]:
         main = types.ModuleType("__main__")
         main.__file__ = filename
@@ -109,6 +125,11 @@ class Environment:
             del sys.modules[SETUP_MODULE]
             raise
         return module
+
+
+def _not_read(name: str, path: str, argument: str) -> str:
+    call = "%s(%r, %r)" % (name, path, argument)
+    return "%s was not read: write both arguments out in the fact itself, as string literals" % call
 
 
 class _AliasFinder:

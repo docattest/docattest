@@ -32,6 +32,27 @@ impl Placement<'_> {
             Placement::Detached => None,
         }
     }
+
+    /// The placement by line, owning nothing of the page.
+    pub fn placed(&self) -> Placed {
+        match self {
+            Placement::Written(_) => Placed::Written,
+            Placement::Above(at) => Placed::Above { line: at.line },
+            Placement::Detached => Placed::Detached,
+        }
+    }
+}
+
+/// Where a directive takes effect, by line, as [`Placement`] decides it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Placed {
+    Written,
+    /// Alone above a paragraph or heading: as if written at the end of its first sentence,
+    /// which ends on `line`.
+    Above {
+        line: usize,
+    },
+    Detached,
 }
 
 /// Where `directive`, written as `comment`, takes effect. Only a directive that attests a
@@ -81,7 +102,7 @@ fn attests_a_sentence(directive: &Directive) -> bool {
     match directive {
         Directive::Test(_) => true,
         Directive::Fact(fact) => fact.column.is_none() && fact.field.is_none(),
-        Directive::Cases { .. } | Directive::Invalid { .. } => false,
+        Directive::Cases { .. } | Directive::Alias(_) | Directive::Invalid { .. } => false,
     }
 }
 

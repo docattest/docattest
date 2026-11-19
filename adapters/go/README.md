@@ -16,11 +16,15 @@ This package is what a Go user installs. It provides two commands:
   Go. You do not run it yourself. It speaks [the adapter protocol](../../protocol/PROTOCOL.md),
   version `1`. <!-- fact: Hello().Protocol -->
 
-Both are Go programs. Beyond the standard library they import one module,
-`golang.org/x/tools`, <!-- fact: regexp.MustCompile(`(?m)^require (\S+) `).FindStringSubmatch(file("go.mod"))[1] -->
-whose `go/packages` lists your project's packages, as gopls does; `go/types` checks them. Your project needs a
-`go` command (1.21 or later) on the `PATH`, as it does to be built: packages are listed
-and examples and facts compiled by it. Node and Python are never needed.
+Both are Go programs. Beyond the standard library they import two modules: <!-- fact: Requirements(file("go.mod")) -->
+- `golang.org/x/mod`
+- `golang.org/x/tools`
+
+The `go/packages` of `golang.org/x/tools` lists your project's packages, as gopls does, and
+`go/types` checks them; the `modfile` of `golang.org/x/mod` reads your `go.mod` files. Your
+project needs a `go` command (1.21 or later) on the `PATH`, as it does to be built:
+packages are listed and examples and facts compiled by it. Node and Python are never
+needed.
 
 On recent macOS, use Go 1.23 or later, or set `CGO_ENABLED=0`. Every program docattest
 builds imports `net` (to keep examples off the network), and an earlier Go links such a
@@ -161,11 +165,12 @@ docs/shipping.md
   use of the interface, not of the types that implement it: which method runs is known only
   when the program runs, and the code that made the value names its type where it made it. <!-- test: internal/analysis/symbols_test.go > "TestSymbolsAreResolvedByType" -->
 - **The module** is the nearest `go.mod` at or above the first surface that names a path,
-  else at or above the project root. One project is one module.
+  else at or above the project root. One project is one module, and its setup package may
+  be a second ([a setup module](docs/cases.md#a-setup-module)).
 - **`sources`** are the Go files whose testable examples are checked
   ([examples](docs/examples.md#testable-examples-in-source-files)).
-- **`setup`** is a package of the module, named by its directory or one of its files, with
-  the runners of cases tables and what facts may use by name.
+- **`setup`** is a package of the module, or a module of its own, named by its directory or
+  one of its files, with the runners of cases tables and what facts may use by name.
 
 ## A page
 
@@ -283,7 +288,8 @@ directories are left out by the core itself.
 
 ## Limits
 
-- One module per project: the generated programs are compiled in it.
+- One module per project, and at most a setup module beside it: the generated programs are
+  compiled in the project's module, or in a workspace of the two.
 - A method called through an interface counts for the interface, in the index and in
   `impact`, and not for what implements it: a change to an implementation affects the
   exports that make a value of its type, not those that only call through the interface. <!-- test: internal/analysis/affected_test.go > "TestAffectedFollowsWhatNamesResolveTo" -->

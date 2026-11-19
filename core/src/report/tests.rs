@@ -8,7 +8,9 @@ fn pages(n: usize) -> Vec<String> {
 
 fn report(uncovered: Vec<String>, frozen: Vec<String>) -> Report {
     let living = uncovered.len() + 1;
-    let coverage = Coverage { living, covered: 1, uncovered, frozen, attestations: 1, weak: 0, cited: 0 };
+    let prose = Vec::new();
+    let coverage =
+        Coverage { living, covered: 1, uncovered, prose, frozen, attestations: 1, weak: 0, cited: 0 };
     let (surfaces, snapshots, warnings) = (Vec::new(), Vec::new(), Vec::new());
     Report { results: Vec::new(), coverage, surfaces, snapshots, warnings, exit_code: 0, changes: None }
 }
@@ -47,8 +49,29 @@ fn the_coverage_line_counts_proofs_and_citations_apart_and_their_sum() {
 #[test]
 fn coverage_counts_the_results_of_living_pages_only() {
     let counts = HashMap::from([("docs/a.md".to_string(), 3), ("snapshots/broken.json".to_string(), 1)]);
-    let coverage = coverage_for(&["docs/a.md".into()], &[], &counts, 0, 1);
+    let pages = PageSets { living: &["docs/a.md".into()], prose: &[], frozen: &[] };
+    let coverage = coverage_for(pages, &counts, 0, 1);
     assert_eq!((coverage.attestations, coverage.proofs(), coverage.cited), (3, 2, 1));
+}
+
+#[test]
+fn a_prose_page_without_results_is_counted_apart_from_the_uncovered() {
+    let living = ["docs/a.md", "docs/guide.md", "docs/notes.md", "docs/plain.md"].map(String::from);
+    let prose = ["docs/guide.md", "docs/notes.md"].map(String::from);
+    let counts = HashMap::from([("docs/a.md".to_string(), 2), ("docs/notes.md".to_string(), 1)]);
+    let coverage = coverage_for(PageSets { living: &living, prose: &prose, frozen: &[] }, &counts, 0, 0);
+    assert_eq!((coverage.living, coverage.covered), (4, 2));
+    assert_eq!(
+        (coverage.uncovered.clone(), coverage.prose.clone()),
+        (vec!["docs/plain.md".into()], vec!["docs/guide.md".into()])
+    );
+    let mut r = report(Vec::new(), Vec::new());
+    r.coverage = coverage;
+    assert!(r.format(Detail::Full).contains(", 1 uncovered, 1 prose, 0 frozen\n"));
+    assert_eq!(r.to_json()["coverage"]["prose"], json!(["docs/guide.md"]));
+    let none = report(Vec::new(), Vec::new());
+    assert!(none.format(Detail::Full).contains(", 0 uncovered, 0 frozen\n"));
+    assert!(none.to_json()["coverage"].get("prose").is_none());
 }
 
 #[test]

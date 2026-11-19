@@ -7,7 +7,8 @@ title: Pages, living and frozen
 `docattest.config.json` names the pages to check. Pages matched by `pages` and not by
 `frozen` are *living* and are parsed for attestations. Frozen pages are listed in the
 report and never parsed. A living page with nothing to run is *uncovered*: reported, not
-failed, so adoption can be incremental.
+failed, so adoption can be incremental, unless it is marked as *prose*, a page with nothing
+to prove.
 
 ## A living page with no attestations is uncovered, not failing
 
@@ -121,6 +122,61 @@ const report = await createProject({
 
 assert.deepEqual(report.coverage.frozen, ['docs/history.md']);
 assert.equal(report.results.length, 0);
+```
+
+## A page with nothing to prove is prose
+
+Some living pages hold only guidance: an index of the docs, a contributing guide. Calling
+one uncovered says a proof is missing when none could be written, and freezing it says
+"never check this", which is not what is meant either. `prose` in the config, globs of
+pages as `frozen` takes, or `docattest: prose` in a page's frontmatter, marks such a page.
+It stays living: a directive on it still runs, and `audit` still reads it. It is never
+reported as uncovered: the report object lists it under `prose`, which it has only when some
+page is prose, and the coverage line counts it apart from the uncovered and the frozen.
+
+```ts check
+import { createProject } from 'docattest';
+
+const project = createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], prose: ['docs/README.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': `export const N = 3;\nexport const REGIONS = ['eu', 'us', 'uk'];`,
+    'docs/README.md': '# Docs\n\nWe ship to:\n\n- `eu`\n- `us`\n- `uk`\n',
+    'docs/contributing.md': '---\ndocattest: prose\n---\n# Contributing\n\nOpen an issue first.\n',
+    'docs/guide.md': 'N is `3`. <!-- fact: N -->',
+    'docs/todo.md': 'Not written yet.',
+  },
+});
+
+const report = await project.check();
+assert.deepEqual(report.coverage.prose, ['docs/README.md', 'docs/contributing.md']);
+assert.deepEqual(report.coverage.uncovered, ['docs/todo.md']);
+assert.equal(report.coverage.living, 4);
+assert.equal(report.coverage.covered, 1);
+
+const { suggestions } = await project.audit();
+assert.deepEqual(suggestions.map((s) => [s.page, s.line]), [['docs/README.md', 5]]);
+```
+
+A page marked as prose that gains a proof is covered like any other page, and its marker
+becomes a warning, since it now says something false about the page. A warning never fails
+the check.
+
+```ts check
+import { createProject } from 'docattest';
+
+const report = await createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], prose: ['docs/guide.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': `export const N = 3;`,
+    'docs/guide.md': 'N is `4`. <!-- fact: N -->',
+  },
+}).check();
+
+assert.equal(report.results[0].status, 'fail');
+assert.equal(report.coverage.covered, 1);
+assert.equal(report.coverage.prose, undefined);
+assert.deepEqual(report.warnings, ['docs/guide.md is marked as prose but has 1 attestation: take it out of "prose" in the config']);
 ```
 
 ## A check can be limited to some pages

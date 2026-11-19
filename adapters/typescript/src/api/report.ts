@@ -20,6 +20,11 @@ export interface Coverage {
   living: number;
   covered: number;
   uncovered: string[];
+  /**
+   * Living pages marked as having nothing to prove (`prose` in the config, or frontmatter
+   * `docattest: prose`) that carry no attestation. Only when there are some.
+   */
+  prose?: string[];
   frozen: string[];
   /** Results on living pages, one per attestation or row of a cases table: `proofs + cited`. */
   attestations: number;

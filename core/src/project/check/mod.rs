@@ -14,9 +14,8 @@ use super::state::State;
 use crate::adapter::Pending;
 use crate::api::attestation::{Attestation, Body, Kind};
 use crate::api::errors::{Error, Result};
-use crate::fact_files::calls::Reader;
 use crate::report::order::by_page_and_line;
-use crate::report::{Outcome, Report, SurfaceCoverage, coverage_for, exit_code_for, order_results};
+use crate::report::{Outcome, PageSets, Report, SurfaceCoverage, coverage_for, exit_code_for, order_results};
 use crate::text::compare_utf16;
 use checker::Checker;
 use exports_split::split_exports;
@@ -78,13 +77,7 @@ pub(crate) fn open(state: &State, network: Network, examples: &[&Attestation]) -
     params.insert("workers".into(), json!(state.config.workers));
     params.insert("network".into(), json!(network == Network::Allowed));
     params.insert("snapshots".into(), Value::Object(snapshots));
-    params.insert("manifests".into(), Value::Object(state.fact_files.read_with(Reader::Manifest)));
-    // Only when a fact reads a file as text: an adapter that predates `file` is then sent
-    // nothing new for a project that does not use it.
-    let texts = state.fact_files.read_with(Reader::File);
-    if !texts.is_empty() {
-        params.insert("texts".into(), Value::Object(texts));
-    }
+    params.extend(state.fact_files.session_params());
     params.insert("examples".into(), examples.iter().map(|a| a.to_json()).collect());
     state.adapter.send("open", Value::Object(params))
 }
@@ -168,11 +161,11 @@ pub fn run_check(state: &State, network: Network, selected: &HashSet<String>) ->
     checker.symbols = parse_symbols(symbols_answer.wait()?)?;
     let checked = checker.check(&chosen, started, compiled)?;
     let mut all = state.snapshots.errors.clone();
-    all.extend(checked);
+    all.extend(checked.into_iter().flatten());
     let results = order_results(all);
+    let pages = PageSets { living: &state.living, prose: &state.prose, frozen: &state.frozen };
     let coverage = coverage_for(
-        &state.living,
-        &state.frozen,
+        pages,
         &result_counts(state, &results, selected),
         state.attestations.iter().filter(|a| matches!(&a.body, Body::Example(e) if e.weak) && a.ok()).count(),
         // A broken citation is still a citation: its error is counted among the attestations,
@@ -278,6 +271,18 @@ fn resolved(surface: &str, resolution: &Value) -> Result<()> {
 
 fn truthy(v: &Value) -> bool {
     !matches!(v, Value::Null | Value::Bool(false)) && v.as_str() != Some("")
+}
+
+/// The results of `chosen`, each attestation's in a list of its own, in the order given, as
+/// `check` would give them. Nothing is compiled, so `chosen` holds no example.
+pub fn results_of(state: &State, network: Network, chosen: &[&Attestation]) -> Result<Vec<Vec<Outcome>>> {
+    let opened = open(state, network, &[]);
+    let mut checker = Checker::new(state, network);
+    let started = checker.start(chosen);
+    let symbols = symbols_request(state);
+    opened.wait()?;
+    checker.symbols = parse_symbols(symbols.wait()?)?;
+    checker.check(chosen, started, None)
 }
 
 /// Queries parse and resolve symbols but never run anything, so the session compiles nothing.

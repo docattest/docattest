@@ -14,7 +14,8 @@ The carriers: <!-- fact @shipping: Carriers -->
 
 It may use the surface's exports, its constants and literal variables (below), the
 exported names of its docs helper files (below), the exported names of the setup package,
-the builtins, `snapshot("name")`, `manifest("path")`, `file("path")`, and any package of
+the builtins, `snapshot("name")`, `manifest("path")`, `file("path")`,
+`matched("path", "regex")`, `manifestField("path", "keys")`, and any package of
 the standard library that is imported by one word (`strings.ToUpper(DefaultCurrency)`,
 `len(TaxRates)`): a fact cannot `import`. An expression has one value; put a function that
 returns a value and an error behind a helper in the setup package.
@@ -100,8 +101,9 @@ not the `1.048576e+06` of a `float64`), and any other number a `float64` (`1.0` 
 to the adapter (the [manifests](../../../docs/manifests.md) page has the formats, `go.mod`
 among them). It is a `map[string]any`, so a field is one index away, as the version at the
 top of the [guide](../README.md#install) reads it: `manifest("go.mod")["go"]`. <!-- test: internal/running/running_test.go > "TestEvaluateShowsValuesAsGoPrintsThem" -->
-A deeper field needs a type assertion (`.(map[string]any)`). The path is relative to the
-project root and written out in the fact: a path built at run time is never read.
+A deeper field needs a type assertion (`.(map[string]any)`), or `manifestField` (below).
+The path is relative to the project root and written out in the fact: a path built at run
+time is never read.
 A number of a manifest or a snapshot is as Go holds a value written so, as a data block's
 is: of the display cases in this adapter's conformance kit, the fourth is `1048576`, <!-- fact: manifest("conformance.json")["display"].([]any)[3].(map[string]any)["value"] -->
 an `int64`, where the `float64` that `encoding/json` reads would print `1.048576e+06`;
@@ -111,6 +113,28 @@ a number not written as an integer is a `float64`. <!-- test: internal/running/r
 for the `strings` and `regexp` packages:
 ``regexp.MustCompile(`USER (\d+)`).FindStringSubmatch(file("Dockerfile"))[1]`` reads the
 user a `Dockerfile` runs as. This module's license is read so: it is `MIT`. <!-- fact: regexp.MustCompile(`^(\w+) License`).FindStringSubmatch(file("LICENSE"))[1] -->
+
+`matched("path", "regex")` and `manifestField("path", "keys")` take one value out of a
+file in one call, worked out by the core as for every language
+([manifests](../../../docs/manifests.md#one-value-of-a-file-in-one-call)). `matched` is a
+`string`: the text of the regex's first group in its first match, with `^` and `$` at the
+ends of each line. `manifestField` is the value at a path of keys of a manifest, written
+as `field=` writes one, an `any` held as the values of `manifest` are, so it needs no type
+assertion: a string, an `int64` or a `float64`, a `bool`, `<nil>`, a `[]any` or a
+`map[string]any`. <!-- test: internal/running/running_test.go > "TestMatchedAndFieldAreWhatTheCoreWorkedOutHeldAsGoHoldsThem" -->
+A regex is written as a raw string, as `regexp` takes one. Read so, this module's license
+is `MIT`, <!-- fact: matched("LICENSE", `^(\w+) License`) -->
+and the fourth display case of its conformance kit is `1048576`, <!-- fact: manifestField("conformance.json", "display.3.value") -->
+an `int64`. <!-- fact: fmt.Sprintf("%T", manifestField("conformance.json", "display.3.value")) -->
+The facts they replace:
+
+```markdown
+<!-- fact: regexp.MustCompile(`USER (\d+):`).FindStringSubmatch(file("Dockerfile"))[1] -->
+<!-- fact: matched("Dockerfile", `USER (\d+):`) -->
+
+<!-- fact: manifest(".gitlab-ci.yml")["docattest"].(map[string]any)["variables"].(map[string]any)["DOCATTEST_VERSION"] -->
+<!-- fact: manifestField(".gitlab-ci.yml", "docattest.variables.DOCATTEST_VERSION") -->
+```
 
 ## Variables read from source
 
@@ -258,6 +282,26 @@ $ go list -f '{{.GoFiles}} {{.IgnoredGoFiles}}' ./sandbox
 [sandbox.go] [sandbox_docattest.go]
 $ go list -tags docattest -f '{{.GoFiles}}' ./sandbox
 [sandbox.go sandbox_docattest.go]
+```
+
+So `check` vets them itself. It runs `go vet -tags docattest` on each surface package that
+has a docs helper file, and gives what vet finds in those files as a warning of the
+surface, with the file and the line. What vet finds in the package's other files is left
+to your own vet. <!-- test: internal/running/vet_test.go > "TestVetReportsWhatItFindsInDocsHelperFiles" -->
+Helpers that vet finds nothing in add nothing to the report. <!-- test: internal/running/vet_test.go > "TestCleanDocsHelpersSayNothing" -->
+A warning leaves the exit code as it is: the protocol carries no failure outside a page's
+proofs. To have CI fail on a helper, give your own tools the tag. In CI, run vet with it:
+
+```console check cwd=testdata/fixture
+$ go vet -tags docattest ./...
+```
+
+For golangci-lint, set it in `.golangci.yml`:
+
+```yaml
+run:
+  build-tags:
+    - docattest
 ```
 
 The sandbox's exports are `Refuses`, `Env`, and the values `Shell`, `ShellEnv` and

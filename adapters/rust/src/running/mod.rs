@@ -23,6 +23,24 @@ pub(crate) struct Snapshots {
     pub(crate) data: Value,
 }
 
+/// What the core read of the project files facts name, as `open` gives it and generated
+/// programs are told it, each by the arguments as the facts write them.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct FactFiles {
+    /// The data of each manifest the facts name.
+    pub(crate) manifests: Value,
+    /// The text of each file the facts read with `file`; absent when none does.
+    #[serde(default)]
+    pub(crate) texts: Value,
+    /// What each regex facts give `matched` matches, by the path, then the regex.
+    #[serde(default)]
+    pub(crate) matches: Value,
+    /// The value of each field facts read with `manifestField`, by the path, then the keys.
+    #[serde(default)]
+    pub(crate) manifest_fields: Value,
+}
+
 /// How a session's programs are run.
 pub(crate) struct Limits {
     pub(crate) timeout_ms: f64,
@@ -37,10 +55,7 @@ pub(crate) struct Runner {
     analysis: Arc<Analysis>,
     limits: Limits,
     snapshots: Snapshots,
-    /// The data of each manifest the facts name, by the path as they write it.
-    manifests: Value,
-    /// The text of each file the facts read with `file`, by the path as they write it.
-    texts: Value,
+    fact_files: FactFiles,
     slots: Slots,
     blocks: Blocks,
     /// The program that runs the rows of any table: the same for every table.
@@ -54,16 +69,14 @@ impl Runner {
         analysis: Arc<Analysis>,
         limits: Limits,
         snapshots: Snapshots,
-        manifests: Value,
-        texts: Value,
+        fact_files: FactFiles,
     ) -> Self {
         Runner {
             analysis,
             slots: Slots { free: Mutex::new(limits.workers.max(1)), freed: Condvar::new() },
             limits,
             snapshots,
-            manifests,
-            texts,
+            fact_files,
             blocks: Blocks::default(),
             cases: OnceLock::new(),
             building: Mutex::new(()),

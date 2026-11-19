@@ -7,6 +7,7 @@ import type { CheckOptions, Project, ProjectInput } from '../api/project.js';
 import type { Report } from '../api/report.js';
 import {
   asAudit,
+  asExplanation,
   asImpact,
   asIndex,
   asInventory,
@@ -37,6 +38,10 @@ export function createProject(input: ProjectInput): Project {
   return {
     check: (options = {}) => check(place, run, options),
     index: async () => asIndex(await query(['index', '--json'])),
+    explain: async (page, line) => {
+      const target = line === undefined ? page : `${page}:${line}`;
+      return asExplanation(await query(['explain', '--json', '--', target]));
+    },
     where: async (symbol) => asReferences(await query(['where', '--json', '--', symbol])),
     uncovered: async (surface = 'default') =>
       asNames(await query(['uncovered', '--json', `--surface=${surface}`])),

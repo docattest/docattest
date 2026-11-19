@@ -125,6 +125,7 @@ func (p *Project) installed(importPath string) string {
 		Path: toolchain.GoCommand(),
 		Args: []string{"list", "-f", "{{.Dir}}", importPath},
 		Dir:  p.Module.Dir,
+		Env:  p.Workspace.Environment(),
 	})
 	if listed.Code != 0 {
 		return ""
@@ -197,11 +198,16 @@ func (p *Project) DocsHelpers(found *Surface) map[string]Declares {
 }
 
 // DescribeSurfaces answers `describeSurfaces`: where each surface resolved, and what is
-// wrong with it.
+// wrong with it. The protocol has no warning of the project's own, so the warnings about
+// its go.mod files go with the first surface the config names.
 func (p *Project) DescribeSurfaces() map[string]protocol.SurfaceDescription {
 	out := map[string]protocol.SurfaceDescription{}
-	for _, found := range p.surfaces {
-		out[found.Name] = p.describe(found)
+	for k, found := range p.surfaces {
+		described := p.describe(found)
+		if k == 0 {
+			described.Warnings = append(described.Warnings, p.versionWarnings()...)
+		}
+		out[found.Name] = described
 	}
 	return out
 }

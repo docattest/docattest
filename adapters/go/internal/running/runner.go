@@ -30,6 +30,13 @@ type Options struct {
 	// Texts are the text of each file the facts read with `file`, by the path as they
 	// write it, as `open` gives them and generated programs are told them.
 	Texts json.RawMessage
+	// Matches are what each regex facts give `matched` matches, by the path, then the
+	// regex, as they write them, as `open` gives them and generated programs are told them.
+	Matches json.RawMessage
+	// Fields are the value of each field facts read with `manifestField`, by the path,
+	// then the keys, as they write them, as `open` gives them (`manifestFields`) and
+	// generated programs are told them.
+	Fields json.RawMessage
 }
 
 // Snapshots are the project's snapshots, as `open` gives them and generated programs
@@ -70,7 +77,7 @@ func New(project *analysis.Project, options Options, examples []protocol.Example
 	r := &Runner{
 		project: project,
 		options: options,
-		gotool:  &toolchain.Go{Module: project.Module.Dir, Work: options.Work},
+		gotool:  &toolchain.Go{Module: project.Module.Dir, Work: options.Work, Workspace: project.Workspace},
 		slots:   make(chan struct{}, options.Workers),
 	}
 	r.blocks.start(r, examples)

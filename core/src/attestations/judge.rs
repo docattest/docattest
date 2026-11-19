@@ -122,6 +122,7 @@ mod tests {
             file: "t.test.ts".into(),
             title: title.into(),
             describes: describes.iter().map(|s| s.to_string()).collect(),
+            alias: None,
         };
         let words = Vocabulary { untitled: "(computed title)".into(), ..Vocabulary::default() };
         judge_citation(&t, &listing, &words).unwrap()
@@ -144,7 +145,7 @@ mod tests {
 
     #[test]
     fn the_words_are_the_adapters_and_a_broken_listing_is_its_bug() {
-        let t = Test { file: "t.py".into(), title: "T".into(), describes: Vec::new() };
+        let t = Test { file: "t.py".into(), title: "T".into(), describes: Vec::new(), alias: None };
         let listing = json!({ "ok": true, "tests": [], "suites": [{ "title": "T", "describes": [], "line": 1, "kind": "a class" }] });
         let (status, message) = judge_citation(&t, &listing, &Vocabulary::default()).unwrap();
         assert_eq!(

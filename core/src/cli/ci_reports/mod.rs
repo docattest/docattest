@@ -106,6 +106,7 @@ pub(super) mod tests {
             living: 1,
             covered: 1,
             uncovered: vec![],
+            prose: vec![],
             frozen: vec![],
             attestations: results.len(),
             weak: 0,

@@ -162,6 +162,31 @@ FAILED
 [exit 1]
 ```
 
+In a project with [prose pages](pages.md#a-page-with-nothing-to-prove-is-prose), pages
+marked as having nothing to prove, the coverage line counts them too, between the
+uncovered and the frozen, and never names them.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-prose-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md'], prose: ['docs/README.md', 'docs/contributing.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
+put('src/index.ts', 'export const N = 3;');
+put('docs/README.md', '# Docs');
+put('docs/contributing.md', '# Contributing');
+put('docs/a.md', 'N is `3`. <!-- fact: N -->');
+put('docs/todo.md', 'Not written yet.');
+// ---cut---
+const out = spawnSync(process.execPath, [cli, 'check', '--root', root], { encoding: 'utf8' }).stdout;
+assert.match(out, /, 1 covered \(.*\), 1 uncovered, 2 prose, 0 frozen\n {2}uncovered: docs\/todo\.md\n/);
+```
+
 ## Coverage counts proofs and citations apart
 
 The coverage line gives the number of attestations on the living pages, a cases table

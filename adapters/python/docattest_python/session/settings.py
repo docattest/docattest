@@ -27,5 +27,10 @@ class SessionSettings:
     manifests: dict[str, object]
     #: The text of each file the facts read with ``file``, by the path as they write it.
     texts: dict[str, str]
+    #: What each regex facts give ``matched`` matches, by the path, then the regex, as written.
+    matches: dict[str, dict[str, str]]
+    #: The value of each field facts read with ``manifestField``, by the path, then the keys,
+    #: as written.
+    manifest_fields: dict[str, dict[str, object]]
     #: Every example the session may be asked about, in page order.
     examples: list[Example]

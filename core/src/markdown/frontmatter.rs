@@ -1,12 +1,15 @@
-//! Frontmatter: whether a page freezes itself with `docattest: false`.
+//! Frontmatter: what a page declares about itself with its `docattest` key.
 //!
-//! A page is frozen when its frontmatter is one YAML 1.2 document (core schema, unique
-//! keys) whose top level is a mapping with `docattest` set to `false`. Invalid YAML leaves
-//! the page living: failing to freeze is the safe direction. Only that one question is
-//! answered here, from yaml-rust2's events.
+//! A page declares something when its frontmatter is one YAML 1.2 document (core schema,
+//! unique keys) whose top level is a mapping with a `docattest` key: `false` freezes it, and
+//! the string `prose` says it has nothing to prove. Invalid YAML declares nothing, which
+//! leaves the page living and checked: failing to freeze is the safe direction. Only that one
+//! question is answered here, from yaml-rust2's events.
 
 use yaml_rust2::parser::{Event, Parser};
 use yaml_rust2::scanner::TScalarStyle;
+
+use super::model::Declared;
 
 enum Yaml {
     Scalar { value: String, plain: bool, tag: Option<String> },
@@ -25,12 +28,25 @@ enum Resolved {
     String(String),
 }
 
-/// Whether frontmatter text is valid YAML holding a mapping with `docattest: false`.
-pub fn freezes(text: &str) -> bool {
-    match parse(text) {
-        Some(Yaml::Map(entries)) => entries.iter().any(|(key, value)| {
-            matches!(key, Yaml::Scalar { value, tag: None, .. } if value == "docattest") && is_false(value)
-        }),
+/// What frontmatter text declares: `docattest: false` or `docattest: prose` in a mapping of
+/// valid YAML, else nothing.
+pub fn declared(text: &str) -> Declared {
+    let Some(Yaml::Map(entries)) = parse(text) else { return Declared::Nothing };
+    let is_key = |key: &Yaml| matches!(key, Yaml::Scalar { value, tag: None, .. } if value == "docattest");
+    match entries.iter().find(|(key, _)| is_key(key)).map(|(_, value)| value) {
+        Some(value) if is_false(value) => Declared::Frozen,
+        Some(value) if is_prose(value) => Declared::Prose,
+        _ => Declared::Nothing,
+    }
+}
+
+/// The string `prose`, quoted or not.
+fn is_prose(node: &Yaml) -> bool {
+    match node {
+        Yaml::Scalar { value, tag: None, .. } => value == "prose",
+        Yaml::Scalar { value, tag: Some(tag), .. } => {
+            (tag == "tag:yaml.org,2002:str" || tag == "!!str") && value == "prose"
+        }
         _ => false,
     }
 }
@@ -203,6 +219,10 @@ fn looks_decimal(digits: &str) -> bool {
 mod tests {
     use super::*;
 
+    fn freezes(text: &str) -> bool {
+        declared(text) == Declared::Frozen
+    }
+
     #[test]
     fn freezing() {
         assert!(freezes("docattest: false\ntitle: x"));
@@ -213,5 +233,15 @@ mod tests {
         assert!(!freezes("docattest: false\ndocattest: false"));
         assert!(!freezes(""));
         assert!(!freezes("- docattest: false"));
+    }
+
+    #[test]
+    fn a_page_with_nothing_to_prove_says_prose() {
+        assert_eq!(declared("title: Guide\ndocattest: prose"), Declared::Prose);
+        assert_eq!(declared("docattest: 'prose'"), Declared::Prose);
+        assert_eq!(declared("docattest: !!str prose"), Declared::Prose);
+        assert_eq!(declared("docattest: Prose"), Declared::Nothing);
+        assert_eq!(declared("docattest: [prose]"), Declared::Nothing);
+        assert_eq!(declared("docattest: prose\ndocattest: prose"), Declared::Nothing);
     }
 }

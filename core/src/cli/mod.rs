@@ -10,6 +10,7 @@ mod check;
 mod ci_reports;
 pub mod command;
 mod conformance;
+mod explain;
 mod git_hook;
 mod hook;
 pub(crate) mod hooks;
@@ -45,11 +46,12 @@ struct Invocation<'a> {
 type Command = fn(&Invocation, &mut Io) -> Result<i32>;
 
 /// The subcommands, by name.
-const COMMANDS: [(&str, Command); 12] = [
+const COMMANDS: [(&str, Command); 13] = [
     ("check", check_command),
     ("where", |run, io| where_(run.args, run.root, run.options, io)),
     ("uncovered", |run, io| uncovered(run.root, run.options, io)),
     ("index", |run, io| index(run.root, run.options, io)),
+    ("explain", |run, io| explain::explain(run.args, run.root, run.options, io)),
     ("refresh", |run, io| refresh::refresh(run.args, run.root, io)),
     ("skill", |run, io| skill::skill(run.args, run.root, run.options, io)),
     ("audit", |run, io| audit::audit(run.root, run.options, io)),

@@ -31,7 +31,7 @@ const defaultTestTimeoutMs = 2000
 
 func open(t *testing.T, how opening) *Runner {
 	t.Helper()
-	config := analysis.Config{Root: fixture(t), Surfaces: how.surfaces, Setup: "docs/docattest_setup.go"}
+	config := analysis.Config{Root: fixture(t), Surfaces: how.surfaces, Setup: "docs/docattest_setup.go", Work: t.TempDir()}
 	if how.files != nil {
 		config.Root, config.InMemory = written(t, how.files), true
 	}
@@ -50,6 +50,8 @@ func open(t *testing.T, how opening) *Runner {
 		Snapshots: Snapshots{Dir: "docs/.snapshots", Data: json.RawMessage(`{"regions": ["NL", "DE"], "sizes": [3000000, 1.5]}`)},
 		Manifests: json.RawMessage(`{"go.mod": {"module": "example.com/shop", "go": "1.23"}, "config.json": {"limits": {"bytes": 1048576}, "ratio": 1.0}}`),
 		Texts:     json.RawMessage(`{"Dockerfile": "FROM golang:1.23\nUSER 10001\n"}`),
+		Matches:   json.RawMessage(`{"Dockerfile": {"^USER (\\d+)$": "10001"}}`),
+		Fields:    json.RawMessage(`{"ci.yml": {"deploy.variables.VERSION": "0.2.2", "deploy.replicas": 3, "deploy.ratio": 1.5, "deploy.debug": null}}`),
 	}
 	runner := New(project, options, nil)
 	t.Cleanup(runner.Wait)
@@ -222,6 +224,34 @@ func TestNumbersOfSnapshotsAndManifestsAreAsGoHoldsThem(t *testing.T) {
 	values := map[string]string{"integer": "1048576", "integerType": "int64", "float": "1", "floatType": "float64", "snapshot": "[3000000 1.5]"}
 	for id, text := range values {
 		if !got[id].OK || got[id].Value.Text != text {
+			t.Errorf("%s: got %+v", id, got[id])
+		}
+	}
+}
+
+func TestMatchedAndFieldAreWhatTheCoreWorkedOutHeldAsGoHoldsThem(t *testing.T) {
+	r := open(t, opening{})
+	got := r.Evaluate([]protocol.Fact{
+		fact("matched", "matched(\"Dockerfile\", `^USER (\\d+)$`)"),
+		fact("string", `manifestField("ci.yml", "deploy.variables.VERSION")`),
+		fact("integerType", `fmt.Sprintf("%T", manifestField("ci.yml", "deploy.replicas"))`),
+		fact("floatType", `fmt.Sprintf("%T", manifestField("ci.yml", "deploy.ratio"))`),
+		fact("null", `manifestField("ci.yml", "deploy.debug")`),
+		fact("unreadMatch", `matched("Dockerfile", "USER")`),
+		fact("unreadField", `manifestField("ci.yml", "deploy.image")`),
+	})
+	values := map[string]string{"matched": "10001", "string": "0.2.2", "integerType": "int64", "floatType": "float64", "null": "<nil>"}
+	for id, text := range values {
+		if !got[id].OK || got[id].Value.Text != text {
+			t.Errorf("%s: got %+v", id, got[id])
+		}
+	}
+	messages := map[string]string{
+		"unreadMatch": `panicked: matched("Dockerfile", "USER") was not read: write both arguments out in the fact itself, as string literals`,
+		"unreadField": `panicked: manifestField("ci.yml", "deploy.image") was not read`,
+	}
+	for id, message := range messages {
+		if got[id].OK || !strings.Contains(got[id].Message, message) {
 			t.Errorf("%s: got %+v", id, got[id])
 		}
 	}

@@ -53,13 +53,15 @@ and one of these statuses: <!-- fact: STATUSES -->
 - `skipped`
 
 Each kind has its own page: [examples](examples.md), [facts](facts.md), [cases](cases.md),
-[snapshots](snapshots.md), [citations](citations.md). [Manifests](manifests.md) covers facts
+[snapshots](snapshots.md), [citations](citations.md), with their
+[shorthands](citation-shorthands.md). [Manifests](manifests.md) covers facts
 over project files such as `package.json` or a `Dockerfile`; [commands and sample pages](console.md) covers
 the examples docattest runs itself, whatever the language. [Pages](pages.md) covers what is
 checked at all, [surfaces](surfaces.md) what examples and facts may import, [duality](duality.md) the
 code-to-docs index, [report](report.md) the output and exit codes, [the command
 line](cli.md) the commands, [adapters](adapters.md) the language boundary, and
-[protocol](protocol.md) how the core talks to an adapter. [Audit](audit.md)
+[protocol](protocol.md) how the core talks to an adapter. [Explain](explain.md) says what a
+directive binds and why. [Audit](audit.md)
 finds claims nobody has attested yet, [inventory](inventory.md) lists what a fact could
 read, [changes](changes.md) judges what a change did to the
 attestations, and [impact](impact.md) goes from a code diff to the prose it touches.

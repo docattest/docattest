@@ -140,7 +140,7 @@ published as JSON Schema (draft 2020-12) in `protocol/schema/`, which is their d
 | `attestations.json` | the attestations the core sends: `ExampleAttestation`, `FactAttestation`, `CasesAttestation`, `TestAttestation` and their parts |
 | `language.json` | what a language says of itself: `Hello`, `SourceFiles`, `Vocabulary`, and its answers about text (`DocProse`, `ExpressionShape`) |
 | `results.json` | what a project answers: `Result`, `Diagnostic`, `Evaluation`, `Observation`, `Observable`, `SymbolRef`, `TestListing` |
-| `project.json` | the project as `open` describes it: its surfaces (`ConfiguredSurface`, `SurfaceDescription`), its snapshots, its manifests and the texts of the files facts read |
+| `project.json` | the project as `open` describes it: its surfaces (`ConfiguredSurface`, `SurfaceDescription`), its snapshots, its manifests, the texts of the files facts read, and what facts match and read in them (`Matches`, `ManifestFields`) |
 | `kit.json` | an adapter's conformance kit (`Kit`, §5), which the conformance suite reads; it never crosses the pipe |
 
 They use a small part of JSON Schema (`type`, `properties`, `required`,
@@ -358,6 +358,8 @@ before `display` existed is asked nothing new.
   "snapshots": { "dir": "docs/.snapshots", "data": { "regions": [] } },
   "manifests": { "package.json": { "engines": { "node": ">=22.12" } } },
   "texts": { "Dockerfile": "FROM node:22\nUSER 10001\n" },
+  "matches": { "Dockerfile": { "^USER (\\d+)$": "10001" } },
+  "manifestFields": { ".gitlab-ci.yml": { "deploy.variables.VERSION": "0.2.2" } },
   "examples": [] }
 ```
 
@@ -396,6 +398,27 @@ a failure whose message names it. A file that cannot be read never reaches the a
 a manifest never does. `texts` is absent when no fact reads a file this way, and an adapter
 reads its absence as no files, so an adapter written before `file` existed is sent nothing
 new for a project that does not use it.
+
+`matches` are what fact expressions match in a file with `matched("<path>", "<regex>")`,
+and `manifestFields` the values they read with `manifestField("<path>", "<keys>")`, each
+by the path and then by the second argument, as the expression writes them. The core works
+out both, so the regex flavour and the path syntax are the core's in every language: a
+match is the text of the regex's first group in its first match, or of the whole match
+when it has no group, with `^` and `$` at the ends of each line and each `\r\n` read as
+`\n`; a field is the value at a path of keys written as `field=` writes one, any JSON
+value. The adapter gives fact expressions a function `matched` that returns the match as
+the language's string and a function `manifestField` that returns the value in the
+language's own kind of value, as `manifest` does, and evaluates a call the session does
+not have to a failure whose message names both arguments. A call that gives nothing (no
+match, no such field, a file that cannot be read) never reaches the adapter: the core
+reports each fact that makes it as an `error`. Both are absent when no fact makes such a
+call, and an adapter reads an absence as none.
+
+The core reads only arguments written out as string literals, whose value it can know
+without the language: a raw literal (`r"…"`, `r'…'`, `r#"…"#`, `` `…` ``) is its text, and
+a quoted one may escape only a backslash (`\\`) and its own quote. Any other escape means
+something different in each language, so a call with one names nothing, and the adapter's
+failure says the call was not read.
 
 | method | params | result |
 |--------|--------|--------|
@@ -477,8 +500,10 @@ language it has never heard of.
 What stays in the core is what is the same in every language: Markdown, directives and
 their syntax, the comparison of values as text, git, hidden directories as tool state, and
 the file formats manifests are written in. The one thing the core finds in an expression is
-docattest's own calls `manifest("<path>")` and `file("<path>")`, as text, so that it can
-read the file before anything runs. A rule that would have to be written twice belongs in the core.
+docattest's own calls `manifest("<path>")`, `file("<path>")`,
+`matched("<path>", "<regex>")` and `manifestField("<path>", "<keys>")`, as text, so that
+it can read the file, and match or look up what they ask for, before anything runs.
+A rule that would have to be written twice belongs in the core.
 
 A base revision (`check --base`) is read with the adapter of the working tree, whatever
 adapter the config committed there named: one adapter process serves one invocation.

@@ -147,6 +147,23 @@ export class Params {
     return ok ? (value as Record<string, string>) : this.fail(name, 'a map of strings');
   }
 
+  /** An object whose values are all objects. */
+  objects(name: string): Record<string, JsonObject> {
+    const value = this.object(name);
+    const ok = Object.values(value).every(isObject);
+    return ok ? (value as Record<string, JsonObject>) : this.fail(name, 'a map of objects');
+  }
+
+  /** An object whose values are all objects whose values are all strings. */
+  textMaps(name: string): Record<string, Record<string, string>> {
+    const value = this.objects(name);
+    const texts = (map: JsonObject) => Object.values(map).every((v) => typeof v === 'string');
+    const ok = Object.values(value).every(texts);
+    return ok
+      ? (value as Record<string, Record<string, string>>)
+      : this.fail(name, 'a map of maps of strings');
+  }
+
   /** An object whose values are strings or null. */
   textOrNullMap(name: string): Record<string, string | null> {
     const value = this.object(name);

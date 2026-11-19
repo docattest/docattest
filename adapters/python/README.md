@@ -337,7 +337,8 @@ The rates: <!-- fact column=rate: [f"{r}%" for r in TAX_RATES.values()] -->
 ```
 
 It may use the exports, the constants (below), the builtins, `snapshot("name")`,
-`manifest("path")`, `file("path")`, the named facts of the setup module, and any
+`manifest("path")`, `file("path")`, `matched("path", "regex")`,
+`manifestField("path", "keys")`, the named facts of the setup module, and any
 standard-library module by its name (`math.pi`, `inspect.signature(f).parameters`): a fact
 cannot `import`. It may `await`.
 
@@ -391,6 +392,16 @@ the fact: a path built at run time is never read.
 `file("path")` is the text of any other project file, a `str`, read by the same rules, for
 the methods of `str` and for `re`: the script that runs the adapter from a checkout names
 its interpreter `python3`. <!-- fact: re.match(r"#!/usr/bin/env (\S+)", file("bin/docattest-adapter-python"))[1] -->
+
+`matched("path", "regex")` and `manifestField("path", "keys")` take one value out of a
+file in one call, worked out by the core as for every language
+([manifests](../../docs/manifests.md#one-value-of-a-file-in-one-call)): `matched` is a
+`str`, the text of the regex's first group in its first match, with `^` and `$` at the
+ends of each line; `manifestField` is the value at a path of keys of a manifest, written
+as `field=` writes one, as `manifest` gives its values: `str`, `int` or `float`, `bool`,
+`None`, `list` or `dict`. <!-- test: tests/test_protocol.py > "Values" > "test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes" -->
+A regex is written as a raw string, as `re` takes one: the same script names `python3`, <!-- fact: matched("bin/docattest-adapter-python", r"^#!/usr/bin/env (\S+)") -->
+and the distribution is `docattest`. <!-- fact: manifestField("pyproject.toml", "project.name") -->
 
 The page's literal is compared with `str(value)`: a value is displayed as its language
 displays it, and the core knows no spelling of its own. So write values the way Python
