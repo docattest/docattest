@@ -148,9 +148,8 @@ class Fixture(unittest.TestCase):
                 "package": {"name": "shoplib", "version": "1.2.3", "display": "shoplib 1.2.3"},
             },
         )
-        self.assertEqual(
-            report["surfaces"]["shipping"]["unattested"], ["Carrier", "ROUTES", "fetch_rates", "quote"]
-        )
+        # A fact over CARRIERS attests Carrier, which CARRIERS is computed from.
+        self.assertEqual(report["surfaces"]["shipping"]["unattested"], ["ROUTES", "fetch_rates", "quote"])
 
     def test_the_true_pages_alone_exit_zero(self):
         code, out, err = core("check", "docs/pricing.md", "docs/shipping.md", "src/shoplib/pricing.py")

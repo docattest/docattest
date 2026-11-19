@@ -154,6 +154,14 @@ only exports. <!-- test: adapters/typescript/test/unit/language/run/facts.test.t
 So `impact` lists a change to such a constant as it lists a change to an export, with the
 facts that read it. <!-- test: adapters/typescript/test/unit/language/run/facts.test.ts > "a constant a fact reads" > "is listed by `impact` when it changes, with the facts that read it" -->
 
+A value holds the values of the names its initializer uses, so a fact that reads it attests
+them too, at any depth: a fact over `ENV`, built from `COMMAND_PATH`, attests
+`COMMAND_PATH`. A private constant used there is credited for `where`, and `uncovered`
+leaves it out. A named fact and a cases runner attest the same of the values they read. A
+function's body is not followed: a fact over `total()` attests `total`, not the names its
+body reads. <!-- test: adapters/typescript/test/unit/language/symbols.test.ts > "a fact that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" --> <!-- test: adapters/typescript/test/unit/language/symbols.test.ts > "a named fact that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" --> <!-- test: adapters/typescript/test/unit/language/symbols.test.ts > "a cases runner that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" -->
+`impact` lists the fact when one of those names changes. <!-- test: adapters/typescript/test/unit/language/symbols.test.ts > "a fact that reads a value built from other names" > "is listed by `impact` when one of those names changes" -->
+
 A value that is not a constant, such as a `Set` the module builds, is read only by loading
 a module that exports it: no other module, the setup module included, can reach a module's
 private names. A module of the package exports such a value when the package's other

@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- A value holds the values of the names its initializer uses, so a fact that reads a constant
+  or a variable, directly, through a setup or docs helper, or in a cases runner, attests those
+  names too, at any depth, in every language: a fact over `ENV`, built from `COMMAND_PATH`,
+  attests `COMMAND_PATH`, so `where` lists the fact, `uncovered` no longer lists the name, and
+  `impact` lists the fact when it changes. A private constant used there is credited for
+  `where` and never listed by `uncovered`. A function's body is not followed: a fact over
+  `total()` attests `total`, not what its body reads. A value only re-exported from another
+  module is not followed in TypeScript and Python.
+- A fact that calls a docs helper attests the private constants and literal variables the
+  helper reads, so `where` lists the fact under them, and the surface's functions the helper
+  calls, by name, without following their bodies (Go and Rust).
+
 ## [0.2.1] - 2026-11-19
 
 ### Added

@@ -49,3 +49,58 @@ describe('a fact that calls a named fact of the setup module', () => {
     expect(impact.references.map((r) => [r.symbol, r.line])).toEqual([['COMMAND_PATH', 1]]);
   });
 });
+
+// ENV is built from COMMAND_PATH, itself built from BIN, and from a constant the module keeps
+// private. `total` reads LIMIT in its body, which calling it does not attest.
+const VALUES = {
+  ...FILES,
+  'src/index.ts': [
+    'const STDERR_OFFSET = 2;',
+    "export const BIN = '/bin';",
+    'export const COMMAND_PATH = `${BIN}/run`;',
+    'export const ENV = [`PATH=${COMMAND_PATH}`, `STDERR=${STDERR_OFFSET}`];',
+    'export const LIMIT = 3;',
+    'export const total = (): number => LIMIT;',
+  ].join('\n'),
+  'docs/docattest.setup.ts': [
+    "import { ENV } from 'docattest-fixture';",
+    'export const facts = { env: () => ENV };',
+    'export const cases = {',
+    '  env: (row: { line: string }) => {',
+    '    if (!ENV.includes(row.line)) throw new Error(`${row.line} is not set`);',
+    '  },',
+    '};',
+  ].join('\n'),
+};
+const LIST = ['', '- `PATH=/bin/run`', '- `STDERR=2`', ''];
+const PROOFS: [string, string[]][] = [
+  ['a fact', ['The command runs with: <!-- fact: ENV -->', ...LIST]],
+  ['a named fact', ['The command runs with: <!-- fact: env() -->', ...LIST]],
+  ['a cases runner', ['<!-- cases: env -->', '| line |', '|---|', '| PATH=/bin/run |', '']],
+];
+
+describe.each(PROOFS)('%s that reads a value built from other names', (_, page) => {
+  const files = {
+    ...VALUES,
+    'docs/a.md': [...page, 'At most `3`. <!-- fact: total() -->'].join('\n'),
+  };
+
+  it('attests the names its initializer uses, at any depth, private ones too', async () => {
+    const project = createProject({ files });
+    expect((await project.check()).results.map((r) => r.status)).toEqual(['pass', 'pass']);
+    const names = ['ENV', 'COMMAND_PATH', 'BIN', 'STDERR_OFFSET', 'LIMIT'];
+    const where = await Promise.all(names.map((s) => project.where(s)));
+    expect(where.map((refs) => refs.map((r) => r.line))).toEqual([[1], [1], [1], [1], []]);
+    expect(await project.uncovered()).toEqual(['LIMIT']);
+  });
+
+  it('is listed by `impact` when one of those names changes', async () => {
+    const changed = { ...files, 'src/index.ts': files['src/index.ts'].replace("'/bin'", "'/opt'") };
+    const impact = await createProject({ files: changed }).impact({ baseFiles: files });
+    expect(impact.references.map((r) => [r.symbol, r.line])).toEqual([
+      ['BIN', 1],
+      ['COMMAND_PATH', 1],
+      ['ENV', 1],
+    ]);
+  });
+});

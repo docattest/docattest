@@ -24,14 +24,24 @@ export function expressionProblem(expression: string): string | undefined {
 
 /** Free identifiers of an expression: not property names, not its own parameters. */
 export function expressionIdentifiers(expression: string): string[] {
+  return referencedNames(parseSource('fact.ts', wrap(expression)), () => true);
+}
+
+/**
+ * Names the code at `root` refers to, once each: not property names, bindings or the
+ * parameters of a function in it. A node, `root` included, is looked into only when
+ * `enters` says so.
+ */
+export function referencedNames(root: ts.Node, enters: (node: ts.Node) => boolean): string[] {
   const names: string[] = [];
   const visit = (node: ts.Node) => {
+    if (!enters(node)) return;
     if (ts.isIdentifier(node) && !isBindingOrMember(node) && !isParameter(node)) {
       names.push(node.text);
     }
     ts.forEachChild(node, visit);
   };
-  visit(parseSource('fact.ts', wrap(expression)));
+  visit(root);
   return unique(names);
 }
 

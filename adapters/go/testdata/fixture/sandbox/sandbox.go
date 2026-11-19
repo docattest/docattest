@@ -18,6 +18,20 @@ var forbiddenCaps = []capability{
 // sessionEnv is what a sandboxed command's environment adds to its parent's.
 var sessionEnv = []string{"LANG=C.UTF-8", "TZ=UTC"}
 
+// Shell is the shell a sandboxed command runs in.
+const Shell = "/bin/sh"
+
+// ShellEnv is the variable of a sandboxed command's environment that names its shell. It
+// is the only code that uses Shell, so a page that reads it attests Shell.
+var ShellEnv = []string{"SHELL=" + Shell}
+
+// MaxOpenFiles is how many files a sandboxed command may hold open.
+const MaxOpenFiles = 64
+
+// limits are the resource limits of a sandboxed command, by name. They are the only code
+// that uses MaxOpenFiles, so a page that reads them attests MaxOpenFiles.
+var limits = map[string]int{"nofile": MaxOpenFiles}
+
 // Refuses says whether a sandboxed command is refused a capability.
 func Refuses(name string) bool {
 	for _, c := range forbiddenCaps {

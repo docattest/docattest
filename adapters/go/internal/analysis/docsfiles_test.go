@@ -34,17 +34,17 @@ func TestADocsHelperFileHoldsOnlyWithTheDocsTag(t *testing.T) {
 func TestADocsHelperIsNoExportAndAttestsWhatItUses(t *testing.T) {
 	p := readFixture(t, entries("sandbox", "./sandbox")...)
 	of := p.SurfaceNamed("sandbox")
-	if exports, _ := p.ExportsOf(of); strings.Join(exports, " ") != "Refuses Env" {
+	if exports, _ := p.ExportsOf(of); strings.Join(exports, " ") != "Shell ShellEnv MaxOpenFiles Refuses Env" {
 		t.Errorf("exports: got %v", exports)
 	}
 	if importable := p.Importable(of); !importable["ForbiddenCapNames"] || !importable["Refuses"] {
 		t.Errorf("importable: got %v", importable)
 	}
 	cases := map[string]string{
-		// A docs helper is attested itself, and what it uses: forbiddenCaps is no export,
-		// and is attested only by a fact that reads it.
-		"ForbiddenCapNames()": "sandbox:ForbiddenCapNames",
-		"len(forbiddenCaps) + len(SessionEnvNames()) + len(Env(nil))": "sandbox:forbiddenCaps sandbox:SessionEnvNames sandbox:Env",
+		// A docs helper is attested itself, and what it uses: forbiddenCaps and sessionEnv
+		// are no exports, and are attested as a fact that reads them attests them.
+		"ForbiddenCapNames()": "sandbox:ForbiddenCapNames sandbox:forbiddenCaps",
+		"len(forbiddenCaps) + len(SessionEnvNames()) + len(Env(nil))": "sandbox:forbiddenCaps sandbox:SessionEnvNames sandbox:sessionEnv sandbox:Env",
 	}
 	for expression, want := range cases {
 		found, err := symbolsOf(p, protocol.Attestation{Kind: protocol.KindFact, Surface: "sandbox", Expression: expression})
@@ -54,15 +54,55 @@ func TestADocsHelperIsNoExportAndAttestsWhatItUses(t *testing.T) {
 	}
 }
 
-func TestADocsHelperCreditsTheExportsItUses(t *testing.T) {
+func TestADocsHelperCreditsWhatItReads(t *testing.T) {
 	root := written(t, map[string]string{
-		"go.mod":         "module example.com/tool\n\ngo 1.21\n",
-		"guard/guard.go": "package guard\n\ntype Capability struct{ Name string }\n\nvar forbidden = []Capability{{Name: \"CAP_SYS_ADMIN\"}}\n\nfunc Unused() {}\n",
-		"guard/docs.go":  "//go:build docattest\n\npackage guard\n\nfunc Names() (out []string) {\n\tfor _, c := range forbidden {\n\t\tout = append(out, c.Name)\n\t}\n\treturn out\n}\n",
+		"go.mod": "module example.com/tool\n\ngo 1.21\n",
+		"guard/guard.go": `package guard
+
+type Capability struct{ Name string }
+
+var forbidden = []Capability{{Name: "SYS_ADMIN"}}
+
+const Limit = 3
+
+const Prefix = "CAP_"
+
+func Allowed(name string) bool { return len(name) < Limit }
+`,
+		// A docs helper's own code is followed into the helpers of its docs files, and not
+		// into the functions of the surface's ordinary files.
+		"guard/docs.go": `//go:build docattest
+
+package guard
+
+func Names() (out []string) {
+	for _, c := range forbidden {
+		out = append(out, name(c))
+	}
+	return out
+}
+
+func name(c Capability) string { return Prefix + c.Name }
+
+func AllowedNames() (out []string) {
+	for _, n := range Names() {
+		if Allowed(n) {
+			out = append(out, n)
+		}
+	}
+	return out
+}
+`,
 	})
 	p := read(t, Config{Root: root, InMemory: true, Surfaces: entries("guard", "./guard")})
-	found, err := symbolsOf(p, protocol.Attestation{Kind: protocol.KindFact, Surface: "guard", Expression: "Names()"})
-	if got := names(found); err != nil || got != "guard:Names guard:Capability" {
-		t.Fatalf("got %q, %v", got, err)
+	cases := map[string]string{
+		"Names()":        "guard:Names guard:forbidden guard:Capability guard:Prefix",
+		"AllowedNames()": "guard:AllowedNames guard:Allowed guard:forbidden guard:Capability guard:Prefix",
+	}
+	for expression, want := range cases {
+		found, err := symbolsOf(p, protocol.Attestation{Kind: protocol.KindFact, Surface: "guard", Expression: expression})
+		if got := names(found); err != nil || got != want {
+			t.Errorf("%s: got %q, %v, want %q", expression, got, err, want)
+		}
 	}
 }

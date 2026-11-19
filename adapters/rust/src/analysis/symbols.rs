@@ -5,7 +5,10 @@
 //! a shorter name stand for such a path, and a glob import of a surface's module, or
 //! code written in that module's own file, reaches its exports by their bare names. A
 //! cases runner, and a function of the setup module or a docs helper that a fact calls,
-//! also names what the items of its own file that it calls name ([`reached`]).
+//! also names what the items of its own file that it calls name ([`reached`]). A constant
+//! a fact or a runner reads holds the values its initializer uses, so it names those
+//! items of its module too, at any depth through other constants; a function it calls is
+//! named, and its body is not followed.
 
 use super::Analysis;
 use super::modules::use_leaves;
@@ -54,6 +57,16 @@ impl Refs<'_> {
     fn add(&mut self, name: &str, surface: &Surface) {
         if (self.collected)(surface, name) {
             self.record(name, surface);
+        }
+    }
+
+    /// Records a name a value of a surface is read through: an export, or a constant of
+    /// its module read from source, which no one can import.
+    fn read(&mut self, name: &str, surface: &Surface) {
+        if self.analysis.read_from_source(surface, name) {
+            self.record(name, surface);
+        } else {
+            self.add(name, surface);
         }
     }
 
@@ -165,14 +178,9 @@ impl Analysis {
     /// helpers and the setup module's functions it calls reach, and the paths it writes.
     fn fact_symbols(&self, refs: &mut Refs, fact: &Attestation) {
         let names = text::identifiers(&fact.expression);
-        // A fact attests the constants it reads from source too, which no one can import.
         if let Some(surface) = self.surface(&fact.surface) {
             for &name in &names {
-                if self.read_from_source(surface, name) {
-                    refs.record(name, surface);
-                } else {
-                    refs.add(name, surface);
-                }
+                refs.read(name, surface);
             }
             self.helper_symbols(refs, surface, &names);
         }
@@ -184,11 +192,14 @@ impl Analysis {
             .collect();
         self.setup_symbols(refs, &called);
         refs.collect(&fact.expression, None, None);
+        self.initializer_symbols(refs);
     }
 
-    /// What the docs helpers a fact calls reach through the items of their module that are
-    /// no export: the fact attests each helper, and the constants they read, as it attests
-    /// those it reads itself, with the exports they use.
+    /// What the docs helpers a fact calls reach through the other docs helpers and the
+    /// unexported constants of their module: the fact attests each of those, the exports
+    /// they use, and the functions of the module they call. A docs helper is glue, so its
+    /// body is followed; an ordinary function's is not, as that of a function a fact calls
+    /// is not.
     fn helper_symbols(&self, refs: &mut Refs, surface: &Surface, names: &[&str]) {
         let called: Vec<String> = names
             .iter()
@@ -200,13 +211,18 @@ impl Analysis {
         }
         let Some(items) = self.module_items(surface) else { return };
         let module = syn::File { shebang: None, attrs: Vec::new(), items };
-        let attested =
-            |name: &String| self.read_from_source(surface, name) || self.docs_helper(surface, name).is_some();
-        for item in reached(&module.items, &called, &|name| !self.exported(surface, name)) {
-            if let Some((name, _)) = named(item).filter(|(name, _)| attested(name)) {
+        let followed =
+            |name: &str| self.read_from_source(surface, name) || self.docs_helper(surface, name).is_some();
+        let functions: Vec<String> = module.items.iter().filter_map(function_name).collect();
+        for item in reached(&module.items, &called, &followed) {
+            if let Some((name, _)) = named(item) {
                 refs.record(&name, surface);
             }
-            refs.collect(&item.to_token_stream().to_string(), Some(&module), surface.file());
+            let code = item.to_token_stream().to_string();
+            for name in called_names(&code).iter().filter(|name| functions.contains(name)) {
+                refs.record(name, surface);
+            }
+            refs.collect(&code, Some(&module), surface.file());
         }
     }
 
@@ -238,7 +254,38 @@ impl Analysis {
             .flat_map(|cases| runner_names(&cases, runner))
             .collect();
         self.setup_symbols(refs, &named);
+        self.initializer_symbols(refs);
     }
+
+    /// What the constants found so far are initialized with: the exports and constants of
+    /// their module that their initializers name, at any depth through other constants.
+    fn initializer_symbols(&self, refs: &mut Refs) {
+        let found = refs.found.clone();
+        for symbol in &found {
+            let Some(surface) = self.surface(&symbol.surface) else { continue };
+            for name in self.initialized_with(surface, &symbol.name) {
+                refs.read(&name, surface);
+            }
+        }
+    }
+}
+
+/// The name of an item that is a function.
+fn function_name(item: &syn::Item) -> Option<String> {
+    match item {
+        syn::Item::Fn(function) => Some(function.sig.ident.to_string()),
+        _ => None,
+    }
+}
+
+/// The names some code calls: each identifier written right before `(`.
+fn called_names(code: &str) -> Vec<String> {
+    let tokens = text::tokens(code).unwrap_or_default();
+    let calls = tokens.windows(2).filter_map(|pair| match pair {
+        [Token::Ident(name), open] if open.text() == "(" => Some(name.clone()),
+        _ => None,
+    });
+    calls.collect()
 }
 
 /// The functions a CASES list gives for a runner's name: the identifier that follows

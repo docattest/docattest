@@ -61,9 +61,9 @@ func (pkg *goPackage) literalVariable(name string) (LiteralVariable, error) {
 	return LiteralVariable{Object: object, Value: value, Info: pkg.Info}, nil
 }
 
-// initializer is the expression a spec gives one of the variables it declares: its own,
-// or the one call that gives them all; nil when it gives none.
-func initializer(spec *ast.ValueSpec, object *types.Var) ast.Expr {
+// initializer is the expression a spec gives one of the values it declares: its own, or
+// the one call that gives them all; nil when it gives none.
+func initializer(spec *ast.ValueSpec, object types.Object) ast.Expr {
 	switch {
 	case len(spec.Values) == 1:
 		return spec.Values[0]

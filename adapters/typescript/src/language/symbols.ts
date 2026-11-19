@@ -36,9 +36,39 @@ export class SymbolResolver {
   /** Symbols of one attestation, each attributed to the surface it was reached through. */
   of(attestation: Attestation): SymbolRef[] {
     if (attestation.kind === 'example') return this.example(attestation);
-    if (attestation.kind === 'fact') return attestation.expression ? this.fact(attestation) : [];
     if (attestation.kind === 'test') return this.citation(attestation);
-    return this.cases(attestation);
+    return this.withInitializerNames(this.read(attestation));
+  }
+
+  /** What a fact or a cases runner reads of the surfaces. */
+  private read(proof: FactAttestation | CasesAttestation): SymbolRef[] {
+    if (proof.kind === 'cases') return this.cases(proof);
+    return proof.expression ? this.fact(proof) : [];
+  }
+
+  // A value holds the values of the names its initializer uses, so a proof that reads it
+  // attests those too, at any depth. A function's body is not followed: calling it reads
+  // what it returns, not what it is made of.
+  private withInitializerNames(refs: readonly SymbolRef[]): SymbolRef[] {
+    const used = refs.flatMap((r) =>
+      r.surface === undefined ? [] : this.initializerNames(r.name, r.surface),
+    );
+    return dedupe([...refs, ...used]);
+  }
+
+  /** The names of a surface a fact may attest that `name`'s initializer uses, at any depth. */
+  private initializerNames(name: string, surface: string): SymbolRef[] {
+    const uses = this.declarations.initializerUses(surface);
+    const reached = new Set<string>();
+    const queue = [name];
+    for (let next = queue.pop(); next !== undefined; next = queue.pop()) {
+      const unseen = (uses.get(next) ?? []).filter((n) => n !== name && !reached.has(n));
+      for (const n of unseen) reached.add(n);
+      queue.push(...unseen);
+    }
+    return [...reached]
+      .filter((n) => this.attestable(surface, n))
+      .map((n) => ({ name: n, surface }));
   }
 
   private citation(t: TestAttestation): SymbolRef[] {
@@ -69,15 +99,19 @@ export class SymbolResolver {
   private fact(f: FactAttestation): SymbolRef[] {
     const identifiers = expressionIdentifiers(f.expression);
     const exported = new Set(this.compiler.exports(f.surface) ?? []);
-    // A constant a fact reads from source is attested as an export is, exported or not.
-    const declared = this.declarations.of(f.surface);
     const direct = identifiers
-      .filter((n) => exported.has(n) || declared.get(n)?.kind === 'constant')
+      .filter((n) => this.attestable(f.surface, n))
       .map((name) => ({ name, surface: f.surface }));
     const helpers = this.setupKeys('facts').filter(
       (k) => identifiers.includes(k) && !exported.has(k),
     );
     return dedupe([...direct, ...helpers.flatMap((h) => this.helper('facts', h))]);
+  }
+
+  // A constant a fact reads from source is attested as an export is, exported or not.
+  private attestable(surface: string, name: string): boolean {
+    const exported = this.compiler.exports(surface)?.includes(name) ?? false;
+    return exported || this.declarations.of(surface).get(name)?.kind === 'constant';
   }
 
   private cases(c: CasesAttestation): SymbolRef[] {

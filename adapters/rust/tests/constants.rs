@@ -200,7 +200,10 @@ fn a_fact_attests_the_constants_it_reads() {
         fact("binary", "LISTEN", "shopd"),
     ]);
     let found = workspace.call("symbols", json!({ "attestations": attestations }));
-    assert_eq!(project::surface_names(&found["lib"]), ["default:PORT", "default:MAX_DISCOUNT"]);
+    assert_eq!(
+        project::surface_names(&found["lib"]),
+        ["default:PORT", "default:MAX_DISCOUNT", "default:BASE_PORT"]
+    );
     assert_eq!(project::surface_names(&found["binary"]), ["shopd:LISTEN"]);
     let affected = |file: &str, now: &str, was: &str| {
         project::affected(&workspace.session, &workspace.root, file, now, was).join(" ")

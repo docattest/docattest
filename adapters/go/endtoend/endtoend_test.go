@@ -108,7 +108,7 @@ var statuses = map[string][]verdict{
 	},
 	"docs/sandbox.md": {
 		{3, "fact", "pass"}, {7, "fact", "pass"}, {11, "fact", "pass"}, {13, "fact", "pass"}, {17, "fact", "pass"},
-		{19, "fact", "pass"}, {23, "fact", "pass"},
+		{19, "fact", "pass"}, {23, "fact", "pass"}, {25, "fact", "pass"}, {27, "fact", "pass"},
 	},
 	"shop_test.go": {{10, "example", "pass"}, {17, "example", "pass"}},
 }
@@ -134,13 +134,19 @@ func TestCheckTheFixture(t *testing.T) {
 }
 
 func TestTheIndexAndTheAudit(t *testing.T) {
-	// ErrorCodes is read by a helper of the setup package that a fact calls, and the
-	// sandbox's docs helpers are no exports.
+	// ErrorCodes is read by a helper of the setup package that a fact calls, Shell and
+	// MaxOpenFiles only by the values that facts read, and the sandbox's docs helpers are
+	// no exports.
 	if out, _ := docattest(t, "../testdata/fixture", "uncovered"); strings.TrimSpace(out) != "every public symbol is attested" {
 		t.Errorf("uncovered: %q", out)
 	}
-	if out, _ := docattest(t, "../testdata/fixture", "where", "Quote"); !strings.Contains(out, "docs/shipping.md:10 example") {
-		t.Errorf("where: %q", out)
+	// forbiddenCaps is read by the docs helper that the fact at L13 calls.
+	where := map[string]string{"Quote": "docs/shipping.md:10 example", "forbiddenCaps": "docs/sandbox.md:13 fact",
+		"Shell": "docs/sandbox.md:25 fact", "MaxOpenFiles": "docs/sandbox.md:27 fact"}
+	for symbol, want := range where {
+		if out, _ := docattest(t, "../testdata/fixture", "where", symbol); !strings.Contains(out, want) {
+			t.Errorf("where %s: %q", symbol, out)
+		}
 	}
 	out, _ := docattest(t, "../testdata/fixture", "audit")
 	for _, want := range []string{"L5 list matches Carriers", "L11 column drifts from ErrorCodes (missing: no_carrier)"} {
@@ -205,7 +211,24 @@ func TestAFactThroughAHelperAttestsWhatTheHelperUses(t *testing.T) {
 	// The fact at L13 calls a docs helper, which reads forbiddenCaps; L17 and L19 read it,
 	// and L23 calls Refuses, which reads it.
 	for _, want := range []string{"ErrorCodes docs/pricing.md:77", "ForbiddenCapNames docs/sandbox.md:13",
-		"forbiddenCaps docs/sandbox.md:17", "forbiddenCaps docs/sandbox.md:19", "Refuses docs/sandbox.md:23"} {
+		"forbiddenCaps docs/sandbox.md:13", "forbiddenCaps docs/sandbox.md:17", "forbiddenCaps docs/sandbox.md:19",
+		"Refuses docs/sandbox.md:23"} {
+		if !slices.Contains(got, want) {
+			t.Errorf("no %q in %s", want, out)
+		}
+	}
+}
+
+func TestImpactOfANameAValueIsBuiltFrom(t *testing.T) {
+	root := committedFixture(t)
+	edit(t, root, "sandbox/sandbox.go", `Shell = "/bin/sh"`, `Shell = "/bin/bash"`)
+	edit(t, root, "sandbox/sandbox.go", "MaxOpenFiles = 64", "MaxOpenFiles = 128")
+	out, _ := docattest(t, root, "impact", "--json")
+	got := references(t, out)
+	// The fact at L25 reads ShellEnv, built from Shell; the one at L27 reads limits, built
+	// from MaxOpenFiles.
+	for _, want := range []string{"Shell docs/sandbox.md:25", "ShellEnv docs/sandbox.md:25",
+		"MaxOpenFiles docs/sandbox.md:27", "limits docs/sandbox.md:27"} {
 		if !slices.Contains(got, want) {
 			t.Errorf("no %q in %s", want, out)
 		}

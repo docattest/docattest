@@ -62,7 +62,10 @@ describe('noise', () => {
     const before = await project({ 'src/index.ts': N3, ...page }).check();
     const refactored = `const base = 3;\nexport const N = base;\nexport function add(a: number, b: number) { return b + a; }`;
     const after = await project({ 'src/index.ts': refactored, ...page }).check();
-    expect(after).toEqual(before);
+    // A refactor may change the names a claim rests on (N is now built from `base`), not
+    // what the report says of the claim.
+    const claims = (r: typeof after) => r.results.map((claim) => ({ ...claim, symbols: [] }));
+    expect({ ...after, results: claims(after) }).toEqual({ ...before, results: claims(before) });
     expect(after.exitCode).toBe(0);
   });
   it('A7 a failure carries expected, actual and line; nothing else to acknowledge (docs/report.md)', async () => {

@@ -13,6 +13,7 @@ use super::Analysis;
 use super::modules::use_leaves;
 use super::surfaces::Surface;
 use crate::language::doc::named;
+use crate::language::text::{self, Token};
 use literal::{DURATION, Names};
 use quote::ToTokens;
 use syn::{Expr, Item, Type};
@@ -28,10 +29,11 @@ pub(crate) struct Constants {
     others: Vec<(String, &'static str)>,
 }
 
-/// A constant of a module, and its declaration as a fact's program writes it, or why it
-/// cannot be written there.
+/// A constant of a module, the names its initializer writes, and its declaration as a
+/// fact's program writes it, or why it cannot be written there.
 struct Constant {
     name: String,
+    initializer: Vec<String>,
     written: Result<Written, String>,
 }
 
@@ -63,9 +65,11 @@ impl Constants {
                     continue;
                 }
             };
-            found
-                .constants
-                .push(Constant { name: declared.ident.to_string(), written: declared.written(&names) });
+            found.constants.push(Constant {
+                name: declared.ident.to_string(),
+                initializer: written_names(declared.expr),
+                written: declared.written(&names),
+            });
         }
         found
     }
@@ -110,6 +114,24 @@ impl Constants {
             seen.push(next);
         }
         Some(Ok(out))
+    }
+
+    /// The names the initializer of a constant writes, and those the initializers of the
+    /// module's constants among them write, at any depth, each once, in order: what a value
+    /// read holds the values of.
+    fn initialized_with(&self, name: &str) -> Vec<String> {
+        let mut out: Vec<String> = Vec::new();
+        let mut pending = vec![name.to_string()];
+        while let Some(next) = pending.pop() {
+            let Some(constant) = self.constant(&next) else { continue };
+            for written in &constant.initializer {
+                if written != name && !out.contains(written) {
+                    out.push(written.clone());
+                    pending.push(written.clone());
+                }
+            }
+        }
+        out
     }
 
     fn constant(&self, name: &str) -> Option<&Constant> {
@@ -159,7 +181,7 @@ impl Analysis {
     /// program can declare.
     pub(crate) fn source_constants(&self, surface: &Surface, expression: &str) -> SourceConstants {
         let mut found = SourceConstants::default();
-        for name in crate::language::text::identifiers(expression) {
+        for name in text::identifiers(expression) {
             if found.names.iter().any(|known| known == name) || self.exported(surface, name) {
                 continue;
             }
@@ -179,6 +201,12 @@ impl Analysis {
     pub(crate) fn read_from_source(&self, surface: &Surface, name: &str) -> bool {
         !self.exported(surface, name)
             && self.with_constants(surface, |constants| constants.declares(name)).unwrap_or(false)
+    }
+
+    /// The names a constant of a surface's module is initialized with, at any depth through
+    /// the module's other constants; none when the name is no constant of it.
+    pub(crate) fn initialized_with(&self, surface: &Surface, name: &str) -> Vec<String> {
+        self.with_constants(surface, |constants| constants.initialized_with(name)).unwrap_or_default()
     }
 
     /// Why a name a fact's program could not find is not read, when the surface's module
@@ -205,6 +233,16 @@ impl Analysis {
         let summary = self.summary(located.owner.name(), located.owner.root());
         summary.constants(&located.module).map(read)
     }
+}
+
+/// The identifiers an expression writes, in order: the words of its literals are none.
+fn written_names(expr: &Expr) -> Vec<String> {
+    let tokens = text::tokens(&expr.to_token_stream().to_string()).unwrap_or_default();
+    let names = tokens.into_iter().filter_map(|token| match token {
+        Token::Ident(name) => Some(name),
+        Token::Other(_) => None,
+    });
+    names.collect()
 }
 
 /// The names a module's `use` declarations give `std::time::Duration`.
@@ -265,6 +303,16 @@ mod tests {
             (Some("a function"), Some("a mutable static"))
         );
         assert!(module.declarations("port").is_none());
+    }
+
+    #[test]
+    fn a_constant_is_initialized_with_what_its_initializer_names_at_any_depth() {
+        let module = constants(
+            "const ENV: &[&str] = &[PATH, SHELL];\nconst PATH: &str = \"/bin/run\";\nconst SHELL: &str = DEFAULT;\nconst DEFAULT: &str = \"sh\";\nconst NEXT: u8 = width() + 1;\nfn width() -> u8 { LIMIT }\nconst LIMIT: u8 = 2;",
+        );
+        assert_eq!(module.initialized_with("ENV"), ["PATH", "SHELL", "DEFAULT"]);
+        assert_eq!(module.initialized_with("NEXT"), ["width"]);
+        assert!(module.initialized_with("width").is_empty());
     }
 
     #[test]

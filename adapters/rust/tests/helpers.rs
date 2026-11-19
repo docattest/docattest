@@ -206,7 +206,8 @@ fn a_fact_attests_a_docs_helper_and_what_it_reaches() {
     let attestations = json!([fact("names", "cap_names()", "caps"), fact("watts", "total_watts()", "caps")]);
     let want = json!({
         "names": ["caps:cap_names", "caps:CAPS"],
-        "watts": ["caps:total_watts", "caps:MAX_WATTS", "caps:CAPS"],
+        // `watts` is an ordinary function of the module: credited, and its body not followed.
+        "watts": ["caps:total_watts", "caps:watts", "caps:MAX_WATTS"],
     });
     assert_eq!(named(&radio, attestations), want);
     let affected = |now: &str, was: &str| {
@@ -259,8 +260,5 @@ fn a_page_states_what_only_helpers_say() {
     assert_eq!(run(&["uncovered"]), "band_count\n");
     assert_eq!(run(&["uncovered", "--surface", "caps"]), "every public symbol is attested\n");
     let found = run(&["where", "CAPS"]);
-    assert_eq!(
-        found,
-        "docs/radio.md:1 fact  The radio can:\ndocs/radio.md:5 fact  It draws `7` watts at most.\n"
-    );
+    assert_eq!(found, "docs/radio.md:1 fact  The radio can:\n");
 }

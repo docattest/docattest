@@ -24,15 +24,21 @@ func (p *Project) SourceOnly(of *Surface) map[string]Declares {
 	if of.Dir == "" {
 		return out
 	}
-	program := p.IsProgram(of)
-	for _, file := range sorted(p.tree().at(of.Dir).Files) {
+	pkg := p.tree().at(of.Dir)
+	for _, file := range sorted(pkg.Files) {
 		for _, d := range declarations(file) {
-			if program || !token.IsExported(d.Name) {
+			if pkg.isSourceOnly(d.Name) {
 				out[d.Name] = d.What
 			}
 		}
 	}
 	return out
+}
+
+// isSourceOnly says whether a program importing the package cannot use a name it
+// declares: any name of a package main, and an unexported one of any other package.
+func (pkg *goPackage) isSourceOnly(name string) bool {
+	return pkg.Name == "main" || !token.IsExported(name)
 }
 
 // Checked is the package of a surface that resolved, as the type checker gave it, for

@@ -373,6 +373,13 @@ A fact attests the constants it reads, exported or not, as `where` shows; `uncov
 lists only exports. <!-- test: tests/test_constants.py > "Constants" > "test_a_fact_attests_the_constants_it_reads" -->
 So `impact` lists a change to a constant as it lists a change to an export, with the facts
 that read it. <!-- test: tests/test_constants.py > "ImpactOfConstants" > "test_impact_lists_a_constant_with_the_facts_that_read_it" -->
+A value holds the values of the names its initializer uses, so a fact that reads it attests
+them too, at any depth: a fact over `ENV`, built from `COMMAND_PATH`, attests
+`COMMAND_PATH`. A private constant used there is credited for `where`, and `uncovered`
+leaves it out. A named fact and a cases runner attest the same of the values they read. A
+function's body is not followed: a fact over `total()` attests `total`, not the names its
+body reads. <!-- test: tests/test_initializers.py > "Initializers" > "test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses" --> <!-- test: tests/test_initializers.py > "InitializersInTheCore" > "test_where_uncovered_and_impact_count_the_names_an_initializer_uses" -->
+`impact` lists the fact when one of those names changes. <!-- test: tests/test_initializers.py > "InitializersInTheCore" > "test_where_uncovered_and_impact_count_the_names_an_initializer_uses" -->
 
 `manifest("pyproject.toml")` is the data of a project file, read and parsed by the core
 (JSON, TOML, YAML and `go.mod`; the [manifests](../../docs/manifests.md) page has the details),

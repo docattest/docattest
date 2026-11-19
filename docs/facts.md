@@ -285,6 +285,12 @@ of it loads. A fact attests the constants it reads, as `where` shows, while `unc
 lists only exports, and `impact` lists a change to such a constant with the facts that read
 it.
 
+A value holds the values of the names its initializer uses, so a fact that reads it attests
+them too, at any depth, and so do a named fact and a cases runner: a fact over `ENV`, built
+from `COMMAND_PATH`, attests `COMMAND_PATH`, and a private constant used there is credited
+for `where` while `uncovered` leaves it out. A function's body is not followed: a fact over
+`total()` attests `total`, not the names its body reads. <!-- test: adapters/typescript/test/unit/language/symbols.test.ts > "a fact that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" -->
+
 What a constant is differs by language: a `const` written in literals in TypeScript, a name
 assigned once to literals in Python, any top-level `const` in Go, and a `var` its package
 declares with a composite literal of constants and only reads (a literal variable), and a
@@ -336,7 +342,9 @@ its way:
   ([TypeScript guide](../adapters/typescript/README.md#named-facts-the-setup-module)).
 
 A docs helper is no export, so `uncovered` never lists it. A fact that calls one attests it
-and what it uses, so `impact` lists the fact when a private value it reads changes. A page's
+and what it uses: the private values it reads, which `where` then lists the fact under, and
+the surface's functions it calls, by name, without following their bodies. So `impact` lists
+the fact when a private value it reads changes. A page's
 example runs as users build the code, without docs helpers: in Go a block is built without
 the tag, and in Rust a block or doc-comment example that names a docs helper is an error at
 the line that names it. A program (a Go

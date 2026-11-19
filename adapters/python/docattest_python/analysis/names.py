@@ -165,6 +165,25 @@ def free_names(tree: ast.AST) -> list[str]:
     return sorted(out, key=lambda n: order.get(n, (0, 0)))
 
 
+def computed_names(value: ast.AST) -> list[str]:
+    """Free names a value reads as it is computed, in order, once each: not those in the body
+    of a lambda it defines, which runs only when called."""
+    bound = bound_names(value)
+    out: list[str] = []
+
+    def visit(node: ast.AST) -> None:
+        if isinstance(node, ast.Lambda):
+            return
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+            if node.id not in bound and node.id not in out:
+                out.append(node.id)
+        for child in ast.iter_child_nodes(node):
+            visit(child)
+
+    visit(value)
+    return out
+
+
 def expression_names(expression: str) -> list[str]:
     """Free names of a fact expression (builtins included: a surface may shadow one)."""
     try:

@@ -1,8 +1,9 @@
 # Facts in Go
 
 What a fact expression may use, how a value is compared with the page, the constants and
-variables a fact reads from source, and the docs helpers that keep a package from exporting
-anything for its pages. The [guide](../README.md) has the rest.
+variables a fact reads from source, what a value it reads attests, and the docs helpers
+that keep a package from exporting anything for its pages. The [guide](../README.md) has
+the rest.
 
 A fact expression is a Go expression over the surface's exports, by their own names:
 
@@ -148,6 +149,21 @@ instance of a generic type cannot be copied, and a fact that reads such a variab
 A fact attests the literal variables it reads, as it attests constants, and `impact` lists
 a change to one with the facts that read it. <!-- test: endtoend/endtoend_test.go > "TestAFactThroughAHelperAttestsWhatTheHelperUses" -->
 
+## What a value is built from
+
+A fact that reads a constant or a variable also attests the names its initializer uses, at
+any depth, since its value holds theirs: a constant built from constants, a literal variable
+whose elements name constants, a variable built from another. <!-- test: internal/analysis/values_test.go > "TestAValueReadAttestsWhatItsInitializerNames" -->
+In this package's fixture, `ShellEnv` is `[]string{"SHELL=" + Shell}`, and no other code
+uses `Shell`. A fact that reads `ShellEnv` attests `Shell`, so `where Shell` lists the fact
+and `uncovered` does not list `Shell`. <!-- test: endtoend/endtoend_test.go > "TestTheIndexAndTheAudit" -->
+`impact` lists the fact when `Shell` changes. <!-- test: endtoend/endtoend_test.go > "TestImpactOfANameAValueIsBuiltFrom" -->
+The same holds of a value read through a setup helper or a docs helper, and of one that a
+cases runner reads. <!-- test: internal/analysis/values_test.go > "TestAValueReadAttestsWhatItsInitializerNames" -->
+A function that an initializer calls is attested, and its code is not followed, as for a
+function a fact calls: a fact that calls `Total()` attests `Total`, and not what `Total`
+uses. An example or a test attests only the names it uses. <!-- test: internal/analysis/values_test.go > "TestAValueReadAttestsWhatItsInitializerNames" -->
+
 ## Docs helpers
 
 A setup package cannot read what a surface does not export, so a helper that derives what a
@@ -162,9 +178,14 @@ A fact calls a docs helper by its name, so a docs helper a fact calls is exporte
 file, which costs nothing since nothing else builds it; one that is not says to export it. <!-- test: internal/running/docshelpers_test.go > "TestAnUnexportedDocsHelperIsRefusedWithWhatToDo" -->
 What a docs helper file declares is no export of the surface: `uncovered` never lists it.
 A fact that calls a docs helper attests the helper and what it uses of the surfaces, as a
-fact that calls a setup helper does. <!-- test: internal/analysis/docsfiles_test.go > "TestADocsHelperIsNoExportAndAttestsWhatItUses" -->
-So `impact` lists the fact when anything the helper uses changes, an unexported variable
-included. <!-- test: endtoend/endtoend_test.go > "TestAFactThroughAHelperAttestsWhatTheHelperUses" -->
+fact that calls a setup helper does. Of what the helper uses, the constants and literal
+variables are attested exported or not, as a fact that reads them attests them. <!-- test: internal/analysis/docsfiles_test.go > "TestADocsHelperIsNoExportAndAttestsWhatItUses" -->
+`where forbiddenCaps` then lists the fact that calls `ForbiddenCapNames()`. <!-- test: endtoend/endtoend_test.go > "TestTheIndexAndTheAudit" -->
+A docs helper is glue: the functions of docs helper files that it calls are its code too.
+A function of the package's other files that it calls is attested by its name, and its code
+is not followed, as for a function a fact calls. <!-- test: internal/analysis/docsfiles_test.go > "TestADocsHelperCreditsWhatItReads" -->
+The helper is attested itself, so `impact` lists the fact when anything the helper uses
+changes, at any depth, an unexported variable included. <!-- test: endtoend/endtoend_test.go > "TestAFactThroughAHelperAttestsWhatTheHelperUses" -->
 A fact never imports a `package main`, so its docs helpers cannot be called: of a program,
 a fact reads constants and literal variables, and a helper goes in an importable package.
 
@@ -239,5 +260,6 @@ $ go list -tags docattest -f '{{.GoFiles}}' ./sandbox
 [sandbox.go sandbox_docattest.go]
 ```
 
-The sandbox's exports are `Refuses` and `Env`, which its pages attest, so `uncovered`
-lists nothing of it. <!-- test: endtoend/endtoend_test.go > "TestTheIndexAndTheAudit" -->
+The sandbox's exports are `Refuses`, `Env`, and the values `Shell`, `ShellEnv` and
+`MaxOpenFiles` ([what a value is built from](#what-a-value-is-built-from)), which its pages
+attest, so `uncovered` lists nothing of it. <!-- test: endtoend/endtoend_test.go > "TestTheIndexAndTheAudit" -->

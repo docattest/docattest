@@ -83,14 +83,14 @@ func callableAlone(f *ast.FuncDecl) bool {
 
 // reached is a piece of code and the package's top-level functions, methods, variables
 // and constants it uses, at any depth, in the order they are first used: a runner's work
-// is also in the helpers it calls and the tables it reads. The declaration of `skip` is
-// never followed (the Cases table, which names every runner).
-func (pkg *goPackage) reached(start ast.Node, skip types.Object) []ast.Node {
-	seen := map[ast.Node]bool{start: true, pkg.declaredBy[skip]: true}
+// is also in the helpers it calls and the tables it reads. Only the declarations that
+// `follows` holds of are followed.
+func (pkg *goPackage) reached(start ast.Node, follows func(decl ast.Node) bool) []ast.Node {
+	seen := map[ast.Node]bool{start: true}
 	out := []ast.Node{start}
 	visit := func(n ast.Node) bool {
 		if name, isName := n.(*ast.Ident); isName {
-			if decl := pkg.declaredBy[origin(pkg.Info.Uses[name])]; decl != nil && !seen[decl] {
+			if decl := pkg.declaredBy[origin(pkg.Info.Uses[name])]; decl != nil && !seen[decl] && follows(decl) {
 				seen[decl] = true
 				out = append(out, decl)
 			}
@@ -112,4 +112,10 @@ func origin(object types.Object) types.Object {
 		return generic.Origin()
 	}
 	return object
+}
+
+// exceptCases says whether a declaration of the setup package is followed from a helper
+// or a runner: every one is, but for the Cases table, which names every runner.
+func (pkg *goPackage) exceptCases(decl ast.Node) bool {
+	return decl != pkg.declarationOf(casesVariable)
 }

@@ -1,8 +1,8 @@
 # index --json
-# recorded from: docattest 0.2.1
+# recorded from: a value attests what its initializer uses
 === index --json
 exit 0
-stdout 820 lines
+stdout 850 lines
 {
   "CHANGE_TYPES": [
     {
@@ -113,7 +113,7 @@ stdout 820 lines
   "codeSpans": [
     {
       "page": "adapters/typescript/README.md",
-      "line": 181,
+      "line": 189,
       "kind": "example",
       "claim": "A cases runner is a function of the setup module's `cases` export, called once per row with the row's cells by column. It gets each cell's text as the page writes it, code spans with their backticks ([cases](../../docs/cases.md#a-runner-receives-each-cell-as-written)). `codeSpans`, which this package exports, takes the code out: it gives the content of every code span in a cell, in order, as a fact over the cell's column compares it."
     },
@@ -159,35 +159,59 @@ stdout 820 lines
       "page": "adapters/typescript/README.md",
       "line": 162,
       "kind": "test",
-      "claim": "When the package's entry does not re-export it, that module can be a surface of its own (`\"internal\": \"./src/caps.ts\"`): facts read and attest the value there, and the package's API stays as it is."
+      "claim": "A function's body is not followed: a fact over `total()` attests `total`, not the names its body reads."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 162,
+      "kind": "test",
+      "claim": "A function's body is not followed: a fact over `total()` attests `total`, not the names its body reads."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 162,
+      "kind": "test",
+      "claim": "A function's body is not followed: a fact over `total()` attests `total`, not the names its body reads."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 163,
+      "kind": "test",
+      "claim": "`impact` lists the fact when one of those names changes."
     },
     {
       "page": "adapters/typescript/README.md",
       "line": 170,
       "kind": "test",
+      "claim": "When the package's entry does not re-export it, that module can be a surface of its own (`\"internal\": \"./src/caps.ts\"`): facts read and attest the value there, and the package's API stays as it is."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 178,
+      "kind": "test",
       "claim": "So `where` lists the fact under them, and `uncovered` no longer lists them."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 171,
+      "line": 179,
       "kind": "test",
       "claim": "`impact` lists the fact when one of them changes."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 194,
+      "line": 202,
       "kind": "test",
       "claim": "Each cell of that table is also written into a page under a `fact column=` that lists what `codeSpans` gives, and the core must agree."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 231,
+      "line": 239,
       "kind": "example",
       "claim": "So the tests of a table the file writes can be cited, each by the title its runner prints for its row: `it.each(table)`, `test.each`, `describe.each` and `test.for` with a literal array, or with a template-literal table, by their title's placeholders (`%s`, `%i`, `%#`, `$name` and the rest); a `for (const c of table)` loop or a `table.forEach((c) => …)` over a literal array (or `Object.entries` of a literal object), by the title its body computes. The table is written in the call or held by a `const` above it that the file never changes. Vitest and Jest print some values differently: Vitest quotes a string that `$name` names, Jest does not. The runner is the one the file imports its test functions from (`vitest`, or `@jest/globals`); when it imports them from neither, a title counts only where the two print the same. The titles Vitest prints are checked against Vitest itself, in a table-driven test whose rows are cited so. What cannot be told stays uncitable: a table the file imports, builds with a call or changes (`cases.push(…)`), and a value a title would show as an object or an array. The title as written, `\"adds %i\"`, still cites the table's test as a whole."
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 267,
+      "line": 275,
       "kind": "example",
       "claim": "From code"
     },
@@ -565,25 +589,31 @@ stdout 820 lines
     },
     {
       "page": "docs/facts.md",
-      "line": 296,
+      "line": 292,
+      "kind": "test",
+      "claim": "A function's body is not followed: a fact over `total()` attests `total`, not the names its body reads."
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 302,
       "kind": "example",
       "claim": "What a constant is differs by language: a `const` written in literals in TypeScript, a name assigned once to literals in Python, any top-level `const` in Go, and a `var` its package declares with a composite literal of constants and only reads (a literal variable), and a `const` or `static` of primitive types in Rust. Each guide says it exactly: [TypeScript](../adapters/typescript/README.md#facts-read-constants-from-source), [Python](../adapters/python/README.md#facts), [Go](../adapters/go/docs/facts.md) and [Rust](../adapters/rust/README.md#facts)."
     },
     {
       "page": "docs/facts.md",
-      "line": 350,
+      "line": 358,
       "kind": "example",
       "claim": "A surface whose values are asynchronous is still observable."
     },
     {
       "page": "docs/facts.md",
-      "line": 374,
+      "line": 382,
       "kind": "example",
       "claim": "Some values are awkward to write inline. The setup module may export `facts`, an object of named helpers, and a fact expression calls them by bare name. The helper is glue: it reads the surface and returns a value; the expectation is still the literal on the page. A fact that calls a helper attests what the helper uses of the surfaces, through the setup module's own helpers at any depth, as a cases table attests what its runner uses: `where` lists the fact under those exports, `uncovered` stops listing them, and `impact` lists the fact when one of them changes."
     },
     {
       "page": "docs/facts.md",
-      "line": 401,
+      "line": 409,
       "kind": "example",
       "claim": "A helper may not share a name with a surface export: the expression would be ambiguous, so it is an error rather than a guess."
     },

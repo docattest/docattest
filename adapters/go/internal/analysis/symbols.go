@@ -19,7 +19,7 @@ func (p *Project) Symbols(attestations []protocol.Attestation) (map[string][]pro
 	}
 	out := map[string][]protocol.SymbolRef{}
 	for k, a := range attestations {
-		found := p.newRefs()
+		found := p.newRefs(attestingOf(a.Kind))
 		switch a.Kind {
 		case protocol.KindExample:
 			p.exampleSymbols(found, code.example(k, p.Abs(a.Page)), a)
@@ -38,12 +38,19 @@ func (p *Project) Symbols(attestations []protocol.Attestation) (map[string][]pro
 // refs collects the surface symbols a piece of code uses, each once, in order.
 type refs struct {
 	project *Project
-	seen    map[protocol.SymbolRef]bool
-	found   []protocol.SymbolRef
+	// attesting is what the proof the code is attests of the names it reaches.
+	attesting attesting
+	seen      map[protocol.SymbolRef]bool
+	found     []protocol.SymbolRef
+	// followed are the values whose initializers were followed (values.go), each once.
+	followed map[protocol.SymbolRef]bool
 }
 
-func (p *Project) newRefs() *refs {
-	return &refs{project: p, seen: map[protocol.SymbolRef]bool{}, found: []protocol.SymbolRef{}}
+func (p *Project) newRefs(how attesting) *refs {
+	return &refs{
+		project: p, attesting: how, seen: map[protocol.SymbolRef]bool{}, found: []protocol.SymbolRef{},
+		followed: map[protocol.SymbolRef]bool{},
+	}
 }
 
 // add records a name of a surface, when the surface exports it.
@@ -89,13 +96,18 @@ func (r *refs) collect(node ast.Node, info *types.Info) {
 }
 
 // addObject adds what a package declares at its top level, when the package is a
-// surface's and the surface exports it.
+// surface's: as a value read (values.go), when the code reads values; else when the
+// surface exports it.
 func (r *refs) addObject(object types.Object) {
 	if object == nil || object.Pkg() == nil || object.Parent() != object.Pkg().Scope() {
 		return
 	}
 	for _, of := range r.project.surfacesOf(object.Pkg().Path()) {
-		r.add(object.Name(), of)
+		if r.attesting == valuesRead {
+			r.readName(object.Name(), of)
+		} else {
+			r.add(object.Name(), of)
+		}
 	}
 }
 
@@ -150,12 +162,11 @@ func pointee(of types.Type) types.Type {
 	return of
 }
 
-// factSymbols adds what a fact reads of its surface: the exports it names; the constants
-// and literal variables it reads from source, which are attested although no one can
-// import them; and the helpers it calls, of the setup package or of the surface's docs
-// helper files, with what each uses, as a cases table's runner is followed. A docs helper
-// is attested itself too, so that a change to what it uses that is no export, which makes
-// it affected, reaches the fact.
+// factSymbols adds what a fact reads of its surface: the names it reads (values.go); and
+// the helpers it calls, of the setup package or of the surface's docs helper files, with
+// what each uses, as a cases table's runner is followed. A docs helper is attested itself
+// too, so that a change to what it uses that is no export, which makes it affected,
+// reaches the fact.
 func (p *Project) factSymbols(found *refs, a protocol.Attestation) {
 	of := p.SurfaceNamed(a.Surface)
 	if of == nil || of.Dir == "" {
@@ -167,15 +178,11 @@ func (p *Project) factSymbols(found *refs, a protocol.Attestation) {
 		switch {
 		case docs[name] != "" && sourceOnly[name] == "":
 			found.record(name, of)
-			found.collectReached(surface, surface.declarationOf(name), nil)
-		case sourceOnly[name] != "":
-			if surface.readFromSource(declared{Name: name, What: sourceOnly[name]}) {
-				found.record(name, of)
-			}
-		case helpers[name]:
-			found.collectReached(setup, setup.declarationOf(name), setup.Types.Scope().Lookup(casesVariable))
+			found.collectReached(surface, surface.declarationOf(name), surface.docsGlue)
+		case helpers[name] && sourceOnly[name] == "":
+			found.collectReached(setup, setup.declarationOf(name), setup.exceptCases)
 		default:
-			found.add(name, of)
+			found.readName(name, of)
 		}
 	}
 }
@@ -220,19 +227,19 @@ func (p *Project) runnerSymbols(found *refs, runner string) {
 		return
 	}
 	for _, file := range sorted(setup.Files) {
-		found.collectReached(setup, runnerBody(setup, file, runner), setup.Types.Scope().Lookup(casesVariable))
+		found.collectReached(setup, runnerBody(setup, file, runner), setup.exceptCases)
 	}
 }
 
 // collectReached adds what a piece of a package's code uses, and what the package's own
-// functions, methods, variables and constants it uses use, at any depth, but for the
-// declaration of `skip`. A piece that is not there (a type, which declares no code that
+// functions, methods, variables and constants it uses use, at any depth, of those that
+// `follows` holds of. A piece that is not there (a type, which declares no code that
 // runs) adds nothing.
-func (r *refs) collectReached(pkg *goPackage, start ast.Node, skip types.Object) {
+func (r *refs) collectReached(pkg *goPackage, start ast.Node, follows func(decl ast.Node) bool) {
 	if start == nil {
 		return
 	}
-	for _, part := range pkg.reached(start, skip) {
+	for _, part := range pkg.reached(start, follows) {
 		r.collect(part, pkg.Info)
 	}
 }

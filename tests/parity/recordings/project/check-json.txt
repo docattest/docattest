@@ -1,8 +1,8 @@
 # check --json
-# recorded from: docattest 0.2.1
+# recorded from: a value attests what its initializer uses
 === check --json
 exit 0
-stdout 5731 lines
+stdout 5909 lines
 {
   "results": [
     {
@@ -355,7 +355,37 @@ stdout 5731 lines
       "symbols": [
         "createProject"
       ],
-      "message": "adapters/typescript/test/unit/language/run/facts.test.ts:136 declares \"a value the package entry does not re-export\" > \"is read and attested on a surface of the module that exports it\" (not run by docattest)"
+      "message": "adapters/typescript/test/unit/language/symbols.test.ts:88 declares \"a fact that reads a value built from other names\" > \"attests the names its initializer uses, at any depth, private ones too\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 162,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "adapters/typescript/test/unit/language/symbols.test.ts:88 declares \"a named fact that reads a value built from other names\" > \"attests the names its initializer uses, at any depth, private ones too\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 162,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "adapters/typescript/test/unit/language/symbols.test.ts:88 declares \"a cases runner that reads a value built from other names\" > \"attests the names its initializer uses, at any depth, private ones too\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 163,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "adapters/typescript/test/unit/language/symbols.test.ts:97 declares \"a fact that reads a value built from other names\" > \"is listed by `impact` when one of those names changes\" (not run by docattest)"
     },
     {
       "page": "adapters/typescript/README.md",
@@ -365,11 +395,21 @@ stdout 5731 lines
       "symbols": [
         "createProject"
       ],
+      "message": "adapters/typescript/test/unit/language/run/facts.test.ts:136 declares \"a value the package entry does not re-export\" > \"is read and attested on a surface of the module that exports it\" (not run by docattest)"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 178,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
       "message": "adapters/typescript/test/unit/language/symbols.test.ts:33 declares \"a fact that calls a named fact of the setup module\" > \"attests the exports its helper reaches, as `where` and `uncovered` show\" (not run by docattest)"
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 171,
+      "line": 179,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -379,7 +419,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 181,
+      "line": 189,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -389,7 +429,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 192,
+      "line": 200,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -397,7 +437,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 194,
+      "line": 202,
       "kind": "test",
       "status": "pass",
       "symbols": [
@@ -407,7 +447,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 197,
+      "line": 205,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -415,7 +455,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 198,
+      "line": 206,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -423,7 +463,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 200,
+      "line": 208,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -431,7 +471,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 204,
+      "line": 212,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -439,7 +479,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 206,
+      "line": 214,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -447,7 +487,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 213,
+      "line": 221,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -455,7 +495,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 220,
+      "line": 228,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -463,7 +503,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 224,
+      "line": 232,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -471,7 +511,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 226,
+      "line": 234,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -479,7 +519,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 228,
+      "line": 236,
       "kind": "test",
       "status": "pass",
       "symbols": [],
@@ -487,7 +527,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 231,
+      "line": 239,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -497,7 +537,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 267,
+      "line": 275,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -507,7 +547,7 @@ stdout 5731 lines
     },
     {
       "page": "adapters/typescript/README.md",
-      "line": 279,
+      "line": 287,
       "kind": "fact",
       "status": "pass",
       "symbols": [],
@@ -2377,7 +2417,17 @@ stdout 5731 lines
     },
     {
       "page": "docs/facts.md",
-      "line": 296,
+      "line": 292,
+      "kind": "test",
+      "status": "pass",
+      "symbols": [
+        "createProject"
+      ],
+      "message": "adapters/typescript/test/unit/language/symbols.test.ts:88 declares \"a fact that reads a value built from other names\" > \"attests the names its initializer uses, at any depth, private ones too\" (not run by docattest)"
+    },
+    {
+      "page": "docs/facts.md",
+      "line": 302,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2387,7 +2437,7 @@ stdout 5731 lines
     },
     {
       "page": "docs/facts.md",
-      "line": 350,
+      "line": 358,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2397,7 +2447,7 @@ stdout 5731 lines
     },
     {
       "page": "docs/facts.md",
-      "line": 374,
+      "line": 382,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2407,7 +2457,7 @@ stdout 5731 lines
     },
     {
       "page": "docs/facts.md",
-      "line": 401,
+      "line": 409,
       "kind": "example",
       "status": "pass",
       "symbols": [
@@ -2951,10 +3001,10 @@ stdout 5731 lines
       "docs/design/PATTERN.md",
       "docs/design/SPEC.md"
     ],
-    "attestations": 293,
+    "attestations": 298,
     "proofs": 269,
     "weak": 0,
-    "cited": 24
+    "cited": 29
   },
   "surfaces": {
     "default": {
@@ -3664,7 +3714,31 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 417,
+            "line": 393,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/initializers.rs:117 declares \"a_value_read_attests_what_its_initializer_uses\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 393,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/initializers.rs:150 declares \"where_and_uncovered_follow_initializers\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 395,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/initializers.rs:117 declares \"a_value_read_attests_what_its_initializer_uses\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 424,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3672,35 +3746,11 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 422,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/helpers.rs:244 declares \"a_page_states_what_only_helpers_say\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 425,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/helpers.rs:180 declares \"a_fact_calls_only_a_docs_helper_that_is_pub_in_a_library\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
             "line": 429,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/helpers.rs:204 declares \"a_fact_attests_a_docs_helper_and_what_it_reaches\" (not run by docattest)"
-          },
-          {
-            "page": "README.md",
-            "line": 429,
-            "kind": "test",
-            "status": "pass",
-            "symbols": [],
-            "message": "tests/helpers.rs:244 declares \"a_page_states_what_only_helpers_say\" (not run by docattest)"
+            "message": "tests/helpers.rs:245 declares \"a_page_states_what_only_helpers_say\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -3708,11 +3758,51 @@ stdout 5731 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
+            "message": "tests/helpers.rs:180 declares \"a_fact_calls_only_a_docs_helper_that_is_pub_in_a_library\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 437,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/helpers.rs:204 declares \"a_fact_attests_a_docs_helper_and_what_it_reaches\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 437,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/helpers.rs:245 declares \"a_page_states_what_only_helpers_say\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 441,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/helpers.rs:204 declares \"a_fact_attests_a_docs_helper_and_what_it_reaches\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 441,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/helpers.rs:245 declares \"a_page_states_what_only_helpers_say\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 444,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
             "message": "src/toolchain/cargo.rs:258 declares \"tests\" > \"the_docs_cfg_joins_the_flags_the_project_builds_with\" (not run by docattest)"
           },
           {
             "page": "README.md",
-            "line": 448,
+            "line": 460,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3720,7 +3810,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 450,
+            "line": 462,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3728,7 +3818,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 458,
+            "line": 470,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3736,7 +3826,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 463,
+            "line": 475,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -3746,7 +3836,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 493,
+            "line": 505,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3754,7 +3844,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 495,
+            "line": 507,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3762,7 +3852,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 505,
+            "line": 517,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3770,7 +3860,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 508,
+            "line": 520,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3778,7 +3868,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 518,
+            "line": 530,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3786,7 +3876,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 523,
+            "line": 535,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3794,7 +3884,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 536,
+            "line": 548,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3802,7 +3892,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 538,
+            "line": 550,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3810,7 +3900,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 546,
+            "line": 558,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3818,7 +3908,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 558,
+            "line": 570,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3826,7 +3916,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 564,
+            "line": 576,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -3838,7 +3928,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 603,
+            "line": 615,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -3846,7 +3936,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 617,
+            "line": 629,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -3858,10 +3948,10 @@ stdout 5731 lines
           "covered": 2,
           "uncovered": [],
           "frozen": [],
-          "attestations": 69,
+          "attestations": 74,
           "proofs": 24,
           "weak": 0,
-          "cited": 45
+          "cited": 50
         },
         "surfaces": {
           "default": {
@@ -4483,7 +4573,31 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 386,
+            "line": 381,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_initializers.py:61 declares \"Initializers\" > \"test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 381,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_initializers.py:78 declares \"InitializersInTheCore\" > \"test_where_uncovered_and_impact_count_the_names_an_initializer_uses\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 382,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "tests/test_initializers.py:78 declares \"InitializersInTheCore\" > \"test_where_uncovered_and_impact_count_the_names_an_initializer_uses\" (not run by docattest)"
+          },
+          {
+            "page": "README.md",
+            "line": 393,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -4493,7 +4607,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 401,
+            "line": 408,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -4501,7 +4615,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 415,
+            "line": 422,
             "kind": "example",
             "status": "pass",
             "symbols": [
@@ -4513,7 +4627,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 437,
+            "line": 444,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4521,7 +4635,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 440,
+            "line": 447,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4529,7 +4643,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 442,
+            "line": 449,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4537,7 +4651,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 448,
+            "line": 455,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4545,7 +4659,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 450,
+            "line": 457,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -4553,7 +4667,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 461,
+            "line": 468,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4561,7 +4675,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 472,
+            "line": 479,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4569,7 +4683,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 474,
+            "line": 481,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4577,7 +4691,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 480,
+            "line": 487,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4585,7 +4699,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 496,
+            "line": 503,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4593,7 +4707,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 502,
+            "line": 509,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4601,7 +4715,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 504,
+            "line": 511,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4609,7 +4723,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 509,
+            "line": 516,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4617,7 +4731,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 512,
+            "line": 519,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4625,7 +4739,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 513,
+            "line": 520,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4633,7 +4747,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 523,
+            "line": 530,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -4641,39 +4755,39 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 532,
+            "line": 539,
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:532 set"
+            "message": "README.md:539 set"
           },
           {
             "page": "README.md",
-            "line": 533,
+            "line": 540,
             "kind": "cases",
             "status": "pass",
             "symbols": [],
-            "message": "README.md:533 not set"
-          },
-          {
-            "page": "README.md",
-            "line": 534,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [],
-            "message": "README.md:534 not set"
-          },
-          {
-            "page": "README.md",
-            "line": 535,
-            "kind": "cases",
-            "status": "pass",
-            "symbols": [],
-            "message": "README.md:535 not set"
+            "message": "README.md:540 not set"
           },
           {
             "page": "README.md",
             "line": 541,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:541 not set"
+          },
+          {
+            "page": "README.md",
+            "line": 542,
+            "kind": "cases",
+            "status": "pass",
+            "symbols": [],
+            "message": "README.md:542 not set"
+          },
+          {
+            "page": "README.md",
+            "line": 548,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -4685,7 +4799,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 542,
+            "line": 549,
             "kind": "fact",
             "status": "pass",
             "symbols": [
@@ -4697,7 +4811,7 @@ stdout 5731 lines
           },
           {
             "page": "README.md",
-            "line": 553,
+            "line": 560,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -4709,10 +4823,10 @@ stdout 5731 lines
           "covered": 2,
           "uncovered": [],
           "frozen": [],
-          "attestations": 84,
+          "attestations": 87,
           "proofs": 46,
           "weak": 0,
-          "cited": 38
+          "cited": 41
         },
         "surfaces": {
           "default": {
@@ -5228,11 +5342,11 @@ stdout 5731 lines
           },
           {
             "page": "docs/cases.md",
-            "line": 76,
+            "line": 72,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/cases_test.go:85 declares \"TestATablesRowsShareItsProcess\" (not run by docattest)"
+            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
           },
           {
             "page": "docs/cases.md",
@@ -5240,11 +5354,19 @@ stdout 5731 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
+            "message": "internal/running/cases_test.go:85 declares \"TestATablesRowsShareItsProcess\" (not run by docattest)"
+          },
+          {
+            "page": "docs/cases.md",
+            "line": 80,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
             "message": "internal/running/cases_test.go:106 declares \"TestTablesRunSideBySide\" (not run by docattest)"
           },
           {
             "page": "docs/cases.md",
-            "line": 84,
+            "line": 86,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5252,7 +5374,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/cases.md",
-            "line": 86,
+            "line": 88,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5378,7 +5500,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 23,
+            "line": 24,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5386,15 +5508,15 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 27,
+            "line": 28,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:196 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:202 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 33,
+            "line": 34,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5402,7 +5524,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 39,
+            "line": 40,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5410,7 +5532,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 42,
+            "line": 43,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5418,7 +5540,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 55,
+            "line": 56,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5426,7 +5548,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 68,
+            "line": 69,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5434,7 +5556,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 70,
+            "line": 71,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5442,7 +5564,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 73,
+            "line": 74,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5450,7 +5572,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 75,
+            "line": 76,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5458,7 +5580,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 77,
+            "line": 78,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5466,15 +5588,15 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 79,
+            "line": 80,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:168 declares \"TestImpactOfAConstantReadFromSource\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:174 declares \"TestImpactOfAConstantReadFromSource\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 83,
+            "line": 84,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -5484,7 +5606,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 87,
+            "line": 88,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5492,7 +5614,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 96,
+            "line": 97,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5500,7 +5622,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 101,
+            "line": 102,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5508,7 +5630,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 105,
+            "line": 106,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -5518,7 +5640,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 107,
+            "line": 108,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5526,7 +5648,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 112,
+            "line": 113,
             "kind": "fact",
             "status": "pass",
             "symbols": [],
@@ -5536,7 +5658,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 120,
+            "line": 121,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5544,7 +5666,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 124,
+            "line": 125,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5552,7 +5674,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 135,
+            "line": 136,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5560,7 +5682,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 137,
+            "line": 138,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5568,7 +5690,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 145,
+            "line": 146,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5576,7 +5698,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 147,
+            "line": 148,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5584,19 +5706,27 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 149,
+            "line": 150,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:196 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:202 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 157,
+            "line": 156,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/analysis/docsfiles_test.go:12 declares \"TestADocsHelperFileHoldsOnlyWithTheDocsTag\" (not run by docattest)"
+            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 159,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/endtoend_test.go:136 declares \"TestTheIndexAndTheAudit\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
@@ -5604,7 +5734,7 @@ stdout 5731 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/docshelpers_test.go:35 declares \"TestABlockIsBuiltWithoutTheDocsHelpers\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:222 declares \"TestImpactOfANameAValueIsBuiltFrom\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
@@ -5612,7 +5742,7 @@ stdout 5731 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "internal/running/docshelpers_test.go:22 declares \"TestAnUnexportedDocsHelperIsRefusedWithWhatToDo\" (not run by docattest)"
+            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
@@ -5620,19 +5750,67 @@ stdout 5731 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
+            "message": "internal/analysis/values_test.go:50 declares \"TestAValueReadAttestsWhatItsInitializerNames\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 173,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/docsfiles_test.go:12 declares \"TestADocsHelperFileHoldsOnlyWithTheDocsTag\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 176,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/docshelpers_test.go:35 declares \"TestABlockIsBuiltWithoutTheDocsHelpers\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 178,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/running/docshelpers_test.go:22 declares \"TestAnUnexportedDocsHelperIsRefusedWithWhatToDo\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 182,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
             "message": "internal/analysis/docsfiles_test.go:34 declares \"TestADocsHelperIsNoExportAndAttestsWhatItUses\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 167,
+            "line": 183,
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "endtoend/endtoend_test.go:196 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
+            "message": "endtoend/endtoend_test.go:136 declares \"TestTheIndexAndTheAudit\" (not run by docattest)"
           },
           {
             "page": "docs/facts.md",
-            "line": 212,
+            "line": 186,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "internal/analysis/docsfiles_test.go:57 declares \"TestADocsHelperCreditsWhatItReads\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 188,
+            "kind": "test",
+            "status": "pass",
+            "symbols": [],
+            "message": "endtoend/endtoend_test.go:202 declares \"TestAFactThroughAHelperAttestsWhatTheHelperUses\" (not run by docattest)"
+          },
+          {
+            "page": "docs/facts.md",
+            "line": 233,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5640,7 +5818,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 235,
+            "line": 256,
             "kind": "example",
             "status": "pass",
             "symbols": [],
@@ -5648,7 +5826,7 @@ stdout 5731 lines
           },
           {
             "page": "docs/facts.md",
-            "line": 243,
+            "line": 265,
             "kind": "test",
             "status": "pass",
             "symbols": [],
@@ -5660,10 +5838,10 @@ stdout 5731 lines
           "covered": 6,
           "uncovered": [],
           "frozen": [],
-          "attestations": 90,
+          "attestations": 98,
           "proofs": 37,
           "weak": 0,
-          "cited": 53
+          "cited": 61
         },
         "surfaces": {
           "default": {

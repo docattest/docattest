@@ -6,11 +6,12 @@ from __future__ import annotations
 import ast
 import os
 from collections.abc import Callable, Collection
+from typing import cast
 
 from .. import language
 from ..analysis.declared_tests.listing import cited, declared
 from ..analysis.modules import Declaration, Module
-from ..analysis.names import Imports, chains, expression_names, free_names
+from ..analysis.names import Imports, chains, computed_names, expression_names, free_names
 from ..attestations import Attestation, Example, Fact, TestCitation
 from .continued import ContinuedBlocks, example_tree
 from .workspace import Workspace
@@ -40,13 +41,48 @@ class Symbols:
         try:
             if isinstance(a, Example):
                 return self._example_symbols(a)
-            if isinstance(a, Fact):
-                return self._fact_symbols(a) if a.expression else []
             if isinstance(a, TestCitation):
                 return self._citation_symbols(a)
-            return self._helper_symbols("cases", a.runner)
+            if isinstance(a, Fact):
+                read = self._fact_symbols(a) if a.expression else []
+            else:
+                read = self._helper_symbols("cases", a.runner)
+            return self._with_initializer_names(read)
         except RecursionError:
             return []
+
+    def _with_initializer_names(self, refs: list[SymbolRef]) -> list[SymbolRef]:
+        """``refs``, and the names their initializers use, at any depth: a value holds the
+        values of those names, so a proof that reads it attests them too. A function's body
+        is not followed: calling it reads what it returns, not what it is made of."""
+        out = list(refs)
+        seen = {(r["name"], r["surface"]) for r in refs}
+        for ref in refs:
+            for name in self._initializer_names(ref["name"], ref["surface"]):
+                if (name, ref["surface"]) not in seen:
+                    seen.add((name, ref["surface"]))
+                    out.append({"name": name, "surface": ref["surface"]})
+        return out
+
+    def _initializer_names(self, name: str, surface: str) -> list[str]:
+        """The names of the surface's module that a fact may attest and that the value
+        assigned to ``name`` there is computed from, at any depth."""
+        configured = self.workspace.by_name.get(surface)
+        module = configured.module if configured else None
+        if module is None:
+            return []
+        reached: list[str] = []
+        queue = [name]
+        while queue:
+            binding = module.bindings.get(queue.pop())
+            if not isinstance(binding, Declaration) or binding.kind != "assign":
+                continue
+            for used in _assigned_names(binding):
+                if used != name and used not in reached:
+                    reached.append(used)
+                    queue.append(used)
+        attestable = self._exports_and_constants(surface)
+        return [n for n in reached if n in attestable]
 
     def _known(self, refs: list[Ref], attestable: Callable[[str], Collection[str]]) -> list[SymbolRef]:
         """The refs whose name is among those ``attestable`` gives for their surface, each
@@ -258,6 +294,15 @@ class Symbols:
                 # What it is, in Python's word: the core's message says "is a class, not a test".
                 suites.append({**entry, "kind": "a class"})
         return {"ok": True, "tests": tests, "suites": suites}
+
+
+def _assigned_names(binding: Declaration) -> list[str]:
+    """The names the values an assignment's statements give its name are computed from."""
+    names: list[str] = []
+    for node in binding.nodes:
+        value = cast("ast.Assign | ast.AnnAssign | ast.AugAssign", node).value
+        names.extend(computed_names(value) if value is not None else [])
+    return names
 
 
 def _parsed_or_empty(e: Example) -> ast.Module:

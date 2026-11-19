@@ -21,3 +21,7 @@ Each for a reason: <!-- fact @sandbox: func() (reasons []string) { for _, c := r
 - forges packets
 
 Asked about any other capability, such as CAP_CHOWN, the sandbox says `false`. <!-- fact @sandbox: Refuses("CAP_CHOWN") -->
+
+Its environment names its shell: `SHELL=/bin/sh`. <!-- fact @sandbox: ShellEnv[0] -->
+
+It may hold `64` files open. <!-- fact @sandbox: limits["nofile"] -->

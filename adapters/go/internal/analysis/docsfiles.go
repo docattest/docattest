@@ -45,6 +45,25 @@ func (pkg *goPackage) docsNames() map[string]Declares {
 	return out
 }
 
+// docsGlue says whether a declaration of a surface's package is followed from a docs
+// helper: one of its docs helper files, or a value. A docs helper is glue, so the helpers
+// of the docs files it calls are its code too; a function of the package's ordinary files
+// is attested by its name, as one a fact calls is, and its code is not followed.
+func (pkg *goPackage) docsGlue(decl ast.Node) bool {
+	_, isFunction := decl.(*ast.FuncDecl)
+	return !isFunction || isDocsFile(pkg.fileOf(decl))
+}
+
+// fileOf is the file of the package that holds a node.
+func (pkg *goPackage) fileOf(node ast.Node) *ast.File {
+	for _, file := range pkg.Files {
+		if file.FileStart <= node.Pos() && node.Pos() < file.FileEnd {
+			return file
+		}
+	}
+	return nil
+}
+
 // isDocsFile says whether a file is a docs helper file: whether its `//go:build` line,
 // above its package clause, is false whatever the other tags it names are, when the docs
 // tag is not set.

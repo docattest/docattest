@@ -68,6 +68,8 @@ A row is named by the page, its line and its first cell. A runner that panics fa
 row, and the next row still runs. A table attests the exports its runner uses (what
 `where` and `uncovered` count): in the runner's own code, and in the setup package's
 functions, methods, variables and constants it uses, at any depth. <!-- test: internal/analysis/setup_test.go > "TestARunnerNamesWhatItsHelpersUse" -->
+Of a constant or a variable of a surface that it reads, the table also attests what the
+value is built from ([facts](facts.md#what-a-value-is-built-from)). <!-- test: internal/analysis/values_test.go > "TestAValueReadAttestsWhatItsInitializerNames" -->
 
 A table's rows run one after another, in the page's order, in one process. Package-level
 state, and anything a row starts and does not stop (goroutines, servers, signal handlers,

@@ -386,6 +386,13 @@ of primitive types and Duration`). <!-- test: tests/constants.rs > "only_constan
 A fact attests the constants it reads, exported or not, as `where` shows; `uncovered` lists
 only exports. So `impact` lists a change to such a constant as it lists a change to an
 export, with the facts that read it: a private constant, or any constant of a binary. <!-- test: tests/endtoend.rs > "impact_of_a_constant_read_from_source" -->
+A constant's value holds the values its initializer uses. So a fact that reads a constant,
+directly, through a helper, or in a cases runner, also attests the exports and constants
+of its module that the initializer names, at any depth through other constants: with
+`pub const COMMAND_ENV: &[&str] = &[COMMAND_PATH]`, a fact over `COMMAND_ENV` attests
+`COMMAND_PATH`, and `where COMMAND_PATH` lists it. <!-- test: tests/initializers.rs > "a_value_read_attests_what_its_initializer_uses" --> <!-- test: tests/initializers.rs > "where_and_uncovered_follow_initializers" -->
+A function is not followed: a fact that calls `attempts()` attests `attempts`, and not
+what its body reads. <!-- test: tests/initializers.rs > "a_value_read_attests_what_its_initializer_uses" -->
 
 #### Docs helpers: `#[cfg(docattest)]`
 
@@ -423,10 +430,15 @@ docs helper of surface "caps": a page's example runs as users build the code, wi
 It must be `pub`, since the fact's program is a crate of its own that imports the
 surface's module. One that is not `pub`, or one of a binary, is an error that says so
 (`hidden is a docs helper of surface "caps" that a fact cannot call: …`). <!-- test: tests/helpers.rs > "a_fact_calls_only_a_docs_helper_that_is_pub_in_a_library" -->
-A docs helper is no export, so `uncovered` never lists it. A fact attests the helper, and
-what it reaches through the items of its module that are not exported, at any depth: the
-exports it uses and the constants it reads. So `where CAPS` lists the fact, and `impact`
-lists it when `CAPS` or the helper changes. <!-- test: tests/helpers.rs > "a_fact_attests_a_docs_helper_and_what_it_reaches" --> <!-- test: tests/helpers.rs > "a_page_states_what_only_helpers_say" -->
+A docs helper is no export, so `uncovered` never lists it. A fact attests the helper, the
+exports it uses, the constants it reads and the functions of its module it calls. It
+follows the other docs helpers and the unexported constants the helper reads, at any depth.
+So `where CAPS` lists the fact over `cap_names()`, and `impact` lists it when `CAPS` or the
+helper changes. <!-- test: tests/helpers.rs > "a_fact_attests_a_docs_helper_and_what_it_reaches" --> <!-- test: tests/helpers.rs > "a_page_states_what_only_helpers_say" -->
+A docs helper is glue, so its body is followed. The body of an ordinary function of the
+module is not, as that of a function a fact calls is not. `total_watts()` calls the
+private `watts()`, which reads `CAPS`, so a fact over `total_watts()` attests `watts` and
+not `CAPS`. <!-- test: tests/helpers.rs > "a_fact_attests_a_docs_helper_and_what_it_reaches" --> <!-- test: tests/helpers.rs > "a_page_states_what_only_helpers_say" -->
 
 The cfg is added to `RUSTFLAGS` when that is set, else to cargo's `build.rustflags`, which
 cargo joins with those of your own config: the flags your crates build with are kept. <!-- test: src/toolchain/cargo.rs > "tests" > "the_docs_cfg_joins_the_flags_the_project_builds_with" -->
