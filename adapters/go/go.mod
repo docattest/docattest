@@ -5,6 +5,11 @@ go 1.23
 require golang.org/x/tools v0.30.0
 
 require (
+	github.com/docattest/docattest/go-core/core-darwin-arm64 v0.2.1
+	github.com/docattest/docattest/go-core/core-darwin-x64 v0.2.1
+	github.com/docattest/docattest/go-core/core-linux-arm64 v0.2.1
+	github.com/docattest/docattest/go-core/core-linux-x64 v0.2.1
+	github.com/docattest/docattest/go-core/core-windows-x64 v0.2.1
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 )
