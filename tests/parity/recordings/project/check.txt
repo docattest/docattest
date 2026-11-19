@@ -1,10 +1,10 @@
 # check
-# recorded from: a value attests what its initializer uses
+# recorded from: docattest 0.2.2
 === check
 exit 0
 stdout 665 lines
 README.md
-  ✓ L23 fact: manifest("adapters/typescript/package.json").version is 0.2.1
+  ✓ L23 fact: manifest("adapters/typescript/package.json").version is 0.2.2
   ✓ L30 example: every command printed what the block shows
   ✓ L41 example: every command printed what the block shows
   ✓ L76 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
@@ -328,7 +328,7 @@ results: 298 pass, 0 fail, 0 error, 0 skipped
 coverage: 24 living pages, 23 covered (298 attestations: 269 proofs, 0 of them weak, and 29 citations), 1 uncovered, 5 frozen
   uncovered: docs/why.md
 surface default: 44 symbols, 10 attested, 34 not attested by any page
-  docattest → adapters/typescript/dist/index.js (docattest@0.2.1)
+  docattest → adapters/typescript/dist/index.js (docattest@0.2.2)
 snapshots: none
 ok
 
@@ -542,9 +542,9 @@ README.md
 results: 87 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (87 attestations: 46 proofs, 0 of them weak, and 41 citations), 0 uncovered, 0 frozen
 surface default: 29 symbols, 6 attested, 23 not attested by any page
-  docattest_python.language → docattest_python/language.py (docattest 0.2.1)
+  docattest_python.language → docattest_python/language.py (docattest 0.2.2)
 surface launcher: 25 symbols, 5 attested, 20 not attested by any page
-  docattest.launcher → docattest/launcher.py (docattest 0.2.1)
+  docattest.launcher → docattest/launcher.py (docattest 0.2.2)
 surface shop: 13 symbols, 3 attested, 10 not attested by any page
   shoplib → tests/fixture/src/shoplib/__init__.py (shoplib 1.2.3)
 snapshots: none

@@ -1,5 +1,5 @@
 # check --json
-# recorded from: a value attests what its initializer uses
+# recorded from: docattest 0.2.2
 === check --json
 exit 0
 stdout 5909 lines
@@ -11,9 +11,9 @@ stdout 5909 lines
       "kind": "fact",
       "status": "pass",
       "symbols": [],
-      "message": "manifest(\"adapters/typescript/package.json\").version is 0.2.1",
-      "expected": "0.2.1",
-      "actual": "0.2.1"
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.2.2",
+      "expected": "0.2.2",
+      "actual": "0.2.2"
     },
     {
       "page": "README.md",
@@ -3051,8 +3051,8 @@ stdout 5909 lines
         "entry": "adapters/typescript/dist/index.js",
         "package": {
           "name": "docattest",
-          "version": "0.2.1",
-          "display": "docattest@0.2.1"
+          "version": "0.2.2",
+          "display": "docattest@0.2.2"
         }
       },
       "warnings": []
@@ -4862,8 +4862,8 @@ stdout 5909 lines
               "entry": "docattest_python/language.py",
               "package": {
                 "name": "docattest",
-                "version": "0.2.1",
-                "display": "docattest 0.2.1"
+                "version": "0.2.2",
+                "display": "docattest 0.2.2"
               }
             },
             "warnings": []
@@ -4898,8 +4898,8 @@ stdout 5909 lines
               "entry": "docattest/launcher.py",
               "package": {
                 "name": "docattest",
-                "version": "0.2.1",
-                "display": "docattest 0.2.1"
+                "version": "0.2.2",
+                "display": "docattest 0.2.2"
               }
             },
             "warnings": []
