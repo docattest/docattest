@@ -67,7 +67,7 @@ def _expression_edits(
         written = source.written(value)
         wrapped = written if isinstance(value, (ast.Name, ast.Attribute)) else f"({written})"
         replacement = _expression_replacement(value, wrapped, annotation)
-        return [LiteralEdit(source.start(value), source.end(value), replacement, f"{written} → {replacement}")]
+        return [_replaced(value, source, replacement)]
     return []
 
 
