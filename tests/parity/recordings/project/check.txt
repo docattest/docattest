@@ -1,5 +1,5 @@
 # check
-# recorded from: docattest 0.4.0
+# recorded from: hooks --local gitignore note and entrypoint citation relevance
 === check
 exit 0
 stdout 869 lines
@@ -108,9 +108,9 @@ docs/agents.md
   ✓ L123 example: all assertions held
   ✓ L174 example: all assertions held
   ✓ L241 example: all assertions held
-  ✓ L268 example: all assertions held
-  ✓ L299 example: all assertions held
-  ✓ L366 example: all assertions held
+  ✓ L270 example: all assertions held
+  ✓ L310 example: all assertions held
+  ✓ L377 example: all assertions held
 docs/audit.md
   ✓ L28 example: all assertions held
   ✓ L51 example: all assertions held
@@ -170,9 +170,9 @@ docs/citations.md
   ✓ L321 example: all assertions held
   ✓ L358 example: all assertions held
   ✓ L396 example: all assertions held
-  ✓ L426 example: all assertions held
-  ✓ L467 example: all assertions held
-  ✓ L489 test: adapters/typescript/test/unit/core-binary/locate.test.ts:37 declares "the core lookup" > "names platforms the same in every package" (not run by docattest)
+  ✓ L428 example: all assertions held
+  ✓ L469 example: all assertions held
+  ✓ L491 test: adapters/typescript/test/unit/core-binary/locate.test.ts:37 declares "the core lookup" > "names platforms the same in every package" (not run by docattest)
 docs/cli.md
   ✓ L19 example: all assertions held
   ✓ L64 example: all assertions held

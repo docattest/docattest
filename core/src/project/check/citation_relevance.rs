@@ -12,8 +12,9 @@ use crate::project::state::State;
 use crate::report::{Outcome, Status};
 
 /// For each passing citation among `chosen` whose defended sentence has inline code spans
-/// naming at least one export in `all_exports`, warn when the cited test uses none of those
-/// named exports.
+/// naming at least one known surface symbol (an export in `all_exports`, or any symbol
+/// attested anywhere in `symbols`, such as an unexported constant of a `package main`),
+/// warn when the cited test uses none of those named symbols.
 pub(super) fn citation_relevance_warnings(
     state: &State,
     chosen: &[&Attestation],
@@ -21,7 +22,8 @@ pub(super) fn citation_relevance_warnings(
     symbols: &Symbols,
     all_exports: &[String],
 ) -> Result<Vec<String>> {
-    if all_exports.is_empty() {
+    let known = known_symbols(all_exports, symbols);
+    if known.is_empty() {
         return Ok(Vec::new());
     }
     let passing = passing_citations(chosen, results);
@@ -30,13 +32,13 @@ pub(super) fn citation_relevance_warnings(
     }
     let claim_spans: Vec<(&Attestation, Vec<String>)> = passing
         .into_iter()
-        .map(|a| (a, candidate_spans(&a.claim, all_exports)))
+        .map(|a| (a, candidate_spans(&a.claim, &known)))
         .filter(|(_, spans)| !spans.is_empty())
         .collect();
     if claim_spans.is_empty() {
         return Ok(Vec::new());
     }
-    let named = resolve_spans(state, &claim_spans, all_exports)?;
+    let named = resolve_spans(state, &claim_spans, &known)?;
     let mut warnings = Vec::new();
     for (attestation, spans) in &claim_spans {
         let Body::Test(test) = &attestation.body else { continue };
@@ -56,6 +58,26 @@ pub(super) fn citation_relevance_warnings(
         }
     }
     Ok(warnings)
+}
+
+/// Union of exported surface symbols and every non-exported symbol attested anywhere in the
+/// project (for example constants or entrypoint symbols of a `package main`), preserving order.
+fn known_symbols(all_exports: &[String], symbols: &Symbols) -> Vec<String> {
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut out = Vec::new();
+    for name in all_exports {
+        if seen.insert(name.clone()) {
+            out.push(name.clone());
+        }
+    }
+    let mut extra: Vec<&str> = symbols.values().flatten().map(|r| r.name.as_str()).collect();
+    extra.sort_unstable();
+    for name in extra {
+        if seen.insert(name.to_string()) {
+            out.push(name.to_string());
+        }
+    }
+    out
 }
 
 fn passing_citations<'a>(chosen: &[&'a Attestation], results: &[Vec<Outcome>]) -> Vec<&'a Attestation> {
@@ -158,5 +180,21 @@ mod tests {
         assert_eq!(quoted_list(&["a".into()]), "`a`");
         assert_eq!(quoted_list(&["a".into(), "b".into()]), "`a` and `b`");
         assert_eq!(quoted_list(&["a".into(), "b".into(), "c".into()]), "`a`, `b` and `c`");
+    }
+
+    #[test]
+    fn known_symbols_includes_exports_and_non_exported_attested_symbols_without_duplicates() {
+        use crate::project::check::SymbolRef;
+        let symbols: Symbols = HashMap::from([(
+            "id1".into(),
+            vec![
+                SymbolRef { name: "defaultPort".into(), surface: Some("default".into()) },
+                SymbolRef { name: "PORT".into(), surface: Some("default".into()) },
+            ],
+        )]);
+        assert_eq!(
+            known_symbols(&["PORT".into()], &symbols),
+            vec!["PORT".to_string(), "defaultPort".to_string()]
+        );
     }
 }

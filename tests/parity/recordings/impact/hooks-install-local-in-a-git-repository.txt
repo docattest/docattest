@@ -1,0 +1,37 @@
+# hooks install --local in a git repository
+# recorded from: hooks install --local checks gitignore
+=== hooks install --local
+exit 0
+stdout 4 lines
+docattest hooks: added to <root>/.claude/settings.local.json
+  PostToolUse (Edit|Write): npx --no docattest impact --hook
+  Stop: npx --no docattest check --hook
+note: .claude/settings.local.json is not ignored by git; add it to .gitignore (or .git/info/exclude) so it is not committed
+stderr empty
+directory .claude/
+file .claude/settings.local.json 25 lines
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest impact --hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest check --hook"
+          }
+        ]
+      }
+    ]
+  }
+}

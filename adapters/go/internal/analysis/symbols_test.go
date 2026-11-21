@@ -148,3 +148,34 @@ func TestSymbolsAreResolvedByType(t *testing.T) {
 		}
 	}
 }
+
+func TestCitationsRecordPackageMainAndUnexportedConstantsWithoutExportingThem(t *testing.T) {
+	p := readWritten(t, map[string]string{
+		"go.mod": "module example.com/tool\n\ngo 1.21\n",
+		"main.go": `package main
+
+const defaultPort = 8080
+
+func run() int { return defaultPort }
+`,
+		"main_test.go": `package main
+
+import "testing"
+
+func testHelper(t *testing.T) int { t.Helper(); return run() }
+
+func TestRun(t *testing.T) {
+	if testHelper(t) != defaultPort {
+		t.Fatal("mismatch")
+	}
+}
+`,
+	})
+	if exports := p.Exports(p.SurfaceNamed("default")); len(exports) != 0 {
+		t.Fatalf("package main must have no exports for uncovered, got %v", exports)
+	}
+	found, err := symbolsOf(p, protocol.Attestation{Kind: protocol.KindTest, File: "main_test.go", Title: "TestRun"})
+	if got := names(found); err != nil || got != "default:defaultPort default:run" {
+		t.Fatalf("package main citation symbols: got %q, %v", got, err)
+	}
+}

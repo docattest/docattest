@@ -126,7 +126,12 @@ impl Analysis {
     /// Answers `symbols` for one attestation.
     pub(crate) fn symbols(&self, attestation: &Attestation) -> Vec<SymbolRef> {
         let exported = |surface: &Surface, name: &str| self.exported(surface, name);
-        let mut refs = Refs { analysis: self, collected: &exported, found: Vec::new() };
+        let cited = |surface: &Surface, name: &str| {
+            self.exported(surface, name) || self.read_from_source(surface, name)
+        };
+        let collected: &dyn Fn(&Surface, &str) -> bool =
+            if attestation.kind == "test" { &cited } else { &exported };
+        let mut refs = Refs { analysis: self, collected, found: Vec::new() };
         match attestation.kind.as_str() {
             "example" => {
                 let own = is_source(&attestation.page).then(|| self.abs(&attestation.page));

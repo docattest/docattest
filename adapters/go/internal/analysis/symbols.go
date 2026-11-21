@@ -96,18 +96,36 @@ func (r *refs) collect(node ast.Node, info *types.Info) {
 }
 
 // addObject adds what a package declares at its top level, when the package is a
-// surface's: as a value read (values.go), when the code reads values; else when the
-// surface exports it.
+// surface's: as a value read (values.go), when the code reads values; exports plus
+// package-main / readable constants for citations; else exports only.
 func (r *refs) addObject(object types.Object) {
 	if object == nil || object.Pkg() == nil || object.Parent() != object.Pkg().Scope() {
 		return
 	}
 	for _, of := range r.project.surfacesOf(object.Pkg().Path()) {
-		if r.attesting == valuesRead {
+		switch r.attesting {
+		case valuesRead:
 			r.readName(object.Name(), of)
-		} else {
+		case citedNames:
+			r.addCited(object, of)
+		default:
 			r.add(object.Name(), of)
 		}
+	}
+}
+
+// addCited records a surface's exported name, any top-level declaration of a package main
+// surface, or an unexported constant / literal variable readable from source.
+func (r *refs) addCited(object types.Object, of *Surface) {
+	name := object.Name()
+	if r.project.Exports(of)[name] || (r.project.IsProgram(of) && r.project.SourceOnly(of)[name] != "") {
+		r.record(name, of)
+		return
+	}
+	pkg := r.project.tree().at(of.Dir)
+	if _, isValue := pkg.declaredBy[object].(*ast.ValueSpec); isValue &&
+		pkg.readFromSource(declared{Name: name, What: valueKind(object)}) {
+		r.record(name, of)
 	}
 }
 

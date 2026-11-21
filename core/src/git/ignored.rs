@@ -4,8 +4,15 @@
 use std::collections::HashSet;
 use std::path::Path;
 
-use super::run;
+use super::{prefix, run};
 use crate::files::text_file::decode;
+
+/// Whether `path` (relative to `root`) is ignored by git. Returns `None` outside a git
+/// working tree or when git cannot be run.
+pub fn is_ignored(root: &Path, path: &str) -> Option<bool> {
+    prefix(root).ok()?;
+    Some(run(root, &["check-ignore", "-q", "--", path], None).is_ok())
+}
 
 /// The files and directories below `root` that git ignores and does not track, as
 /// `.gitignore`, `.git/info/exclude` and the user's excludes say: project-relative, each
@@ -59,5 +66,15 @@ mod tests {
         let repo = repository(&[(".gitignore", "scratch/*\n")]);
         repo.write("scratch/project/a.md", "");
         assert!(ignored_by_git(&repo.0.join("scratch/project")).is_empty());
+    }
+
+    #[test]
+    fn is_ignored_checks_gitignore_inside_a_repo_and_returns_none_outside() {
+        let plain = Temp::new("not-git-check-ignore");
+        assert_eq!(is_ignored(&plain.0, "local/settings.json"), None);
+
+        let repo = repository(&[(".gitignore", "local/settings.json\n")]);
+        assert_eq!(is_ignored(&repo.0, "local/settings.json"), Some(true));
+        assert_eq!(is_ignored(&repo.0, "local/other.json"), Some(false));
     }
 }
