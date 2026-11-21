@@ -48,12 +48,22 @@ func (p *Project) mutantsOf(symbol protocol.SymbolRef, limit int) (protocol.Symb
 		return protocol.SymbolMutants{}, err
 	}
 	edits := []protocol.MutantEdit{}
-	for _, change := range literalMutants(expr, pkg.Info) {
-		if len(edits) == limit {
-			break
+	candidates := literalMutants(expr, pkg.Info)
+	if len(candidates) == 0 {
+		for _, change := range expressionMutants(expr, object, pkg.Info, value.source(expr.Pos(), expr.End())) {
+			if value.compiles(change) {
+				edits = append(edits, value.edit(change))
+				break
+			}
 		}
-		if value.compiles(change) {
-			edits = append(edits, value.edit(change))
+	} else {
+		for _, change := range candidates {
+			if len(edits) == limit {
+				break
+			}
+			if value.compiles(change) {
+				edits = append(edits, value.edit(change))
+			}
 		}
 	}
 	if len(edits) == 0 {

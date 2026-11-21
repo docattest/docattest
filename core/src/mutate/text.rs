@@ -29,7 +29,7 @@ fn proof_lines(proof: &Judged) -> Vec<String> {
     let row = proof.row.as_ref().map(|name| format!(" \"{name}\"")).unwrap_or_default();
     let at = format!("L{} {}{row}", proof.line, proof.kind.as_str());
     match &proof.verdict {
-        Verdict::Killed { by, tried, stillborn, ignored } => {
+        Verdict::Killed { by, tried, stillborn, ignored, hidden_lines } => {
             let mut line = format!(
                 "  ✓ {at}: killed by {by} ({}{})",
                 counted(*tried, "mutant"),
@@ -38,12 +38,18 @@ fn proof_lines(proof: &Judged) -> Vec<String> {
             if !ignored.is_empty() {
                 line.push_str(&format!("; no change of {} made it fail", cells(ignored)));
             }
+            if *hidden_lines > 0 {
+                line.push_str(&format!("; {} hidden by ...", counted(*hidden_lines, "line")));
+            }
             vec![line]
         }
-        Verdict::Survived { survivors, stillborn } => {
+        Verdict::Survived { survivors, stillborn, hint } => {
             let survived = counted(survivors.len(), "mutant");
             let mut out = vec![format!("  ✗ {at}: survived {survived}{}", stillborn_note(*stillborn))];
             out.extend(survivors.iter().map(|s| format!("      {s}")));
+            if let Some(hint) = hint {
+                out.push(format!("      hint: {hint}"));
+            }
             out
         }
         Verdict::NotMutated { why } => vec![format!("  - {at}: not mutated: {why}")],
@@ -92,6 +98,7 @@ mod tests {
                         tried: 1,
                         stillborn: 1,
                         ignored: vec![],
+                        hidden_lines: 0,
                     },
                 ),
                 judged(
@@ -100,6 +107,7 @@ mod tests {
                     Verdict::Survived {
                         survivors: vec!["src/a.ts:2 NAME: 'shop' → 'shopx'".into()],
                         stillborn: 0,
+                        hint: None,
                     },
                 ),
                 judged(5, None, Verdict::NotMutated { why: "size is declared with no literal".into() }),
@@ -111,6 +119,7 @@ mod tests {
                         tried: 3,
                         stillborn: 0,
                         ignored: vec!["c".into(), "d".into()],
+                        hidden_lines: 0,
                     },
                 ),
             ],

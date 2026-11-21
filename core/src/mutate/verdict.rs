@@ -25,10 +25,12 @@ pub struct Trial {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Verdict {
     /// The first mutant that made it fail, how many that built were run, how many did not
-    /// build, and the columns of its row that no change made fail.
-    Killed { by: String, tried: usize, stillborn: usize, ignored: Vec<String> },
-    /// Every mutant that built, none of which made it fail, and how many did not build.
-    Survived { survivors: Vec<String>, stillborn: usize },
+    /// build, the columns of its row that no change made fail, and how many console output
+    /// lines `...` hid.
+    Killed { by: String, tried: usize, stillborn: usize, ignored: Vec<String>, hidden_lines: usize },
+    /// Every mutant that built, none of which made it fail, how many did not build, and an
+    /// optional actionable hint (e.g., to use `matched()` on a whole-file `file()` fact).
+    Survived { survivors: Vec<String>, stillborn: usize, hint: Option<String> },
     /// Why nothing it reads was changed.
     NotMutated { why: String },
 }
@@ -68,6 +70,7 @@ pub fn verdict_of(trials: &[Trial]) -> Verdict {
         return Verdict::Survived {
             survivors: built.iter().map(|t| t.description.clone()).collect(),
             stillborn,
+            hint: None,
         };
     };
     let mut ignored: Vec<String> = Vec::new();
@@ -76,7 +79,13 @@ pub fn verdict_of(trials: &[Trial]) -> Verdict {
             ignored.push(column.clone());
         }
     }
-    Verdict::Killed { by: killer.description.clone(), tried: built.len(), stillborn, ignored }
+    Verdict::Killed {
+        by: killer.description.clone(),
+        tried: built.len(),
+        stillborn,
+        ignored,
+        hidden_lines: 0,
+    }
 }
 
 /// Each proof judged, by page and line; `verdicts` holds a verdict for every proof.
@@ -138,7 +147,7 @@ impl Judged {
             out["row"] = json!(row);
         }
         match &self.verdict {
-            Verdict::Killed { by, tried, stillborn, ignored } => {
+            Verdict::Killed { by, tried, stillborn, ignored, hidden_lines } => {
                 out["status"] = json!("killed");
                 out["mutants"] = json!(tried);
                 out["stillborn"] = json!(stillborn);
@@ -146,12 +155,18 @@ impl Judged {
                 if !ignored.is_empty() {
                     out["ignoredCells"] = json!(ignored);
                 }
+                if *hidden_lines > 0 {
+                    out["hiddenLines"] = json!(hidden_lines);
+                }
             }
-            Verdict::Survived { survivors, stillborn } => {
+            Verdict::Survived { survivors, stillborn, hint } => {
                 out["status"] = json!("survived");
                 out["mutants"] = json!(survivors.len());
                 out["stillborn"] = json!(stillborn);
                 out["survivors"] = json!(survivors);
+                if let Some(hint) = hint {
+                    out["hint"] = json!(hint);
+                }
             }
             Verdict::NotMutated { why } => {
                 out["status"] = json!("notMutated");
@@ -184,13 +199,18 @@ mod tests {
                 by: "cell result: 5 → 6".into(),
                 tried: 4,
                 stillborn: 0,
-                ignored: vec!["note".into()]
+                ignored: vec!["note".into()],
+                hidden_lines: 0,
             }
         );
         let none_killed = [trial("a: 1 → 2", Effect::Passed, None), trial("a: x → xx", Effect::Passed, None)];
         assert_eq!(
             verdict_of(&none_killed),
-            Verdict::Survived { survivors: vec!["a: 1 → 2".into(), "a: x → xx".into()], stillborn: 0 }
+            Verdict::Survived {
+                survivors: vec!["a: 1 → 2".into(), "a: x → xx".into()],
+                stillborn: 0,
+                hint: None,
+            }
         );
     }
 
@@ -200,12 +220,18 @@ mod tests {
         let survived = [stillborn.clone(), trial("a: x → xx", Effect::Passed, None)];
         assert_eq!(
             verdict_of(&survived),
-            Verdict::Survived { survivors: vec!["a: x → xx".into()], stillborn: 1 }
+            Verdict::Survived { survivors: vec!["a: x → xx".into()], stillborn: 1, hint: None }
         );
         let killed = [stillborn.clone(), trial("a: 1 → 2", Effect::Killed, None)];
         assert_eq!(
             verdict_of(&killed),
-            Verdict::Killed { by: "a: 1 → 2".into(), tried: 1, stillborn: 1, ignored: vec![] }
+            Verdict::Killed {
+                by: "a: 1 → 2".into(),
+                tried: 1,
+                stillborn: 1,
+                ignored: vec![],
+                hidden_lines: 0,
+            }
         );
         assert_eq!(verdict_of(&[stillborn]), Verdict::NotMutated { why: ALL_STILLBORN.into() });
     }
@@ -221,13 +247,19 @@ mod tests {
             verdict,
         };
         let survived = Mutation {
-            proofs: vec![judged(Verdict::Survived { survivors: vec!["x".into()], stillborn: 0 })],
+            proofs: vec![judged(Verdict::Survived { survivors: vec!["x".into()], stillborn: 0, hint: None })],
             mutants: 1,
             stillborn: 0,
         };
         assert_eq!((survived.exit_code(false), survived.exit_code(true)), (0, 1));
         let killed = Mutation {
-            proofs: vec![judged(Verdict::Killed { by: "x".into(), tried: 1, stillborn: 1, ignored: vec![] })],
+            proofs: vec![judged(Verdict::Killed {
+                by: "x".into(),
+                tried: 1,
+                stillborn: 1,
+                ignored: vec![],
+                hidden_lines: 0,
+            })],
             mutants: 2,
             stillborn: 1,
         };

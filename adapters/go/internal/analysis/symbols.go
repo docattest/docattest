@@ -211,7 +211,7 @@ func (p *Project) citationSymbols(found *refs, code typedFile, a protocol.Attest
 		return
 	}
 	if test := cited(declaredIn(code.fset, code.syntax), a.Title, a.Describes); test != nil {
-		found.collect(test.Node, code.info)
+		found.collectCitation(test, code)
 	}
 }
 

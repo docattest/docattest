@@ -58,6 +58,11 @@
           "type": "string",
           "minLength": 1
         },
+        "localFile": {
+          "description": "The project-local settings file that is not committed to version control, relative to the project root, when the agent reads one. Left out when the agent has no such file.",
+          "type": "string",
+          "minLength": 1
+        },
         "hooks": {
           "description": "The key of the file's top-level object that maps an event name to a list of entries.",
           "type": "string",

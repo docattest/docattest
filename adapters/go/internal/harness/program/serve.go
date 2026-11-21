@@ -196,6 +196,18 @@ func manifestField(path, keys string) any {
 	return value
 }
 
+// Typed helpers the Go adapter rewrites `manifestField(path, keys)` calls to when the
+// resolved value's concrete type is known, so concatenating a string or adding an integer
+// needs no type assertion.
+func docattestFieldString(path, keys string) string { return manifestField(path, keys).(string) }
+func docattestFieldInt(path, keys string) int64     { return manifestField(path, keys).(int64) }
+func docattestFieldFloat(path, keys string) float64 { return manifestField(path, keys).(float64) }
+func docattestFieldBool(path, keys string) bool     { return manifestField(path, keys).(bool) }
+func docattestFieldSlice(path, keys string) []any   { return manifestField(path, keys).([]any) }
+func docattestFieldMap(path, keys string) map[string]any {
+	return manifestField(path, keys).(map[string]any)
+}
+
 func docattestNotRead(name, path, argument string) string {
 	return fmt.Sprintf("%s(%q, %q) was not read: write both arguments out in the fact itself, as string literals", name, path, argument)
 }

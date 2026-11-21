@@ -1,11 +1,13 @@
 //! Running a check through the adapter, and the parsing-only queries.
 
 mod checker;
+mod citation_relevance;
 mod cited_runs;
 mod display;
 mod exports_split;
 mod problems;
 mod sample;
+mod skill_warning;
 
 use std::collections::{HashMap, HashSet};
 
@@ -22,10 +24,12 @@ use crate::report::{
 };
 use crate::text::compare_utf16;
 use checker::Checker;
+use citation_relevance::citation_relevance_warnings;
 pub use cited_runs::CitedTests;
 use cited_runs::refuse_without_runner;
 use exports_split::split_exports;
 use problems::{Problems, send_problems};
+use skill_warning::stale_skill_warnings;
 
 /// A surface symbol an attestation exercises; `surface` is None when none exports it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -174,12 +178,14 @@ pub fn run_check(
     opened.wait()?;
     checker.symbols = parse_symbols(symbols_answer.wait()?)?;
     let checked = checker.check(&chosen, started, compiled)?;
+    let SurfaceReports { surfaces, warnings, exports } =
+        surface_reports(state, &checker.symbols, described, exported)?;
+    let relevance = citation_relevance_warnings(state, &chosen, &checked, &checker.symbols, &exports)?;
+    let stale_skills = stale_skill_warnings(&state.files);
     let mut all = state.snapshots.errors.clone();
     all.extend(checked.into_iter().flatten());
     let mut coverage = coverage_of(state, &all, selected);
     coverage.cited_run = (cited == CitedTests::Run).then_some(checker.cited_ran);
-    let SurfaceReports { surfaces, warnings } =
-        surface_reports(state, &checker.symbols, described, exported)?;
     // A problem fails the check but attests nothing, so it is added after coverage is counted.
     let problems = Problems::wait(problems)?;
     all.extend(problems.results);
@@ -190,7 +196,7 @@ pub fn run_check(
         coverage,
         surfaces,
         snapshots: state.snapshots.statuses.clone(),
-        warnings: [state.warnings.clone(), warnings, problems.warnings].concat(),
+        warnings: [state.warnings.clone(), warnings, problems.warnings, relevance, stale_skills].concat(),
         exit_code,
         changes: None,
     })
@@ -228,10 +234,12 @@ fn result_counts(state: &State, results: &[Outcome], selected: &HashSet<String>)
     counts
 }
 
-/// Each surface's coverage, and the config's warnings that only its exports can tell.
+/// Each surface's coverage, the config's warnings that only its exports can tell, and the
+/// union of all resolved surfaces' export names.
 struct SurfaceReports {
     surfaces: Vec<(String, SurfaceCoverage)>,
     warnings: Vec<String>,
+    exports: Vec<String>,
 }
 
 fn surface_reports(
@@ -242,11 +250,17 @@ fn surface_reports(
 ) -> Result<SurfaceReports> {
     let described = described.wait()?;
     let attested = attested_by_surface(symbols);
-    let mut reports = SurfaceReports { surfaces: Vec::new(), warnings: Vec::new() };
+    let mut reports = SurfaceReports { surfaces: Vec::new(), warnings: Vec::new(), exports: Vec::new() };
+    let mut seen_exports: HashSet<String> = HashSet::new();
     for ((name, _), exports) in state.config.surfaces.iter().zip(exported) {
         let names = export_names(exports.wait()?);
         if let Some(names) = &names {
             reports.warnings.extend(undocumented_warnings(&state.config, name, names)?);
+            for export in names {
+                if seen_exports.insert(export.clone()) {
+                    reports.exports.push(export.clone());
+                }
+            }
         }
         let globs = state.config.undocumented_globs(name);
         let split = split_exports(names.unwrap_or_default(), attested.get(name.as_str()), globs)?;

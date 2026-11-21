@@ -42,6 +42,32 @@ func TestShadowed(t *testing.T) {
 	Limit := 1
 	_ = Limit
 }
+
+func runHelper(t *testing.T) {
+	t.Helper()
+	_ = Fill()
+}
+
+func TestViaHelper(t *testing.T) {
+	runHelper(t)
+}
+
+func TestTableSubtests(t *testing.T) {
+	cases := []struct {
+		name string
+		fn   func() Basket
+	}{
+		{name: "uses table", fn: New},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_ = tc.fn()
+		})
+	}
+	t.Run("sibling", func(t *testing.T) {
+		_ = Open()
+	})
+}
 `,
 	"tagged_test.go": `//go:build integration
 
@@ -108,6 +134,12 @@ func TestSymbolsAreResolvedByType(t *testing.T) {
 			protocol.Attestation{Kind: protocol.KindTest, File: "external_test.go", Title: "TestOutside"}, "default:Store"},
 		{"a test file for another platform is not built",
 			protocol.Attestation{Kind: protocol.KindTest, File: "other_windows_test.go", Title: "TestElsewhere"}, ""},
+		{"a test follows local test helpers",
+			protocol.Attestation{Kind: protocol.KindTest, File: "shop_test.go", Title: "TestViaHelper"}, "default:Fill"},
+		{"a subtest follows the table it ranges over without leaking sibling subtests",
+			protocol.Attestation{Kind: protocol.KindTest, File: "shop_test.go", Title: "uses table", Describes: []string{"TestTableSubtests"}}, "default:Basket default:New"},
+		{"a sibling subtest does not inherit the table's symbols",
+			protocol.Attestation{Kind: protocol.KindTest, File: "shop_test.go", Title: "sibling", Describes: []string{"TestTableSubtests"}}, "default:Open"},
 	}
 	for _, c := range cases {
 		found, err := symbolsOf(p, c.a)

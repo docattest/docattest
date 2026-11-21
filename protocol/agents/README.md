@@ -73,6 +73,7 @@ descriptor with the same rules and refuses an unknown key, naming its place.
 | `projectRoot` | no | how a hook command of this agent writes the project root, as shell text (`"$CLAUDE_PROJECT_DIR"`). The core puts it where a launcher wrote `{root}`. Leave it out when the agent runs hooks in the project root; `.` is used then. |
 | `skill` | no | where the agent looks for a skill, relative to the project root (and to the home directory with `skill install --global`). Leave it out when the agent has no such place. |
 | `settings.file` | yes | the JSON file the agent reads hooks from, relative to the project root |
+| `settings.localFile` | no | the untracked project-local settings file, relative to the project root, for `hooks install --local` |
 | `settings.hooks` | yes | the top-level key of that file that maps an event name to a list of entries |
 | `settings.group` | no | when an entry groups handlers under a filter: the key of the entry's list of handlers. Leave it out when an entry is itself a handler. |
 | `settings.handler` | no | fields every handler carries besides its command (a type, a shell, a timeout) |

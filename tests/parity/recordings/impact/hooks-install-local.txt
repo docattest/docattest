@@ -1,0 +1,51 @@
+# hooks install --local
+# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
+=== hooks install --local
+exit 0
+stdout 3 lines
+docattest hooks: added to <root>/.claude/settings.local.json
+  PostToolUse (Edit|Write): npx --no docattest impact --hook
+  Stop: npx --no docattest check --hook
+stderr empty
+directory .claude/
+file .claude/settings.local.json 25 lines
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest impact --hook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --no docattest check --hook"
+          }
+        ]
+      }
+    ]
+  }
+}
+=== hooks install --local
+exit 0
+stdout 1 line
+docattest hooks: already installed in <root>/.claude/settings.local.json
+stderr empty
+=== hooks install --local --git
+exit 1
+stdout empty
+stderr 1 line
+docattest: --local cannot be used with --git
+=== hooks install --local --agent cursor
+exit 1
+stdout empty
+stderr 1 line
+docattest: agent "cursor" has no local settings file: its descriptor names none

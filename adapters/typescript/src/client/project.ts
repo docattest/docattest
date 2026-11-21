@@ -3,6 +3,7 @@
 // returns what it prints; nothing of docattest's own logic is in this package.
 import { UserError } from '../api/errors.js';
 import type { Impact, ImpactOptions } from '../api/impact.js';
+import type { MutateOptions, Mutation } from '../api/mutate.js';
 import type { CheckOptions, Project, ProjectInput } from '../api/project.js';
 import type { Report } from '../api/report.js';
 import {
@@ -52,8 +53,7 @@ export function createProject(input: ProjectInput): Project {
       return asInventory(await query(args));
     },
     impact: (options = {}) => impact(place, run, options),
-    mutate: async ({ pages = [] } = {}) =>
-      asMutation(await query(['mutate', '--json', '--', ...pages])),
+    mutate: (options = {}) => mutate(place, run, options),
     async refresh(name?: string, ...rest: unknown[]) {
       if (rest.length > 0) {
         throw new UserError(
@@ -80,6 +80,19 @@ async function check(place: Place, run: Run, options: CheckOptions): Promise<Rep
   return place.run(files, async (at) => {
     const args = ['check', '--json', ...(ref === undefined ? [] : [`--base=${ref}`])];
     return asReport(answer(await run(at, [...args, '--', ...pages]), [0, 1]));
+  });
+}
+
+async function mutate(place: Place, run: Run, options: MutateOptions): Promise<Mutation> {
+  const { base, pages = [] } = options;
+  if (typeof base === 'string' && place.memory) {
+    throw new UserError('a git ref as base needs a project on disk; pass `base: { files }`');
+  }
+  const files = typeof base === 'object' ? base.files : undefined;
+  const ref = typeof base === 'string' ? base : files ? 'HEAD' : undefined;
+  return place.run(files, async (at) => {
+    const args = ['mutate', '--json', ...(ref === undefined ? [] : [`--base=${ref}`])];
+    return asMutation(answer(await run(at, [...args, '--', ...pages])));
   });
 }
 

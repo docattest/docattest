@@ -4,6 +4,11 @@ import type { Kind } from './constants.js';
 export interface MutateOptions {
   /** Paths or globs, relative to the project root, of the pages whose proofs to judge. */
   pages?: readonly string[] | undefined;
+  /**
+   * Mutate only proofs affected by the diff from this git ref (or in-memory base files)
+   * or added/changed on Markdown pages since it.
+   */
+  base?: string | { readonly files: Readonly<Record<string, string>> } | undefined;
 }
 
 /** A proof `mutate` judged: where it is, and its verdict. */
@@ -26,6 +31,8 @@ export type MutatedProof = {
       killedBy: string;
       /** For a row: the columns no change of which made it fail. */
       ignoredCells?: string[];
+      /** For a console block: how many output lines `...` hid. */
+      hiddenLines?: number;
     }
   | {
       /** No change to what it reads made it fail. */
@@ -33,6 +40,8 @@ export type MutatedProof = {
       mutants: number;
       stillborn: number;
       survivors: string[];
+      /** Actionable suggestion for tightening a surviving proof (e.g., use `matched()`). */
+      hint?: string;
     }
   | {
       /** Nothing it reads could be changed. */

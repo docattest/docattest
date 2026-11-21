@@ -18,6 +18,7 @@ pub use config::PORT;
 /// Where the café is.
 pub const NAME: &str = \"café\"; pub const OPEN: (bool, u8) = (true, 7);
 pub const FALLBACK: u16 = config::PORT;
+pub const EMPTY: Money = Money;
 const LEVELS: &[u8] = &[1, 2, 3];
 
 pub struct Money;
@@ -82,9 +83,17 @@ fn a_constant_read_from_source_is_found_without_a_surface() {
 }
 
 #[test]
+fn a_non_literal_scalar_constant_mutates_as_an_expression() {
+    let shop = open("fallback");
+    let answer = shop.call("mutants", json!({ "symbols": [of("FALLBACK")], "limit": 8 }));
+    let descriptions: Vec<String> = applied(&shop.root, &answer[0]).into_iter().map(|(d, _)| d).collect();
+    assert_eq!(descriptions, ["config::PORT → config::PORT + 1"]);
+}
+
+#[test]
 fn a_symbol_without_edits_says_why() {
     let shop = open("why");
-    let symbols = json!([of("total"), of("Money"), of("FALLBACK"), of("NOWHERE"), { "name": "NOWHERE" }]);
+    let symbols = json!([of("total"), of("Money"), of("EMPTY"), of("NOWHERE"), { "name": "NOWHERE" }]);
     let answer = shop.call("mutants", json!({ "symbols": symbols, "limit": 8 }));
     let whys: Vec<&str> =
         answer.as_array().unwrap().iter().map(|entry| entry["why"].as_str().unwrap()).collect();

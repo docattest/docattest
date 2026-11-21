@@ -33,11 +33,20 @@ func (p *Project) VersionWarnings() []string {
 		}
 		if required := otherRelease(text, "v"+running); required != "" {
 			warnings = append(warnings, fmt.Sprintf(
-				"%s requires %s %s, but this docattest is %s: upgrade the two together",
-				p.rel(path), adapterModule, required, running))
+				"%s requires %s %s, but this docattest is %s: run `%s`",
+				p.rel(path), adapterModule, required, running, p.upgradeCommand(dir, "v"+running)))
 		}
 	}
 	return warnings
+}
+
+// upgradeCommand is the command that updates `go.mod` in `dir` to `release`.
+func (p *Project) upgradeCommand(dir, release string) string {
+	rel := p.rel(dir)
+	if rel == "." || rel == "" {
+		return fmt.Sprintf("go get %s@%s && go mod tidy", adapterModule, release)
+	}
+	return fmt.Sprintf("go -C %s get %s@%s && go -C %s mod tidy", rel, adapterModule, release, rel)
 }
 
 // moduleDirs are the directories of the go.mod files of the project's code, when it has any.

@@ -25,13 +25,73 @@ pub(super) struct Change {
 /// The items of a slice or a `vec!`.
 type Items = Punctuated<Expr, Token![,]>;
 
-/// The changes to the literals of a value declared with a type, in source order.
+/// The changes to the literals of a value declared with a type, in source order. When no
+/// literal is present, a fallback expression change is offered for numeric and boolean
+/// primitive constants.
 pub(super) fn changes(value: &Expr, declared: &Type, offsets: &Offsets) -> Vec<Change> {
     let mut fixed = Vec::new();
     fixed_arrays(value, declared, offsets, &mut fixed);
     let mut literals = Literals { offsets, fixed, found: Vec::new() };
     literals.visit_expr(value);
+    if literals.found.is_empty()
+        && let Some(change) = expression_change(value, declared, offsets)
+    {
+        literals.found.push(change);
+    }
     literals.found
+}
+
+/// Fallback change for a primitive scalar constant initialized without a literal (such as
+/// `const FALLBACK: u16 = config::PORT;`).
+fn expression_change(value: &Expr, declared: &Type, offsets: &Offsets) -> Option<Change> {
+    if !is_pure_non_literal(value) {
+        return None;
+    }
+    let written = offsets.text(value.span());
+    let wrapped = match value {
+        Expr::Path(_) | Expr::Field(_) | Expr::Paren(_) => written.to_string(),
+        _ => format!("({written})"),
+    };
+    let replacement = match primitive_type(declared)? {
+        "u8" | "u16" | "u32" | "u64" | "u128" | "usize" | "i8" | "i16" | "i32" | "i64" | "isize" => {
+            format!("{wrapped} + 1")
+        }
+        "f32" | "f64" => format!("{wrapped} + 1.0"),
+        "bool" => format!("!{wrapped}"),
+        _ => return None,
+    };
+    let description = format!("{written} → {replacement}");
+    Some(Change { range: offsets.range(value.span()), replacement, description })
+}
+
+fn is_pure_non_literal(expr: &Expr) -> bool {
+    match expr {
+        Expr::Path(_) => true,
+        Expr::Field(field) => is_pure_non_literal(&field.base),
+        Expr::Paren(paren) => is_pure_non_literal(&paren.expr),
+        Expr::Unary(unary) => is_pure_non_literal(&unary.expr),
+        Expr::Binary(binary) => is_pure_non_literal(&binary.left) && is_pure_non_literal(&binary.right),
+        _ => false,
+    }
+}
+
+fn primitive_type(ty: &Type) -> Option<&str> {
+    match ty {
+        Type::Paren(paren) => primitive_type(&paren.elem),
+        Type::Path(path) if path.qself.is_none() && path.path.segments.len() == 1 => {
+            let segment = path.path.segments.first()?;
+            segment.arguments.is_empty().then(|| primitive_name(&segment.ident))?
+        }
+        _ => None,
+    }
+}
+
+fn primitive_name(ident: &syn::Ident) -> Option<&'static str> {
+    const NAMES: [&str; 15] = [
+        "u8", "u16", "u32", "u64", "u128", "usize", "i8", "i16", "i32", "i64", "isize", "f32", "f64", "bool",
+        "",
+    ];
+    NAMES.iter().copied().find(|&name| !name.is_empty() && ident == name)
 }
 
 /// Collects the changes of the literals it visits.

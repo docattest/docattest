@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/agent.json#/$defs/Agent",
+  "name": "antigravity",
+  "docs": "https://antigravity.google/docs",
+  "skill": ".agents/skills/docattest/SKILL.md",
+  "settings": {
+    "file": ".agents/hooks.json",
+    "hooks": "docattest",
+    "handler": { "type": "command" },
+    "command": "command"
+  },
+  "hooks": {
+    "check": {
+      "event": "Stop",
+      "continuing": ["continuationActive"],
+      "reply": { "fixed": { "decision": "continue" }, "text": ["reason"] }
+    }
+  }
+}

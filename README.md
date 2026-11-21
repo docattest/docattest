@@ -322,9 +322,9 @@ report.
 | `inventory` | `inventory [text]` | Values a fact could read, each with its expression, the setup module's named facts included. |
 | `impact` | `impact [--base <ref>]` | The documented symbols your diff affects and the prose that names them. |
 | `impact` | `impact --file <path>` | The same for one edited file's change; silent when nothing is affected. |
-| `mutate` | `mutate [pages…]` | Run each proof again against changes to what it reads, and list the proofs no change makes fail: how strong the documentation is. |
+| `mutate` | `mutate [pages…] [--base <ref>]` | Run each proof again against changes to what it reads, and list the proofs no change makes fail: how strong the documentation is. |
 | `refresh` | `refresh [name]` | Refetch snapshots from their source. |
-| `hooks` | `hooks install` | Add hooks to a coding agent's settings, or `--git` for a pre-commit hook. |
+| `hooks` | `hooks install` | Add hooks to a coding agent's settings (`--local` for the user-local file), or `--git` for a pre-commit hook. |
 | `agents` | `agents install` | Write a docattest section into `AGENTS.md`. |
 | `skill` | `skill install` | Install the authoring guide where your coding agent looks for skills. |
 | `conformance` | `conformance run <kit.json> -- <adapter command>` | Hold a language adapter to the protocol; for adapter authors. |
@@ -466,7 +466,8 @@ npx docattest hooks install         # Claude Code runs both automatically
 npx docattest skill install         # teaches the agent how to write proofs
 ```
 
-`--agent gemini`, `--agent cursor` or `--agent ./my-agent.json` targets another agent.
+`--agent gemini`, `--agent cursor`, `--agent codex`, `--agent antigravity` or `--agent ./my-agent.json` targets another agent.
+Add `--local` to `hooks install` to write the agent's gitignored local settings file (for Claude Code, `.claude/settings.local.json`) instead of committing hooks for every teammate.
 See [agents](docs/agents.md).
 
 ### Document something outside your repo

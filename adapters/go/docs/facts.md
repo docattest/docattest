@@ -118,10 +118,10 @@ user a `Dockerfile` runs as. This module's license is read so: it is `MIT`. <!--
 file in one call, worked out by the core as for every language
 ([manifests](../../../docs/manifests.md#one-value-of-a-file-in-one-call)). `matched` is a
 `string`: the text of the regex's first group in its first match, with `^` and `$` at the
-ends of each line. `manifestField` is the value at a path of keys of a manifest, written
-as `field=` writes one, an `any` held as the values of `manifest` are, so it needs no type
-assertion: a string, an `int64` or a `float64`, a `bool`, `<nil>`, a `[]any` or a
-`map[string]any`. <!-- test: internal/running/running_test.go > "TestMatchedAndFieldAreWhatTheCoreWorkedOutHeldAsGoHoldsThem" -->
+ends of each line. `manifestField` has the field's concrete Go type — `string`, `int64`,
+`float64`, `bool`, `[]any`, or `map[string]any` (and `any` for `<nil>`) — so string
+concatenation or integer arithmetic needs no type assertion, while an existing assertion
+such as `manifestField(...).(string)` still compiles. <!-- test: internal/running/running_test.go > "TestMatchedAndFieldAreWhatTheCoreWorkedOutHeldAsGoHoldsThem" -->
 A regex is written as a raw string, as `regexp` takes one. Read so, this module's license
 is `MIT`, <!-- fact: matched("LICENSE", `^(\w+) License`) -->
 and the fourth display case of its conformance kit is `1048576`, <!-- fact: manifestField("conformance.json", "display.3.value") -->

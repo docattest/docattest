@@ -54,11 +54,19 @@ fn a_change_that_fails_a_proof_kills_it_one_that_breaks_the_project_is_stillborn
                     by: "src/n.txt:1 N: 3 → 4".into(),
                     tried: 1,
                     stillborn: 1,
-                    ignored: vec![]
-                }
+                    ignored: vec![],
+                    hidden_lines: 0,
+                },
             ),
             // Run after the project was broken: it survives only if that change was undone.
-            (3, &Verdict::Survived { survivors: vec!["src/n.txt:1 N: 3 → 4".into()], stillborn: 0 }),
+            (
+                3,
+                &Verdict::Survived {
+                    survivors: vec!["src/n.txt:1 N: 3 → 4".into()],
+                    stillborn: 0,
+                    hint: None,
+                },
+            ),
             (
                 5,
                 &Verdict::NotMutated {

@@ -173,6 +173,17 @@ class Values(unittest.TestCase):
         source = "try:\n    LEVEL = 1\nexcept ImportError:\n    LEVEL = 2\n"
         self.assertEqual([d for d, _ in mutated(source, "LEVEL")], ["1 → 2", "2 → 3"])
 
+    def test_a_non_literal_constant_mutates_as_an_expression(self):
+        self.assertEqual(
+            mutated("TIMEOUT = SECOND\n", "TIMEOUT"),
+            [("SECOND → 2 * SECOND", "TIMEOUT = 2 * SECOND")],
+        )
+        self.assertEqual(
+            mutated("LABEL: str = PREFIX\n", "LABEL"),
+            [('PREFIX → PREFIX + "x"', 'LABEL: str = PREFIX + "x"')],
+        )
+        self.assertEqual(mutated("FLAG: bool = ON\n", "FLAG"), [("ON → not ON", "FLAG: bool = not ON")])
+
 
 if __name__ == "__main__":
     unittest.main()

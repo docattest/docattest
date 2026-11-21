@@ -166,6 +166,16 @@ export const hooksInstall: ImpactCase[] = [
       ['hooks', 'install', '--json', '--quiet'],
     ],
   },
+  {
+    name: 'hooks install --local',
+    files: {},
+    steps: [
+      ['hooks', 'install', '--local'],
+      ['hooks', 'install', '--local'],
+      ['hooks', 'install', '--local', '--git'],
+      ['hooks', 'install', '--local', '--agent', 'cursor'],
+    ],
+  },
 ];
 
 export const hooksInstallGit: ImpactCase[] = [

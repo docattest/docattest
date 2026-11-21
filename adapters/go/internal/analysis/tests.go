@@ -24,6 +24,8 @@ type declaredTest struct {
 	Suite string
 	// Node is its code: the function, or a subtest's function literal.
 	Node ast.Node
+	// Enclosing is the top-level test function that holds a subtest (or Node itself).
+	Enclosing *ast.FuncDecl
 }
 
 // declaredIn lists what a test file declares, in order.
@@ -35,14 +37,17 @@ func declaredIn(fset *token.FileSet, file *ast.File) []declaredTest {
 			continue
 		}
 		name := fn.Name.Name
-		top := declaredTest{Title: name, Describes: []*string{}, Line: fset.Position(fn.Pos()).Line, Node: fn}
+		top := declaredTest{
+			Title: name, Describes: []*string{}, Line: fset.Position(fn.Pos()).Line,
+			Node: fn, Enclosing: fn,
+		}
 		switch {
 		case language.HasTestPrefix(name, "Benchmark"):
 			top.Suite = "a benchmark"
 			out = append(out, top)
 		case language.HasTestPrefix(name, "Test"), language.HasTestPrefix(name, "Fuzz"), language.IsExample(fn):
 			out = append(out, top)
-			in := testFunction{fset: fset, tables: tablesIn(fn.Body)}
+			in := testFunction{fset: fset, tables: tablesIn(fn.Body), enclosing: fn}
 			out = append(out, in.subtests(fn.Body, []*string{&name}, nil)...)
 		}
 	}
@@ -52,8 +57,9 @@ func declaredIn(fset *token.FileSet, file *ast.File) []declaredTest {
 // testFunction is what the subtests of one test function are read with: its file's
 // positions, and the tables its table-driven subtests range over.
 type testFunction struct {
-	fset   *token.FileSet
-	tables map[string]*ast.CompositeLit
+	fset      *token.FileSet
+	tables    map[string]*ast.CompositeLit
+	enclosing *ast.FuncDecl
 }
 
 // subtests are the subtests a body starts with `Run(name, func…)`, and theirs. The
@@ -88,7 +94,9 @@ func (in testFunction) run(call *ast.CallExpr, literal *ast.FuncLit, enclosing [
 	line := in.fset.Position(call.Pos()).Line
 	for _, title := range in.subtestNames(call.Args[0], loops) {
 		if title != nil {
-			out = append(out, declaredTest{Title: *title, Describes: enclosing, Line: line, Node: literal})
+			out = append(out, declaredTest{
+				Title: *title, Describes: enclosing, Line: line, Node: literal, Enclosing: in.enclosing,
+			})
 		}
 		below := append(append([]*string{}, enclosing...), title)
 		out = append(out, in.subtests(literal.Body, below, nil)...)

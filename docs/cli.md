@@ -341,8 +341,10 @@ assert.equal(readFileSync(join(root, '.gemini/skills/docattest/SKILL.md'), 'utf8
 
 `docattest mutate [pages…]` runs each proof that passes again against changes to what it
 reads, one at a time, and says which some change makes fail (killed), which none does
-(survived) and which nothing could be changed for (not mutated). It exits `0`, or `1` with
-`--fail-on-survivors` when a proof survived; [mutate](mutate.md) has the whole story.
+(survived) and which nothing could be changed for (not mutated). With `--base <ref>`, only
+the proofs affected by the diff since `<ref>` (and proofs added or edited on changed pages)
+are mutated. It exits `0`, or `1` with `--fail-on-survivors` when a proof survived;
+[mutate](mutate.md) has the whole story.
 
 ```ts check
 import { spawnSync } from 'node:child_process';

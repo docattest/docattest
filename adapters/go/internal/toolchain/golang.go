@@ -101,7 +101,7 @@ func (g *Go) overlayFile() (string, error) {
 // run runs `go <verb>` in the module with the overlay, and reads what it complains of.
 // The problems are empty exactly when the command succeeded.
 func (g *Go) run(verb string, args ...string) []Problem {
-	_, problems := g.output(verb, args...)
+	_, problems := g.outputIn(g.Module, verb, args...)
 	return problems
 }
 
@@ -109,12 +109,17 @@ func (g *Go) run(verb string, args ...string) []Problem {
 // Every command runs with the same flags, so that what one builds the next finds cached;
 // DocsTag changes what is compiled only of a package with docs helper files.
 func (g *Go) output(verb string, args ...string) (string, []Problem) {
+	return g.outputIn(g.Module, verb, args...)
+}
+
+// outputIn runs `go <verb>` in `dir` with the overlay and workspace environment.
+func (g *Go) outputIn(dir, verb string, args ...string) (string, []Problem) {
 	overlay, err := g.overlayFile()
 	if err != nil {
 		return "", []Problem{{Message: err.Error()}}
 	}
 	full := append([]string{verb, "-trimpath", "-overlay", overlay}, args...)
-	outcome := Run(Command{Path: GoCommand(), Args: full, Dir: g.Module, Env: g.Workspace.Environment()})
+	outcome := Run(Command{Path: GoCommand(), Args: full, Dir: dir, Env: g.Workspace.Environment()})
 	if outcome.Err != nil {
 		return "", []Problem{{Message: fmt.Sprintf("the go command could not be run: %v", outcome.Err)}}
 	}
@@ -149,11 +154,18 @@ func (g *Go) BuildWithDocs(out string, packages []string) []Problem {
 // VetWithDocs runs go vet on packages of the module, given by their directories relative
 // to it, with their docs helper files (DocsTag); the problems are its findings.
 func (g *Go) VetWithDocs(packages []string) []Problem {
+	return g.VetWithDocsIn(g.Module, packages)
+}
+
+// VetWithDocsIn runs go vet in `dir` on `packages` (paths relative to `dir`, such as
+// `./...`), with docs helper files (DocsTag).
+func (g *Go) VetWithDocsIn(dir string, packages []string) []Problem {
 	args := []string{"-tags=" + DocsTag}
 	for _, pkg := range packages {
 		args = append(args, "./"+filepath.ToSlash(pkg))
 	}
-	return g.run("vet", args...)
+	_, problems := g.outputIn(dir, "vet", args...)
+	return problems
 }
 
 // buildArgs are the arguments of `go build` that put the programs of packages in `out`.

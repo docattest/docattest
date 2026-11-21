@@ -97,9 +97,9 @@ mod tests {
     fn a_fact_that_reads_a_file_is_made_to_read_each_change_of_it_and_no_other_fact_is() {
         let (files, attestations) = planned();
         let mut fact_files = load_fact_files(&files, &attestations);
-        let mutants = fact_files.add_mutants(8);
+        let added = fact_files.add_mutants(8);
         let proofs = proofs_on(&attestations, &HashSet::from(["docs/a.md".to_string()]));
-        let trials = read_trials(&proofs, &mutants);
+        let trials = read_trials(&proofs, &added.mutants);
         assert_eq!(trials.len(), 1);
         let Body::Fact(fact) = &trials[0].attestation.body else { panic!("{trials:?}") };
         assert_eq!(fact.expression, "file(\"VERSION#mutant1\").trim()");

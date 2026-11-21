@@ -66,8 +66,9 @@ A module whose `go` line is lower than this module's, `1.23`, has it raised to t
 The `docattest` that runs and the release your `go.mod` requires are upgraded together.
 When the `go.mod` of your module, or of a [setup module](#a-setup-module), requires
 `github.com/docattest/docattest/adapters/go` at another release, `check` warns, naming the
-file and both versions. It is a warning of the whole project, listed with the config's
-warnings and under no surface, and it leaves the exit code as it is. <!-- test: internal/analysis/adapterversion_test.go > "TestAnotherReleaseInTheSetupModuleIsAWarningOfTheProject" -->
+file, both versions, and the `go get` command that upgrades it. It is a warning of the
+whole project, listed with the config's warnings and under no surface, and it leaves the
+exit code as it is. <!-- test: internal/analysis/adapterversion_test.go > "TestAnotherReleaseInTheSetupModuleIsAWarningOfTheProject" -->
 A `replace` of the module, or a pseudo-version, names no release, and is not compared. <!-- test: internal/analysis/adapterversion_test.go > "TestARequirementOfAnotherReleaseIsNamed" -->
 
 A row is named by the page, its line and its first cell. A runner that panics fails its
@@ -149,7 +150,9 @@ Wave
 ```
 
 `go build ./...` and `go vet ./...` in your module's root stop at the setup module, as they
-stop at any directory with a `go.mod`, so run them in `docs/` too:
+stop at any directory with a `go.mod`, so `check` vets a separate setup module itself with
+`go vet -tags docattest ./...` and reports any finding as a failing `problem` at its file
+and line: <!-- test: internal/running/vet_test.go > "TestVetReportsWhatItFindsInASeparateSetupModule" -->
 
 ```console check cwd=testdata/setupmodule
 $ go list ./...

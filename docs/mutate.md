@@ -39,6 +39,9 @@ lists them), and changing a symbol's value is its language's business: the adapt
 edits to the literals of the symbol's declaration, and the core makes each one alone, in a
 copy of the project. A number gains one, a string gains an `x` before its closing quote, a
 boolean is flipped, and a list loses its last item before each of its items is changed.
+When a scalar constant is initialized from another name or expression with no literal of its
+own (such as `const Period = time.Second` or `export const COPY = PORT`), the adapter offers
+a type-guided expression edit (`2 * time.Second`, `PORT + 1`, `PREFIX + 'x'`, `!FLAG`).
 [The protocol](../protocol/PROTOCOL.md) has the rule every adapter follows, and each
 language's guide lists its own: [Python](../adapters/python/README.md),
 [Go](../adapters/go/README.md), [Rust](../adapters/rust/README.md) and
@@ -133,11 +136,82 @@ assert.deepEqual(row.ignoredCells, ['note']);
 
 Some proofs are never mutated, and the report says why: a proof that does not pass as it is
 (a change could tell nothing), a [citation](citations.md) (docattest reads the test file and
-does not run the test), a block the core runs itself ([commands and sample
-pages](console.md)), and a proof whose symbols the adapter has no edit for: a function,
-class or type, whose value is computed when it runs; a value declared with no literal; a
-name no file of the project's own declares, or one declared in a file that is not the
-project's own (a build, a dependency).
+does not run the test), a sample page (`md check`, whose fixture holds its own project), and
+a proof whose symbols the adapter has no edit for: a function, class or type, whose value is
+computed when it runs; a value declared with no mutable literal or scalar expression; a name
+no file of the project's own declares, or one declared in a file that is not the project's
+own (a build, a dependency).
+
+A [`console check`](console.md) block is run once as its baseline, and each non-blank line
+of its captured output is then mutated in memory against the block's expected transcript. A
+vacuous block whose expected output matches everything (such as a lone `...`) survives; a
+block with literal expected lines is killed, and any output lines hidden by `...` are
+counted informatively (`hiddenLines` in `--json`) without failing `--fail-on-survivors`.
+
+When a whole-file `file()` or whole-manifest `manifest()` fact survives (for example, when
+it only checks a property unaffected by line edits or reads past the 64-change limit), the
+report includes a `hint` suggesting `matched()` or `manifestField()`.
+
+```ts check
+import { createProject } from 'docattest';
+
+const project = createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+    'src/index.ts': 'export const N = 1;',
+    Dockerfile: 'FROM scratch\nUSER 10001\n',
+    'docs/a.md': [
+      'Dockerfile is non-empty: `true`. <!-- fact: file("Dockerfile").length > 0 -->',
+      '',
+      '```console check',
+      '$ printf "start\\nignored\\nend\\n"',
+      'start',
+      '...',
+      'end',
+      '```',
+      '',
+      '```console check',
+      '$ printf "anything\\n"',
+      '...',
+      '```',
+      '',
+    ].join('\n'),
+  },
+});
+
+const { proofs } = await project.mutate();
+assert.equal(proofs[0]?.status, 'survived');
+assert.match(proofs[0]?.status === 'survived' ? (proofs[0].hint ?? '') : '', /matched\("Dockerfile"/);
+assert.equal(proofs[1]?.status, 'killed');
+assert.equal(proofs[1]?.status === 'killed' ? proofs[1].hiddenLines : 0, 1);
+assert.equal(proofs[2]?.status, 'survived');
+```
+
+## Mutating only what a diff changed (`--base`)
+
+`docattest mutate --base <ref>` (and `project.mutate({ base })`) mutates only the proofs
+that [`impact --base <ref>`](impact.md) says the diff affects plus any proof added or
+modified on Markdown pages changed since `<ref>`. This keeps `--fail-on-survivors` cheap
+on merge requests as a documentation suite grows.
+
+```ts check
+import { createProject } from 'docattest';
+
+const baseFiles = {
+  'docattest.config.json': JSON.stringify({ pages: ['docs/**/*.md'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }),
+  'src/index.ts': 'export const A = 1;\nexport const B = 2;\n',
+  'docs/a.md': 'A is `1`. <!-- fact: A -->\n\nB is `2`. <!-- fact: B -->\n',
+};
+
+const headFiles = {
+  ...baseFiles,
+  'src/index.ts': 'export const A = 1;\nexport const B = 3;\n',
+  'docs/a.md': 'A is `1`. <!-- fact: A -->\n\nB is `3`. <!-- fact: B -->\n',
+};
+
+const mutation = await createProject({ files: headFiles }).mutate({ base: { files: baseFiles } });
+assert.deepEqual(mutation.proofs.map((p) => [p.line, p.status]), [[3, 'killed']]);
+```
 
 A change that leaves the code unable to build or load tells nothing about a proof: any
 proof would fail on it. Such a mutant is *stillborn*, and kills nothing. The core tells it

@@ -1,0 +1,20 @@
+# check --hook for codex and antigravity
+# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
+=== check --hook --agent codex
+exit 0
+stdout 1 line
+{"decision":"block","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent codex
+exit 0
+stdout empty
+stderr empty
+=== check --hook --agent antigravity
+exit 0
+stdout 1 line
+{"decision":"continue","reason":"docattest check failed: these pages no longer match the code.\ndocs/a.md\n  ✗ L1 fact: expected 4, got 3 from N\nFAILED"}
+stderr empty
+=== check --hook --agent antigravity
+exit 0
+stdout empty
+stderr empty
