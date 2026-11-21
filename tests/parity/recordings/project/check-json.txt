@@ -1,5 +1,5 @@
 # check --json
-# recorded from: added docs proofs and citation relevance warnings
+# recorded from: docattest 0.4.0
 === check --json
 exit 0
 stdout 7671 lines
@@ -11,9 +11,9 @@ stdout 7671 lines
       "kind": "fact",
       "status": "pass",
       "symbols": [],
-      "message": "manifest(\"adapters/typescript/package.json\").version is 0.3.0",
-      "expected": "0.3.0",
-      "actual": "0.3.0"
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.4.0",
+      "expected": "0.4.0",
+      "actual": "0.4.0"
     },
     {
       "page": "README.md",
@@ -3851,8 +3851,8 @@ stdout 7671 lines
         "entry": "adapters/typescript/dist/index.js",
         "package": {
           "name": "docattest",
-          "version": "0.3.0",
-          "display": "docattest@0.3.0"
+          "version": "0.4.0",
+          "display": "docattest@0.4.0"
         }
       },
       "warnings": []
@@ -6332,8 +6332,8 @@ stdout 7671 lines
               "entry": "docattest_python/language.py",
               "package": {
                 "name": "docattest",
-                "version": "0.3.0",
-                "display": "docattest 0.3.0"
+                "version": "0.4.0",
+                "display": "docattest 0.4.0"
               }
             },
             "warnings": []
@@ -6365,8 +6365,8 @@ stdout 7671 lines
               "entry": "docattest/launcher.py",
               "package": {
                 "name": "docattest",
-                "version": "0.3.0",
-                "display": "docattest 0.3.0"
+                "version": "0.4.0",
+                "display": "docattest 0.4.0"
               }
             },
             "warnings": []
