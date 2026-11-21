@@ -1,10 +1,12 @@
-# Every push and pull request: the checks CONTRIBUTING.md lists, on Linux and macOS, the
-# core's tests on Windows, and the packages a release would build for Linux, installed and
-# run (tests/smoke/run.ts).
+# Every pull request and push to main: fast OS-independent static checks, core built once
+# per OS and fanned out across parallel parity/schema/mirror/docs/adapter jobs, the core's
+# tests on Windows, and the packages a release would build for Linux, installed and run
+# (tests/smoke/run.ts).
 name: ci
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -12,20 +14,19 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  checks:
-    strategy:
-      fail-fast: false
-      matrix:
-        runner: [ubuntu-24.04, macos-15]
-    runs-on: ${{ matrix.runner }}
+  # Fast OS-independent static checks (formatting, linting, types, links, versions, pure
+  # unit tests) so trivial mistakes fail in ~1-2 minutes.
+  lint:
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
+          cache: npm
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.10'
@@ -39,55 +40,15 @@ jobs:
           components: clippy, rustfmt
       - run: npm ci
       - run: npm run versions
-      - run: npm run build:core
       - run: npm run build
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
       - run: npm run links
-      - run: npm test
       - run: npm run test:action
       - run: npm run test:scripts
-      # The docs, and every project the root config lists as members (the core, and the Rust,
-      # Python and Go guides), each with its own adapter: one command for all of them, run by
-      # this repository's own GitHub Action (action.yml), as a user's workflow runs it. npm ci
-      # linked no node_modules/.bin/docattest, because the package's launcher was not built
-      # yet; rebuild links it now that it is.
-      - run: npm rebuild docattest
-      - uses: ./
-        env:
-          DOCATTEST_CORE: ${{ github.workspace }}/core/target/release/docattest
-      - run: npm run bench
-      # The website: its tests, its build, and its playground's recordings, which must be what
-      # the docattest built above prints today.
       - run: npm test --workspace website
       - run: npm run build --workspace website
-      - run: npm run record:check --workspace website
-      - name: cargo test, clippy, fmt
-        working-directory: core
-        run: |
-          cargo test
-          cargo clippy --all-targets -- -D warnings
-          cargo fmt --check
-      - name: parity with the recordings
-        run: |
-          node="$(which node)"
-          export DOCATTEST_ADAPTER_TYPESCRIPT="$node $PWD/adapters/typescript/dist/protocol/main.js"
-          core="$PWD/core/target/release/docattest"
-          node tests/parity/bench.ts --candidate "$core" --project . --runs 1
-          node tests/parity/extra.ts --candidate "$core"
-          node tests/parity/audit.ts --candidate "$core"
-          node tests/parity/changes.ts --candidate "$core"
-          node tests/parity/impact.ts --candidate "$core"
-      # Conformance is run by each adapter's own tests (npm test, and unittest, go test and
-      # cargo test below).
-      - name: the core's messages against the schemas, and the mirror test
-        run: |
-          node tests/schema.ts --candidate "$PWD/core/target/release/docattest"
-          node tests/mirror.ts --core "$PWD/core/target/release/docattest"
-      - name: Python adapter and launcher
-        working-directory: adapters/python
-        run: DOCATTEST_CORE="$GITHUB_WORKSPACE/core/target/release/docattest" python -m unittest discover -s tests
       - name: Python lint, format and types (ruff and pyright, pinned in pyproject.toml)
         working-directory: adapters/python
         run: |
@@ -97,20 +58,198 @@ jobs:
           "$RUNNER_TEMP/lint/bin/ruff" check .
           "$RUNNER_TEMP/lint/bin/ruff" format --check .
           "$RUNNER_TEMP/lint/bin/pyright"
-      - name: Go adapter and launcher
-        working-directory: adapters/go
-        run: DOCATTEST_CORE="$GITHUB_WORKSPACE/core/target/release/docattest" go test ./...
       - name: Go format and lint (gofmt, go vet)
         working-directory: adapters/go
         run: |
           test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
           go vet ./...
-      - name: Rust adapter and command
+      - name: Core fmt and clippy
+        working-directory: core
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets -- -D warnings
+      - name: Rust adapter fmt and clippy
         working-directory: adapters/rust
         run: |
-          cargo test
-          cargo clippy --all-targets -- -D warnings
           cargo fmt --check
+          cargo clippy --all-targets -- -D warnings
+
+  # Build and test the Rust core once per OS, then share the binary with downstream jobs.
+  build-core:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      - name: cargo test
+        working-directory: core
+        run: cargo test
+      - name: cargo build --release
+        working-directory: core
+        run: cargo build --release
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ci-core-${{ matrix.runner }}
+          path: core/target/release/docattest
+          if-no-files-found: error
+
+  # OS-sensitive checks on both Linux and macOS: TypeScript package tests and docattest on
+  # its own docs + all 4 language members via this repository's own GitHub Action.
+  docs-and-ts:
+    needs: build-core
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.23'
+          cache-dependency-path: adapters/go/go.mod
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ci-core-${{ matrix.runner }}
+          path: core/target/release
+      - run: chmod +x core/target/release/docattest
+      - run: npm ci && npm run build
+      - run: npm test
+      - run: npm rebuild docattest
+      - uses: ./
+        env:
+          DOCATTEST_CORE: ${{ github.workspace }}/core/target/release/docattest
+
+  # OS-sensitive adapter test suites on both Linux and macOS (Python, Go, Rust).
+  adapters:
+    needs: build-core
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.23'
+          cache-dependency-path: adapters/go/go.mod
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ci-core-${{ matrix.runner }}
+          path: core/target/release
+      - run: chmod +x core/target/release/docattest
+      - name: Python adapter and launcher
+        working-directory: adapters/python
+        run: DOCATTEST_CORE="$GITHUB_WORKSPACE/core/target/release/docattest" python -m unittest discover -s tests
+      - name: Go adapter and launcher
+        working-directory: adapters/go
+        run: DOCATTEST_CORE="$GITHUB_WORKSPACE/core/target/release/docattest" go test ./...
+      - name: Rust adapter and command
+        working-directory: adapters/rust
+        run: cargo test
+
+  # Parity harnesses run in parallel on Linux (outputs are OS-independent).
+  parity:
+    needs: build-core
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {
+              name: bench,
+              cmd: 'node tests/parity/bench.ts --candidate "$core" --project . --runs 1',
+            }
+          - { name: extra, cmd: 'node tests/parity/extra.ts --candidate "$core"' }
+          - { name: audit, cmd: 'node tests/parity/audit.ts --candidate "$core"' }
+          - { name: changes, cmd: 'node tests/parity/changes.ts --candidate "$core"' }
+          - { name: impact, cmd: 'node tests/parity/impact.ts --candidate "$core"' }
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        if: matrix.name == 'bench'
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        if: matrix.name == 'bench'
+        with:
+          go-version: '1.23'
+          cache-dependency-path: adapters/go/go.mod
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        if: matrix.name == 'bench'
+        with:
+          toolchain: stable
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ci-core-ubuntu-24.04
+          path: core/target/release
+      - run: chmod +x core/target/release/docattest
+      - run: npm ci && npm run build
+      - name: parity (${{ matrix.name }})
+        run: |
+          node="$(which node)"
+          export DOCATTEST_ADAPTER_TYPESCRIPT="$node $PWD/adapters/typescript/dist/protocol/main.js"
+          core="$PWD/core/target/release/docattest"
+          ${{ matrix.cmd }}
+
+  # Protocol schema validation, 4-language mirror test, drift benchmark, and website recordings.
+  schema-and-mirror:
+    needs: build-core
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.23'
+          cache-dependency-path: adapters/go/go.mod
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ci-core-ubuntu-24.04
+          path: core/target/release
+      - run: chmod +x core/target/release/docattest
+      - run: npm ci && npm run build
+      - run: npm run bench
+      - run: npm run record:check --workspace website
+      - name: the core's messages against the schemas, and the mirror test
+        run: |
+          node tests/schema.ts --candidate "$PWD/core/target/release/docattest"
+          node tests/mirror.ts --core "$PWD/core/target/release/docattest"
 
   # The core's tests on Windows, which a release builds a core for: paths and line endings
   # differ there, and a difference found here is not found first by a release.
@@ -141,6 +280,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
+          cache: npm
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
