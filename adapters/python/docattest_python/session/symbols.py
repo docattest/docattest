@@ -270,7 +270,7 @@ class Symbols:
         if not found:
             return []
         nodes = _reached_test_nodes(module, found, list(t.describes))
-        return self._known(self._refs(Imports(module.tree, module), nodes), self._exports)
+        return self._known(self._refs(Imports(module.tree, module), nodes), self._exports_and_constants)
 
     # --- tests ---------------------------------------------------------------------------
 

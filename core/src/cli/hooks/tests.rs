@@ -250,11 +250,37 @@ fn prints_what_it_added_then_that_nothing_was_needed() {
         (0, Some(format!("docattest hooks: added to {settings}").as_str()))
     );
     if let Some(local_file) = default.settings.local_file {
-        let local = root.0.join(local_file).display().to_string();
+        let local = root.0.join(&local_file).display().to_string();
         let (code, out, _) = run(&["hooks", "install", "--local"]);
         assert_eq!(
             (code, out.lines().next()),
             (0, Some(format!("docattest hooks: added to {local}").as_str()))
         );
+        assert!(!out.contains("not ignored by git"), "outside a git repo there is no gitignore note: {out}");
     }
+}
+
+#[test]
+fn hooks_install_local_warns_when_local_file_is_not_gitignored() {
+    let default = load_agent(None, |file| PathBuf::from(file)).unwrap().agent;
+    let Some(local_file) = default.settings.local_file else { return };
+    let repo = crate::git::tests::repository(&[("README.md", "hi\n")]);
+    // Isolate from the developer's global excludes file so the test is deterministic.
+    crate::git::tests::git(&repo.0, &["config", "core.excludesFile", "/dev/null"]);
+    let run = || {
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let args = ["hooks", "install", "--local"].map(String::from);
+        let code = crate::cli::run(&args, &mut Io { out: &mut out, err: &mut err, cwd: repo.0.clone() });
+        (code, String::from_utf8(out).unwrap())
+    };
+    let (code, out) = run();
+    assert_eq!(code, 0);
+    assert!(
+        out.contains(&format!("note: {local_file} is not ignored by git; add it to .gitignore")),
+        "{out}"
+    );
+    repo.write(".gitignore", &format!("{local_file}\n"));
+    let (code, out) = run();
+    assert_eq!(code, 0);
+    assert!(!out.contains("not ignored by git"), "{out}");
 }

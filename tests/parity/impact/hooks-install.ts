@@ -176,6 +176,22 @@ export const hooksInstall: ImpactCase[] = [
       ['hooks', 'install', '--local', '--agent', 'cursor'],
     ],
   },
+  {
+    name: 'hooks install --local in a git repository',
+    files: { 'README.md': 'hi\n' },
+    prepare: (_root, git) => {
+      repo(git);
+    },
+    steps: [['hooks', 'install', '--local']],
+  },
+  {
+    name: 'hooks install --local in a git repository with gitignore',
+    files: { '.gitignore': '.claude/settings.local.json\n' },
+    prepare: (_root, git) => {
+      repo(git);
+    },
+    steps: [['hooks', 'install', '--local']],
+  },
 ];
 
 export const hooksInstallGit: ImpactCase[] = [

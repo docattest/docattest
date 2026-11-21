@@ -1,5 +1,5 @@
 # index --json
-# recorded from: added docs proofs and citation relevance warnings
+# recorded from: hooks --local gitignore note and entrypoint citation relevance
 === index --json
 exit 0
 stdout 994 lines
@@ -463,9 +463,9 @@ stdout 994 lines
     },
     {
       "page": "docs/citations.md",
-      "line": 426,
+      "line": 428,
       "kind": "example",
-      "claim": "`where` and the index carry a citation under each surface symbol that the cited test's body uses, imported from a surface by name or by a relative path to the surface's file, including local helper functions and variables in the same test file (or test package) that the test references. When a passing citation defends a sentence whose code spans name at least one exported surface symbol and the cited test uses none of those symbols, `check` emits a warning naming the page, line, symbol(s) and test title without failing the check."
+      "claim": "`where` and the index carry a citation under each surface symbol that the cited test's body uses, imported from a surface by name or by a relative path to the surface's file, including local helper functions and variables in the same test file (or test package) that the test references. When a passing citation defends a sentence whose code spans name at least one exported surface symbol (or a non-exported constant or entrypoint symbol attested in the project, without adding those to `uncovered`) and the cited test uses none of those symbols, `check` emits a warning naming the page, line, symbol(s) and test title without failing the check."
     },
     {
       "page": "docs/console.md",

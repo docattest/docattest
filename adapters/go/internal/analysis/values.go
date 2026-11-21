@@ -21,18 +21,26 @@ import (
 type attesting int
 
 const (
-	// namesUsed is an example's or a test's: the exports it names.
+	// namesUsed is an example's: the exports it names.
 	namesUsed attesting = iota
+	// citedNames is a citation's: the exports it names, plus source-only constants/literal
+	// variables and any top-level declaration of a package main surface (none of which
+	// enter Exports / uncovered).
+	citedNames
 	// valuesRead is a fact's or a cases runner's: the values it reads, as above.
 	valuesRead
 )
 
 // attestingOf is what a kind of attestation attests of the names its code reaches.
 func attestingOf(kind protocol.Kind) attesting {
-	if kind == protocol.KindFact || kind == protocol.KindCases {
+	switch kind {
+	case protocol.KindFact, protocol.KindCases:
 		return valuesRead
+	case protocol.KindTest:
+		return citedNames
+	default:
+		return namesUsed
 	}
-	return namesUsed
 }
 
 // readName records a top-level name of a surface's package that a fact or a cases runner

@@ -11,6 +11,7 @@ use crate::agents::{ACTIONS, Agent, Binding, Loaded, Settings, load_agent};
 use crate::api::errors::{Error, Result};
 use crate::console::shell::shell_word;
 use crate::files::text_file;
+use crate::git::ignored::is_ignored;
 use crate::json::{parse_json, pretty};
 use serde_json::{Map, Value};
 
@@ -199,7 +200,16 @@ pub(super) fn hooks(args: &[String], root: &Path, options: &Options, io: &mut Io
     let (file, added) =
         install_hooks_into(root, target, &loaded.agent, |action| format!("{run} {action} --hook{which}"))?;
     print_installed(io, &file, &added);
+    warn_if_unignored(io, root, target, options.local);
     Ok(0)
+}
+
+fn warn_if_unignored(io: &mut Io, root: &Path, target: &str, local: bool) {
+    if local && is_ignored(root, target) == Some(false) {
+        io.out(&format!(
+            "note: {target} is not ignored by git; add it to .gitignore (or .git/info/exclude) so it is not committed"
+        ));
+    }
 }
 
 fn settings_target(agent: &Agent, local: bool) -> Result<&str> {

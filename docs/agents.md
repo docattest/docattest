@@ -263,33 +263,44 @@ assert.equal(
 `hooks install --local` writes into the agent's untracked local settings file
 (`settings.localFile`, such as `.claude/settings.local.json` for Claude Code) instead of
 the shared settings file, so teammates who do not have docattest installed are not
-affected. An agent whose descriptor names no `localFile` refuses `--local`.
+affected. Inside a git repository, if the written file is not ignored by git, docattest
+prints a note reminding you to add it to `.gitignore` or `.git/info/exclude`. An agent
+whose descriptor names no `localFile` refuses `--local`.
 
 ```ts check
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
 const root = mkdtempSync(join(tmpdir(), 'docattest-agents-local-'));
+spawnSync('git', ['init', '-q', root]);
+spawnSync('git', ['-C', root, 'config', 'core.excludesFile', '/dev/null']);
 const { DOCATTEST_COMMAND: _unset, ...env } = process.env;
 const docattest = (...args: string[]) => spawnSync(process.execPath, [cli, ...args, '--root', root], { encoding: 'utf8', env });
 // ---cut---
-assert.equal(docattest('hooks', 'install', '--local').status, 0);
+const first = docattest('hooks', 'install', '--local');
+assert.equal(first.status, 0);
+assert.match(first.stdout, /note: \.claude\/settings\.local\.json is not ignored by git/);
 const local = JSON.parse(readFileSync(join(root, '.claude/settings.local.json'), 'utf8'));
 assert.equal(local.hooks.Stop[0].hooks[0].command, 'npx --no docattest check --hook');
+
+writeFileSync(join(root, '.gitignore'), '.claude/settings.local.json\n');
+const ignored = docattest('hooks', 'install', '--local');
+assert.equal(ignored.status, 0);
+assert.doesNotMatch(ignored.stdout, /not ignored by git/);
 
 const unsupported = docattest('hooks', 'install', '--local', '--agent', 'cursor');
 assert.equal(unsupported.status, 1);
 assert.match(unsupported.stderr, /has no local settings file/);
 ```
 
-Cursor's descriptor binds no event to `impact`: its documentation gives the event after a
-file edit no answer that reaches the agent, and does not say where the event that has such
-an answer holds the edited file's path. For Cursor, as for any agent with no hooks at all,
-the reminder after an edit comes from `AGENTS.md`.
+Cursor, Codex and Antigravity bind no event to `impact`: Cursor's post-edit event and
+Antigravity's `PostToolUse` accept no context reply for the agent, and Codex's `apply_patch`
+passes a multi-file patch rather than a single `file_path`. For those agents, as for any
+agent with no hooks at all, the reminder after an edit comes from `AGENTS.md`.
 
 Each agent's hooks take that agent's shape. Gemini CLI groups handlers as Claude Code does,
 under other event names, and is told `deny` where Claude Code is told `block`. Cursor's

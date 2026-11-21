@@ -420,8 +420,10 @@ assert.deepEqual(await project.where('retry'), [{ page: 'docs/retry.md', line: 4
 uses, imported from a surface by name or by a relative path to the surface's file, including
 local helper functions and variables in the same test file (or test package) that the test
 references. When a passing citation defends a sentence whose code spans name at least one
-exported surface symbol and the cited test uses none of those symbols, `check` emits a
-warning naming the page, line, symbol(s) and test title without failing the check.
+exported surface symbol (or a non-exported constant or entrypoint symbol attested in the
+project, without adding those to `uncovered`) and the cited test uses none of those symbols,
+`check` emits a warning naming the page, line, symbol(s) and test title without failing the
+check.
 
 ```ts check
 import { createProject } from 'docattest';
