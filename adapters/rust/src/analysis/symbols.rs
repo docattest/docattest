@@ -159,7 +159,8 @@ impl Analysis {
         refs.found
     }
 
-    /// What the test a citation names uses.
+    /// What the test a citation names uses, following local non-test helper items in the
+    /// enclosing module and file.
     fn citation_symbols(&self, refs: &mut Refs, attestation: &Attestation) {
         let path = self.abs(&attestation.file);
         let Some(file) = std::fs::read_to_string(&path).ok().and_then(|text| syn::parse_file(&text).ok())
@@ -167,11 +168,25 @@ impl Analysis {
             return;
         };
         let all = declared(&file);
-        if let Some(function) =
-            cited(&all, &attestation.title, &attestation.describes).and_then(|test| test.function)
-        {
-            refs.collect(&function.to_token_stream().to_string(), Some(&file), Some(&path));
+        let Some(test) = cited(&all, &attestation.title, &attestation.describes) else { return };
+        let Some(function) = test.function else { return };
+        let code = function.to_token_stream().to_string();
+        refs.collect(&code, Some(&file), Some(&path));
+        let test_names: Vec<&str> =
+            all.iter().filter(|t| t.declared.kind.is_none()).map(|t| t.declared.title.as_str()).collect();
+        let followed = |name: &str| !test_names.contains(&name);
+        let roots: Vec<String> = text::identifiers(&code).into_iter().map(str::to_string).collect();
+        for scope in helper_scopes(&file.items, &test.declared.describes, self.is_surface_file(&path)) {
+            for item in reached(scope, &roots, &followed) {
+                refs.collect(&item.to_token_stream().to_string(), Some(&file), Some(&path));
+            }
         }
+    }
+
+    /// Whether `path` is the file of any configured surface (so its top-level items are
+    /// production code, not test helpers).
+    fn is_surface_file(&self, path: &std::path::Path) -> bool {
+        self.surfaces.iter().any(|s| s.file() == Some(path))
     }
 
     /// What a fact names: the exports and constants its expression reads, what the docs
@@ -268,6 +283,34 @@ impl Analysis {
             }
         }
     }
+}
+
+/// The item slices where a test's local helper items may live: the enclosing inline test
+/// module(s) when the test is inside a `mod`, plus the file's top-level items only when the
+/// file is a dedicated test file (not a surface's production source file).
+fn helper_scopes<'a>(
+    items: &'a [syn::Item],
+    describes: &[String],
+    in_surface_file: bool,
+) -> Vec<&'a [syn::Item]> {
+    let mut scopes = Vec::new();
+    if !in_surface_file {
+        scopes.push(items);
+    }
+    let mut current = items;
+    for name in describes {
+        let Some(next) = current.iter().find_map(|item| match item {
+            syn::Item::Mod(module) if module.ident == name => {
+                module.content.as_ref().map(|(_, list)| list.as_slice())
+            }
+            _ => None,
+        }) else {
+            break;
+        };
+        scopes.push(next);
+        current = next;
+    }
+    scopes
 }
 
 /// The name of an item that is a function.

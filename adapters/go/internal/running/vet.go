@@ -20,14 +20,38 @@ import (
 // vetPrefix begins each finding, so that it says where it comes from.
 const vetPrefix = "go vet -tags " + toolchain.DocsTag + ": "
 
-// VetDocsHelpers vets the docs helper files of the surfaces and returns what go vet
-// finds in them, each at its file and line as `go vet -tags docattest: <message>`.
+// VetDocsHelpers vets the docs helper files of the surfaces and any separate setup
+// module, returning what go vet finds in them, each at its file and line as
+// `go vet -tags docattest: <message>`.
 func (r *Runner) VetDocsHelpers() []protocol.Problem {
-	files := r.project.DocsHelperFiles()
-	if len(files) == 0 {
-		return []protocol.Problem{}
+	out := []protocol.Problem{}
+	if files := r.project.DocsHelperFiles(); len(files) > 0 {
+		out = append(out, findingsIn(r.gotool.VetWithDocs(r.packagesOf(files)), r.project.Module.Dir, files)...)
 	}
-	return findingsIn(r.gotool.VetWithDocs(r.packagesOf(files)), r.project.Module.Dir, files)
+	if dir := r.project.SetupModule.Dir; dir != "" && dir != r.project.Module.Dir {
+		out = append(out, r.vetSetupModule(dir)...)
+	}
+	return out
+}
+
+// vetSetupModule vets every package of a separate setup module (`./...`), keeping only
+// findings in files of that module so a compile problem in the product module is not
+// reported as a vet finding.
+func (r *Runner) vetSetupModule(dir string) []protocol.Problem {
+	out := []protocol.Problem{}
+	for _, problem := range r.gotool.VetWithDocsIn(dir, []string{"..."}) {
+		if problem.File == "" || problem.Line <= 0 {
+			continue
+		}
+		path := problem.File
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(dir, path)
+		}
+		if page, ok := r.project.InSetupModule(path); ok {
+			out = append(out, protocol.Problem{Path: page, Line: problem.Line, Message: vetPrefix + problem.Message})
+		}
+	}
+	return out
 }
 
 // packagesOf are the packages of files, by their directories relative to the module.

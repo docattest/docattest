@@ -4,6 +4,37 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `docattest mutate --base <ref>` (and `project.mutate({ base })`) mutates only the proofs
+  `impact --base <ref>` says the diff affects plus proofs added or changed on Markdown pages
+  since `<ref>`, making `mutate --fail-on-survivors` cheap on merge requests.
+- `docattest mutate` now mutates `console check` blocks in memory against their captured
+  output (catching vacuous `...`-only blocks as survivors and reporting how many lines `...`
+  hid as `hiddenLines` without failing `--fail-on-survivors`), mutates non-literal scalar
+  constants via type-guided expression edits across all four adapters (such as
+  `const Period = time.Second` → `2 * time.Second`), and prints an actionable hint suggesting
+  `matched()` or `manifestField()` when a whole-file `file()` or `manifest()` fact survives.
+- Citation relevance warnings: `symbols` for citations now follows local test helpers (and
+  enclosing table-driven test setup in Go/TypeScript) across all four adapters, and `check`
+  warns when a passing citation defends a sentence whose code spans name exported surface
+  symbols that the cited test does not use.
+- `docattest hooks install --local` writes hooks to an agent's untracked project-local
+  settings file (`settings.localFile`, such as `.claude/settings.local.json` for Claude
+  Code), and shipped agent descriptors for `codex` and `antigravity` join `claude`, `cursor`
+  and `gemini`.
+- `check` warns when an installed project-local `SKILL.md` is out of date with the running
+  docattest, and Go's version-mismatch warning prints the exact copy-pasteable `go get` and
+  `go mod tidy` command.
+- Go: `check` now vets a separate setup module (`go vet -tags docattest ./...`) and reports
+  any findings as failing `problem` results, alongside docs helper files.
+- Go: `manifestField("path", "keys")` is typed at call sites in generated fact programs to
+  the field's concrete Go type (`string`, `int64`, `float64`, `bool`, `[]any`,
+  `map[string]any`), so string concatenation and arithmetic need no type assertion while
+  existing `.(T)` assertions keep compiling.
+
 ## [0.3.0] - 2026-11-19
 
 ### Added

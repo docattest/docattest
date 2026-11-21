@@ -21,12 +21,13 @@ struct Spec {
 }
 
 /// Options by long name.
-const OPTIONS: [Spec; 16] = [
+const OPTIONS: [Spec; 17] = [
     Spec { name: "root", kind: Type::String, short: None, set: |o, v| o.root = v },
     Spec { name: "json", kind: Type::Boolean, short: None, set: |o, _| o.json = true },
     Spec { name: "quiet", kind: Type::Boolean, short: None, set: |o, _| o.quiet = true },
     Spec { name: "surface", kind: Type::String, short: None, set: |o, v| o.surface = v },
     Spec { name: "global", kind: Type::Boolean, short: None, set: |o, _| o.global = true },
+    Spec { name: "local", kind: Type::Boolean, short: None, set: |o, _| o.local = true },
     Spec { name: "force", kind: Type::Boolean, short: None, set: |o, _| o.force = true },
     Spec { name: "base", kind: Type::String, short: None, set: |o, v| o.base = v },
     Spec { name: "report", kind: Type::String, short: None, set: |o, v| o.reports.extend(v) },
@@ -54,6 +55,8 @@ pub struct Options {
     pub quiet: bool,
     pub surface: Option<String>,
     pub global: bool,
+    /// `hooks install --local`: write to the agent's untracked local settings file.
+    pub local: bool,
     pub force: bool,
     pub base: Option<String>,
     /// `check --report <format>=<path>`, once for each file, in the order given.

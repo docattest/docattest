@@ -416,10 +416,12 @@ assert.deepEqual(await project.where('retry'), [{ page: 'docs/retry.md', line: 4
 
 ## The index lists citations, with the symbols the cited test uses
 
-`where` and the index carry a citation under each surface symbol that the cited test's own
-body uses, imported from a surface by name or by a relative path to the surface's file.
-Symbols used only in hooks or helpers outside the test are not followed, so such a
-citation names no symbol; it still covers its page.
+`where` and the index carry a citation under each surface symbol that the cited test's body
+uses, imported from a surface by name or by a relative path to the surface's file, including
+local helper functions and variables in the same test file (or test package) that the test
+references. When a passing citation defends a sentence whose code spans name at least one
+exported surface symbol and the cited test uses none of those symbols, `check` emits a
+warning naming the page, line, symbol(s) and test title without failing the check.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -430,20 +432,27 @@ const project = createProject({
     'src/index.ts': `export const retry = (n: number) => n;\nexport const wait = () => 0;`,
     'test/retry.test.ts': [
       "import { retry, wait } from '../src/index.js';",
-      "it('retries', () => { retry(3); });",
+      'function runRetry() { return retry(3); }',
+      "it('retries', () => { runRetry(); });",
       "it('waits', () => { wait(); });",
     ].join('\n'),
-    'docs/retry.md': '# Retry\n\nA call is retried. <!-- test: test/retry.test.ts > "retries" -->',
+    'docs/retry.md': [
+      '# Retry',
+      '',
+      'A call to `retry` is retried. <!-- test: test/retry.test.ts > "retries" -->',
+      '',
+      'Calling `retry` never blocks forever. <!-- test: test/retry.test.ts > "waits" -->',
+    ].join('\n'),
   },
 });
 
 const refs = await project.where('retry');
-assert.deepEqual(refs, [{ page: 'docs/retry.md', line: 3, kind: 'test', claim: 'A call is retried.' }]);
-assert.deepEqual(await project.where('wait'), []);
+assert.deepEqual(refs, [{ page: 'docs/retry.md', line: 3, kind: 'test', claim: 'A call to `retry` is retried.' }]);
 
 const report = await project.check();
+assert.equal(report.exitCode, 0);
 assert.deepEqual(report.results[0].symbols, ['retry']);
-assert.deepEqual(report.surfaces.default.unattested, ['wait']);
+assert.deepEqual(report.warnings, ['docs/retry.md:5 citation names `retry`, which `waits` does not use']);
 ```
 
 ## The coverage line counts proofs and citations apart

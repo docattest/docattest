@@ -76,15 +76,20 @@ class Mutants(unittest.TestCase):
         [answer] = mutants([{"name": "KEYS", "surface": "default"}], limit=2, files=files)
         self.assertEqual([e["description"] for e in answer["edits"]], ['"C" removed', '"A" → "Ax"'])
 
+    def test_a_non_literal_alias_mutates_as_an_expression(self):
+        [answer] = mutants([{"name": "ALIAS", "surface": "default"}])
+        [edit] = answer["edits"]
+        self.assertEqual(edit["description"], "PORT → 2 * PORT")
+        self.assertIn("\nALIAS = 2 * PORT\n", applied(edit))
+
     def test_a_symbol_without_edits_says_why(self):
-        names = ["Shop", "open_shop", "STARTED", "ALIAS", "sep", "nothing_declares_this"]
+        names = ["Shop", "open_shop", "STARTED", "sep", "nothing_declares_this"]
         answers = mutants([{"name": n, "surface": "default"} for n in names] + [{"name": "Shop"}])
         self.assertEqual(
             answers,
             [
                 {"edits": [], "why": "function"},
                 {"edits": [], "why": "function"},
-                {"edits": [], "why": "noLiteral"},
                 {"edits": [], "why": "noLiteral"},
                 {"edits": [], "why": "notFound"},
                 {"edits": [], "why": "notFound"},

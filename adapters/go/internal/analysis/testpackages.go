@@ -103,14 +103,14 @@ func (l *loader) addTests(out *loaded, all map[*packages.Package]*checkedPackage
 				sizes: sizes, recorded: true,
 			})
 			tested = checked.types
-			l.addFiles(out, internal, checked.info)
+			l.addTestFiles(out, internal, checked.info)
 		}
 		if len(external) > 0 {
 			checked := l.typeCheck(packageSource{
 				path: listed.PkgPath + "_test", name: external[0].Name.Name, module: listed.Module,
 				files: external, importer: testImporter(listed, byPath, tested), sizes: sizes, recorded: true,
 			})
-			l.addFiles(out, external, checked.info)
+			l.addTestFiles(out, external, checked.info)
 		}
 	}
 }

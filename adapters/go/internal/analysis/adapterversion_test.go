@@ -48,7 +48,8 @@ func TestAnotherReleaseInTheSetupModuleIsAWarningOfTheProject(t *testing.T) {
 		Root: written(t, files), InMemory: true, Surfaces: entries("default", ".", "again", "."), Setup: "docs", Work: t.TempDir(),
 	})
 	want := []string{"docs/go.mod requires " + adapterModule + " v0.1.0, but this docattest is " +
-		protocoldata.Core().Version + ": upgrade the two together"}
+		protocoldata.Core().Version + ": run `go -C docs get " + adapterModule + "@v" +
+		protocoldata.Core().Version + " && go -C docs mod tidy`"}
 	if got := p.VersionWarnings(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %q", got)
 	}

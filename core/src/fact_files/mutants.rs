@@ -22,15 +22,28 @@ pub struct ReadMutant {
     pub description: String,
 }
 
+/// What [`FactFiles::add_mutants`] added: each change to a call's value, and the calls
+/// whose full list of changes exceeded the per-read limit.
+#[derive(Debug, Default)]
+pub struct AddedMutants {
+    pub mutants: Vec<ReadMutant>,
+    pub truncated: Vec<Call>,
+}
+
 impl FactFiles {
     /// At most `limit` changes of what each call that gives something gives, each added to
     /// what the session is given under its own path.
-    pub fn add_mutants(&mut self, limit: usize) -> Vec<ReadMutant> {
+    pub fn add_mutants(&mut self, limit: usize) -> AddedMutants {
         let mut mutants = Vec::new();
+        let mut truncated = Vec::new();
         let mut added = Vec::new();
         for named in &self.named {
             let Ok(value) = &named.read else { continue };
-            for (changed, description) in changes_of(&named.call, value).into_iter().take(limit) {
+            let all = changes_of(&named.call, value);
+            if all.len() > limit {
+                truncated.push(named.call.clone());
+            }
+            for (changed, description) in all.into_iter().take(limit) {
                 let suffix = format!("#mutant{}", mutants.len() + 1);
                 let call = named.call.with_path(&format!("{}{suffix}", named.call.path()));
                 added.push(Named { call, file: named.file.clone(), read: Ok(changed) });
@@ -38,7 +51,7 @@ impl FactFiles {
             }
         }
         self.named.extend(added);
-        mutants
+        AddedMutants { mutants, truncated }
     }
 }
 
@@ -222,9 +235,10 @@ mod tests {
         let mut fact_files = FactFiles {
             named: vec![Named { call: file("V"), file: Some("V".into()), read: Ok(json!("1\n2\n3\n")) }],
         };
-        let mutants = fact_files.add_mutants(2);
-        let suffixes: Vec<&str> = mutants.iter().map(|m| m.suffix.as_str()).collect();
+        let added = fact_files.add_mutants(2);
+        let suffixes: Vec<&str> = added.mutants.iter().map(|m| m.suffix.as_str()).collect();
         assert_eq!(suffixes, ["#mutant1", "#mutant2"]);
+        assert_eq!(added.truncated, [file("V")]);
         assert_eq!(
             fact_files.session_params()["texts"],
             json!({ "V": "1\n2\n3\n", "V#mutant1": "2\n2\n3\n", "V#mutant2": "1\n3\n3\n" })

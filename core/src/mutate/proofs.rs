@@ -38,16 +38,30 @@ pub enum Runner {
     Adapter,
     /// A citation, which docattest judges from the test file without running the test.
     Citation,
-    /// A block the core runs itself (a console block, a sample page): what it reads is not
-    /// known.
-    Core,
+    /// A console transcript run by the core: its captured output lines are mutated in memory.
+    Console,
+    /// A sample page run by the core: what it reads is inside its fixture.
+    Sample,
 }
 
 /// The proofs on the `selected` pages, in plan order: an attestation, or each row of a
 /// table that could be planned.
+#[cfg(test)]
 pub fn proofs_on<'a>(attestations: &'a [Attestation], selected: &HashSet<String>) -> Vec<Proof<'a>> {
+    proofs_selected(attestations, selected, None)
+}
+
+/// Like [`proofs_on`], further restricted to attestations whose id is in `only` when given.
+pub fn proofs_selected<'a>(
+    attestations: &'a [Attestation],
+    selected: &HashSet<String>,
+    only: Option<&HashSet<String>>,
+) -> Vec<Proof<'a>> {
     let mut out = Vec::new();
-    for attestation in attestations.iter().filter(|a| selected.contains(&a.page)) {
+    for attestation in attestations
+        .iter()
+        .filter(|a| selected.contains(&a.page) && only.is_none_or(|ids| ids.contains(&a.id)))
+    {
         match &attestation.body {
             Body::Cases(cases) if attestation.ok() => {
                 out.extend(cases.rows.iter().map(|row| Proof { attestation, row: Some(row) }));
@@ -63,7 +77,8 @@ pub fn runner(attestation: &Attestation) -> Runner {
     match &attestation.body {
         Body::Fact(_) | Body::Example(_) | Body::Cases(_) => Runner::Adapter,
         Body::Test(_) => Runner::Citation,
-        Body::Console(_) | Body::Sample(_) => Runner::Core,
+        Body::Console(_) => Runner::Console,
+        Body::Sample(_) => Runner::Sample,
     }
 }
 

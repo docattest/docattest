@@ -1,0 +1,20 @@
+{
+  "$schema": "../schema/agent.json#/$defs/Agent",
+  "name": "codex",
+  "docs": "https://developers.openai.com/codex",
+  "skill": ".codex/skills/docattest/SKILL.md",
+  "settings": {
+    "file": ".codex/hooks.json",
+    "hooks": "hooks",
+    "group": "hooks",
+    "handler": { "type": "command" },
+    "command": "command"
+  },
+  "hooks": {
+    "check": {
+      "event": "Stop",
+      "continuing": ["stop_hook_active"],
+      "reply": { "fixed": { "decision": "block" }, "text": ["reason"] }
+    }
+  }
+}

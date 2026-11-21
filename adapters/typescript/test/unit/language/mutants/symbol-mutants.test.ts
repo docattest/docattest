@@ -23,6 +23,7 @@ const PROJECT: Record<string, string> = {
     'export type Color = (typeof Color)[keyof typeof Color];',
     'export const PAIR: [number, number] = [1, 2];',
     'export const LIST: number[] = [1, 2];',
+    'export const COPY = TIMEOUT;',
   ].join('\n'),
   'src/config.ts': "export const PORT = 8080;\nexport const HOSTS = ['a', 'b'];\n",
   'src/flags.ts': 'export const DEBUG = false;\n',
@@ -107,6 +108,32 @@ describe('symbolMutants', () => {
   it('answers at most the limit, the first edits in source order', () => {
     const [list] = mutants([onSurface('LIST')], PROJECT, 2);
     expect(applied(list).map(([, d]) => d)).toEqual(['2 removed', '1 → 2']);
+  });
+
+  it('mutates a non-literal scalar constant as a typed expression', () => {
+    const files = {
+      'src/index.ts': [
+        'const BASE = 5;',
+        "const PREFIX = 'ok';",
+        'const FLAG = true;',
+        'export const PERIOD = BASE;',
+        'export const LABEL = PREFIX;',
+        'export const ALSO = FLAG;',
+      ].join('\n'),
+    };
+    const [period, label, also] = mutants(
+      [onSurface('PERIOD'), onSurface('LABEL'), onSurface('ALSO')],
+      files,
+    );
+    expect(applied(period, files)).toEqual([
+      ['src/index.ts', 'BASE → 2 * BASE', 'export const PERIOD = 2 * BASE;'],
+    ]);
+    expect(applied(label, files)).toEqual([
+      ['src/index.ts', "PREFIX → PREFIX + 'x'", "export const LABEL = PREFIX + 'x';"],
+    ]);
+    expect(applied(also, files)).toEqual([
+      ['src/index.ts', 'FLAG → !FLAG', 'export const ALSO = !FLAG;'],
+    ]);
   });
 
   it('counts offsets in bytes of UTF-8, whatever comes before the literal', () => {

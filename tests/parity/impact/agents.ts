@@ -20,20 +20,26 @@ import type { ImpactCase } from './types.ts';
 
 export const otherAgents: ImpactCase[] = [
   // -------------------------------------------------------------------- other agents
-  ...['gemini', 'cursor', './tools/acme.json', 'tools/acme.json', '__ROOT__/tools/acme.json'].map(
-    (agent) => ({
-      name: `hooks install: --agent ${agent}`,
-      files: acmeFiles,
-      steps: [
-        ['hooks', 'install', '--agent', agent],
-        ['hooks', 'install', '--agent', agent],
-        {
-          args: ['hooks', 'install', '--agent', agent],
-          env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' },
-        },
-      ],
-    }),
-  ),
+  ...[
+    'gemini',
+    'cursor',
+    'codex',
+    'antigravity',
+    './tools/acme.json',
+    'tools/acme.json',
+    '__ROOT__/tools/acme.json',
+  ].map((agent) => ({
+    name: `hooks install: --agent ${agent}`,
+    files: acmeFiles,
+    steps: [
+      ['hooks', 'install', '--agent', agent],
+      ['hooks', 'install', '--agent', agent],
+      {
+        args: ['hooks', 'install', '--agent', agent],
+        env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' },
+      },
+    ],
+  })),
   {
     name: 'hooks install: --agent into settings that are there',
     files: {
@@ -276,12 +282,36 @@ export const otherAgents: ImpactCase[] = [
       ['skill', 'install', '--agent', 'gemini'],
       ['skill', 'install', '--agent', 'cursor'],
       ['skill', 'install', '--agent', 'cursor', '--global'],
+      ['skill', 'install', '--agent', 'codex'],
+      ['skill', 'install', '--agent', 'antigravity'],
       ['skill', 'install', '--agent', 'tools/acme.json'],
       ['skill', 'install', '--agent', 'tools/acme.json'],
       ['skill', 'install', '--agent', 'tools/acme.json', '--global', '--force'],
       ['skill', 'install', '--agent', 'claude'],
       ['skill', 'install', '--agent', 'tools/check-only.json'],
       ['skill', 'install', '--agent', 'nobody'],
+    ],
+  },
+  {
+    name: 'check --hook for codex and antigravity',
+    files: failing,
+    steps: [
+      {
+        args: ['check', '--hook', '--agent', 'codex'],
+        stdin: JSON.stringify({ stop_hook_active: false }),
+      },
+      {
+        args: ['check', '--hook', '--agent', 'codex'],
+        stdin: JSON.stringify({ stop_hook_active: true }),
+      },
+      {
+        args: ['check', '--hook', '--agent', 'antigravity'],
+        stdin: JSON.stringify({ continuationActive: false }),
+      },
+      {
+        args: ['check', '--hook', '--agent', 'antigravity'],
+        stdin: JSON.stringify({ continuationActive: true }),
+      },
     ],
   },
 ];

@@ -53,24 +53,45 @@ type DocsHelperFile struct {
 	Path, Page string
 }
 
-// DocsHelperFiles are the docs helper files of the surfaces whose packages are in the
-// project's module, surface by surface in the config's order, each surface's in the order
-// of their names. A package of another module is not the project's to vet.
+// DocsHelperFiles are the docs helper files of the surfaces and of an in-module setup
+// package whose packages are in the project's module, surface by surface in the config's
+// order, each surface's in the order of their names. A package of another module is not
+// the project's to vet here (a separate setup module is vetted on its own).
 func (p *Project) DocsHelperFiles() []DocsHelperFile {
 	out := []DocsHelperFile{}
-	for _, found := range p.surfaces {
-		pkg := p.tree().at(found.Dir)
-		if found.Dir == "" || pkg == nil || !within(p.Module.Dir, found.Dir) {
-			continue
+	seen := map[string]bool{}
+	addDir := func(dir string) {
+		pkg := p.tree().at(dir)
+		if dir == "" || pkg == nil || !within(p.Module.Dir, dir) || seen[dir] {
+			return
 		}
+		seen[dir] = true
 		for _, name := range slices.Sorted(maps.Keys(pkg.Files)) {
 			if isDocsFile(pkg.Files[name]) {
-				path := filepath.Join(found.Dir, name)
+				path := filepath.Join(dir, name)
 				out = append(out, DocsHelperFile{Path: path, Page: p.rel(path)})
 			}
 		}
 	}
+	for _, found := range p.surfaces {
+		addDir(found.Dir)
+	}
+	if p.Setup != "" && p.SetupModule.Dir == p.Module.Dir {
+		addDir(p.packageDir(p.Setup))
+	}
 	return out
+}
+
+// InSetupModule reports whether `path` lies inside a separate setup module (and inside
+// the project root), returning its project-relative path.
+func (p *Project) InSetupModule(path string) (string, bool) {
+	if p.SetupModule.Dir == "" || p.SetupModule.Dir == p.Module.Dir {
+		return "", false
+	}
+	if !within(p.SetupModule.Dir, path) || !within(p.Root, path) {
+		return "", false
+	}
+	return p.rel(path), true
 }
 
 // docsGlue says whether a declaration of a surface's package is followed from a docs

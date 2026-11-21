@@ -162,6 +162,7 @@ func (r *Runner) evaluation(fact protocol.Fact, answer line) protocol.Evaluation
 // function starts with what it reads from source, on the fact's first line.
 func (r *Runner) factsMain(of *analysis.Surface, facts []protocol.Fact, labels []string, live []bool, values sourceValues) string {
 	imports := newImports()
+	fields := decodeManifestFields(r.options.Fields)
 	var body strings.Builder
 	for k, fact := range facts {
 		if !live[k] {
@@ -169,8 +170,9 @@ func (r *Runner) factsMain(of *analysis.Surface, facts []protocol.Fact, labels [
 		}
 		r.factImports(imports, of, fact.Expression)
 		declarations := values.prelude(r.sourceRead(of, fact.Expression), imports)
+		expr := typedFieldCalls(strings.TrimSpace(fact.Expression), fields)
 		fmt.Fprintf(&body, "\t\tfunc() any {\n//line %s:1\n\t\t\t%sreturn (%s)\n\t\t},\n",
-			labels[k], declarations, strings.TrimSpace(fact.Expression))
+			labels[k], declarations, expr)
 	}
 	return "package main\n\n" + imports.block() +
 		"\nfunc main() {\n\tdocattestFacts([]func() any{\n" + body.String() + "\t})\n}\n"

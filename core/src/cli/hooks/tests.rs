@@ -222,9 +222,21 @@ fn prints_what_it_added_then_that_nothing_was_needed() {
         run(&["hooks", "install", "--agent", "flat.json"]),
         (0, format!("docattest hooks: already installed in {file}\n"), String::new())
     );
-    let usage = "docattest: usage: docattest hooks install [--agent <name or file>] [--git]\n";
+    let usage = "docattest: usage: docattest hooks install [--agent <name or file>] [--local] [--git]\n";
     assert_eq!(run(&["hooks"]), (1, String::new(), usage.into()));
     assert_eq!(run(&["hooks", "install", "x"]).0, 1);
+    assert_eq!(
+        run(&["hooks", "install", "--local", "--git"]),
+        (1, String::new(), "docattest: --local cannot be used with --git\n".into())
+    );
+    assert_eq!(
+        run(&["hooks", "install", "--local", "--agent", "./flat.json"]),
+        (
+            1,
+            String::new(),
+            "docattest: agent \"flat\" has no local settings file: its descriptor names none\n".into(),
+        )
+    );
     let (code, _, err) = run(&["hooks", "install", "--agent", "nobody"]);
     assert_eq!(code, 1);
     assert!(err.starts_with("docattest: unknown agent \"nobody\" (known: "), "{err}");
@@ -237,4 +249,12 @@ fn prints_what_it_added_then_that_nothing_was_needed() {
         (code, out.lines().next()),
         (0, Some(format!("docattest hooks: added to {settings}").as_str()))
     );
+    if let Some(local_file) = default.settings.local_file {
+        let local = root.0.join(local_file).display().to_string();
+        let (code, out, _) = run(&["hooks", "install", "--local"]);
+        assert_eq!(
+            (code, out.lines().next()),
+            (0, Some(format!("docattest hooks: added to {local}").as_str()))
+        );
+    }
 }

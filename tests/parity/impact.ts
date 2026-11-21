@@ -37,16 +37,23 @@ import { explain, recordings, type Recordings } from './recordings.ts';
 
 const USAGE =
   'usage: node tests/parity/impact.ts --candidate "<command line>" [--only <text>] ' +
-  '[--update --source "<what changed>"] [--recordings <dir>] [--verbose]';
+  '[--jobs 6] [--update --source "<what changed>"] [--recordings <dir>] [--verbose]';
 const here = dirname(fileURLToPath(import.meta.url));
 const { values } = commandLine(
-  { options: { ...HARNESS_OPTIONS, verbose: { type: 'boolean', default: false } } },
+  {
+    options: {
+      ...HARNESS_OPTIONS,
+      jobs: { type: 'string', default: '6' },
+      verbose: { type: 'boolean', default: false },
+    },
+  },
   USAGE,
 );
 const { candidate, update, dir, only, source } = harnessOptions(
   values,
   resolve(here, 'recordings/impact'),
 );
+const jobs = Math.max(1, Number(values.jobs) || 1);
 const adapter = `${process.execPath} ${join(ROOT, 'adapters/typescript/dist/protocol/main.js')}`;
 
 const ENV: NodeJS.ProcessEnv = {
@@ -104,13 +111,33 @@ interface Tally {
   groups: Record<string, [number, number]>;
 }
 
+/** Run every case in `chosen`, `jobs` at a time, returning their steps in the cases' order. */
+async function runAll(
+  command: readonly string[],
+  chosen: readonly ImpactCase[],
+  env: NodeJS.ProcessEnv,
+): Promise<Step[][]> {
+  const results: Step[][] = new Array<Step[]>(chosen.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(jobs, chosen.length) }, async () => {
+      for (let k = next++; k < chosen.length; k = next++) {
+        const testCase = chosen[k];
+        if (testCase) results[k] = await side(command, testCase, env);
+      }
+    }),
+  );
+  return results;
+}
+
 /** Run the bare candidate on every case chosen, and compare it with the recordings. */
 async function runCases(recorded: Recordings, env: NodeJS.ProcessEnv): Promise<Tally> {
   const tally: Tally = { same: 0, total: 0, groups: {} };
   const { verbose } = values;
-  for (const testCase of cases) {
-    if (only && !testCase.name.includes(only)) continue;
-    const steps = await side(candidate, testCase, env);
+  const chosen = cases.filter((c) => !only || c.name.includes(only));
+  const results = await runAll(candidate, chosen, env);
+  for (const [k, testCase] of chosen.entries()) {
+    const steps = results[k] ?? [];
     const group = (tally.groups[groupOf(testCase.name)] ??= [0, 0]);
     const result = recorded.check(testCase.name, steps);
     tally.total += steps.length;
@@ -141,19 +168,23 @@ async function throughTheLauncher(
   delete launched.DOCATTEST_COMMAND;
   const firstOf = (prefix: string): ImpactCase[] =>
     cases.filter((c) => c.name.startsWith(prefix)).slice(0, 1);
-  const chosen = [
-    ...cases.filter(
-      (c) => c.name.startsWith('hooks install') || c.name.startsWith('agents install'),
-    ),
-    ...firstOf('impact --hook'),
-    ...firstOf('check --hook'),
-    ...firstOf('impact'),
-    ...firstOf('impact --file'),
-    ...firstOf('root found'),
-  ];
+  const chosen =
+    candidate.length === 1 && !only
+      ? [
+          ...cases.filter(
+            (c) => c.name.startsWith('hooks install') || c.name.startsWith('agents install'),
+          ),
+          ...firstOf('impact --hook'),
+          ...firstOf('check --hook'),
+          ...firstOf('impact'),
+          ...firstOf('impact --file'),
+          ...firstOf('root found'),
+        ]
+      : [];
+  const results = await runAll(launcher, chosen, launched);
   let [same, total] = [0, 0];
-  for (const testCase of candidate.length === 1 && !only ? chosen : []) {
-    const steps = await side(launcher, testCase, launched);
+  for (const [k, testCase] of chosen.entries()) {
+    const steps = results[k] ?? [];
     const result = recorded.check(testCase.name, steps, { write: false });
     total += steps.length;
     same += result.steps;

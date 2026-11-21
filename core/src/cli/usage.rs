@@ -37,11 +37,14 @@ pub const USAGE: &str = r#"usage: docattest <command> [options]
                                   exit 1 when the path names no file of the project
   mutate [pages or globs...]      run each proof again against changes to what it reads
                                   (a constant's literal, a line of a file it reads, a cell
-                                  of its table): killed when one makes it fail, survived
-                                  when none does. --json; exit 0, or 1 with
-                                  --fail-on-survivors when a proof survived
+                                  of its table, a console block's output): killed when one
+                                  makes it fail, survived when none does. --json; exit 0,
+                                  or 1 with --fail-on-survivors when a proof survived
+                                  --base <ref>: mutate only proofs affected by the diff
+                                  from <ref> or changed on pages since <ref>
   hooks install                   add hooks to a coding agent's settings: impact after each
                                   edit, check before the agent stops. --agent
+                                  --local: write to the agent's local untracked settings
                                   --git: a git pre-commit hook that runs check instead
   agents install                  write the docattest section of AGENTS.md: what any coding
                                   agent runs after an edit and before it finishes

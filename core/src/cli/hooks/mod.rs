@@ -41,13 +41,24 @@ pub fn agent_argument(loaded: &Loaded, root: &Path) -> String {
 /// Everything already there is kept; a hook already present (a command that runs docattest
 /// with the action) is not added again. `command` gives the shell command of an action's
 /// hook. Returns the file and the hooks added.
+#[cfg(test)]
 pub fn install_hooks(
     root: &Path,
     agent: &Agent,
     command: impl Fn(&str) -> String,
 ) -> Result<(String, Vec<Added>)> {
+    install_hooks_into(root, &agent.settings.file, agent, command)
+}
+
+/// Merge the agent's hooks into `settings_file` (relative to `root`).
+pub fn install_hooks_into(
+    root: &Path,
+    settings_file: &str,
+    agent: &Agent,
+    command: impl Fn(&str) -> String,
+) -> Result<(String, Vec<Added>)> {
     let layout = &agent.settings;
-    let path = root.join(&layout.file);
+    let path = root.join(settings_file);
     let file = path.display().to_string();
     let mut read = read_settings(&path, &file)?;
     let Value::Object(settings) = &mut read else {
@@ -170,29 +181,46 @@ fn has_command(entry: &Value, agent: &Agent, action: &str) -> bool {
     handlers.iter().any(ours)
 }
 
-/// `hooks install [--agent <name or file>]`, and `hooks install --git`.
+/// `hooks install [--agent <name or file>] [--local]`, and `hooks install --git`.
 pub(super) fn hooks(args: &[String], root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
     if args.first().map(String::as_str) != Some("install") || args.len() > 1 {
-        return Err(Error::user("usage: docattest hooks install [--agent <name or file>] [--git]"));
+        return Err(Error::user("usage: docattest hooks install [--agent <name or file>] [--local] [--git]"));
+    }
+    if options.git && options.local {
+        return Err(Error::user("--local cannot be used with --git"));
     }
     if options.git {
         return install_git(root, io);
     }
     let loaded = load_agent(options.agent.as_deref(), |given| resolve(&io.cwd, given))?;
+    let target = settings_target(&loaded.agent, options.local)?;
     let run = docattest_command(loaded.agent.root_as())?;
     let which = agent_argument(&loaded, root);
-    let command = |action: &str| format!("{run} {action} --hook{which}");
-    let (file, added) = install_hooks(root, &loaded.agent, command)?;
+    let (file, added) =
+        install_hooks_into(root, target, &loaded.agent, |action| format!("{run} {action} --hook{which}"))?;
+    print_installed(io, &file, &added);
+    Ok(0)
+}
+
+fn settings_target(agent: &Agent, local: bool) -> Result<&str> {
+    if !local {
+        return Ok(&agent.settings.file);
+    }
+    agent.settings.local_file.as_deref().ok_or_else(|| {
+        Error::user(format!("agent \"{}\" has no local settings file: its descriptor names none", agent.name))
+    })
+}
+
+fn print_installed(io: &mut Io, file: &str, added: &[Added]) {
     if added.is_empty() {
         io.out(&format!("docattest hooks: already installed in {file}"));
-    } else {
-        io.out(&format!("docattest hooks: added to {file}"));
-        for hook in added {
-            let matcher = hook.matcher.map(|m| format!(" ({m})")).unwrap_or_default();
-            io.out(&format!("  {}{matcher}: {}", hook.event, hook.command));
-        }
+        return;
     }
-    Ok(0)
+    io.out(&format!("docattest hooks: added to {file}"));
+    for hook in added {
+        let matcher = hook.matcher.as_deref().map(|m| format!(" ({m})")).unwrap_or_default();
+        io.out(&format!("  {}{matcher}: {}", hook.event, hook.command));
+    }
 }
 
 /// `hooks install --git`.

@@ -42,7 +42,15 @@ const Max uint8 = 255
 
 const Timeout = 5 * time.Second
 
+const Period = time.Second
+
+const Zero = time.Duration(0) - time.Duration(0)
+
 const lower = "quiet"
+
+const Alias = lower
+
+const AlsoOn = On
 
 var Levels = []string{"DEBUG", "LOG_LEVEL"}
 
@@ -124,6 +132,10 @@ func TestMutantsChangeTheLiteralsOfAValue(t *testing.T) {
 		{symbol: of("Raw"), edits: []string{"`x\\n` → `x\\nx`"}},
 		{symbol: of("On"), edits: []string{"true → false"}},
 		{symbol: of("Timeout"), edits: []string{"5 → 6"}},
+		{symbol: of("Period"), edits: []string{"time.Second → 2 * time.Second"}},
+		{symbol: of("Alias"), edits: []string{`lower → lower + "x"`}},
+		{symbol: of("AlsoOn"), edits: []string{"On → !On"}},
+		{symbol: of("Copy"), edits: []string{"Port → 2 * Port"}},
 		{symbol: of("lower"), edits: []string{`"quiet" → "quietx"`}},
 		{symbol: of("Levels"), edits: []string{`"LOG_LEVEL" removed`, `"DEBUG" → "DEBUGx"`, `"LOG_LEVEL" → "LOG_LEVELx"`}},
 		{symbol: of("One"), edits: []string{"7 removed", "7 → 8"}},
@@ -148,12 +160,11 @@ func TestMutantsSayWhyAValueHasNone(t *testing.T) {
 		// 256 is no uint8.
 		{symbol: of("Max"), why: protocol.WhyNoLiteral},
 		{symbol: of("Started"), why: protocol.WhyNoLiteral},
-		{symbol: of("Copy"), why: protocol.WhyNoLiteral},
 		{symbol: of("Nothing"), why: protocol.WhyNoLiteral},
 		{symbol: of("Unset"), why: protocol.WhyNoLiteral},
 		{symbol: of("A"), why: protocol.WhyNoLiteral},
 		{symbol: of("B"), why: protocol.WhyNoLiteral},
-		{symbol: protocol.SymbolRef{Name: "Flag", Surface: "shadow"}, why: protocol.WhyNoLiteral},
+		{symbol: protocol.SymbolRef{Name: "Flag", Surface: "shadow"}, edits: []string{"true → !true"}},
 		{symbol: of("Add"), why: protocol.WhyFunction},
 		{symbol: of("Money"), why: protocol.WhyFunction},
 		{symbol: of("Missing"), why: protocol.WhyNotFound},

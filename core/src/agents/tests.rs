@@ -41,7 +41,11 @@ fn particulars(descriptor: &str) -> Vec<String> {
     found.retain(|text| text.len() >= 10 && text != "continuing");
     let agent = read_agent(&Value::Object(top), "shipped").unwrap();
     found.extend(agent.settings.file.split('/').next().map(String::from));
-    found.extend([Some(agent.settings.file), agent.skill, agent.project_root].into_iter().flatten());
+    found.extend(
+        [Some(agent.settings.file), agent.settings.local_file, agent.skill, agent.project_root]
+            .into_iter()
+            .flatten(),
+    );
     found
 }
 

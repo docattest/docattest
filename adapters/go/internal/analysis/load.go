@@ -63,6 +63,10 @@ type typedFile struct {
 	syntax *ast.File
 	fset   *token.FileSet
 	info   *types.Info
+	// testFiles are the `_test.go` files compiled in the same test package as `syntax`,
+	// so citation symbol analysis can follow local test helpers without crossing into
+	// production functions.
+	testFiles []*ast.File
 }
 
 // load loads the packages a request asks for and every package they import. Its error
@@ -202,5 +206,15 @@ func (l *loader) indexed(checked map[*packages.Package]*checkedPackage) *loaded 
 func (l *loader) addFiles(out *loaded, files []*ast.File, info *types.Info) {
 	for _, file := range files {
 		out.files[l.fset.File(file.FileStart).Name()] = typedFile{syntax: file, fset: l.fset, info: info}
+	}
+}
+
+// addTestFiles adds `_test.go` files to a load's, keeping the slice of test files of the
+// same test package alongside each file.
+func (l *loader) addTestFiles(out *loaded, files []*ast.File, info *types.Info) {
+	for _, file := range files {
+		out.files[l.fset.File(file.FileStart).Name()] = typedFile{
+			syntax: file, fset: l.fset, info: info, testFiles: files,
+		}
 	}
 }

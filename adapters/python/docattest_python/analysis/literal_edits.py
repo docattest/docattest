@@ -40,15 +40,67 @@ class LiteralEdit(NamedTuple):
 
 def literal_edits(text: str, declaration: Declaration) -> list[LiteralEdit]:
     """Every edit of the literals of an ``assign`` declaration of a module whose text is
-    ``text``, in source order."""
+    ``text``, in source order. When no literal is present and the assigned expression is a
+    pure non-call expression (such as ``TIMEOUT = SECOND``), a fallback expression edit is
+    offered."""
     source = SourceMap(text)
     keyed: list[tuple[int, LiteralEdit]] = []
-    for value in _assigned_values(declaration):
+    values = _assigned_values(declaration)
+    for value in values:
         _visit(value, source, keyed)
+    if not keyed:
+        return _expression_edits(declaration, values, source)
     # Stable: a display's removal, keyed by where the display starts, stays before the
     # edits of its first item.
     keyed.sort(key=lambda pair: pair[0])
     return [edit for _, edit in keyed]
+
+
+def _expression_edits(
+    declaration: Declaration, values: list[ast.expr], source: SourceMap
+) -> list[LiteralEdit]:
+    """Fallback change for a declaration whose value holds no literal of its own."""
+    annotation = _annotation_name(declaration)
+    for value in values:
+        if not _is_pure_non_literal(value):
+            continue
+        written = source.written(value)
+        wrapped = written if isinstance(value, (ast.Name, ast.Attribute)) else f"({written})"
+        replacement = _expression_replacement(value, wrapped, annotation)
+        return [_replaced(value, source, replacement)]
+    return []
+
+
+def _expression_replacement(value: ast.expr, wrapped: str, annotation: str | None) -> str:
+    if annotation == "bool" or (isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.Not)):
+        return f"not {wrapped}"
+    if annotation == "str":
+        return f'{wrapped} + "x"'
+    if annotation == "bytes":
+        return f'{wrapped} + b"x"'
+    return f"2 * {wrapped}"
+
+
+def _annotation_name(declaration: Declaration) -> str | None:
+    for node in declaration.nodes:
+        if isinstance(node, ast.AnnAssign):
+            if isinstance(node.annotation, ast.Name):
+                return node.annotation.id
+            if isinstance(node.annotation, ast.Constant) and isinstance(node.annotation.value, str):
+                return node.annotation.value
+    return None
+
+
+def _is_pure_non_literal(node: ast.AST) -> bool:
+    if isinstance(node, ast.Name):
+        return True
+    if isinstance(node, ast.Attribute):
+        return _is_pure_non_literal(node.value)
+    if isinstance(node, ast.UnaryOp):
+        return _is_pure_non_literal(node.operand)
+    if isinstance(node, ast.BinOp):
+        return _is_pure_non_literal(node.left) and _is_pure_non_literal(node.right)
+    return False
 
 
 def _assigned_values(declaration: Declaration) -> list[ast.expr]:

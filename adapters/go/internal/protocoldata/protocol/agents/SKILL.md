@@ -148,9 +148,11 @@ Syntax:
 3. Fix the prose or the proof until the page passes, then run `docattest check`.
 4. `docattest audit` reports lists, tables, blocks and values in sentences on the pages that
    look copied from the code and carry no fact. Add the suggested directive; where it reports drift, fix the page.
-5. When the page is new, run `docattest mutate <page>`: it breaks what each proof reads and
-   runs it again. A proof it reports as `survived` passes whatever the code says; make it
-   pin the value, or make the sentence claim no more than the proof checks.
+5. When the page is new, run `docattest mutate <page>` (or `docattest mutate --base origin/main`
+   on a branch): it breaks what each proof reads and runs it again. A proof it reports as
+   `survived` passes whatever the code says; make it pin the value (use `matched()` or
+   `manifestField()` rather than reading whole files when a hint suggests it), or make the
+   sentence claim no more than the proof checks.
 
 ## Never make the build green this way
 

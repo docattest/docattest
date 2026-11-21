@@ -185,6 +185,7 @@ assert.deepEqual(descriptor, {
   skill: '.claude/skills/docattest/SKILL.md',
   settings: {
     file: '.claude/settings.json',
+    localFile: '.claude/settings.local.json',
     hooks: 'hooks',
     group: 'hooks',
     handler: { type: 'command' },
@@ -217,6 +218,7 @@ assert.deepEqual(index, { default: 'claude' });
 | `projectRoot` | how a hook command of this agent writes the project root | a command such as `{root}/.venv/bin/docattest` must not hold one machine's path; left out when the agent runs hooks in the project root, where `.` will do |
 | `skill` | where the agent looks for a skill, relative to the project root or the home directory | `skill install` copies the one skill text there; left out when the agent has no such place |
 | `settings.file` | the JSON file the agent reads hooks from, relative to the project root | where `hooks install` writes |
+| `settings.localFile` | the untracked project-local settings file, relative to the project root | where `hooks install --local` writes, so a teammate without docattest is unaffected; left out when the agent has no such file |
 | `settings.hooks` | the key of that file that maps an event name to a list of entries | where a hook goes in the file |
 | `settings.group` | the key under which an entry holds its list of handlers | some agents group handlers under a filter; left out when an entry is itself a handler |
 | `settings.handler` | fields every handler carries besides its command | an agent may want a type, a shell or a timeout on each |
@@ -246,15 +248,43 @@ const unknown = spawnSync(process.execPath, [cli, 'hooks', 'install', '--agent',
 assert.equal(unknown.status, 1);
 assert.equal(
   unknown.stderr,
-  'docattest: unknown agent "nobody" (known: claude, cursor, gemini); for another agent pass its descriptor file, as in --agent ./nobody.json\n',
+  'docattest: unknown agent "nobody" (known: antigravity, claude, codex, cursor, gemini); for another agent pass its descriptor file, as in --agent ./nobody.json\n',
 );
 ```
 
 | `--agent` | agent | hooks | checked against |
 |---|---|---|---|
+| `antigravity` | Antigravity | `check` when the execution loop stops | <https://antigravity.google/docs> |
 | `claude` | Claude Code | `impact` after `Edit` and `Write`, `check` before it stops | <https://code.claude.com/docs/en/hooks> |
-| `gemini` | Gemini CLI | `impact` after `write_file` and `replace`, `check` after the agent's turn | <https://geminicli.com/docs/hooks/reference/> |
+| `codex` | OpenAI Codex | `check` when the agent turn stops | <https://developers.openai.com/codex> |
 | `cursor` | Cursor | `check` when the agent loop ends | <https://cursor.com/docs/agent/hooks> |
+| `gemini` | Gemini CLI | `impact` after `write_file` and `replace`, `check` after the agent's turn | <https://geminicli.com/docs/hooks/reference/> |
+
+`hooks install --local` writes into the agent's untracked local settings file
+(`settings.localFile`, such as `.claude/settings.local.json` for Claude Code) instead of
+the shared settings file, so teammates who do not have docattest installed are not
+affected. An agent whose descriptor names no `localFile` refuses `--local`.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-agents-local-'));
+const { DOCATTEST_COMMAND: _unset, ...env } = process.env;
+const docattest = (...args: string[]) => spawnSync(process.execPath, [cli, ...args, '--root', root], { encoding: 'utf8', env });
+// ---cut---
+assert.equal(docattest('hooks', 'install', '--local').status, 0);
+const local = JSON.parse(readFileSync(join(root, '.claude/settings.local.json'), 'utf8'));
+assert.equal(local.hooks.Stop[0].hooks[0].command, 'npx --no docattest check --hook');
+
+const unsupported = docattest('hooks', 'install', '--local', '--agent', 'cursor');
+assert.equal(unsupported.status, 1);
+assert.match(unsupported.stderr, /has no local settings file/);
+```
 
 Cursor's descriptor binds no event to `impact`: its documentation gives the event after a
 file edit no answer that reaches the agent, and does not say where the event that has such
@@ -304,6 +334,26 @@ const followup = JSON.parse(docattest({ status: 'completed', loop_count: 0 }, 'c
 assert.deepEqual(Object.keys(followup), ['followup_message']);
 // Once it has been sent back, it is let go.
 assert.equal(docattest({ status: 'completed', loop_count: 1 }, 'check', '--hook', '--agent', 'cursor').stdout, '');
+
+assert.equal(docattest({}, 'hooks', 'install', '--agent', 'codex').status, 0);
+assert.deepEqual(read('.codex/hooks.json'), {
+  hooks: {
+    Stop: [{ hooks: [{ type: 'command', command: 'npx --no docattest check --hook --agent codex' }] }],
+  },
+});
+const codexBlock = JSON.parse(docattest({ stop_hook_active: false }, 'check', '--hook', '--agent', 'codex').stdout);
+assert.equal(codexBlock.decision, 'block');
+assert.equal(docattest({ stop_hook_active: true }, 'check', '--hook', '--agent', 'codex').stdout, '');
+
+assert.equal(docattest({}, 'hooks', 'install', '--agent', 'antigravity').status, 0);
+assert.deepEqual(read('.agents/hooks.json'), {
+  docattest: {
+    Stop: [{ type: 'command', command: 'npx --no docattest check --hook --agent antigravity' }],
+  },
+});
+const agyContinue = JSON.parse(docattest({ continuationActive: false }, 'check', '--hook', '--agent', 'antigravity').stdout);
+assert.equal(agyContinue.decision, 'continue');
+assert.equal(docattest({ continuationActive: true }, 'check', '--hook', '--agent', 'antigravity').stdout, '');
 ```
 
 ## A descriptor of your own

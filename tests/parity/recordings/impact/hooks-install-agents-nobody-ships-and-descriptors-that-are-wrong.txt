@@ -1,15 +1,15 @@
 # hooks install: agents nobody ships and descriptors that are wrong
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
 === hooks install --agent nobody
 exit 1
 stdout empty
 stderr 1 line
-docattest: unknown agent "nobody" (known: claude, cursor, gemini); for another agent pass its descriptor file, as in --agent ./nobody.json
+docattest: unknown agent "nobody" (known: antigravity, claude, codex, cursor, gemini); for another agent pass its descriptor file, as in --agent ./nobody.json
 === hooks install --agent index
 exit 1
 stdout empty
 stderr 1 line
-docattest: unknown agent "index" (known: claude, cursor, gemini); for another agent pass its descriptor file, as in --agent ./index.json
+docattest: unknown agent "index" (known: antigravity, claude, codex, cursor, gemini); for another agent pass its descriptor file, as in --agent ./index.json
 === hooks install --agent 
 exit 1
 stdout empty
@@ -239,7 +239,7 @@ docattest: <root>/bad/3.json: "name" must be a string that is not empty
 exit 1
 stdout empty
 stderr 1 line
-docattest: unknown agent "nobody" (known: claude, cursor, gemini); for another agent pass its descriptor file, as in --agent ./nobody.json
+docattest: unknown agent "nobody" (known: antigravity, claude, codex, cursor, gemini); for another agent pass its descriptor file, as in --agent ./nobody.json
 === skill install --agent bad/0.json
 exit 1
 stdout empty

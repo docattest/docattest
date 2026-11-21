@@ -205,3 +205,61 @@ func (w *mutantWalk) boolean(name *ast.Ident) {
 		})
 	}
 }
+
+// expressionMutants are fallback changes to the whole initializer when it holds no
+// literal of its own (for example `const Timeout = time.Second` or `var Copy = Port`).
+// They apply only to scalar basic types (numeric, string, boolean), leaving runes,
+// imaginary numbers, `iota`, pointers and structs untouched.
+func expressionMutants(expr ast.Expr, object types.Object, info *types.Info, text string) []literalMutant {
+	if isIgnoredScalarExpr(expr, info) {
+		return nil
+	}
+	basic, ok := object.Type().Underlying().(*types.Basic)
+	if !ok {
+		return nil
+	}
+	wrapped := parenthesized(expr, text)
+	var replacements []string
+	switch {
+	case basic.Info()&(types.IsInteger|types.IsFloat) != 0:
+		if c, isConst := object.(*types.Const); isConst && c.Val() != nil && constant.Sign(c.Val()) == 0 {
+			replacements = []string{wrapped + " + 1"}
+		} else {
+			replacements = []string{"2 * " + wrapped, wrapped + " + 1", wrapped + " - 1"}
+		}
+	case basic.Info()&types.IsString != 0:
+		replacements = []string{wrapped + ` + "x"`}
+	case basic.Info()&types.IsBoolean != 0:
+		replacements = []string{"!" + wrapped}
+	}
+	out := make([]literalMutant, 0, len(replacements))
+	for _, replacement := range replacements {
+		out = append(out, literalMutant{
+			start: expr.Pos(), end: expr.End(), replacement: replacement,
+			description: text + " → " + replacement,
+		})
+	}
+	return out
+}
+
+// isIgnoredScalarExpr says whether `expr` is a rune/imaginary literal or `iota`, which
+// `mutants` leaves alone.
+func isIgnoredScalarExpr(expr ast.Expr, info *types.Info) bool {
+	switch x := expr.(type) {
+	case *ast.BasicLit:
+		return x.Kind == token.CHAR || x.Kind == token.IMAG
+	case *ast.Ident:
+		obj := info.Uses[x]
+		return obj != nil && obj.Parent() == types.Universe && x.Name == "iota"
+	}
+	return false
+}
+
+// parenthesized wraps `text` in parentheses when `expr` is not an atom or selector.
+func parenthesized(expr ast.Expr, text string) string {
+	switch expr.(type) {
+	case *ast.Ident, *ast.SelectorExpr, *ast.ParenExpr:
+		return text
+	}
+	return "(" + text + ")"
+}

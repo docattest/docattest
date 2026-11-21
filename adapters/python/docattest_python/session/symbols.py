@@ -269,7 +269,8 @@ class Symbols:
         ]
         if not found:
             return []
-        return self._known(self._refs(Imports(module.tree, module), found), self._exports)
+        nodes = _reached_test_nodes(module, found, list(t.describes))
+        return self._known(self._refs(Imports(module.tree, module), nodes), self._exports)
 
     # --- tests ---------------------------------------------------------------------------
 
@@ -300,6 +301,50 @@ class Symbols:
         except (SyntaxError, ValueError) as err:
             return f"{file} does not parse: {type(err).__name__}: {getattr(err, 'msg', err)}"
         return declared(tree)
+
+
+def _reached_test_nodes(module: Module, roots: list[ast.AST], describes: list[str]) -> list[ast.AST]:
+    """``roots`` and the non-test helpers in ``module`` (and in any enclosing test class)
+    that they reference, transitively."""
+    class_methods = _class_helpers(module.tree, describes)
+    nodes: list[ast.AST] = []
+    seen: set[str] = set()
+    queue = list(roots)
+    while queue:
+        current = queue.pop()
+        nodes.append(current)
+        for chain in chains(current):
+            head = chain[0]
+            if head in ("self", "cls") and len(chain) >= 2:
+                method = class_methods.get(chain[1])
+                key = f".{chain[1]}"
+                if method is not None and key not in seen:
+                    seen.add(key)
+                    queue.append(method)
+                continue
+            if head.startswith("test_") or head in seen:
+                continue
+            binding = module.bindings.get(head)
+            if isinstance(binding, Declaration):
+                seen.add(head)
+                queue.extend(binding.nodes)
+    return nodes
+
+
+def _class_helpers(tree: ast.Module, describes: list[str]) -> dict[str, ast.AST]:
+    """Non-test helper methods on the class enclosing a cited test method, if any."""
+    if not describes:
+        return {}
+    cls_name = describes[0]
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef) and node.name == cls_name:
+            return {
+                item.name: item
+                for item in node.body
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and not item.name.startswith("test_")
+            }
+    return {}
 
 
 def _assigned_names(binding: Declaration) -> list[str]:

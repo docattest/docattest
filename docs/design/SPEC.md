@@ -219,9 +219,12 @@ is the attestation's symbol for the index.
   declares a test with that title (enclosing `describe` titles may be given as further
   `> "…"` segments), `error` when the file or the title is missing or the directive is
   malformed.
-- The test is not run: the project's own test job does that. A citation cannot see a test
-  that is skipped, failing or weakened, so it is reported as its own kind and counted
-  separately (`cited`) in coverage. See `docs/citations.md`.
+- The test is not run unless `--run-cited` is given: by default the project's own test job
+  runs it. A citation cannot see a test that is skipped, failing or weakened unless run, so
+  it is reported as its own kind and counted separately (`cited`) in coverage. When a
+  passing citation's sentence names surface exports in code spans and the cited test (and
+  its local test helpers) uses none of them, `check` emits a non-failing warning. See
+  `docs/citations.md`.
 
 ## 4. Living and frozen
 
@@ -248,8 +251,10 @@ is the attestation's symbol for the index.
 - The project's files are those below the root, less hidden directories, what the
   adapter's language ignores, and, in a git work tree, what git ignores and does not track.
 - A glob of `pages` or `sources` that matches no file, a `setup` that is not there or
-  that nothing reads (no living page has a cases table or a fact), and a glob of
-  `undocumented` that matches no symbol its surface exports, are warnings in the report's
+  that nothing reads (no living page has a cases table or a fact), a glob of
+  `undocumented` that matches no symbol its surface exports, a project-local agent skill
+  whose `SKILL.md` drifts from the packaged skill, and a passing citation whose test uses
+  none of the surface exports named in its sentence, are warnings in the report's
   `warnings`: they never change the exit code.
 - A **surface** is one of three forms. A bare specifier (`@example/client`) is imported as
   itself and resolved the way Node resolves it from the project root (import conditions are
@@ -352,10 +357,12 @@ runs the check; together they are the baseline, and need nothing of the agent. F
 agent that has hooks, `hooks install --agent <name>` and the hook modes (`impact --hook`,
 `check --hook`) apply an *agent descriptor*: one JSON file per agent
 (`protocol/agents/<name>.json`, format in `protocol/schema/agent.json`) that says where the
-agent's settings are and how hooks nest in them, which event runs which action, where the
+agent's settings are (including an optional gitignored `localFile` for `hooks install --local`)
+and how hooks nest in them, which event runs which action, where the
 event holds the edited file and the sign that the agent is already continuing, what JSON
 the answer is, how the agent writes the project root in a command, and where it looks for a
-skill. Claude Code is the first descriptor and the default; no implementation names an
+skill. Claude Code is the default; shipped descriptors also cover Cursor, Gemini CLI,
+OpenAI Codex and Antigravity. No implementation names an
 agent anywhere else, and a user supplies a descriptor for another agent as
 `--agent ./my-agent.json` (`docs/agents.md`).
 

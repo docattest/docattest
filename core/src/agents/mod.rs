@@ -41,6 +41,7 @@ pub const ACTIONS: [&str; 2] = ["impact", "check"];
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Settings {
     pub file: String,
+    pub local_file: Option<String>,
     pub hooks: String,
     pub group: Option<String>,
     pub handler: Map<String, Value>,
@@ -172,10 +173,11 @@ impl Reader<'_> {
     }
 
     fn settings(&self, found: Option<&Value>) -> Result<Settings> {
-        let keys = ["file", "hooks", "group", "handler", "command", "defaults"];
+        let keys = ["file", "localFile", "hooks", "group", "handler", "command", "defaults"];
         let settings = self.object(found, "settings", &keys)?;
         Ok(Settings {
             file: self.string(settings.get("file"), "settings.file")?,
+            local_file: self.optional_string(settings.get("localFile"), "settings.localFile")?,
             hooks: self.string(settings.get("hooks"), "settings.hooks")?,
             group: self.optional_string(settings.get("group"), "settings.group")?,
             handler: self.fields(settings.get("handler"), "settings.handler")?,
@@ -249,6 +251,18 @@ pub(crate) fn load_agent(given: Option<&str>, resolve: impl Fn(&str) -> PathBuf)
     let place = format!("agent \"{named}\"");
     let agent = read_agent(&parse(text, &place)?, &place)?;
     Ok(Loaded { agent, file: None, is_default: named == DEFAULT })
+}
+
+/// Every shipped agent descriptor, with whether it is the default agent.
+pub(crate) fn shipped_agents() -> Vec<(Agent, bool)> {
+    SHIPPED
+        .iter()
+        .filter_map(|(name, text)| {
+            let place = format!("agent \"{name}\"");
+            let agent = read_agent(&parse(text, &place).ok()?, &place).ok()?;
+            Some((agent, *name == DEFAULT))
+        })
+        .collect()
 }
 
 fn parse(text: &str, place: &str) -> Result<Value> {

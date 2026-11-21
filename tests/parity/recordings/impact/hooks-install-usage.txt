@@ -1,20 +1,20 @@
 # hooks install: usage
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
 === hooks
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest hooks install [--agent <name or file>] [--git]
+docattest: usage: docattest hooks install [--agent <name or file>] [--local] [--git]
 === hooks uninstall
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest hooks install [--agent <name or file>] [--git]
+docattest: usage: docattest hooks install [--agent <name or file>] [--local] [--git]
 === hooks install x
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest hooks install [--agent <name or file>] [--git]
+docattest: usage: docattest hooks install [--agent <name or file>] [--local] [--git]
 === hooks install --json --quiet
 exit 0
 stdout 3 lines

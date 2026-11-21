@@ -1,8 +1,8 @@
 # index --json
-# recorded from: explain, citation shorthands, prose pages, matched, manifestField, problems, run-cited, mutate
+# recorded from: added docs proofs and citation relevance warnings
 === index --json
 exit 0
-stdout 940 lines
+stdout 994 lines
 {
   "CHANGE_TYPES": [
     {
@@ -29,7 +29,7 @@ stdout 940 lines
   "CONFIG_KEYS": [
     {
       "page": "README.md",
-      "line": 520,
+      "line": 521,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     }
@@ -37,7 +37,7 @@ stdout 940 lines
   "DEFAULT_SNAPSHOT_MAX_AGE_DAYS": [
     {
       "page": "README.md",
-      "line": 531,
+      "line": 532,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -51,7 +51,7 @@ stdout 940 lines
   "DEFAULT_TIMEOUT_MS": [
     {
       "page": "README.md",
-      "line": 532,
+      "line": 533,
       "kind": "fact",
       "claim": "`docattest.config.json`, at the project root:"
     },
@@ -139,15 +139,27 @@ stdout 940 lines
   "createProject": [
     {
       "page": "README.md",
-      "line": 506,
+      "line": 507,
       "kind": "example",
       "claim": "Use it from code"
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 121,
+      "kind": "test",
+      "claim": "A fact that names anything else of it, such as a function, loads it, as an example does."
     },
     {
       "page": "adapters/typescript/README.md",
       "line": 123,
       "kind": "example",
       "claim": "A program's most documented values, its port or its default timeout, are often not exported, or live in an entry script that runs when it is imported. So a fact may also read a constant that the surface's module declares at its top level, exported or not. Its value is read from the module's source, and a fact that reads only constants never loads the module: nothing of it runs. A surface may therefore be a command's entry file (`\"cli\": \"./src/main.ts\"`), whose constants are read however the script behaves on import. A fact that names anything else of it, such as a function, loads it, as an example does."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 155,
+      "kind": "test",
+      "claim": "Any other name the module declares and does not export is an error that says only constants can be read from source: `round is a function that surface \"default\" does not export; of its unexported names, a fact reads only constants`."
     },
     {
       "page": "adapters/typescript/README.md",
@@ -208,6 +220,36 @@ stdout 940 lines
       "line": 225,
       "kind": "test",
       "claim": "Each cell of that table is also written into a page under a `fact column=` that lists what `codeSpans` gives, and the core must agree."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 228,
+      "kind": "test",
+      "claim": "A table's rows run one after another, in the page's order, in one worker thread, and the setup module is loaded once for them: its module state is the rows' to share."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 229,
+      "kind": "test",
+      "claim": "A row that throws or rejects fails, and the next row runs in the same worker."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 231,
+      "kind": "test",
+      "claim": "A row that runs out of time, or exits, is the last of its worker: the next row starts on a fresh one, which loads the setup module again."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 235,
+      "kind": "test",
+      "claim": "Each table loads the setup module afresh, but a worker runs many tables, blocks and pages of facts, one after another, and what a row leaves behind on `globalThis`, or a timer or a server it does not stop, is still there for them: a runner stops what it starts before it returns."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 237,
+      "kind": "test",
+      "claim": "Tables run side by side, with each other and with blocks: `runtime.workers` workers at once in all."
     },
     {
       "page": "adapters/typescript/README.md",
@@ -421,9 +463,9 @@ stdout 940 lines
     },
     {
       "page": "docs/citations.md",
-      "line": 424,
+      "line": 426,
       "kind": "example",
-      "claim": "`where` and the index carry a citation under each surface symbol that the cited test's own body uses, imported from a surface by name or by a relative path to the surface's file. Symbols used only in hooks or helpers outside the test are not followed, so such a citation names no symbol; it still covers its page."
+      "claim": "`where` and the index carry a citation under each surface symbol that the cited test's body uses, imported from a surface by name or by a relative path to the surface's file, including local helper functions and variables in the same test file (or test package) that the test references. When a passing citation defends a sentence whose code spans name at least one exported surface symbol and the cited test uses none of those symbols, `check` emits a warning naming the page, line, symbol(s) and test title without failing the check."
     },
     {
       "page": "docs/console.md",
@@ -769,25 +811,37 @@ stdout 940 lines
     },
     {
       "page": "docs/mutate.md",
-      "line": 48,
+      "line": 51,
       "kind": "example",
-      "claim": "What a proof reads of the code is the symbols the index has for it (`docattest where` lists them), and changing a symbol's value is its language's business: the adapter answers edits to the literals of the symbol's declaration, and the core makes each one alone, in a copy of the project. A number gains one, a string gains an `x` before its closing quote, a boolean is flipped, and a list loses its last item before each of its items is changed. [The protocol](../protocol/PROTOCOL.md) has the rule every adapter follows, and each language's guide lists its own: [Python](../adapters/python/README.md), [Go](../adapters/go/README.md), [Rust](../adapters/rust/README.md) and [TypeScript](../adapters/typescript/README.md). At most 8 edits of one symbol are run, the first in source order:"
+      "claim": "What a proof reads of the code is the symbols the index has for it (`docattest where` lists them), and changing a symbol's value is its language's business: the adapter answers edits to the literals of the symbol's declaration, and the core makes each one alone, in a copy of the project. A number gains one, a string gains an `x` before its closing quote, a boolean is flipped, and a list loses its last item before each of its items is changed. When a scalar constant is initialized from another name or expression with no literal of its own (such as `const Period = time.Second` or `export const COPY = PORT`), the adapter offers a type-guided expression edit (`2 * time.Second`, `PORT + 1`, `PREFIX + 'x'`, `!FLAG`). [The protocol](../protocol/PROTOCOL.md) has the rule every adapter follows, and each language's guide lists its own: [Python](../adapters/python/README.md), [Go](../adapters/go/README.md), [Rust](../adapters/rust/README.md) and [TypeScript](../adapters/typescript/README.md). At most 8 edits of one symbol are run, the first in source order:"
     },
     {
       "page": "docs/mutate.md",
-      "line": 74,
+      "line": 77,
       "kind": "example",
       "claim": "The files facts read, the core reads itself (`file`, `matched`, `manifest` and `manifestField`, as [manifests](manifests.md) describes), so the core changes what those calls give, the same in every language: each line of a file's text that is not blank, what a regex matched (its last number counted up, or an `x` added), and each value of a manifest (a number plus one, a string as text is, a boolean flipped, a list without its last item). At most 64 changes of one call are run; each is one more evaluation in the project's own session, so they cost little."
     },
     {
       "page": "docs/mutate.md",
-      "line": 106,
+      "line": 109,
       "kind": "example",
       "claim": "A row of a [cases table](cases.md) is a proof of its own, and the core changes one of its cells at a time on a copy of the row: the content of the cell's last code span, else its text, the last number in it counted up, else an `x` added. The first cell names the row and is never changed. A row is killed when some change fails it, and a cell no change of which fails its row is named (`ignoredCells`): the runner does not read that column, and the page promises something no proof checks."
     },
     {
       "page": "docs/mutate.md",
-      "line": 181,
+      "line": 155,
+      "kind": "example",
+      "claim": "When a whole-file `file()` or whole-manifest `manifest()` fact survives (for example, when it only checks a property unaffected by line edits or reads past the 64-change limit), the report includes a `hint` suggesting `matched()` or `manifestField()`."
+    },
+    {
+      "page": "docs/mutate.md",
+      "line": 197,
+      "kind": "example",
+      "claim": "`docattest mutate --base <ref>` (and `project.mutate({ base })`) mutates only the proofs that [`impact --base <ref>`](impact.md) says the diff affects plus any proof added or modified on Markdown pages changed since `<ref>`. This keeps `--fail-on-survivors` cheap on merge requests as a documentation suite grows."
+    },
+    {
+      "page": "docs/mutate.md",
+      "line": 255,
       "kind": "example",
       "claim": "`mutate --json`, and `project.mutate({ pages })` in the programmatic API, give the same as an object: `proofs`, each with its `page`, `line`, `kind`, `claim` (a row's `row`, its first cell) and `status`; a killed proof's `killedBy`, the number of `mutants` run and its `ignoredCells`; a survivor's `survivors`, every change it survived; for both, how many of their mutants were `stillborn`; a proof not mutated's `why`; and a `summary` of the counts, `stillborn` among them."
     },

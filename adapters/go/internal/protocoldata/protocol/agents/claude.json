@@ -6,6 +6,7 @@
   "skill": ".claude/skills/docattest/SKILL.md",
   "settings": {
     "file": ".claude/settings.json",
+    "localFile": ".claude/settings.local.json",
     "hooks": "hooks",
     "group": "hooks",
     "handler": { "type": "command" },

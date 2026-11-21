@@ -20,6 +20,7 @@ type opening struct {
 	files map[string]string
 	// surfaces are the fixture's when nil.
 	surfaces []protocol.ConfiguredSurface
+	setup    string
 	noSetup  bool
 	network  bool
 	// timeoutMs is how long a row or a block may run; defaultTestTimeoutMs when zero.
@@ -37,6 +38,9 @@ func open(t *testing.T, how opening) *Runner {
 	}
 	if how.surfaces == nil {
 		config.Surfaces = entries("default", ".", "shipping", "./shipping", "gone", "./no/such/package")
+	}
+	if how.setup != "" {
+		config.Setup = how.setup
 	}
 	if how.noSetup {
 		config.Setup = ""
@@ -234,13 +238,19 @@ func TestMatchedAndFieldAreWhatTheCoreWorkedOutHeldAsGoHoldsThem(t *testing.T) {
 	got := r.Evaluate([]protocol.Fact{
 		fact("matched", "matched(\"Dockerfile\", `^USER (\\d+)$`)"),
 		fact("string", `manifestField("ci.yml", "deploy.variables.VERSION")`),
+		fact("concat", `manifestField("ci.yml", "deploy.variables.VERSION") + "-alpine"`),
+		fact("asserted", `manifestField("ci.yml", "deploy.variables.VERSION").(string) + "-ok"`),
+		fact("added", `manifestField("ci.yml", "deploy.replicas") + 1`),
 		fact("integerType", `fmt.Sprintf("%T", manifestField("ci.yml", "deploy.replicas"))`),
 		fact("floatType", `fmt.Sprintf("%T", manifestField("ci.yml", "deploy.ratio"))`),
 		fact("null", `manifestField("ci.yml", "deploy.debug")`),
 		fact("unreadMatch", `matched("Dockerfile", "USER")`),
 		fact("unreadField", `manifestField("ci.yml", "deploy.image")`),
 	})
-	values := map[string]string{"matched": "10001", "string": "0.2.2", "integerType": "int64", "floatType": "float64", "null": "<nil>"}
+	values := map[string]string{
+		"matched": "10001", "string": "0.2.2", "concat": "0.2.2-alpine", "asserted": "0.2.2-ok",
+		"added": "4", "integerType": "int64", "floatType": "float64", "null": "<nil>",
+	}
 	for id, text := range values {
 		if !got[id].OK || got[id].Value.Text != text {
 			t.Errorf("%s: got %+v", id, got[id])
