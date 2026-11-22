@@ -70,56 +70,88 @@ func unread(answers []line, failed, timedOut string) string {
 }
 
 // root is where `observables` starts reading: the fact expression that reads it, and
-// where the program reads it from: the surface, the setup package, or a constant read
-// from source.
+// where the program reads it from: the surface, the setup package, or a constant or
+// literal variable read from source.
 type root struct {
 	expression string
 	setup      bool
 	constant   *sourceConstant
+	variable   *sourceVariable
 }
 
-// roots are a surface's exported constants and variables that a fact can read and, on
-// the default surface, a call of each setup helper, unless the surface exports its name:
-// a fact could not use it.
+// roots are a surface's readable values: exported values, `//go:build docattest` docs
+// helper values and zero-arg functions, constants and literal variables read from source
+// (unexported or in package main), and on the default surface, the setup package's helpers.
 func (r *Runner) roots(of *analysis.Surface) ([]root, error) {
-	out, err := r.valueRoots(of)
-	if err != nil || of.Name != defaultSurface {
-		return out, err
+	out := r.importableRoots(of)
+	source, err := r.sourceValueRoots(of)
+	if err != nil {
+		return nil, err
 	}
-	exported := r.project.Exports(of)
+	out = append(out, source...)
+	if of.Name != defaultSurface {
+		return out, nil
+	}
+	taken := r.project.Importable(of)
+	sourceOnly := r.project.SourceOnly(of)
 	for _, name := range r.project.SetupHelpers() {
-		if !exported[name] {
+		if !taken[name] && sourceOnly[name] == "" {
 			out = append(out, root{expression: name + "()", setup: true})
 		}
 	}
 	return out, nil
 }
 
-// valueRoots are a surface's exported constants and variables that a fact can read, in
-// the order of its files: the variables of a package main are not among them.
-func (r *Runner) valueRoots(of *analysis.Surface) ([]root, error) {
-	sourceOnly := r.project.SourceOnly(of)
-	fromSource := []string{}
-	for _, name := range r.project.ExportedValues(of) {
-		if sourceOnly[name] == analysis.Constant {
-			fromSource = append(fromSource, name)
-		}
-	}
-	constants := map[string]sourceConstant{}
-	if len(fromSource) > 0 {
-		var err error
-		if constants, err = r.readConstants(of, fromSource); err != nil {
-			return nil, err
-		}
+// importableRoots are the exported values and `//go:build docattest` docs helpers of an
+// importable surface (never a package main).
+func (r *Runner) importableRoots(of *analysis.Surface) []root {
+	if r.project.IsProgram(of) {
+		return []root{}
 	}
 	out := []root{}
 	for _, name := range r.project.ExportedValues(of) {
-		read, isConstant := constants[name]
-		switch {
-		case isConstant:
+		out = append(out, root{expression: name})
+	}
+	for _, name := range r.project.DocsHelperValues(of) {
+		out = append(out, root{expression: name})
+	}
+	for _, name := range r.project.DocsHelperFunctions(of) {
+		out = append(out, root{expression: name + "()"})
+	}
+	return out
+}
+
+// sourceValueRoots are a surface's constants and literal variables read from source
+// (unexported names of any package, and all names of a package main). Variables that are
+// not literal variables are skipped quietly.
+func (r *Runner) sourceValueRoots(of *analysis.Surface) ([]root, error) {
+	names := r.project.SourceOnlyValues(of)
+	if len(names) == 0 {
+		return nil, nil
+	}
+	sourceOnly := r.project.SourceOnly(of)
+	constNames := []string{}
+	for _, name := range names {
+		if sourceOnly[name] == analysis.Constant {
+			constNames = append(constNames, name)
+		}
+	}
+	constants := map[string]sourceConstant{}
+	if len(constNames) > 0 {
+		var err error
+		if constants, err = r.readConstants(of, constNames); err != nil {
+			return nil, err
+		}
+	}
+	_, checkedErr := r.project.Checked(of)
+	out := []root{}
+	for _, name := range names {
+		if read, ok := constants[name]; ok {
 			out = append(out, root{expression: name, constant: &read})
-		case sourceOnly[name] == "":
-			out = append(out, root{expression: name})
+		} else if checkedErr == nil && sourceOnly[name] == analysis.Variable {
+			if read, err := r.readSourceVariable(of, name); err == nil {
+				out = append(out, root{expression: name, variable: &read})
+			}
 		}
 	}
 	return out, nil
@@ -140,6 +172,9 @@ func (r *Runner) observablesMain(of *analysis.Surface, roots []root, labels []st
 			imports.add("setup", r.project.SetupImport())
 		case root.constant != nil:
 			read = root.constant.declaration(imports) + "; return " + root.expression
+		case root.variable != nil:
+			values := sourceValues{variables: map[string]sourceVariable{root.expression: *root.variable}}
+			read = values.prelude([]string{root.expression}, imports) + "return " + root.expression
 		default:
 			imports.add("surface", of.Import)
 		}

@@ -35,6 +35,25 @@ func (p *Project) SourceOnly(of *Surface) map[string]Declares {
 	return out
 }
 
+// SourceOnlyValues are the top-level constants and variables of a surface that a program
+// importing it cannot use (every constant/var of a package main, and unexported ones of
+// any other package), in file order, excluding the blank identifier.
+func (p *Project) SourceOnlyValues(of *Surface) []string {
+	out := []string{}
+	if of == nil || of.Dir == "" {
+		return out
+	}
+	pkg := p.tree().at(of.Dir)
+	for _, file := range sorted(pkg.Files) {
+		for _, d := range declarations(file) {
+			if d.Name != "_" && d.isValue() && pkg.isSourceOnly(d.Name) {
+				out = append(out, d.Name)
+			}
+		}
+	}
+	return out
+}
+
 // isSourceOnly says whether a program importing the package cannot use a name it
 // declares: any name of a package main, and an unexported one of any other package.
 func (pkg *goPackage) isSourceOnly(name string) bool {

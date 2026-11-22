@@ -152,7 +152,7 @@ func TestAPackageThatDoesNotCompileFailsOnlyTheFactsThatReadIt(t *testing.T) {
 	expect(t, texts(got), map[string]string{"alone": "2"})
 }
 
-func TestAPackageMainOffersItsExportedConstants(t *testing.T) {
+func TestAPackageMainOffersItsConstantsAndLiteralVariables(t *testing.T) {
 	files := map[string]string{
 		"go.mod":  "module example.com/m\n\ngo 1.21\n",
 		"main.go": "package main\n\nimport \"time\"\n\nconst Version = \"1.4.0\"\n\nconst Timeout = 5 * time.Second\n\nvar Started = time.Now()\n\nconst port = 8080\n\nfunc main() {}\n",
@@ -166,7 +166,7 @@ func TestAPackageMainOffersItsExportedConstants(t *testing.T) {
 	for _, o := range found {
 		got = append(got, o.Expression+"="+o.Value.Text)
 	}
-	if strings.Join(got, " ") != "Version=1.4.0 Timeout=5s" {
+	if strings.Join(got, " ") != "Version=1.4.0 Timeout=5s port=8080" {
 		t.Fatalf("got %v", got)
 	}
 }

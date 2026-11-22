@@ -433,6 +433,21 @@ assert.deepEqual(cfg.surfaces, { default: './src/index.ts' });
 assert.equal(docattest(tsRoot, 'init').status, 1);
 assert.equal(docattest(tsRoot, 'init', '--force', '--no-audit').status, 0);
 
+// --dry-run previews integrations too, while keeping an existing config untouched.
+const dryIntegrations = docattest(tsRoot, 'init', '--agents', '--hooks', '--skill', '--force', '--dry-run');
+assert.equal(dryIntegrations.status, 0);
+assert.match(dryIntegrations.stdout, /keeping existing/);
+assert.match(dryIntegrations.stdout, /would add to .*AGENTS\.md/);
+assert.match(dryIntegrations.stdout, /would add to .*settings\.json/);
+assert.match(dryIntegrations.stdout, /would install .*SKILL\.md/);
+assert.equal(existsSync(join(tsRoot, 'AGENTS.md')), false);
+
+// Per-subcommand --help prints focused help for that command.
+const initHelp = docattest(tsRoot, 'init', '--help');
+assert.equal(initHelp.status, 0);
+assert.match(initHelp.stdout, /^usage: docattest init \[options\]/);
+assert.match(initHelp.stdout, /--dry-run/);
+
 // A repo with no language manifest gets the core-only "none" adapter and no surfaces.
 const opsRoot = makeDir('docattest-init-ops-');
 put(opsRoot, 'README.md', '# Ops\n');

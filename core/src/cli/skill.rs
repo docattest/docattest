@@ -60,7 +60,11 @@ pub fn skill_for_adapter(adapter: &str) -> String {
         "rust" => RUST_NOTES,
         _ => "",
     };
-    format!("{}{extra}", PACKAGED_SKILL.trim_end()) + "\n"
+    if extra.is_empty() {
+        format!("{}\n", PACKAGED_SKILL.trim_end())
+    } else {
+        format!("{}\n{extra}", PACKAGED_SKILL.trim_end())
+    }
 }
 
 /// What installing did.
@@ -79,13 +83,8 @@ pub enum Existing {
     Replace,
 }
 
-/// Write `content` to `path`, the place the agent looks for its skill. An identical file is
-/// left as it is; a different one is replaced only when `existing_file` says so.
-pub fn install_skill(
-    path: &Path,
-    content: &str,
-    existing_file: Existing,
-) -> Result<(String, InstallOutcome)> {
+/// Decide what installing `content` at `path` would do, without writing.
+pub fn plan_skill(path: &Path, content: &str, existing_file: Existing) -> Result<(String, InstallOutcome)> {
     let file = path.display().to_string();
     let failed = Error::user;
     let existing = if path.exists() { Some(text_file::read_text(path).map_err(failed)?) } else { None };
@@ -97,8 +96,21 @@ pub fn install_skill(
             "{file} exists and differs from the packaged skill; pass --force to replace it"
         )));
     }
-    text_file::write_text(path, content).map_err(failed)?;
     Ok((file, if existing.is_none() { InstallOutcome::Installed } else { InstallOutcome::Replaced }))
+}
+
+/// Write `content` to `path`, the place the agent looks for its skill. An identical file is
+/// left as it is; a different one is replaced only when `existing_file` says so.
+pub fn install_skill(
+    path: &Path,
+    content: &str,
+    existing_file: Existing,
+) -> Result<(String, InstallOutcome)> {
+    let (file, outcome) = plan_skill(path, content, existing_file)?;
+    if outcome != InstallOutcome::Unchanged {
+        text_file::write_text(path, content).map_err(Error::user)?;
+    }
+    Ok((file, outcome))
 }
 
 /// `os.homedir()`: `HOME`, else the user's home in the password database.
@@ -106,7 +118,7 @@ fn home() -> std::path::PathBuf {
     std::env::home_dir().unwrap_or_default()
 }
 
-/// Install the single-language skill for `adapter` (`init --skill`).
+/// Install (or preview under `--dry-run`) the single-language skill for `adapter` (`init --skill`).
 pub(super) fn install_project_skill(
     root: &Path,
     adapter: &str,
@@ -124,16 +136,26 @@ pub(super) fn install_project_skill(
     let base = if options.global { &home } else { root };
     let content = skill_for_adapter(adapter);
     let existing = if options.force { Existing::Replace } else { Existing::Keep };
-    let (file, outcome) = install_skill(&base.join(place), &content, existing)?;
-    let said = match outcome {
-        InstallOutcome::Installed => "installed",
-        InstallOutcome::Replaced => "replaced",
-        InstallOutcome::Unchanged => "already up to date:",
+    let path = base.join(place);
+    let (file, outcome) = if options.dry_run {
+        plan_skill(&path, &content, existing)?
+    } else {
+        install_skill(&path, &content, existing)?
     };
     if !options.json {
-        io.out(&format!("docattest skill {said} {file}"));
+        io.out(&format!("docattest skill {} {file}", skill_verb(outcome, options.dry_run)));
     }
     Ok(file)
+}
+
+fn skill_verb(outcome: InstallOutcome, dry_run: bool) -> &'static str {
+    match (outcome, dry_run) {
+        (InstallOutcome::Installed, false) => "installed",
+        (InstallOutcome::Installed, true) => "would install",
+        (InstallOutcome::Replaced, false) => "replaced",
+        (InstallOutcome::Replaced, true) => "would replace",
+        (InstallOutcome::Unchanged, _) => "already up to date:",
+    }
 }
 
 #[cfg(test)]
@@ -148,7 +170,8 @@ mod tests {
         let file = base.0.join("some/skills/docattest/SKILL.md");
         let shown = file.display().to_string();
         let go_skill = skill_for_adapter("go");
-        assert!(go_skill.contains("## Go specifics"));
+        assert!(go_skill.contains("\n\n## Go specifics\n"), "{go_skill}");
+        assert!(!go_skill.ends_with("\n\n"), "{go_skill}");
         assert!(!go_skill.contains("## TypeScript specifics"));
         assert_eq!(
             install_skill(&file, &go_skill, Existing::Keep),

@@ -47,6 +47,47 @@ func (pkg *goPackage) docsNames() map[string]Declares {
 	return out
 }
 
+// DocsHelperValues are the exported constants and variables a surface's docs helper files
+// declare, in file order.
+func (p *Project) DocsHelperValues(of *Surface) []string {
+	out := []string{}
+	if of == nil || of.Dir == "" {
+		return out
+	}
+	for _, file := range sorted(p.tree().at(of.Dir).Files) {
+		if !isDocsFile(file) {
+			continue
+		}
+		for _, d := range declarations(file) {
+			if token.IsExported(d.Name) && d.isValue() {
+				out = append(out, d.Name)
+			}
+		}
+	}
+	return out
+}
+
+// DocsHelperFunctions are the exported zero-argument, single-return functions a surface's
+// docs helper files declare, in file order: like setup helpers, they exist for pages to
+// read, so `observables` calls them.
+func (p *Project) DocsHelperFunctions(of *Surface) []string {
+	out := []string{}
+	if of == nil || of.Dir == "" {
+		return out
+	}
+	for _, file := range sorted(p.tree().at(of.Dir).Files) {
+		if !isDocsFile(file) {
+			continue
+		}
+		for _, decl := range file.Decls {
+			if f, ok := decl.(*ast.FuncDecl); ok && callableAlone(f) {
+				out = append(out, f.Name.Name)
+			}
+		}
+	}
+	return out
+}
+
 // DocsHelperFile is a docs helper file of a surface's package in the project's module.
 type DocsHelperFile struct {
 	// Path is the file's absolute path, and Page its path relative to the project root.

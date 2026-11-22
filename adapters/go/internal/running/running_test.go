@@ -385,3 +385,79 @@ func TestObservables(t *testing.T) {
 		t.Fatalf("got %T", err)
 	}
 }
+
+func TestObservablesIncludesDocsHelpersAndSourceReadableValues(t *testing.T) {
+	runner := open(t, opening{
+		files: map[string]string{
+			"go.mod": "module example.com/svc\n\ngo 1.21\n",
+			"guard/guard.go": `package guard
+
+const defaultTimeout = 30
+var allowedEnv = []string{"PATH", "HOME"}
+var mutableCounter = 0
+
+func Bump() { mutableCounter++ }
+`,
+			"guard/docs.go": `//go:build docattest
+
+package guard
+
+const DocsHelperConst = "doc-only"
+
+func ForbiddenNames() []string { return []string{"cap_sys_admin", "cap_net_raw"} }
+func NeedsArg(x int) int { return x }
+`,
+			"cmd/svc/main.go": `package main
+
+const defaultListen = "127.0.0.1:8080"
+var defaultPorts = []int{8080, 9090}
+
+func main() {}
+`,
+		},
+		surfaces: entries("default", "./guard", "cmd", "./cmd/svc"),
+		noSetup:  true,
+	})
+
+	guardObs, err := runner.Observables("default")
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotGuard := map[string]string{}
+	for _, o := range guardObs {
+		gotGuard[o.Expression] = o.Value.Text
+	}
+	for expr, want := range map[string]string{
+		"defaultTimeout":   "30",
+		"allowedEnv":       "[PATH HOME]",
+		"DocsHelperConst":  "doc-only",
+		"ForbiddenNames()": "[cap_sys_admin cap_net_raw]",
+	} {
+		if gotGuard[expr] != want {
+			t.Errorf("default %s: got %q, want %q (all: %v)", expr, gotGuard[expr], want, gotGuard)
+		}
+	}
+	if _, ok := gotGuard["mutableCounter"]; ok {
+		t.Errorf("mutableCounter should not be observable: %v", gotGuard)
+	}
+	if _, ok := gotGuard["NeedsArg()"]; ok {
+		t.Errorf("NeedsArg() takes an arg and should not be called: %v", gotGuard)
+	}
+
+	cmdObs, err := runner.Observables("cmd")
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotCmd := map[string]string{}
+	for _, o := range cmdObs {
+		gotCmd[o.Expression] = o.Value.Text
+	}
+	for expr, want := range map[string]string{
+		"defaultListen": "127.0.0.1:8080",
+		"defaultPorts":  "[8080 9090]",
+	} {
+		if gotCmd[expr] != want {
+			t.Errorf("cmd %s: got %q, want %q (all: %v)", expr, gotCmd[expr], want, gotCmd)
+		}
+	}
+}

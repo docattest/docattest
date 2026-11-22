@@ -53,10 +53,17 @@ pub(super) fn init(root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
 }
 
 fn print_config_step(step: &ConfigStep, options: &Options, io: &mut Io) {
-    if !options.json
-        && let ConfigStep::Wrote { path, detected, .. } = step
-    {
-        io.out(&format_init(path, detected, options.dry_run));
+    if options.json {
+        return;
+    }
+    match step {
+        ConfigStep::Wrote { path, detected, .. } => {
+            io.out(&format_init(path, detected, options.dry_run));
+        }
+        ConfigStep::Kept { path, .. } if options.dry_run => {
+            io.out(&format!("docattest init: keeping existing {}", path.display()));
+        }
+        ConfigStep::Kept { .. } => {}
     }
 }
 
@@ -66,18 +73,15 @@ fn install_integrations(
     options: &Options,
     io: &mut Io,
 ) -> Result<Map<String, Value>> {
-    if options.dry_run {
-        return Ok(Map::new());
-    }
     let mut installed = Map::new();
     if options.write_agents {
-        installed.insert("agents".into(), json!(agents::install_agents(root, options.json, io)?));
+        installed.insert("agents".into(), json!(agents::install_agents(root, options, io)?));
     }
     if options.hooks {
         installed.insert("hooks".into(), json!(hooks::install_agent_hooks(root, options, io)?));
     }
     if options.git_hook {
-        installed.insert("gitHook".into(), json!(hooks::install_git(root, options.json, io)?));
+        installed.insert("gitHook".into(), json!(hooks::install_git(root, options, io)?));
     }
     if options.skill {
         installed.insert("skill".into(), json!(skill::install_project_skill(root, adapter, options, io)?));
@@ -203,4 +207,70 @@ fn format_init(path: &Path, detected: &DetectedConfig, dry_run: bool) -> String 
         None => lines.push("  surfaces: none (add surfaces later to bind facts to exported code)".into()),
     }
     lines.join("\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::{Io, run};
+    use crate::git::tests::Temp;
+    use std::fs;
+
+    fn run_cli(root: &std::path::Path, args: &[&str]) -> (i32, String, String) {
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let argv: Vec<String> = args.iter().map(|s| s.to_string()).collect();
+        let mut io = Io { out: &mut out, err: &mut err, cwd: root.to_path_buf() };
+        let code = run(&argv, &mut io);
+        (code, String::from_utf8(out).unwrap(), String::from_utf8(err).unwrap())
+    }
+
+    #[test]
+    fn dry_run_previews_integrations_and_keeps_existing_config_without_writing() {
+        let project = Temp::new("init-dry-run");
+        let original = "{\n  \"pages\": [\"README.md\"],\n  \"adapter\": \"go\"\n}\n";
+        project.write("docattest.config.json", original);
+
+        let (code, stdout, stderr) = run_cli(
+            &project.0,
+            &["init", "--agents", "--hooks", "--local", "--skill", "--force", "--dry-run"],
+        );
+        assert_eq!(code, 0, "{stderr}");
+        assert!(stdout.contains("docattest init: keeping existing "), "{stdout}");
+        assert!(stdout.contains("docattest agents: would add to "), "{stdout}");
+        assert!(stdout.contains("docattest hooks: would add to "), "{stdout}");
+        assert!(stdout.contains("docattest skill would install "), "{stdout}");
+        assert_eq!(fs::read_to_string(project.0.join("docattest.config.json")).unwrap(), original);
+        assert!(!project.0.join("AGENTS.md").exists());
+
+        let (code, json_out, stderr) = run_cli(
+            &project.0,
+            &["init", "--agents", "--hooks", "--local", "--skill", "--force", "--dry-run", "--json"],
+        );
+        assert_eq!(code, 0, "{stderr}");
+        let parsed: serde_json::Value = serde_json::from_str(&json_out).unwrap();
+        assert_eq!(parsed["dryRun"], true);
+        assert_eq!(parsed["kept"], true);
+        assert!(parsed["installed"]["agents"].is_string());
+        assert!(parsed["installed"]["hooks"].is_string());
+        assert!(parsed["installed"]["skill"].is_string());
+        assert!(!project.0.join("AGENTS.md").exists());
+    }
+
+    #[test]
+    fn subcommand_help_is_focused_on_that_command() {
+        let project = Temp::new("subcommand-help");
+        let (code, init_help, _) = run_cli(&project.0, &["init", "--help"]);
+        assert_eq!(code, 0);
+        assert!(init_help.starts_with("usage: docattest init [options]"), "{init_help}");
+        assert!(init_help.contains("--dry-run"), "{init_help}");
+
+        let (code, check_help, _) = run_cli(&project.0, &["help", "check"]);
+        assert_eq!(code, 0);
+        assert!(check_help.starts_with("usage: docattest check "), "{check_help}");
+        assert!(check_help.contains("--member <dir>"), "{check_help}");
+
+        let (code, top_help, _) = run_cli(&project.0, &["--help"]);
+        assert_eq!(code, 0);
+        assert!(top_help.starts_with("usage: docattest <command> [options]"), "{top_help}");
+    }
 }

@@ -100,7 +100,12 @@ fn dispatch(argv: &[String], io: &mut Io) -> Result<i32> {
         return Ok(0);
     }
     if line.options.help || line.command.as_deref() == Some("help") {
-        io.out(USAGE);
+        let topic = if line.command.as_deref() == Some("help") {
+            line.args.first().map(String::as_str)
+        } else {
+            line.command.as_deref()
+        };
+        io.out(usage::help_for(topic));
         return Ok(0);
     }
     let Some(command) = line.command.as_deref() else {

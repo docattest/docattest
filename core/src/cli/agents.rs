@@ -39,24 +39,32 @@ fn find(bytes: &[u8], needle: &str, from: usize) -> Option<usize> {
     rest.windows(needle.len()).position(|window| window == needle.as_bytes()).map(|at| at + from)
 }
 
-/// Write the section into `<root>/AGENTS.md`: a new file, the end of a file that has no
-/// section, or in place of the section that is there. The file is handled as bytes, so what
-/// is outside the markers stays exactly as it was.
-pub fn install_section(root: &Path, section: &str) -> Result<(String, SectionOutcome)> {
+/// Compute what writing the section into `<root>/AGENTS.md` would do, without writing.
+pub fn plan_section(root: &Path, section: &str) -> Result<(String, SectionOutcome, Option<Vec<u8>>)> {
     let path = root.join(AGENTS_FILE);
     let file = path.display().to_string();
     if !path.exists() {
-        write_file(&path, &file, format!("{section}\n").as_bytes())?;
-        return Ok((file, SectionOutcome::Added));
+        return Ok((file, SectionOutcome::Added, Some(format!("{section}\n").into_bytes())));
     }
     let existing = read_file(&path, &file)?;
     let had_section = find(&existing, BEGIN, 0).is_some();
     let written = with_section(&existing, section, &file)?;
     if written == existing {
-        return Ok((file, SectionOutcome::Unchanged));
+        return Ok((file, SectionOutcome::Unchanged, None));
     }
-    write_file(&path, &file, &written)?;
-    Ok((file, if had_section { SectionOutcome::Updated } else { SectionOutcome::Added }))
+    let outcome = if had_section { SectionOutcome::Updated } else { SectionOutcome::Added };
+    Ok((file, outcome, Some(written)))
+}
+
+/// Write the section into `<root>/AGENTS.md`: a new file, the end of a file that has no
+/// section, or in place of the section that is there. The file is handled as bytes, so what
+/// is outside the markers stays exactly as it was.
+pub fn install_section(root: &Path, section: &str) -> Result<(String, SectionOutcome)> {
+    let (file, outcome, bytes) = plan_section(root, section)?;
+    if let Some(bytes) = bytes {
+        write_file(&root.join(AGENTS_FILE), &file, &bytes)?;
+    }
+    Ok((file, outcome))
 }
 
 fn write_file(path: &Path, file: &str, bytes: &[u8]) -> Result<()> {
@@ -96,15 +104,23 @@ fn appended(existing: &[u8], section: &str) -> Vec<u8> {
     [existing, format!("{gap}{section}\n").as_bytes()].concat()
 }
 
-/// Install the docattest section of `AGENTS.md` (`init --agents`).
-pub(super) fn install_agents(root: &Path, quiet_json: bool, io: &mut Io) -> Result<String> {
-    let (file, outcome) = install_section(root, &agents_section(&docattest_command(".")?))?;
-    let said = match outcome {
-        SectionOutcome::Added => "added to",
-        SectionOutcome::Updated => "updated in",
-        SectionOutcome::Unchanged => "already up to date in",
+/// Install (or preview under `--dry-run`) the docattest section of `AGENTS.md` (`init --agents`).
+pub(super) fn install_agents(root: &Path, options: &super::args::Options, io: &mut Io) -> Result<String> {
+    let section = agents_section(&docattest_command(".")?);
+    let (file, outcome) = if options.dry_run {
+        let (file, outcome, _) = plan_section(root, &section)?;
+        (file, outcome)
+    } else {
+        install_section(root, &section)?
     };
-    if !quiet_json {
+    let said = match (outcome, options.dry_run) {
+        (SectionOutcome::Added, false) => "added to",
+        (SectionOutcome::Added, true) => "would add to",
+        (SectionOutcome::Updated, false) => "updated in",
+        (SectionOutcome::Updated, true) => "would update in",
+        (SectionOutcome::Unchanged, _) => "already up to date in",
+    };
+    if !options.json {
         io.out(&format!("docattest agents: {said} {file}"));
     }
     Ok(file)

@@ -51,13 +51,13 @@ pub fn install_hooks(
     install_hooks_into(root, &agent.settings.file, agent, command)
 }
 
-/// Merge the agent's hooks into `settings_file` (relative to `root`).
-pub fn install_hooks_into(
+/// Compute the hooks to add to `settings_file` (relative to `root`), without writing.
+pub fn plan_hooks_into(
     root: &Path,
     settings_file: &str,
     agent: &Agent,
     command: impl Fn(&str) -> String,
-) -> Result<(String, Vec<Added>)> {
+) -> Result<(String, Vec<Added>, Option<String>)> {
     let layout = &agent.settings;
     let path = root.join(settings_file);
     let file = path.display().to_string();
@@ -72,11 +72,24 @@ pub fn install_hooks_into(
             added.push(hook);
         }
     }
-    if !added.is_empty() {
-        add_defaults(settings, &layout.defaults);
-        settings.insert(layout.hooks.clone(), Value::Object(hooks));
-        let text = format!("{}\n", pretty(&read));
-        text_file::write_text(&path, &text).map_err(Error::user)?;
+    if added.is_empty() {
+        return Ok((file, added, None));
+    }
+    add_defaults(settings, &layout.defaults);
+    settings.insert(layout.hooks.clone(), Value::Object(hooks));
+    Ok((file, added, Some(format!("{}\n", pretty(&read)))))
+}
+
+/// Merge the agent's hooks into `settings_file` (relative to `root`).
+pub fn install_hooks_into(
+    root: &Path,
+    settings_file: &str,
+    agent: &Agent,
+    command: impl Fn(&str) -> String,
+) -> Result<(String, Vec<Added>)> {
+    let (file, added, text) = plan_hooks_into(root, settings_file, agent, command)?;
+    if let Some(text) = text {
+        text_file::write_text(&root.join(settings_file), &text).map_err(Error::user)?;
     }
     Ok((file, added))
 }
@@ -182,16 +195,21 @@ fn has_command(entry: &Value, agent: &Agent, action: &str) -> bool {
     handlers.iter().any(ours)
 }
 
-/// Install coding-agent hooks (`init --hooks [--agent <name or file>] [--local]`).
+/// Install (or preview under `--dry-run`) coding-agent hooks (`init --hooks [--agent <name or file>] [--local]`).
 pub(super) fn install_agent_hooks(root: &Path, options: &Options, io: &mut Io) -> Result<String> {
     let loaded = load_agent(options.agent.as_deref(), |given| resolve(&io.cwd, given))?;
     let target = settings_target(&loaded.agent, options.local)?;
     let run = docattest_command(loaded.agent.root_as())?;
     let which = agent_argument(&loaded, root);
-    let (file, added) =
-        install_hooks_into(root, target, &loaded.agent, |action| format!("{run} {action} --hook{which}"))?;
+    let build = |action: &str| format!("{run} {action} --hook{which}");
+    let (file, added) = if options.dry_run {
+        let (file, added, _) = plan_hooks_into(root, target, &loaded.agent, build)?;
+        (file, added)
+    } else {
+        install_hooks_into(root, target, &loaded.agent, build)?
+    };
     if !options.json {
-        print_installed(io, &file, &added);
+        print_installed(io, &file, &added, options.dry_run);
         warn_if_unignored(io, root, target, options.local);
     }
     Ok(file)
@@ -214,28 +232,35 @@ fn settings_target(agent: &Agent, local: bool) -> Result<&str> {
     })
 }
 
-fn print_installed(io: &mut Io, file: &str, added: &[Added]) {
+fn print_installed(io: &mut Io, file: &str, added: &[Added], dry_run: bool) {
     if added.is_empty() {
         io.out(&format!("docattest hooks: already installed in {file}"));
         return;
     }
-    io.out(&format!("docattest hooks: added to {file}"));
+    let verb = if dry_run { "would add to" } else { "added to" };
+    io.out(&format!("docattest hooks: {verb} {file}"));
     for hook in added {
         let matcher = hook.matcher.as_deref().map(|m| format!(" ({m})")).unwrap_or_default();
         io.out(&format!("  {}{matcher}: {}", hook.event, hook.command));
     }
 }
 
-/// Install the git pre-commit hook (`init --git-hook`).
-pub(super) fn install_git(root: &Path, quiet_json: bool, io: &mut Io) -> Result<String> {
-    let hook = super::git_hook::install_git_hook(root, &docattest_command(".")?)?;
-    if !quiet_json {
+/// Install (or preview under `--dry-run`) the git pre-commit hook (`init --git-hook`).
+pub(super) fn install_git(root: &Path, options: &Options, io: &mut Io) -> Result<String> {
+    let command = docattest_command(".")?;
+    let hook = if options.dry_run {
+        super::git_hook::plan_git_hook(root, &command)?.0
+    } else {
+        super::git_hook::install_git_hook(root, &command)?
+    };
+    if !options.json {
         match hook.outcome {
             HookOutcome::AlreadyThere => {
                 io.out(&format!("docattest hooks: already installed in {}", hook.file))
             }
             HookOutcome::Added => {
-                io.out(&format!("docattest hooks: added {}\n  pre-commit: {}", hook.file, hook.line))
+                let verb = if options.dry_run { "would add" } else { "added" };
+                io.out(&format!("docattest hooks: {verb} {}\n  pre-commit: {}", hook.file, hook.line))
             }
         }
     }

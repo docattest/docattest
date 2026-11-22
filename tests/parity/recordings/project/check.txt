@@ -1,10 +1,10 @@
 # check
-# recorded from: fix docs/agents.md check --quiet assertion
+# recorded from: docattest 0.5.1
 === check
 exit 0
 stdout 808 lines
 README.md
-  ✓ L26 fact: manifest("adapters/typescript/package.json").version is 0.5.0
+  ✓ L26 fact: manifest("adapters/typescript/package.json").version is 0.5.1
   ✓ L33 example: every command printed what the block shows
   ✓ L44 example: every command printed what the block shows
   ✓ L79 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
@@ -403,7 +403,7 @@ coverage: 26 living pages, 25 covered (370 attestations: 319 proofs, 0 of them w
 warning: adapters/typescript/README.md:210 citation names `codeSpans`, which `gives what a column fact compares` does not use
 warning: adapters/typescript/README.md:315 citation names `createProject`, which `runs nothing of a project in memory` does not use
 surface default: 49 symbols, 10 attested, 39 not attested by any page
-  docattest → adapters/typescript/dist/index.js (docattest@0.5.0)
+  docattest → adapters/typescript/dist/index.js (docattest@0.5.1)
 snapshots: none
 ok
 
@@ -657,9 +657,9 @@ coverage: 2 living pages, 2 covered (111 attestations: 48 proofs, 0 of them weak
 warning: README.md:382 citation names `total`, which `test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses` does not use
 warning: README.md:382 citation names `total`, which `test_where_uncovered_and_impact_count_the_names_an_initializer_uses` does not use
 surface default: 29 symbols, 6 attested, 23 not attested by any page
-  docattest_python.language → docattest_python/language.py (docattest 0.5.0)
+  docattest_python.language → docattest_python/language.py (docattest 0.5.1)
 surface launcher: 25 symbols, 8 attested, 17 not attested by any page
-  docattest.launcher → docattest/launcher.py (docattest 0.5.0)
+  docattest.launcher → docattest/launcher.py (docattest 0.5.1)
 surface shop: 13 symbols, 3 attested, 10 not attested by any page
   shoplib → tests/fixture/src/shoplib/__init__.py (shoplib 1.2.3)
 snapshots: none

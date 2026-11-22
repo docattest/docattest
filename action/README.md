@@ -24,7 +24,7 @@ docattest release's tag.
   with:
     node-version: 22
 - run: npm ci
-- uses: docattest/docattest@v0.5.0
+- uses: docattest/docattest@v0.5.1
   with:
     args: --base origin/main
 ```

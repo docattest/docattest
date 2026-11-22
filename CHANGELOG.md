@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.1] - 2026-11-22
+
+### Added
+
+- Per-subcommand help (`docattest <command> --help` and `docattest help <command>`) across all
+  nine commands, documenting flag interactions (including `--force` preserving an existing
+  `docattest.config.json` when integration flags are passed) and examples.
+- Go: `audit` and `audit --inventory` now include `//go:build docattest` docs helper exported
+  values and zero-argument functions, as well as source-readable unexported and `package main`
+  constants and literal variables (silently skipping mutable or non-literal variables).
+
+### Fixed
+
+- `docattest init --dry-run` now previews planned integration writes (`--agents`, `--hooks`,
+  `--git-hook`, `--skill`) in both text and `--json` output, and explicitly reports when an
+  existing `docattest.config.json` is kept untouched.
+- Fixed a missing blank line before the `## <Language> specifics` heading in generated
+  single-language `SKILL.md` files.
+
 ## [0.5.0] - 2026-11-22
 
 ### Added

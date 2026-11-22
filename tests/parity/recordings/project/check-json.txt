@@ -1,5 +1,5 @@
 # check --json
-# recorded from: fix docs/agents.md check --quiet assertion
+# recorded from: docattest 0.5.1
 === check --json
 exit 0
 stdout 7180 lines
@@ -11,9 +11,9 @@ stdout 7180 lines
       "kind": "fact",
       "status": "pass",
       "symbols": [],
-      "message": "manifest(\"adapters/typescript/package.json\").version is 0.5.0",
-      "expected": "0.5.0",
-      "actual": "0.5.0"
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.5.1",
+      "expected": "0.5.1",
+      "actual": "0.5.1"
     },
     {
       "page": "README.md",
@@ -3738,8 +3738,8 @@ stdout 7180 lines
         "entry": "adapters/typescript/dist/index.js",
         "package": {
           "name": "docattest",
-          "version": "0.5.0",
-          "display": "docattest@0.5.0"
+          "version": "0.5.1",
+          "display": "docattest@0.5.1"
         }
       },
       "warnings": []
@@ -5897,8 +5897,8 @@ stdout 7180 lines
               "entry": "docattest_python/language.py",
               "package": {
                 "name": "docattest",
-                "version": "0.5.0",
-                "display": "docattest 0.5.0"
+                "version": "0.5.1",
+                "display": "docattest 0.5.1"
               }
             },
             "warnings": []
@@ -5930,8 +5930,8 @@ stdout 7180 lines
               "entry": "docattest/launcher.py",
               "package": {
                 "name": "docattest",
-                "version": "0.5.0",
-                "display": "docattest 0.5.0"
+                "version": "0.5.1",
+                "display": "docattest 0.5.1"
               }
             },
             "warnings": []

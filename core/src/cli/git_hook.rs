@@ -33,11 +33,8 @@ pub enum HookOutcome {
     AlreadyThere,
 }
 
-/// Write the pre-commit hook of the repository `root` is in, where git looks for it
-/// (`core.hooksPath` included). A hook that is already there is never changed: one that holds
-/// the line this would write is installed, any other is refused, with the line to add to it.
-/// `command` runs docattest from the project root.
-pub fn install_git_hook(root: &Path, command: &str) -> Result<GitHook> {
+/// Compute what writing the pre-commit hook would do, without writing.
+pub fn plan_git_hook(root: &Path, command: &str) -> Result<(GitHook, Option<(PathBuf, String)>)> {
     let (prefix, hooks) = git_paths(root)?;
     let path = hooks.join(HOOK);
     let file = path.display().to_string();
@@ -52,7 +49,7 @@ pub fn install_git_hook(root: &Path, command: &str) -> Result<GitHook> {
     let failed = Error::user;
     if path.exists() {
         if text_file::read_text(&path).map_err(failed)?.split('\n').any(|written| written == line) {
-            return Ok(GitHook { file, line, outcome: HookOutcome::AlreadyThere });
+            return Ok((GitHook { file, line, outcome: HookOutcome::AlreadyThere }, None));
         }
         return Err(Error::user(format!(
             "{file} is there already and is left as it is. To check this project before each commit, add this line to it:\n  {line}"
@@ -61,9 +58,21 @@ pub fn install_git_hook(root: &Path, command: &str) -> Result<GitHook> {
     let script = format!(
         "#!/bin/sh\n# docattest: the documentation is checked against the code before each commit.\n# Written by `docattest init --git-hook`; delete this file to undo it.\n{line}\n"
     );
-    text_file::write_text(&path, &script).map_err(failed)?;
-    make_executable(&path).map_err(|e| failed(text_file::failure("make executable", &file, &e)))?;
-    Ok(GitHook { file, line, outcome: HookOutcome::Added })
+    Ok((GitHook { file, line, outcome: HookOutcome::Added }, Some((path, script))))
+}
+
+/// Write the pre-commit hook of the repository `root` is in, where git looks for it
+/// (`core.hooksPath` included). A hook that is already there is never changed: one that holds
+/// the line this would write is installed, any other is refused, with the line to add to it.
+/// `command` runs docattest from the project root.
+pub fn install_git_hook(root: &Path, command: &str) -> Result<GitHook> {
+    let (hook, pending) = plan_git_hook(root, command)?;
+    if let Some((path, script)) = pending {
+        let failed = Error::user;
+        text_file::write_text(&path, &script).map_err(failed)?;
+        make_executable(&path).map_err(|e| failed(text_file::failure("make executable", &hook.file, &e)))?;
+    }
+    Ok(hook)
 }
 
 #[cfg(unix)]
