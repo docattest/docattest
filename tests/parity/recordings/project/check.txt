@@ -1,8 +1,8 @@
 # check
-# recorded from: docattest 0.5.0
+# recorded from: fix docs/agents.md check --quiet assertion
 === check
-exit 1
-stdout 812 lines
+exit 0
+stdout 808 lines
 README.md
   ✓ L26 fact: manifest("adapters/typescript/package.json").version is 0.5.0
   ✓ L33 example: every command printed what the block shows
@@ -94,7 +94,7 @@ docs/adapters.md
   ✓ L14 fact: 9 items match COMMANDS
 docs/agents.md
   ✓ L28 example: all assertions held
-  ✗ L71 example: AssertionError: expected /run `npx --no docattest check`/, got '# Our rules\n\nUse tabs.\n\n<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that'... 926 more characters (assert.match, block line 20)
+  ✓ L71 example: all assertions held
   ✓ L123 example: all assertions held
   ✓ L174 example: all assertions held
   ✓ L241 example: all assertions held
@@ -398,16 +398,14 @@ docs/surfaces.md
   ✓ L129 example: all assertions held
   ✓ L172 example: all assertions held
   ✓ L195 example: all assertions held
-results: 369 pass, 1 fail, 0 error, 0 skipped
+results: 370 pass, 0 fail, 0 error, 0 skipped
 coverage: 26 living pages, 25 covered (370 attestations: 319 proofs, 0 of them weak, and 51 citations), 0 uncovered, 1 prose, 5 frozen
 warning: adapters/typescript/README.md:210 citation names `codeSpans`, which `gives what a column fact compares` does not use
 warning: adapters/typescript/README.md:315 citation names `createProject`, which `runs nothing of a project in memory` does not use
 surface default: 49 symbols, 10 attested, 39 not attested by any page
   docattest → adapters/typescript/dist/index.js (docattest@0.5.0)
 snapshots: none
-failures:
-  docs/agents.md:71 example: AssertionError: expected /run `npx --no docattest check`/, got '# Our rules\n\nUse tabs.\n\n<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that'... 926 more characters (assert.match, block line 20)
-FAILED
+ok
 
 member core (rust)
 README.md
@@ -579,7 +577,7 @@ README.md
   ✓ L210 example: every command printed what the block shows
   ✓ L235 fact: 5 code spans match BLOCK_LANGUAGES
   ✓ L244 example: all assertions held
-  ✓ L251 test: tests/test_protocol.py:118 declares "Text" > "test_assertions" (not run by docattest)
+  ✓ L251 test: tests/test_protocol.py:116 declares "Text" > "test_assertions" (not run by docattest)
   ✓ L252 fact: ", ".join(SESSION_LANGUAGES) is pycon
   ✓ L253 test: tests/test_running.py:44 declares "Running" > "test_sessions_run_as_doctest_runs_them" (not run by docattest)
   ✓ L263 test: tests/test_static.py:108 declares "Static" > "test_compile_is_what_can_be_said_without_running" (not run by docattest)
@@ -605,7 +603,7 @@ README.md
   ✓ L382 test: tests/test_initializers.py:78 declares "InitializersInTheCore" > "test_where_uncovered_and_impact_count_the_names_an_initializer_uses" (not run by docattest)
   ✓ L383 test: tests/test_initializers.py:78 declares "InitializersInTheCore" > "test_where_uncovered_and_impact_count_the_names_an_initializer_uses" (not run by docattest)
   ✓ L394 fact: re.match(r"#!/usr/bin/env (\S+)", file("bin/docattest-adapter-python"))[1] is python3
-  ✓ L402 test: tests/test_protocol.py:354 declares "Values" > "test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes" (not run by docattest)
+  ✓ L402 test: tests/test_protocol.py:352 declares "Values" > "test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes" (not run by docattest)
   ✓ L403 fact: matched("bin/docattest-adapter-python", r"^#!/usr/bin/env (\S+)") is python3
   ✓ L404 fact: manifestField("pyproject.toml", "project.name") is docattest
   ✓ L419 example: every proof on the sample page held in a copy of tests/fixture
@@ -811,8 +809,6 @@ surface protocoldata: 5 symbols, 5 attested, 0 not attested by any page
 snapshots: none
 ok
 
-failures:
-  docs/agents.md:71 example: AssertionError: expected /run `npx --no docattest check`/, got '# Our rules\n\nUse tabs.\n\n<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that'... 926 more characters (assert.match, block line 20)
-projects: 5 checked, 1 failed (.)
-FAILED
+projects: 5 checked, 0 failed
+ok
 stderr empty

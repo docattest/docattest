@@ -35,7 +35,9 @@ class OutputComments(unittest.TestCase):
 class RunOutputAndNoSurfaces(unittest.TestCase):
     def test_runs_output_block_and_evaluates_fact_without_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            Path(tmp, "pyproject.toml").write_text('[project]\nname = "demo"\nversion = "3.1.0"\n', encoding="utf-8")
+            Path(tmp, "pyproject.toml").write_text(
+                '[project]\nname = "demo"\nversion = "3.1.0"\n', encoding="utf-8"
+            )
             talk = Talk(
                 HELLO,
                 {

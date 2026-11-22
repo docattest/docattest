@@ -1,8 +1,8 @@
 # check --json
-# recorded from: docattest 0.5.0
+# recorded from: fix docs/agents.md check --quiet assertion
 === check --json
-exit 1
-stdout 7182 lines
+exit 0
+stdout 7180 lines
 {
   "results": [
     {
@@ -799,11 +799,9 @@ stdout 7182 lines
       "page": "docs/agents.md",
       "line": 71,
       "kind": "example",
-      "status": "fail",
+      "status": "pass",
       "symbols": [],
-      "message": "AssertionError: expected /run `npx --no docattest check`/, got '# Our rules\\n\\nUse tabs.\\n\\n<!-- docattest:begin -->\\n## Documentation that is checked (docattest)\\n\\nThe documentation of this project carries its own proof: examples that run, values read\\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\\npage and line that'... 926 more characters (assert.match, block line 20)",
-      "expected": "/run `npx --no docattest check`/",
-      "actual": "'# Our rules\\n\\nUse tabs.\\n\\n<!-- docattest:begin -->\\n## Documentation that is checked (docattest)\\n\\nThe documentation of this project carries its own proof: examples that run, values read\\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\\npage and line that'... 926 more characters"
+      "message": "all assertions held"
     },
     {
       "page": "docs/agents.md",
@@ -3748,7 +3746,7 @@ stdout 7182 lines
     }
   },
   "snapshots": [],
-  "exitCode": 1,
+  "exitCode": 0,
   "warnings": [
     "adapters/typescript/README.md:210 citation names `codeSpans`, which `gives what a column fact compares` does not use",
     "adapters/typescript/README.md:315 citation names `createProject`, which `runs nothing of a project in memory` does not use"
@@ -5230,7 +5228,7 @@ stdout 7182 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/test_protocol.py:118 declares \"Text\" > \"test_assertions\" (not run by docattest)"
+            "message": "tests/test_protocol.py:116 declares \"Text\" > \"test_assertions\" (not run by docattest)"
           },
           {
             "page": "README.md",
@@ -5452,7 +5450,7 @@ stdout 7182 lines
             "kind": "test",
             "status": "pass",
             "symbols": [],
-            "message": "tests/test_protocol.py:354 declares \"Values\" > \"test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes\" (not run by docattest)"
+            "message": "tests/test_protocol.py:352 declares \"Values\" > \"test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes\" (not run by docattest)"
           },
           {
             "page": "README.md",

@@ -88,7 +88,7 @@ const written = readFileSync(file, 'utf8');
 assert.ok(written.startsWith('# Our rules\n\nUse tabs.\n\n<!-- docattest:begin -->\n'));
 assert.ok(written.endsWith('<!-- docattest:end -->\n'));
 assert.match(written, /run `npx --no docattest impact --file <path>`/);
-assert.match(written, /run `npx --no docattest check`/);
+assert.match(written, /run `npx --no docattest check --quiet`/);
 
 assert.match(docattest('init', '--agents').stdout, /already up to date/);
 

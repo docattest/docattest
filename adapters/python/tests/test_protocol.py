@@ -27,9 +27,7 @@ class Hello(unittest.TestCase):
         self.assertIn("*.egg-info", hello["ignoredNames"])
         self.assertEqual(hello["ignoredMarkers"], ["pyvenv.cfg"])
         self.assertEqual(hello["infoWords"], ["continue"])
-        self.assertEqual(
-            hello["capabilities"], ["tests", "runTests", "observables", "affected", "display"]
-        )
+        self.assertEqual(hello["capabilities"], ["tests", "runTests", "observables", "affected", "display"])
         self.assertEqual(warm.result(1), hello)
         self.assertEqual(
             cold.error(2),
