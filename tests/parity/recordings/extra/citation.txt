@@ -1,8 +1,8 @@
 # citation
-# recorded from: what adopting it in a Go service found
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
 === check
 exit 1
-stdout 9 lines
+stdout 11 lines
 docs/a.md
   ✓ L1 test: test/a.test.ts:2 declares "adds" (not run by docattest)
   ! L3 test: cannot cite "x": test/none.test.ts does not exist
@@ -11,5 +11,7 @@ coverage: 1 living page, 1 covered (2 attestations: 0 proofs, 0 of them weak, an
 surface default: 3 symbols, 0 attested, 3 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 snapshots: none
+failures:
+  docs/a.md:3 test: cannot cite "x": test/none.test.ts does not exist
 FAILED
 stderr empty

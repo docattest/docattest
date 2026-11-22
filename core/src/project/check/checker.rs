@@ -154,9 +154,7 @@ impl<'s> Checker<'s> {
             let mine = diagnostics_of(&diagnostics, &e.id)?;
             let Body::Example(example) = &e.body else { continue };
             if !mine.is_empty() {
-                let mut diagnosed =
-                    Outcome::new(&e.page, e.line, Kind::Example, Status::Fail, &mine.join("; "));
-                diagnosed.compile_diagnostics = true;
+                let diagnosed = Outcome::new(&e.page, e.line, Kind::Example, Status::Fail, &mine.join("; "));
                 self.emit(e, vec![diagnosed])?;
                 continue;
             }

@@ -118,7 +118,8 @@ it was installed:
   the core how to start only its own language's adapter, so the config that lists a member
   in another language may say how to start that one. Its words are read from the directory
   of that config, where the adapter is started.
-- **The command that runs docattest in the project** (`hooks install`, `agents install`) is
+- **The command that runs docattest in the project** (`init --hooks`, `init --agents`,
+  `init --git-hook`) is
   `DOCATTEST_COMMAND`, <!-- fact @command: COMMAND_VARIABLE --> a shell command to which
   the core appends arguments. `{root}` <!-- fact @command: ROOT --> in it
   is the project root, which the core spells as the reader of the command does: an agent's
@@ -156,15 +157,13 @@ language" below). `DOCATTEST_TRACE=1` writes phase and round-trip timings to std
 performance work only; output is otherwise untouched); set to nothing, it is off, in the
 core and in every launcher (the Rust one asks the core's `trace::requested`).
 
-The core implements `check [pages…] [--json] [--quiet]` (without pages, also each of the
-config's `members`, depth first; the domain is unchanged, `cli/check.rs` walks the members
-and `report/members.rs` puts their reports together), `where <symbol> [--json]`,
-`uncovered [--surface [name]] [--json]`, `index [--json]`, `--root`, `--help`, the usage
-text, `impact [--base <ref>] [--file <path>] [--json]`, `impact --hook` and
-`check --hook` (an agent's hook: its event on stdin, one JSON object or nothing on stdout,
-both as the agent's descriptor says), `hooks install [--agent <name or file>]`,
-`hooks install --git`, `agents install`, `skill install [--agent <name or file>] [--global]
-[--force]` and `refresh [name]`. Notes on them:
+The core implements `init`, `check [pages…] [--json] [--quiet]` (without pages, also each
+of the config's `members`, depth first; `cli/check.rs` walks the members and
+`report/members.rs` puts their reports together), `audit [--apply] [--inventory [text]]`,
+`impact [--base <ref>] [--file <path>] [--json]`, `impact --hook` and `check --hook`
+(an agent's hook: its event on stdin, one JSON object or nothing on stdout, both as the
+agent's descriptor says), `explain <page>[:<line>] [--json]`, `where [symbol] [--json]`,
+`uncovered [--surface [name]] [--json]`, `refresh [name]` and `conformance`. Notes on them:
 
 - `impact` runs git as a child process while the pages are parsed and the adapter answers.
   The `affected` request carries the base contents of every changed path, so they are all
@@ -179,21 +178,19 @@ both as the agent's descriptor says), `hooks install [--agent <name or file>]`,
 - Every other command greets with `warm`: the adapter loads its compiler right after it
   answers, while the core lists the project and parses its pages. The listing waits for the
   greeting, because the names it must not walk into come with it.
-- `skill install` writes the text of `../protocol/agents/SKILL.md`, embedded when the core
-  is built (`include_str!`). Where it goes is the descriptor's `skill`. `agents install` does
-  the same with `../protocol/agents/agents-section.md`, the section's text, into the
-  project's `AGENTS.md`, which it reads and writes as bytes.
-- `hooks install --git` asks git where its hooks are and where the project is below the
-  top of the working tree (`git rev-parse --show-prefix --path-format=absolute --git-path
-  hooks`), and writes `pre-commit` only when there is none.
-- `hooks install` and `refresh` write JSON indented by two spaces, keys in the order the
+- `init --skill` writes a single-language skill built from `../protocol/agents/SKILL.md`
+  (embedded via `include_str!`) where the descriptor's `skill` points. `init --agents`
+  writes `../protocol/agents/agents-section.md` into the project's `AGENTS.md`, which it
+  reads and writes as bytes.
+- `init --git-hook` asks git where its hooks are and where the project is below the top of
+  the working tree (`git rev-parse --show-prefix --path-format=absolute --git-path hooks`),
+  and writes `pre-commit` only when there is none.
+- `init --hooks` and `refresh` write JSON indented by two spaces, keys in the order the
   file or the source gave them. A file holding a lone surrogate escape is refused rather
   than rewritten.
 - `refresh` is the only command that touches the network. Its client is built when a
   snapshot is fetched; no other command runs any of its code.
 
-`audit [--json]`, `inventory [text] [--json]` and `explain <page>[:<line>] [--json]` are
-implemented too.
 `check --base <ref> [pages…] [--json] [--quiet]` is implemented too: git (a child process)
 reads the base on a thread that starts as soon as the adapter has been started. It first
 finds the base (the repository, the ref, the files committed there, a valid config among
@@ -234,22 +231,6 @@ none, in words that read correctly for a language without a compiler too (Python
 `compile()` is what the Python adapter runs). Finally the unit tests speak TypeScript: they
 need a language to answer and run no adapter, so a stand-in compiled for tests only answers
 as the TypeScript adapter does.
-
-`mutate` tells a change of code that leaves the project unable to build from one that
-makes a proof fail without knowing the language, from what the adapter reports: an `error`,
-or an example's compile diagnostics, that points at a line of the changed file
-(`src/lib.rs:14:5`, `./shop.go:13:9`, `src/index.ts(3,5)`) is the code not building, and so
-is a project that cannot be loaded or opened with the change. Such a mutant is stillborn
-and kills nothing. A value that differs, a test that fails, a panic while an example runs,
-an error about something else (a key that is gone) or a traceback's `"a.py", line 3` is how
-the changed code behaves, and kills. A proof whose every mutant was stillborn is not
-mutated. <!-- test: src/mutate/effect.rs > "tests" > "an_error_that_points_at_the_changed_file_is_the_code_not_building" --> <!-- test: src/mutate/effect.rs > "tests" > "a_value_that_differs_and_an_error_about_something_else_are_how_the_code_behaves" --> <!-- test: src/mutate/verdict.rs > "tests" > "a_stillborn_mutant_kills_nothing_and_a_proof_with_only_those_is_not_mutated" --> <!-- test: src/mutate/tests.rs > "a_change_that_fails_a_proof_kills_it_one_that_breaks_the_project_is_stillborn" -->
-
-Its copies of the project are directories beside the project's, each claimed by a lock file
-beside it that the run holds while the copy lives. A copy goes when it is dropped, at the end
-of a run or when a panic unwinds; SIGINT and SIGTERM wake a thread that removes the copies
-before the process exits as the signal would have ended it; and a copy whose lock is free was
-left by a run that was killed outright, and the next run removes it. <!-- test: src/mutate/sibling.rs > "tests" > "a_claim_is_a_locked_sibling_that_another_claim_skips_and_both_go_when_dropped" --> <!-- test: src/mutate/sibling.rs > "tests" > "a_claim_is_removed_when_the_code_holding_it_panics" --> <!-- test: tests/mutate_signal.rs > "a_run_stopped_by_sigterm_removes_its_copies" --> <!-- test: src/mutate/sibling.rs > "tests" > "a_copy_a_killed_run_left_is_cleared_and_one_a_live_run_holds_is_not" -->
 
 Git is read in one module, and every child process, git and the adapter alike, is started
 by one function that holds a lock meanwhile: a child forked while another thread is between

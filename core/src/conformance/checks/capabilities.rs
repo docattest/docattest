@@ -21,9 +21,6 @@ const DISPLAY: u64 = 7;
 /// The evaluation of the kit's expressions of the values `display` is asked to show.
 const SAME_VALUES: u64 = 8;
 const RUN_TESTS: u64 = 9;
-const MUTANTS: u64 = 10;
-/// A name no kit's project declares, which `mutants` must say it does not find.
-const UNDECLARED: &str = "docattest_conformance_undeclared";
 
 pub const CHECKS: [Check; 1] = [Check {
     name: "capabilities: a method the greeting does not list is unknown; one it lists answers",
@@ -52,18 +49,16 @@ fn answers_what_it_lists(suite: &Suite) -> Checked<Conversation> {
             ("display", json!({ "values": values })),
             ("evaluate", json!({ "facts": facts })),
             ("runTests", json!({ "tests": [{ "file": kit.test.file, "describes": [], "title": kit.test.title }], "timeoutMs": 600_000 })),
-            ("mutants", mutants_params(kit)),
         ],
         json!([]),
     )?;
     let listed = texts(&suite.greeting()?["capabilities"]);
-    let answers: [(&str, u64, Answer); 6] = [
+    let answers: [(&str, u64, Answer); 5] = [
         ("tests", TESTS, tests_answer),
         ("runTests", RUN_TESTS, run_tests_answer),
         ("observables", OBSERVABLES, observables_answer),
         ("affected", AFFECTED, affected_answer),
         ("display", DISPLAY, display_answer),
-        ("mutants", MUTANTS, mutants_answer),
     ];
     for (capability, id, answer) in answers {
         if listed.contains(&capability) { answer(&t, kit)? } else { t.failed_as(id, "internal")? }
@@ -124,46 +119,4 @@ fn display_answer(t: &Conversation, kit: &Kit) -> Checked {
     let shown: Vec<&Value> =
         (0..kit.display.len()).map(|k| &evaluated[k.to_string()]["value"]["text"]).collect();
     same(t.result(DISPLAY)?, &json!(shown), "each value shows as a fact of the same value does, in order")
-}
-
-/// The kit's scalar, whose declaration has a literal in every kit, and a name nothing declares.
-fn mutants_params(kit: &Kit) -> Value {
-    let symbols =
-        [json!({ "name": kit.facts.scalar.symbol, "surface": "default" }), json!({ "name": UNDECLARED })];
-    json!({ "symbols": symbols, "limit": 8 })
-}
-
-/// `mutants`: an entry for each symbol; the scalar's first edit changes a file of the project
-/// within its text, and the name nothing declares is not found.
-fn mutants_answer(t: &Conversation, kit: &Kit) -> Checked {
-    let answer = items(t.result(MUTANTS)?);
-    ensure(answer.len() == 2, "an entry for each symbol, in order")?;
-    let first = items(&answer[0]["edits"])
-        .first()
-        .ok_or_else(|| "the scalar's declaration has a literal to change".to_string())?;
-    changes_its_file(first, kit)?;
-    let undeclared = &answer[1];
-    ensure(
-        items(&undeclared["edits"]).is_empty() && undeclared["why"] == "notFound",
-        "a name nothing declares is not found",
-    )
-}
-
-/// An edit replaces bytes of a file of the kit's project, within its UTF-8 text and at
-/// character boundaries, with something else.
-fn changes_its_file(edit: &Value, kit: &Kit) -> Checked {
-    let path = edit["path"].as_str().unwrap_or_default();
-    let text = kit.files[path].as_str().ok_or_else(|| format!("{path} is a file of the project"))?;
-    let (start, end) = (offset(&edit["start"]), offset(&edit["end"]));
-    let inside =
-        start <= end && end <= text.len() && text.is_char_boundary(start) && text.is_char_boundary(end);
-    ensure(inside, format!("the edit of {path} lies within its UTF-8 text, at character boundaries"))?;
-    let edited =
-        format!("{}{}{}", &text[..start], edit["replacement"].as_str().unwrap_or_default(), &text[end..]);
-    ensure(edited != text, "the edit changes the file")
-}
-
-/// An offset an edit gives; past any text when it is not one.
-fn offset(value: &Value) -> usize {
-    value.as_u64().and_then(|n| usize::try_from(n).ok()).unwrap_or(usize::MAX)
 }

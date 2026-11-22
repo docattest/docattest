@@ -157,7 +157,7 @@ class Fixture(unittest.TestCase):
         self.assertIn("results: 21 pass, 0 fail, 0 error, 1 skipped", out)
 
     def test_the_index_goes_from_symbols_to_pages(self):
-        code, out, _ = core("index", "--json")
+        code, out, _ = core("where", "--json")
         index = json.loads(out)
         self.assertEqual(code, 0)
         self.assertIn(
@@ -188,7 +188,7 @@ class Fixture(unittest.TestCase):
             for s in json.loads(out)["suggestions"]
         }
         self.assertIn(("docs/notes.md", 10, "column", "drift", "list(ERROR_CODES)"), found)
-        code, out, _ = core("inventory", "EUR")
+        code, out, _ = core("audit", "--inventory", "EUR")
         self.assertEqual(code, 0)
         self.assertIn("DEFAULT_CURRENCY", out)
 
@@ -255,14 +255,14 @@ class Changes(unittest.TestCase):
         # The baseline for an agent with no hooks: a section of AGENTS.md, and a git hook.
         with open(os.path.join(self.root, "AGENTS.md"), "w", encoding="utf-8") as handle:
             handle.write("# Mine\n")
-        done = run("agents", "install", cwd=self.root)
+        done = run("init", "--agents", cwd=self.root)
         self.assertEqual(done.returncode, 0, done.stderr)
         with open(os.path.join(self.root, "AGENTS.md"), encoding="utf-8") as handle:
             written = handle.read()
         self.assertTrue(written.startswith("# Mine\n\n<!-- docattest:begin -->\n"), written)
         self.assertRegex(written, r"run `[^`\n]*docattest impact --file <path>`")
         self.assertNotIn("npx", written)
-        done = run("hooks", "install", "--git", cwd=self.root)
+        done = run("init", "--git-hook", cwd=self.root)
         self.assertEqual(done.returncode, 0, done.stderr)
         hook = os.path.join(self.root, ".git", "hooks", "pre-commit")
         self.assertTrue(os.access(hook, os.X_OK))

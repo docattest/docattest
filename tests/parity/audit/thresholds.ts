@@ -207,7 +207,12 @@ export const walk: AuditCase[] = [
       `export const WIDE = { ${range(n - 1, (k) => `m${k}: ${k}`).join(', ')}, last: ['w1', 'w2', 'w3'] };\n`,
       list('w1', 'w2', 'w3'),
     ),
-    [['audit'], ['audit', '--json'], ['inventory', 'last'], ['inventory', 'w1', '--json']],
+    [
+      ['audit'],
+      ['audit', '--json'],
+      ['audit', '--inventory', 'last'],
+      ['audit', '--inventory', 'w1', '--json'],
+    ],
   ]),
   ...[500, 501].map((n): AuditCase => [
     `walk: list of ${n} items`,
@@ -215,7 +220,12 @@ export const walk: AuditCase[] = [
       `export const LONG = ${JSON.stringify(range(n, (k) => `item${k}`))};\n`,
       range(n, (k) => `- \`item${k}\``).join('\n') + '\n',
     ),
-    [['audit'], ['audit', '--json'], ['inventory', 'item499'], ['inventory', 'item500', '--json']],
+    [
+      ['audit'],
+      ['audit', '--json'],
+      ['audit', '--inventory', 'item499'],
+      ['audit', '--inventory', 'item500', '--json'],
+    ],
   ]),
   ...[500, 501].map((n): AuditCase => [
     `walk: object of ${n} keys`,

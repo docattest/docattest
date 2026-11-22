@@ -182,26 +182,19 @@ fn has_command(entry: &Value, agent: &Agent, action: &str) -> bool {
     handlers.iter().any(ours)
 }
 
-/// `hooks install [--agent <name or file>] [--local]`, and `hooks install --git`.
-pub(super) fn hooks(args: &[String], root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
-    if args.first().map(String::as_str) != Some("install") || args.len() > 1 {
-        return Err(Error::user("usage: docattest hooks install [--agent <name or file>] [--local] [--git]"));
-    }
-    if options.git && options.local {
-        return Err(Error::user("--local cannot be used with --git"));
-    }
-    if options.git {
-        return install_git(root, io);
-    }
+/// Install coding-agent hooks (`init --hooks [--agent <name or file>] [--local]`).
+pub(super) fn install_agent_hooks(root: &Path, options: &Options, io: &mut Io) -> Result<String> {
     let loaded = load_agent(options.agent.as_deref(), |given| resolve(&io.cwd, given))?;
     let target = settings_target(&loaded.agent, options.local)?;
     let run = docattest_command(loaded.agent.root_as())?;
     let which = agent_argument(&loaded, root);
     let (file, added) =
         install_hooks_into(root, target, &loaded.agent, |action| format!("{run} {action} --hook{which}"))?;
-    print_installed(io, &file, &added);
-    warn_if_unignored(io, root, target, options.local);
-    Ok(0)
+    if !options.json {
+        print_installed(io, &file, &added);
+        warn_if_unignored(io, root, target, options.local);
+    }
+    Ok(file)
 }
 
 fn warn_if_unignored(io: &mut Io, root: &Path, target: &str, local: bool) {
@@ -233,16 +226,20 @@ fn print_installed(io: &mut Io, file: &str, added: &[Added]) {
     }
 }
 
-/// `hooks install --git`.
-fn install_git(root: &Path, io: &mut Io) -> Result<i32> {
+/// Install the git pre-commit hook (`init --git-hook`).
+pub(super) fn install_git(root: &Path, quiet_json: bool, io: &mut Io) -> Result<String> {
     let hook = super::git_hook::install_git_hook(root, &docattest_command(".")?)?;
-    match hook.outcome {
-        HookOutcome::AlreadyThere => io.out(&format!("docattest hooks: already installed in {}", hook.file)),
-        HookOutcome::Added => {
-            io.out(&format!("docattest hooks: added {}\n  pre-commit: {}", hook.file, hook.line))
+    if !quiet_json {
+        match hook.outcome {
+            HookOutcome::AlreadyThere => {
+                io.out(&format!("docattest hooks: already installed in {}", hook.file))
+            }
+            HookOutcome::Added => {
+                io.out(&format!("docattest hooks: added {}\n  pre-commit: {}", hook.file, hook.line))
+            }
         }
     }
-    Ok(0)
+    Ok(hook.file)
 }
 
 #[cfg(test)]

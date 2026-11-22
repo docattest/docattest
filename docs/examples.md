@@ -309,3 +309,44 @@ put('docs/answer.md', "The answer is `42`. <!-- fact: answer -->\n\n```ts check\
 const report = await createProject({ root }).check();
 assert.deepEqual(report.results.map((r) => r.status), ['pass', 'pass']);
 ```
+
+## Examples can assert printed output with `// Output:`
+
+Instead of writing `assert.equal(...)` inside a reader-facing snippet, end a `check` block
+with a trailing `// Output:` (or `// Unordered output:`) comment (in Python, `# Output:` /
+`# Unordered output:`), matching Go's testable examples. Captured output is compared against
+the comment and counts as a strong proof, never weak coverage.
+
+```ts check
+import { createProject } from 'docattest';
+
+const page = (body: string) => ({
+  files: {
+    'docattest.config.json': JSON.stringify({
+      pages: ['docs/**/*.md'],
+      surfaces: { default: './src/index.ts' },
+      adapter: 'typescript',
+    }),
+    'src/index.ts': `export const formatPrice = (cents: number) => (cents / 100).toFixed(2) + ' EUR';`,
+    'docs/price.md': `# Price\n\n\`\`\`ts check\n${body}\n\`\`\`\n`,
+  },
+});
+
+const ok = await createProject(
+  page("import { formatPrice } from 'docattest-fixture';\nconsole.log(formatPrice(750));\n// Output: 7.50 EUR"),
+).check();
+assert.equal(ok.results[0].status, 'pass');
+assert.equal(ok.coverage.weak, 0);
+
+const unordered = await createProject(
+  page("console.log('b');\nconsole.log('a');\n// Unordered output:\n// a\n// b"),
+).check();
+assert.equal(unordered.results[0].status, 'pass');
+assert.equal(unordered.coverage.weak, 0);
+
+const mismatch = await createProject(
+  page("import { formatPrice } from 'docattest-fixture';\nconsole.log(formatPrice(750));\n// Output: 8.00 EUR"),
+).check();
+assert.equal(mismatch.results[0].status, 'fail');
+assert.match(mismatch.results[0].message, /expected output "8\.00 EUR", got "7\.50 EUR"/);
+```

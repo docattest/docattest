@@ -96,19 +96,18 @@ fn appended(existing: &[u8], section: &str) -> Vec<u8> {
     [existing, format!("{gap}{section}\n").as_bytes()].concat()
 }
 
-/// `agents install`.
-pub(super) fn agents(args: &[String], root: &Path, io: &mut Io) -> Result<i32> {
-    if args.first().map(String::as_str) != Some("install") || args.len() > 1 {
-        return Err(Error::user("usage: docattest agents install"));
-    }
+/// Install the docattest section of `AGENTS.md` (`init --agents`).
+pub(super) fn install_agents(root: &Path, quiet_json: bool, io: &mut Io) -> Result<String> {
     let (file, outcome) = install_section(root, &agents_section(&docattest_command(".")?))?;
     let said = match outcome {
         SectionOutcome::Added => "added to",
         SectionOutcome::Updated => "updated in",
         SectionOutcome::Unchanged => "already up to date in",
     };
-    io.out(&format!("docattest agents: {said} {file}"));
-    Ok(0)
+    if !quiet_json {
+        io.out(&format!("docattest agents: {said} {file}"));
+    }
+    Ok(file)
 }
 
 #[cfg(test)]
@@ -123,7 +122,7 @@ mod tests {
         assert!(section.starts_with("<!-- docattest:begin -->\n## "), "{section}");
         assert!(section.ends_with(".\n<!-- docattest:end -->"), "{section}");
         assert!(section.contains("run `./.venv/bin/docattest impact --file <path>`"));
-        assert!(section.contains("run `./.venv/bin/docattest check`"));
+        assert!(section.contains("run `./.venv/bin/docattest check --quiet`"));
         assert!(!section.contains("{docattest}"));
     }
 

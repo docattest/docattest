@@ -40,7 +40,6 @@ pub enum Capability {
     Observables,
     Affected,
     Display,
-    Mutants,
 }
 
 /// The language's words for what the core's sentences name.
@@ -165,60 +164,6 @@ impl Evaluation {
 pub struct SymbolRef {
     pub name: String,
     pub surface: String,
-}
-
-/// A symbol as the core asks about it again: as `symbols` answered it, though the
-/// protocol lets the surface be absent.
-#[derive(Clone, Debug, Deserialize)]
-pub struct AskedSymbol {
-    pub name: String,
-    #[serde(default)]
-    pub surface: Option<String>,
-}
-
-/// The edits that change the literals of one symbol's declaration, each alone, or why
-/// there are none: `why` is present exactly when `edits` is empty.
-#[derive(Clone, Debug, PartialEq, Serialize)]
-pub struct SymbolMutants {
-    edits: Vec<MutantEdit>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    why: Option<NoMutants>,
-}
-
-impl SymbolMutants {
-    /// Some edits, or, when there are none, why.
-    pub fn new(edits: Vec<MutantEdit>, otherwise: NoMutants) -> Self {
-        let why = edits.is_empty().then_some(otherwise);
-        SymbolMutants { edits, why }
-    }
-
-    /// No edits, and why.
-    pub fn none(why: NoMutants) -> Self {
-        SymbolMutants { edits: Vec::new(), why: Some(why) }
-    }
-}
-
-/// Why a symbol has no edits.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum NoMutants {
-    /// What a proof reads of it is computed when it runs: a function, a type.
-    Function,
-    /// Its declaration's value holds no literal to change.
-    NoLiteral,
-    /// No file of the project's own declares it.
-    NotFound,
-}
-
-/// One change to one file: the bytes from `start` to `end` of its UTF-8 text replaced.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
-pub struct MutantEdit {
-    pub path: String,
-    pub start: usize,
-    pub end: usize,
-    pub replacement: String,
-    /// What changes, as Rust writes it: `8080 → 8081`.
-    pub description: String,
 }
 
 /// What kind of attestation a verdict is on.

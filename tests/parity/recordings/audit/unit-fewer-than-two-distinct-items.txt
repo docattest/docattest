@@ -1,5 +1,5 @@
 # unit: fewer than two distinct items
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 1 line
@@ -12,7 +12,7 @@ stdout 3 lines
   "suggestions": []
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 4 lines
 AS  →  [A, A2]
@@ -20,7 +20,7 @@ KINDS  →  [same, other]
 NAMES  →  [x, y]
 inventory: 3 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 29 lines
 [

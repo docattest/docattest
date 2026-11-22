@@ -3,7 +3,6 @@
 // returns what it prints; nothing of docattest's own logic is in this package.
 import { UserError } from '../api/errors.js';
 import type { Impact, ImpactOptions } from '../api/impact.js';
-import type { MutateOptions, Mutation } from '../api/mutate.js';
 import type { CheckOptions, Project, ProjectInput } from '../api/project.js';
 import type { Report } from '../api/report.js';
 import {
@@ -12,7 +11,6 @@ import {
   asImpact,
   asIndex,
   asInventory,
-  asMutation,
   asNames,
   asReferences,
   asReport,
@@ -39,7 +37,7 @@ export function createProject(input: ProjectInput): Project {
     place.run(undefined, async (at) => answer(await run(at, args)));
   return {
     check: (options = {}) => check(place, run, options),
-    index: async () => asIndex(await query(['index', '--json'])),
+    index: async () => asIndex(await query(['where', '--json'])),
     explain: async (page, line) => {
       const target = line === undefined ? page : `${page}:${line}`;
       return asExplanation(await query(['explain', '--json', '--', target]));
@@ -49,11 +47,10 @@ export function createProject(input: ProjectInput): Project {
       asNames(await query(['uncovered', '--json', `--surface=${surface}`])),
     audit: async () => asAudit(await query(['audit', '--json'])),
     inventory: async (search) => {
-      const args = ['inventory', '--json', ...(search === undefined ? [] : ['--', search])];
-      return asInventory(await query(args));
+      const rest = search === undefined ? [] : ['--', search];
+      return asInventory(await query(['audit', '--inventory', '--json', ...rest]));
     },
     impact: (options = {}) => impact(place, run, options),
-    mutate: (options = {}) => mutate(place, run, options),
     async refresh(name?: string, ...rest: unknown[]) {
       if (rest.length > 0) {
         throw new UserError(
@@ -80,19 +77,6 @@ async function check(place: Place, run: Run, options: CheckOptions): Promise<Rep
   return place.run(files, async (at) => {
     const args = ['check', '--json', ...(ref === undefined ? [] : [`--base=${ref}`])];
     return asReport(answer(await run(at, [...args, '--', ...pages]), [0, 1]));
-  });
-}
-
-async function mutate(place: Place, run: Run, options: MutateOptions): Promise<Mutation> {
-  const { base, pages = [] } = options;
-  if (typeof base === 'string' && place.memory) {
-    throw new UserError('a git ref as base needs a project on disk; pass `base: { files }`');
-  }
-  const files = typeof base === 'object' ? base.files : undefined;
-  const ref = typeof base === 'string' ? base : files ? 'HEAD' : undefined;
-  return place.run(files, async (at) => {
-    const args = ['mutate', '--json', ...(ref === undefined ? [] : [`--base=${ref}`])];
-    return asMutation(answer(await run(at, [...args, '--', ...pages])));
   });
 }
 

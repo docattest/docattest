@@ -1,7 +1,20 @@
 # hooks install: not JSON
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
-=== hooks install
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 1 line
 docattest: <root>/.claude/settings.json is not valid JSON (key must be a string at line 1 column 3); fix it and run again
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}

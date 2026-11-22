@@ -21,8 +21,10 @@ pub use surfaces::SurfaceEntry;
 
 /// The config file, at the project root.
 pub const CONFIG_FILE: &str = "docattest.config.json";
-/// The surface every config must name, and the one a fact or an import uses unless it names another.
+/// The surface every config may name, and the one a fact or an import uses unless it names another.
 pub const DEFAULT_SURFACE: &str = "default";
+/// The built-in core-only adapter used when `adapter` is omitted or set to `"none"`.
+pub const NONE_ADAPTER: &str = "none";
 
 const KEYS: [&str; 14] = [
     "$schema",
@@ -203,6 +205,11 @@ fn read_config(fields: &mut Fields) -> ProjectConfig {
     let setup = fields.string("setup");
     let (snapshots_dir, max_age_days) = read_snapshots(fields);
     let adapter = read_adapter(fields);
+    if !surfaces.is_empty() && adapter == NONE_ADAPTER {
+        fields
+            .problems
+            .push("\"surfaces\" requires a language adapter (set \"adapter\" or remove \"surfaces\")".into());
+    }
     let runtime = fields.nested("runtime", |r| {
         r.reject_unknown(&["timeoutMs", "workers"]);
         (r.positive_integer("timeoutMs"), r.positive_integer("workers"))
@@ -249,19 +256,19 @@ fn read_snapshots(fields: &mut Fields) -> (Option<String>, u64) {
 }
 
 /// Any name is accepted (`/^[a-z][a-z0-9_]*$/`): whether such an adapter exists is found
-/// out when it is started. The shape keeps a name usable in a program name and in an
-/// environment variable.
+/// out when it is started. Omitting `"adapter"` defaults to `"none"` (core-only mode).
 fn read_adapter(fields: &mut Fields) -> String {
-    let adapter = fields.object.get("adapter");
-    if let Some(Value::String(name)) = adapter
+    let Some(adapter) = fields.object.get("adapter") else {
+        return NONE_ADAPTER.to_string();
+    };
+    if let Value::String(name) = adapter
         && name.starts_with(|c: char| c.is_ascii_lowercase())
         && name.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
     {
         return name.clone();
     }
-    let got = adapter.map_or_else(|| "nothing".to_string(), Value::to_string);
     let shape = "such as \"typescript\", in lower-case letters, digits and \"_\"";
-    fields.problems.push(format!("\"adapter\" must name a language adapter, {shape} (got {got})"));
+    fields.problems.push(format!("\"adapter\" must name a language adapter, {shape} (got {adapter})"));
     String::new()
 }
 
@@ -301,7 +308,13 @@ mod tests {
         .unwrap();
         assert_eq!(c.timeout_ms, 10_000);
         assert_eq!(c.max_age_days, 90);
-        assert_eq!(c.surfaces, vec![("default".into(), SurfaceEntry::Specifier("./src/index.ts".into()))]);
+        assert_eq!(
+            c.surfaces,
+            vec![(
+                "default".into(),
+                SurfaceEntry::Specifier { path: "./src/index.ts".into(), internal: false }
+            )]
+        );
     }
 
     #[test]
@@ -316,19 +329,43 @@ mod tests {
     }
 
     #[test]
+    fn minimal_config_defaults_to_none_adapter_and_no_surfaces() {
+        let c = parse_config(r#"{"pages":["README.md"]}"#).unwrap();
+        assert_eq!(c.adapter, "none");
+        assert!(c.surfaces.is_empty());
+        let named = parse_config(r#"{"pages":["README.md"],"adapter":"typescript"}"#).unwrap();
+        assert_eq!(named.adapter, "typescript");
+        assert!(named.surfaces.is_empty());
+        let custom = parse_config(
+            r#"{"pages":["README.md"],"surfaces":{"cli":"./src/cli.ts","cmd":{"path":"./cmd/app","internal":true}},"adapter":"typescript"}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            custom.surfaces,
+            vec![
+                ("cli".into(), SurfaceEntry::Specifier { path: "./src/cli.ts".into(), internal: false }),
+                ("cmd".into(), SurfaceEntry::Specifier { path: "./cmd/app".into(), internal: true }),
+            ]
+        );
+        assert_eq!(custom.surfaces[1].1.to_json(), serde_json::json!("./cmd/app"));
+        let err = problem(r#"{"pages":["README.md"],"surfaces":{"default":"./src/index.ts"}}"#);
+        assert!(err.contains("\"surfaces\" requires a language adapter"), "{err}");
+    }
+
+    #[test]
     fn every_problem_at_once_in_order() {
         assert_eq!(
-            problem(r#"{"pagez":[],"surfaces":{},"adapter":"Python 3","runtime":{"timeoutMs":0}}"#),
-            "docattest: invalid docattest.config.json: unknown key \"pagez\" (known: $schema, pages, frozen, prose, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); \"pages\" must be an array of globs; \"surfaces\" must name a \"default\" surface; \"adapter\" must name a language adapter, such as \"typescript\", in lower-case letters, digits and \"_\" (got \"Python 3\"); \"runtime.timeoutMs\" must be a positive integer"
+            problem(r#"{"pagez":[],"surfaces":1,"adapter":"Python 3","runtime":{"timeoutMs":0}}"#),
+            "docattest: invalid docattest.config.json: unknown key \"pagez\" (known: $schema, pages, frozen, prose, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); \"pages\" must be an array of globs; \"surfaces\" must be an object; \"adapter\" must name a language adapter, such as \"typescript\", in lower-case letters, digits and \"_\" (got \"Python 3\"); \"runtime.timeoutMs\" must be a positive integer"
         );
         assert!(problem("[]").ends_with("must contain a JSON object"));
         assert!(problem("{").starts_with("docattest: docattest.config.json is not valid JSON: "));
-        assert!(problem(r#"{"pages":[],"surfaces":{"default":"x"}}"#).ends_with("(got nothing)"));
         // Any name of the right shape is a valid config: which adapters exist is not its to know.
         let named = |adapter: &str| {
             parse_config(&format!(r#"{{"pages":[],"surfaces":{{"default":"x"}},"adapter":{adapter}}}"#))
         };
         assert_eq!(named("\"python\"").unwrap().adapter, "python");
+        assert_eq!(parse_config(r#"{"pages":[],"adapter":"none"}"#).unwrap().adapter, "none");
         assert_eq!(named("\"c_sharp9\"").unwrap().adapter, "c_sharp9");
         for bad in ["\"\"", "\"a-b\"", "\"../x\"", "\"9a\"", "\"py\\n\"", "3"] {
             assert!(named(bad).unwrap_err().to_string().contains("\"adapter\" must name a language adapter"));

@@ -3,7 +3,7 @@
 use crate::api::attestation::Kind;
 use crate::attestations::placement::attested_from_above;
 use crate::markdown::model::{Block, BlockKind};
-use crate::markdown::parse::parse_page;
+use crate::markdown::parse::parse_page_for;
 use crate::project::check::Reference;
 
 /// Lines of a page that belong to an attestation of a symbol, by symbol.
@@ -27,8 +27,8 @@ impl Covered {
 /// own sentence), the paragraph below a directive alone on the line above it, and the list or
 /// table a directive binds.
 /// A code span there is part of the proof, not an unproven mention.
-pub fn covered_lines(text: &str, proven: &[(&str, Vec<&Reference>)]) -> Covered {
-    let page = parse_page(text).unwrap_or_default();
+pub fn covered_lines_for(page_path: &str, text: &str, proven: &[(&str, Vec<&Reference>)]) -> Covered {
+    let page = parse_page_for(page_path, text).unwrap_or_default();
     let blocks: Vec<&Block> = page.blocks.iter().filter_map(|&k| page.flow.get(k)).collect();
     let from_above = attested_from_above(&page);
     let below = |r: &Reference| {
@@ -43,6 +43,11 @@ pub fn covered_lines(text: &str, proven: &[(&str, Vec<&Reference>)]) -> Covered 
         })
         .collect();
     Covered { ranges }
+}
+
+#[cfg(test)]
+pub fn covered_lines(text: &str, proven: &[(&str, Vec<&Reference>)]) -> Covered {
+    covered_lines_for("page.md", text, proven)
 }
 
 fn ranges_of(blocks: &[&Block], reference: &Reference) -> Vec<(usize, usize)> {

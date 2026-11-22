@@ -126,7 +126,9 @@ fn the_index_and_the_audit_read_the_fixture() {
         assert!(audit.contains(want), "no {want:?} in {audit}");
     }
     assert!(
-        docattest(&root, &["inventory"], &[]).0.contains("@shipping CARRIERS  →  [post, courier, drone]")
+        docattest(&root, &["audit", "--inventory"], &[])
+            .0
+            .contains("@shipping CARRIERS  →  [post, courier, drone]")
     );
 }
 

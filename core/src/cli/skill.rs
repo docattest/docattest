@@ -1,5 +1,4 @@
-//! `skill install`: the agent skill, copied to where the agent's descriptor says the agent looks
-//! for it.
+//! Installing the lean, single-language agent skill (`docattest init --skill`).
 
 use std::path::Path;
 
@@ -9,8 +8,60 @@ use crate::agents::load_agent;
 use crate::api::errors::{Error, Result};
 use crate::files::text_file;
 
-/// The skill's text: `protocol/agents/SKILL.md` in the repository, carried in the binary.
+/// The core skill template (`protocol/agents/SKILL.md` in the repository, carried in the binary).
 pub const PACKAGED_SKILL: &str = include_str!("../../protocol/agents/SKILL.md");
+
+const TS_NOTES: &str = r#"
+## TypeScript specifics
+
+- Blocks: ```` ```ts check ```` (runs) or ```` ```ts compile ```` (type-checks). Setup above `// ---cut---` is hidden.
+- Assertions: `assert.equal(a, b)` (`assert` is in scope) or trailing `// Output:` / `// Unordered output:` comments.
+- Facts: surface exports and module constants by name; values format as JS `String(v)` (`true`, `3`).
+- Citations: `it("title")` inside `describe` blocks, or `it.each` rows by runner title.
+- Setup module: `export const cases = { ... }`, `export const facts = { ... }`; use `codeSpans(cell)` from `docattest`.
+"#;
+
+const PYTHON_NOTES: &str = r#"
+## Python specifics
+
+- Blocks: ```` ```python check ```` (or ```` ```pycon check ```` for `>>>` sessions; tag `continue` to share state) or ```` ```python compile ````.
+- Assertions: `assert a == b`, session output, or trailing `# Output:` / `# Unordered output:` comments.
+- Facts: surface exports and module constants by name; values format as Python `str(v)` (`True`, `3`).
+- Citations: `test_...` functions, classes, `parametrize` ids or `subTest` names.
+- Setup module: `cases = { ... }`, `facts = { ... }`; use `code_spans(cell)` from `docattest.cells`.
+"#;
+
+const GO_NOTES: &str = r#"
+## Go specifics
+
+- Blocks: ```` ```go check ```` (statements, declarations, or `package main`) or ```` ```go compile ````.
+- Assertions: trailing `// Output:` / `// Unordered output:` comments, or `if a != b { panic(...) }`.
+- Facts: surface exports, package constants, literal `var`s, and `//go:build docattest` helpers; values format via `fmt.Sprint`.
+- Citations: `Test...` functions and `t.Run("title", ...)` subtests.
+- Setup package: `var Cases = map[string]func(map[string]string) error{...}` and exported fact helpers (`cells.CodeSpans(cell)` from `github.com/docattest/docattest/adapters/go/cells`).
+"#;
+
+const RUST_NOTES: &str = r#"
+## Rust specifics
+
+- Blocks: ```` ```rust check ```` (`main` body or full `fn main`; prefix hidden setup lines with `# `) or ```` ```rust compile ````.
+- Assertions: `assert_eq!(a, b)`, `assert!(...)`, or trailing `// Output:` / `// Unordered output:` comments.
+- Facts: surface exports, module constants, and `#[cfg(docattest)]` `pub` items; values format via `Display` (else `Debug`).
+- Citations: `#[test]` functions inside `mod tests`, or named `rstest`/`test-case` cases.
+- Setup file: `pub const CASES: &[(&str, fn(&HashMap<String, String>) -> Result<(), String>)]` and `pub` fact helpers (`docattest_harness::cells::code_spans(cell)`).
+"#;
+
+/// Render the skill text tailored to `adapter` (core + single-language specifics).
+pub fn skill_for_adapter(adapter: &str) -> String {
+    let extra = match adapter {
+        "typescript" => TS_NOTES,
+        "python" => PYTHON_NOTES,
+        "go" => GO_NOTES,
+        "rust" => RUST_NOTES,
+        _ => "",
+    };
+    format!("{}{extra}", PACKAGED_SKILL.trim_end()) + "\n"
+}
 
 /// What installing did.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -28,13 +79,17 @@ pub enum Existing {
     Replace,
 }
 
-/// Copy the packaged skill to `path`, the place the agent looks for it. An identical file is
-/// left as it is; a different one is replaced only when `existing` says so.
-pub fn install_skill(path: &Path, existing_file: Existing) -> Result<(String, InstallOutcome)> {
+/// Write `content` to `path`, the place the agent looks for its skill. An identical file is
+/// left as it is; a different one is replaced only when `existing_file` says so.
+pub fn install_skill(
+    path: &Path,
+    content: &str,
+    existing_file: Existing,
+) -> Result<(String, InstallOutcome)> {
     let file = path.display().to_string();
     let failed = Error::user;
     let existing = if path.exists() { Some(text_file::read_text(path).map_err(failed)?) } else { None };
-    if existing.as_deref() == Some(PACKAGED_SKILL) {
+    if existing.as_deref() == Some(content) {
         return Ok((file, InstallOutcome::Unchanged));
     }
     if existing.is_some() && existing_file == Existing::Keep {
@@ -42,7 +97,7 @@ pub fn install_skill(path: &Path, existing_file: Existing) -> Result<(String, In
             "{file} exists and differs from the packaged skill; pass --force to replace it"
         )));
     }
-    text_file::write_text(path, PACKAGED_SKILL).map_err(failed)?;
+    text_file::write_text(path, content).map_err(failed)?;
     Ok((file, if existing.is_none() { InstallOutcome::Installed } else { InstallOutcome::Replaced }))
 }
 
@@ -51,13 +106,13 @@ fn home() -> std::path::PathBuf {
     std::env::home_dir().unwrap_or_default()
 }
 
-/// `skill install [--agent <name or file>] [--global] [--force]`.
-pub(super) fn skill(args: &[String], root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
-    if args.first().map(String::as_str) != Some("install") || args.len() > 1 {
-        return Err(Error::user(
-            "usage: docattest skill install [--agent <name or file>] [--global] [--force]",
-        ));
-    }
+/// Install the single-language skill for `adapter` (`init --skill`).
+pub(super) fn install_project_skill(
+    root: &Path,
+    adapter: &str,
+    options: &Options,
+    io: &mut Io,
+) -> Result<String> {
     let agent = load_agent(options.agent.as_deref(), |given| resolve(&io.cwd, given))?.agent;
     let Some(place) = &agent.skill else {
         return Err(Error::user(format!(
@@ -67,15 +122,18 @@ pub(super) fn skill(args: &[String], root: &Path, options: &Options, io: &mut Io
     };
     let home = home();
     let base = if options.global { &home } else { root };
-    let (file, outcome) =
-        install_skill(&base.join(place), if options.force { Existing::Replace } else { Existing::Keep })?;
+    let content = skill_for_adapter(adapter);
+    let existing = if options.force { Existing::Replace } else { Existing::Keep };
+    let (file, outcome) = install_skill(&base.join(place), &content, existing)?;
     let said = match outcome {
         InstallOutcome::Installed => "installed",
         InstallOutcome::Replaced => "replaced",
         InstallOutcome::Unchanged => "already up to date:",
     };
-    io.out(&format!("docattest skill {said} {file}"));
-    Ok(0)
+    if !options.json {
+        io.out(&format!("docattest skill {said} {file}"));
+    }
+    Ok(file)
 }
 
 #[cfg(test)]
@@ -89,26 +147,38 @@ mod tests {
         let base = Temp::new("skill");
         let file = base.0.join("some/skills/docattest/SKILL.md");
         let shown = file.display().to_string();
-        assert_eq!(install_skill(&file, Existing::Keep), Ok((shown.clone(), InstallOutcome::Installed)));
-        assert_eq!(install_skill(&file, Existing::Keep), Ok((shown.clone(), InstallOutcome::Unchanged)));
+        let go_skill = skill_for_adapter("go");
+        assert!(go_skill.contains("## Go specifics"));
+        assert!(!go_skill.contains("## TypeScript specifics"));
+        assert_eq!(
+            install_skill(&file, &go_skill, Existing::Keep),
+            Ok((shown.clone(), InstallOutcome::Installed))
+        );
+        assert_eq!(
+            install_skill(&file, &go_skill, Existing::Keep),
+            Ok((shown.clone(), InstallOutcome::Unchanged))
+        );
         fs::write(&file, "edited").unwrap();
         assert_eq!(
-            install_skill(&file, Existing::Keep),
+            install_skill(&file, &go_skill, Existing::Keep),
             Err(Error::User(format!(
                 "docattest: {shown} exists and differs from the packaged skill; pass --force to replace it"
             )))
         );
         assert_eq!(fs::read_to_string(&file).unwrap(), "edited");
-        assert_eq!(install_skill(&file, Existing::Replace), Ok((shown, InstallOutcome::Replaced)));
-        assert_eq!(fs::read_to_string(&file).unwrap(), PACKAGED_SKILL);
+        assert_eq!(install_skill(&file, &go_skill, Existing::Replace), Ok((shown, InstallOutcome::Replaced)));
+        assert_eq!(fs::read_to_string(&file).unwrap(), go_skill);
     }
 
     #[test]
-    fn ships_a_skill_with_the_frontmatter_agents_look_for() {
+    fn ships_a_lean_single_language_skill_with_frontmatter() {
         assert!(
             PACKAGED_SKILL
                 .starts_with("---\nname: docattest\ndescription: Use when writing or editing documentation")
         );
         assert!(PACKAGED_SKILL.contains("docattest.config.json"));
+        let none_skill = skill_for_adapter("none");
+        assert!(!none_skill.contains("## Go specifics"));
+        assert!(skill_for_adapter("rust").lines().count() < 75);
     }
 }

@@ -4,7 +4,7 @@
   "$defs": {
     "Agent": {
       "type": "object",
-      "description": "One coding agent. `hooks install --agent`, `impact --hook`, `check --hook` and `skill install` apply it; nothing in docattest knows an agent otherwise.",
+      "description": "One coding agent. `init --hooks --agent`, `impact --hook`, `check --hook` and `init --skill` apply it; nothing in docattest knows an agent otherwise.",
       "properties": {
         "$schema": {
           "type": "string"
@@ -25,7 +25,7 @@
           "minLength": 1
         },
         "skill": {
-          "description": "Where the agent looks for the docattest skill: a path relative to the project root, and to the home directory for `skill install --global`. Left out when the agent has no such place.",
+          "description": "Where the agent looks for the docattest skill: a path relative to the project root, and to the home directory for `init --skill --global`. Left out when the agent has no such place.",
           "type": "string",
           "minLength": 1
         },

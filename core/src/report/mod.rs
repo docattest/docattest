@@ -231,6 +231,7 @@ impl Report {
         lines.extend(self.surface_lines());
         lines.push(self.snapshots_line());
         lines.extend(crate::changes::change_lines(self.changes.as_deref()));
+        lines.extend(self.failure_recap_lines());
         lines
     }
 

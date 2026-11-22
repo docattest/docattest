@@ -248,7 +248,7 @@ export const userErrors: ChangeCase[] = [
     { 'docs/retry.md': page(BARE, '', CLAIM, '', ...EXAMPLE) },
     [
       ['check', '--base', 'nope', '--base', 'HEAD'],
-      ['index', '--base', 'nope'],
+      ['where', '--base', 'nope'],
       ['where', 'LIMIT', '--base', 'HEAD'],
       ['uncovered', '--base', 'nope', '--json'],
     ],

@@ -46,7 +46,7 @@ impl Pending {
             .unwrap_or_else(|_| Err(Error::internal("the adapter connection closed without an answer")))
     }
 
-    fn ready(reply: Reply) -> Pending {
+    pub(crate) fn ready(reply: Reply) -> Pending {
         let (tx, rx) = channel();
         // The receiver is alive: it is returned with this sender's value queued.
         let _ = tx.send(reply);
@@ -117,11 +117,6 @@ impl Client {
             }
         }
         Pending { rx }
-    }
-
-    /// Send a request and wait for its answer.
-    pub fn call(&self, method: &str, params: Value) -> Result<Value> {
-        self.send(method, params).wait()
     }
 
     /// End the conversation: close the adapter's input and wait for it to exit.

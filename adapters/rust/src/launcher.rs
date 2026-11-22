@@ -17,7 +17,7 @@ pub const ADAPTER_VARIABLE: &str = "DOCATTEST_ADAPTER_RUST";
 pub const COMMAND_VARIABLE: &str = "DOCATTEST_COMMAND";
 
 /// The commands that write the docattest command down; only for them is it worked out.
-const WRITERS: [&str; 2] = ["hooks", "agents"];
+const WRITERS: [&str; 1] = ["init"];
 
 fn executable(name: &str) -> String {
     format!("{name}{}", std::env::consts::EXE_SUFFIX)
@@ -139,10 +139,10 @@ mod tests {
         let none = |_: &str| None;
         let added = hand_over(&command, &["check".to_string()], &none);
         assert_eq!(added, vec![(ADAPTER_VARIABLE, format!("[{:?}]", adapter.to_string_lossy()))]);
-        let writes = hand_over(&command, &["hooks".to_string(), "install".to_string()], &none);
+        let writes = hand_over(&command, &["init".to_string(), "--hooks".to_string()], &none);
         assert_eq!(writes[1], (COMMAND_VARIABLE, command.to_string_lossy().into_owned()));
         let set = |name: &str| (name != "PATH").then(|| "mine".to_string());
-        assert!(hand_over(&command, &["hooks".to_string()], &set).is_empty());
+        assert!(hand_over(&command, &["init".to_string()], &set).is_empty());
         std::fs::remove_dir_all(&dir).unwrap();
     }
 }

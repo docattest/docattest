@@ -1,5 +1,5 @@
 # unit: one column per table, quoted name
-# recorded from: fixture names made neutral; no behaviour change
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -28,7 +28,7 @@ stdout 17 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 5 lines
 ROUTES.map((r) => r.method)  →  [GET, POST, PUT]
@@ -37,7 +37,7 @@ ROUTES.map((r) => `${r.method} ${r.path}`)  →  [GET /jobs, POST /projects, PUT
 ROUTES.map((r) => `${r.path} ${r.method}`)  →  [/jobs GET, /projects POST, /x PUT]
 inventory: 4 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 42 lines
 [

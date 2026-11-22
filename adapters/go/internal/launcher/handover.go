@@ -11,7 +11,7 @@ import (
 
 // writers are the commands that write the docattest command down; only for them is it
 // worked out.
-var writers = map[string]bool{"hooks": true, "agents": true}
+var writers = map[string]bool{"init": true}
 
 var plain = regexp.MustCompile(`^[A-Za-z0-9_@%+=:,./-]+$`)
 

@@ -104,12 +104,12 @@ func TestEnvironmentHandsOverWhatIsNotSet(t *testing.T) {
 	if len(env) != 2 || env[0] != "A=1" || env[1] != AdapterVariable+`=["`+adapter+`"]` {
 		t.Fatal(env)
 	}
-	env = Environment(m, []string{"hooks", "install"}, nil)
+	env = Environment(m, []string{"init", "--hooks"}, nil)
 	if len(env) != 2 || env[1] != CommandVariable+"="+m.Executable {
 		t.Fatal(env)
 	}
 	set := machine(t, map[string]string{AdapterVariable: "mine", CommandVariable: "mine"})
-	if env := Environment(set, []string{"hooks", "install"}, []string{"A=1"}); len(env) != 1 {
+	if env := Environment(set, []string{"init", "--hooks"}, []string{"A=1"}); len(env) != 1 {
 		t.Fatal(env)
 	}
 }

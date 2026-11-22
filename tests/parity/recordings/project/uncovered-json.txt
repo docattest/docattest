@@ -1,8 +1,8 @@
 # uncovered --json
-# recorded from: explain, citation shorthands, prose pages, matched, manifestField, problems, run-cited, mutate
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === uncovered --json
 exit 0
-stdout 44 lines
+stdout 41 lines
 [
   "Attestation",
   "AuditReport",
@@ -30,9 +30,6 @@ stdout 44 lines
   "Kind",
   "Member",
   "MemberReport",
-  "MutateOptions",
-  "MutatedProof",
-  "Mutation",
   "Placement",
   "Project",
   "ProjectInput",

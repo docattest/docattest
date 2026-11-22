@@ -76,7 +76,7 @@ object of objects (`Object.values(ERRORS).map((r) => r.status)`). Pairs of field
 joined by a space, the way a table writes `GET /jobs`
 (`` ROUTES.map((r) => `${r.method} ${r.path}`) ``), for rows of at most six fields. A
 numeric enum's keys leave out the reverse mapping. Functions and class instances are not
-read. [`inventory`](inventory.md) lists every value read, with its expression.
+read. [`audit --inventory`](inventory.md) lists every value read, with its expression.
 
 A table compares column by column, with item values taken as facts take them (the first
 code span of a cell, else its text). One suggestion is made per table, for the column that
@@ -335,8 +335,8 @@ assert.deepEqual(await audit({ 'src/index.ts': source, 'docs/p.md': fenced }), [
 `docattest audit` prints each page, then one `?` line per suggestion with the directive and
 where it goes, then a summary. `--json` prints `{ suggestions }`. The exit code is `0`
 whatever it finds, and nothing is written. A surface that cannot be loaded is an error in
-both modes: exit code `1`, and the cause on standard error after the name of the command,
-which is `inventory` for an inventory.
+every mode (including `--inventory`): exit code `1`, and the cause on standard error after
+`docattest: audit:`.
 
 ```ts check
 import { spawnSync } from 'node:child_process';
@@ -370,10 +370,50 @@ assert.deepEqual(JSON.parse(json.stdout).suggestions.map((s: { line: number }) =
 assert.deepEqual(readdirSync(join(root, 'docs')), ['scopes.md']);
 
 put('src/index.ts', `import 'a-package-that-is-not-installed';\nexport const SCOPES = ['read'];`);
-for (const args of [['audit'], ['audit', '--json'], ['inventory']]) {
+for (const args of [['audit'], ['audit', '--json'], ['audit', '--inventory']]) {
   const broken = docattest(...args);
   assert.equal(broken.status, 1);
   assert.equal(broken.stdout, '');
-  assert.match(broken.stderr, new RegExp(`^docattest: ${args[0]}: surface "default" failed to load: .*a-package-that-is-not-installed`));
+  assert.match(broken.stderr, /^docattest: audit: surface "default" failed to load: .*a-package-that-is-not-installed/);
 }
+```
+
+## `--apply` inserts directives directly into pages
+
+`docattest audit --apply` writes matching (`match`) suggestions straight into the Markdown
+or MDX files (`<!-- fact: ... -->` in `.md`, `{/* fact: ... */}` in `.mdx`), leaving drifted
+suggestions untouched so CI stays green while you inspect them. Pass `--include-drift` to
+insert directives on drifted claims too (never rewriting the prose itself, so `check`
+immediately flags them), or `--dry-run` to preview edits without writing.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-audit-apply-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('package.json', JSON.stringify({ name: 'demo', type: 'module' }));
+put('src/index.ts', `export const SCOPES = ['read', 'write', 'admin'];\nexport const DEFAULT_QUEUE = 'batch-large';`);
+put('docattest.config.json', JSON.stringify({ pages: ['docs/**/*.md', 'docs/**/*.mdx'], surfaces: { default: './src/index.ts' }, adapter: 'typescript' }));
+put('docs/scopes.md', '# Scopes\n\nA token may carry:\n\n- `read`\n- `write`\n- `admin`\n- `billing`\n\nJobs go to `batch-large`.\n');
+put('docs/queue.mdx', '# Queue\n\nJobs go to `batch-large`.\n');
+const docattest = (...args: string[]) => spawnSync(process.execPath, [cli, ...args, '--root', root], { encoding: 'utf8' });
+// ---cut---
+const applied = docattest('audit', '--apply');
+assert.equal(applied.status, 0);
+assert.match(applied.stdout, /applied 2 directives to 2 pages \(1 drift skipped/);
+assert.match(readFileSync(join(root, 'docs/scopes.md'), 'utf8'), /`batch-large` <!-- fact: DEFAULT_QUEUE -->/);
+assert.doesNotMatch(readFileSync(join(root, 'docs/scopes.md'), 'utf8'), /<!-- fact: SCOPES -->/);
+assert.match(readFileSync(join(root, 'docs/queue.mdx'), 'utf8'), /`batch-large` \{\/\* fact: DEFAULT_QUEUE \*\/\}/);
+// Applied matches pass check immediately.
+assert.equal(docattest('check').status, 0);
+
+// With --include-drift, the drifted list gets its directive too and check catches it.
+assert.equal(docattest('audit', '--apply', '--include-drift').status, 0);
+assert.match(readFileSync(join(root, 'docs/scopes.md'), 'utf8'), /<!-- fact: SCOPES -->\n- `read`/);
+assert.equal(docattest('check').status, 1);
 ```

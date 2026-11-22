@@ -1,5 +1,5 @@
 # unicode: an astral item is one character
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -26,7 +26,7 @@ stdout 15 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 4 lines
 E  →  [😀, 🎉]
@@ -34,7 +34,7 @@ ONE  →  [é, ü]
 TWO  →  [éé, üü]
 inventory: 3 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 29 lines
 [

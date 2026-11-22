@@ -19,6 +19,42 @@ impl Report {
         lines
     }
 
+    /// One line per failing result (and failing base change), optionally prefixed with a
+    /// member path. Shared by the single-project recap and the multi-project summary.
+    pub(super) fn failure_entries(&self, prefix: Option<&str>) -> Vec<String> {
+        let qualify = |page: &str| prefix.map_or_else(|| page.to_string(), |dir| format!("{dir}/{page}"));
+        let mut out: Vec<String> = self
+            .results
+            .iter()
+            .filter(|r| r.is_failure())
+            .map(|r| format!("  {}:{} {}: {}", qualify(&r.page), r.line, r.kind.as_str(), r.message))
+            .collect();
+        if let Some(changes) = &self.changes {
+            for c in changes.iter().filter(|c| c.severity == crate::changes::change::Severity::Fail) {
+                out.push(format!("  {}:{} {}: {}", qualify(&c.page), c.line, c.kind.as_str(), c.message));
+            }
+        }
+        out
+    }
+
+    /// When a full report mixes passing/skipped results with failures, repeat the failing
+    /// lines right above `FAILED` so they do not get buried in long output.
+    pub(super) fn failure_recap_lines(&self) -> Vec<String> {
+        if !self.results.iter().any(|r| !r.is_failure()) {
+            return Vec::new();
+        }
+        let entries: Vec<String> = self
+            .results
+            .iter()
+            .filter(|r| r.is_failure())
+            .map(|r| format!("  {}:{} {}: {}", r.page, r.line, r.kind.as_str(), r.message))
+            .collect();
+        if entries.is_empty() {
+            return Vec::new();
+        }
+        std::iter::once("failures:".to_string()).chain(entries).collect()
+    }
+
     fn surface_warning_lines(&self) -> Vec<String> {
         self.surfaces
             .iter()
@@ -133,6 +169,22 @@ mod tests {
         assert_eq!(
             downgraded.format(Detail::Attention),
             "changes since the base: 0 fail, 1 warning\n  ⚠ docs/a.md:7 downgrade: the example became `compile`\nok"
+        );
+    }
+
+    #[test]
+    fn a_full_report_recaps_failures_only_when_mixed_with_other_results() {
+        let only_fail = report(vec![result(2, Status::Fail)]);
+        assert!(!only_fail.format(Detail::Full).contains("\nfailures:\n"));
+        let only_pass = report(vec![result(1, Status::Pass)]);
+        assert!(!only_pass.format(Detail::Full).contains("\nfailures:\n"));
+        let mixed = report(vec![result(1, Status::Pass), result(2, Status::Fail), result(4, Status::Error)]);
+        let text = mixed.format(Detail::Full);
+        assert!(
+            text.ends_with(
+                "\nfailures:\n  docs/a.md:2 fact: fail at 2\n  docs/a.md:4 fact: error at 4\nFAILED"
+            ),
+            "{text}"
         );
     }
 }

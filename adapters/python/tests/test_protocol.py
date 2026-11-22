@@ -28,7 +28,7 @@ class Hello(unittest.TestCase):
         self.assertEqual(hello["ignoredMarkers"], ["pyvenv.cfg"])
         self.assertEqual(hello["infoWords"], ["continue"])
         self.assertEqual(
-            hello["capabilities"], ["tests", "runTests", "observables", "affected", "display", "mutants"]
+            hello["capabilities"], ["tests", "runTests", "observables", "affected", "display"]
         )
         self.assertEqual(warm.result(1), hello)
         self.assertEqual(

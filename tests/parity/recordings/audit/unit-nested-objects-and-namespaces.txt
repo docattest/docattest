@@ -1,5 +1,5 @@
 # unit: nested objects and namespaces
-# recorded from: fixture names made neutral; no behaviour change
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 6 lines
@@ -66,7 +66,7 @@ stdout 52 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 42 lines
 Object.keys(Deep)  →  [NESTED]
@@ -112,7 +112,7 @@ Object.keys(schemas.components.S3.properties['allow-write'])  →  []
 Object.values(schemas.components.S3.properties['allow-write'])  →  []
 inventory: 41 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 311 lines
 [

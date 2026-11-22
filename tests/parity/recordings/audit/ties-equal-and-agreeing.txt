@@ -1,5 +1,5 @@
 # ties: equal and agreeing
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -28,14 +28,14 @@ stdout 17 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 3 lines
 X  →  [aa, bb, cc]
 Y  →  [cc, bb, aa]
 inventory: 2 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 22 lines
 [

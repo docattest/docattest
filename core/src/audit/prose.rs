@@ -10,7 +10,7 @@ use markdown::mdast::Node;
 
 use crate::attestations::literals::literals;
 use crate::markdown::comments::opening;
-use crate::markdown::parse::parse_tree;
+use crate::markdown::parse::parse_tree_for;
 use crate::markdown::text::{ends_sentence, slice};
 use crate::text::{is_js_space, lines, trim};
 
@@ -36,11 +36,14 @@ pub struct SentenceCandidate {
     pub values: Vec<Literal>,
 }
 
-/// The unbound sentences of a page's paragraphs, in order, except in paragraphs that start
-/// inside one of `skipped` (line ranges of blocks a directive binds), and except the first
-/// sentence of a paragraph that starts on a line of `opened` (a directive above attests it).
-pub fn sentences_of(text: &str, skipped: &[(usize, usize)], opened: &[usize]) -> Vec<SentenceCandidate> {
-    let Some((source, tree)) = parse_tree(text) else {
+/// The unbound sentences of a Markdown or MDX page's paragraphs.
+pub fn sentences_of_page(
+    page: &str,
+    text: &str,
+    skipped: &[(usize, usize)],
+    opened: &[usize],
+) -> Vec<SentenceCandidate> {
+    let Some((source, tree)) = parse_tree_for(page, text) else {
         return Vec::new();
     };
     let mut paragraphs = Vec::new();
@@ -56,6 +59,11 @@ pub fn sentences_of(text: &str, skipped: &[(usize, usize)], opened: &[usize]) ->
             sentences_in(paragraph, &source, opening)
         })
         .collect()
+}
+
+#[cfg(test)]
+pub fn sentences_of(text: &str, skipped: &[(usize, usize)], opened: &[usize]) -> Vec<SentenceCandidate> {
+    sentences_of_page("page.md", text, skipped, opened)
 }
 
 fn line_of(node: &Node) -> usize {

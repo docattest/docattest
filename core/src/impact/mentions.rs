@@ -6,7 +6,7 @@ use markdown::mdast::Node;
 
 use super::covered::Covered;
 use super::{Found, ImpactReference};
-use crate::markdown::parse::parse_tree;
+use crate::markdown::parse::parse_tree_for;
 use crate::markdown::text::{content_range, prose, sentence_ends, slice};
 
 /// A page's inline code spans, read once: the page as parsed, and where each span sits.
@@ -16,8 +16,13 @@ pub struct PageSpans {
 }
 
 /// Read a page for its code spans; None for a page that cannot be parsed.
+pub fn code_spans_of_page(page: &str, text: &str) -> Option<PageSpans> {
+    parse_tree_for(page, text).map(|(source, tree)| PageSpans { source, tree })
+}
+
+#[cfg(test)]
 pub fn code_spans_of(text: &str) -> Option<PageSpans> {
-    parse_tree(text).map(|(source, tree)| PageSpans { source, tree })
+    code_spans_of_page("page.md", text)
 }
 
 impl PageSpans {

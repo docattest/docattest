@@ -7,6 +7,7 @@
 //! `inline` for a sentence or a single value, or stays silent; `run` drives the adapter and
 //! evaluates every suggestion again; `text` and `listing` print.
 
+pub mod apply;
 pub mod candidates;
 pub mod inline;
 pub mod inventory;

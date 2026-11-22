@@ -21,27 +21,30 @@ struct Spec {
 }
 
 /// Options by long name.
-const OPTIONS: [Spec; 17] = [
+const OPTIONS: [Spec; 25] = [
     Spec { name: "root", kind: Type::String, short: None, set: |o, v| o.root = v },
     Spec { name: "json", kind: Type::Boolean, short: None, set: |o, _| o.json = true },
     Spec { name: "quiet", kind: Type::Boolean, short: None, set: |o, _| o.quiet = true },
+    Spec { name: "member", kind: Type::String, short: None, set: |o, v| o.member = v },
     Spec { name: "surface", kind: Type::String, short: None, set: |o, v| o.surface = v },
     Spec { name: "global", kind: Type::Boolean, short: None, set: |o, _| o.global = true },
     Spec { name: "local", kind: Type::Boolean, short: None, set: |o, _| o.local = true },
     Spec { name: "force", kind: Type::Boolean, short: None, set: |o, _| o.force = true },
+    Spec { name: "apply", kind: Type::Boolean, short: None, set: |o, _| o.apply = true },
+    Spec { name: "include-drift", kind: Type::Boolean, short: None, set: |o, _| o.include_drift = true },
+    Spec { name: "dry-run", kind: Type::Boolean, short: None, set: |o, _| o.dry_run = true },
+    Spec { name: "no-audit", kind: Type::Boolean, short: None, set: |o, _| o.no_audit = true },
+    Spec { name: "agents", kind: Type::Boolean, short: None, set: |o, _| o.write_agents = true },
+    Spec { name: "hooks", kind: Type::Boolean, short: None, set: |o, _| o.hooks = true },
+    Spec { name: "git-hook", kind: Type::Boolean, short: None, set: |o, _| o.git_hook = true },
+    Spec { name: "skill", kind: Type::Boolean, short: None, set: |o, _| o.skill = true },
+    Spec { name: "inventory", kind: Type::Boolean, short: None, set: |o, _| o.inventory = true },
     Spec { name: "base", kind: Type::String, short: None, set: |o, v| o.base = v },
     Spec { name: "report", kind: Type::String, short: None, set: |o, v| o.reports.extend(v) },
     Spec { name: "run-cited", kind: Type::Boolean, short: None, set: |o, _| o.run_cited = true },
     Spec { name: "hook", kind: Type::Boolean, short: None, set: |o, _| o.hook = true },
     Spec { name: "file", kind: Type::String, short: None, set: |o, v| o.file = v },
     Spec { name: "agent", kind: Type::String, short: None, set: |o, v| o.agent = v },
-    Spec { name: "git", kind: Type::Boolean, short: None, set: |o, _| o.git = true },
-    Spec {
-        name: "fail-on-survivors",
-        kind: Type::Boolean,
-        short: None,
-        set: |o, _| o.fail_on_survivors = true,
-    },
     Spec { name: "help", kind: Type::Boolean, short: Some('h'), set: |o, _| o.help = true },
     Spec { name: "version", kind: Type::Boolean, short: None, set: |o, _| o.version = true },
 ];
@@ -53,11 +56,32 @@ pub struct Options {
     pub root: Option<String>,
     pub json: bool,
     pub quiet: bool,
+    /// `check --member <dir>`: check only that configured member project (and optionally its pages).
+    pub member: Option<String>,
     pub surface: Option<String>,
+    /// `init --skill --global`: install the skill in the user's home directory.
     pub global: bool,
-    /// `hooks install --local`: write to the agent's untracked local settings file.
+    /// `init --hooks --local`: write to the agent's untracked local settings file.
     pub local: bool,
     pub force: bool,
+    /// `audit --apply`: insert suggested directives into pages.
+    pub apply: bool,
+    /// `audit --apply --include-drift`: also insert directives on drifted claims.
+    pub include_drift: bool,
+    /// `init --dry-run` or `audit --apply --dry-run`: show changes without writing files.
+    pub dry_run: bool,
+    /// `init --no-audit`: skip the initial gap scan after writing `docattest.config.json`.
+    pub no_audit: bool,
+    /// `init --agents`: write or update the docattest section of `AGENTS.md`.
+    pub write_agents: bool,
+    /// `init --hooks`: install coding-agent hooks (`impact --hook`, `check --hook`).
+    pub hooks: bool,
+    /// `init --git-hook`: install a git pre-commit hook that runs `docattest check --quiet`.
+    pub git_hook: bool,
+    /// `init --skill`: install the lean, single-language agent skill.
+    pub skill: bool,
+    /// `audit --inventory [text]`: list observable values a fact could read.
+    pub inventory: bool,
     pub base: Option<String>,
     /// `check --report <format>=<path>`, once for each file, in the order given.
     pub reports: Vec<String>,
@@ -68,10 +92,6 @@ pub struct Options {
     pub file: Option<String>,
     /// The coding agent: a shipped descriptor's name, or a descriptor file.
     pub agent: Option<String>,
-    /// `hooks install --git`: the git pre-commit hook instead of an agent's hooks.
-    pub git: bool,
-    /// `mutate --fail-on-survivors`: exit 1 when a proof survived every mutant.
-    pub fail_on_survivors: bool,
     pub help: bool,
     pub version: bool,
 }

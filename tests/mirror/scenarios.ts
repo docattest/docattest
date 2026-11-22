@@ -302,50 +302,10 @@ const SETUP_AND_UNDOCUMENTED: Agreement[] = [
   },
 ];
 
-/** The status of each proof `mutate --json` judged, in order, and why each not mutated was not. */
-const judged = (out: Outcome): string[] => {
-  const answer = JSON.parse(out.stdout) as { proofs: { status: string; why?: string }[] };
-  return answer.proofs.map((p) => (p.why === undefined ? p.status : `${p.status}: ${p.why}`));
-};
-
-const MUTATE: Agreement[] = [
-  {
-    id: 'mutate-01',
-    title: "mutate kills a fact a constant's literal sets, and cannot mutate a function's result",
-    files: project(
-      {
-        'src/batch.ts': lines(
-          'const PORT = 8080;',
-          'export function batchSize(): number { return 2; }',
-        ),
-        'docs/page.md': lines(
-          'The server listens on port `8080`. <!-- fact: PORT -->',
-          '',
-          'A batch holds `2` items. <!-- fact: batchSize() -->',
-        ),
-      },
-      configured({ default: './src/batch.ts' }),
-    ),
-    run: ['mutate', '--json'],
-    expect: (out) => {
-      const [port, size] = judged(out);
-      return (
-        out.code === 0 &&
-        port === 'killed' &&
-        size !== undefined &&
-        /^notMutated: \w+ is a function, class or type: what it gives is computed when it runs$/.test(
-          size,
-        )
-      );
-    },
-  },
-];
-
 /** The mirror's own scenarios, in the order they run. */
 export const agreements: readonly Agreement[] = [
   ...FACTS,
   ...CITATIONS,
   ...RUNS,
   ...SETUP_AND_UNDOCUMENTED,
-  ...MUTATE,
 ];

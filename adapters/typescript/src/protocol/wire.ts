@@ -1,5 +1,4 @@
 import { UserError } from '../api/errors.js';
-import type { SymbolRef } from '../api/adapter.js';
 import type { Attestation } from '../api/attestation.js';
 import { isObject, isStringArray, type JsonObject } from '../json.js';
 
@@ -106,16 +105,6 @@ export class Params {
       (kind === undefined ? typeof a.kind === 'string' : a.kind === kind);
     const what = kind === undefined ? 'attestations' : `${kind} attestations`;
     return items.every(fits) ? (items as Attestation[]) : this.fail(name, `a list of ${what}`);
-  }
-
-  /** Symbols as `symbols` answers them: each a `name`, with a `surface` or none. */
-  symbolRefs(name: string): SymbolRef[] {
-    const items = this.list(name);
-    const fits = (s: unknown) =>
-      isObject(s) &&
-      typeof s.name === 'string' &&
-      (s.surface === undefined || typeof s.surface === 'string');
-    return items.every(fits) ? (items as SymbolRef[]) : this.fail(name, 'a list of symbols');
   }
 
   strings(name: string): string[] {

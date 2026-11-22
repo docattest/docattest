@@ -87,7 +87,10 @@ FAILED</code></pre>
             </li>
             <li>
               <button type="button" class="command">docattest audit</button>
-              <p>Lists and tables copied from the code with no proof, and the proof to add.</p>
+              <p>
+                Lists, tables and values copied from the code with no proof, and the proof to add.
+                Pass <code>--apply</code> to insert matching directives automatically.
+              </p>
               <pre
                 class="sample"
               ><code>? L31 list drifts from ERROR_CODES (missing: NO_SESSION) → &lt;!-- fact: ERROR_CODES --&gt; above the list</code></pre>
@@ -124,17 +127,17 @@ FAILED</code></pre>
           <p class="crew-when">Run these once. They keep working after that.</p>
           <ul class="commands">
             <li>
-              <button type="button" class="command">docattest hooks install</button>
+              <button type="button" class="command">docattest init --agents --hooks --skill</button>
               <p>
-                Hooks for Claude Code, Cursor or Gemini CLI, so the agent can’t finish while a proof
-                fails. Where the agent allows it, it also hears which sentences to re-read after
-                each edit.
+                Writes <code>AGENTS.md</code>, installs a lean single-language skill, and wires
+                hooks for Claude Code, Cursor, Gemini CLI, Codex or Antigravity so an agent can’t
+                finish while a proof fails.
               </p>
               <pre class="sample"><code>PostToolUse (Edit|Write): npx --no docattest impact --hook
 Stop: npx --no docattest check --hook</code></pre>
             </li>
             <li>
-              <button type="button" class="command">docattest hooks install --git</button>
+              <button type="button" class="command">docattest init --git-hook</button>
               <p>A pre-commit hook: a commit that makes the docs wrong never lands.</p>
               <pre
                 class="sample"

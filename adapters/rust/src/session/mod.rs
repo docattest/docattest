@@ -5,9 +5,7 @@
 use crate::analysis::Analysis;
 use crate::analysis::surfaces::{Configured, workspace_start};
 use crate::project::{self, Project};
-use crate::protocol::{
-    Answer, AskedSymbol, Attestation, Cases, CitedTest, Error, Example, Fact, TestRun, decode,
-};
+use crate::protocol::{Answer, Attestation, Cases, CitedTest, Error, Example, Fact, TestRun, decode};
 use crate::running::{FactFiles, Limits, Runner, Snapshots};
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -126,12 +124,6 @@ struct AffectedParams {
 }
 
 #[derive(Deserialize)]
-struct MutantsParams {
-    symbols: Vec<AskedSymbol>,
-    limit: usize,
-}
-
-#[derive(Deserialize)]
 struct InCodeParams {
     names: Vec<String>,
     files: Vec<String>,
@@ -184,9 +176,6 @@ impl Session {
             "describeSurfaces" => Ok(analysis.describe_surfaces()),
             "tests" => decode::<FileParams>(params).map(|p| analysis.list_tests(&p.file)),
             "affected" => decode::<AffectedParams>(params).map(|p| json!(analysis.affected(&p.base))),
-            "mutants" => {
-                decode::<MutantsParams>(params).map(|p| json!(analysis.mutants(&p.symbols, p.limit)))
-            }
             "inCode" => decode::<InCodeParams>(params).map(|p| json!(analysis.in_code(&p.names, &p.files))),
             _ => return None,
         })

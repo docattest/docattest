@@ -1,7 +1,7 @@
 # where usage
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== where
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== where a b
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest where <symbol>
+docattest: usage: docattest where [symbol]

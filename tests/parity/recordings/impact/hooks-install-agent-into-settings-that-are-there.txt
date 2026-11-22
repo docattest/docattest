@@ -1,8 +1,12 @@
 # hooks install: --agent into settings that are there
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== hooks install --agent gemini
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit --agent gemini
 exit 0
-stdout 2 lines
+stdout 6 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.gemini/settings.json
   AfterTool (write_file|replace): npx --no docattest impact --hook --agent gemini
 stderr empty
@@ -42,7 +46,16 @@ file .gemini/settings.json 35 lines
     ]
   }
 }
-=== hooks install --agent cursor
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --hooks --agent cursor
 exit 0
 stdout 2 lines
 docattest hooks: added to <root>/.cursor/hooks.json
@@ -68,7 +81,7 @@ file .cursor/hooks.json 19 lines
   },
   "version": 1
 }
-=== hooks install --agent ./tools/acme.json
+=== init --hooks --agent ./tools/acme.json
 exit 0
 stdout 2 lines
 docattest hooks: added to <root>/acme/config.json
@@ -96,7 +109,7 @@ file acme/config.json 21 lines
   "schema": 2,
   "enabled": true
 }
-=== hooks install
+=== init --hooks
 exit 0
 stdout 3 lines
 docattest hooks: added to <root>/.claude/settings.json

@@ -59,16 +59,16 @@ Each kind has its own page: [examples](examples.md), [facts](facts.md), [cases](
 finds wrong outside all of them, and [the report](report.md#what-the-adapter-finds-outside-every-proof-fails-at-its-line)
 says how it counts. [Manifests](manifests.md) covers facts
 over project files such as `package.json` or a `Dockerfile`; [commands and sample pages](console.md) covers
-the examples docattest runs itself, whatever the language. [Pages](pages.md) covers what is
-checked at all, [surfaces](surfaces.md) what examples and facts may import, [duality](duality.md) the
-code-to-docs index, [report](report.md) the output and exit codes, [the command
-line](cli.md) the commands, [adapters](adapters.md) the language boundary, and
-[protocol](protocol.md) how the core talks to an adapter. [Explain](explain.md) says what a
-directive binds and why. [Audit](audit.md)
-finds claims nobody has attested yet, [inventory](inventory.md) lists what a fact could
-read, [changes](changes.md) judges what a change did to the
-attestations, [impact](impact.md) goes from a code diff to the prose it touches, and
-[mutate](mutate.md) breaks what each proof reads to see whether it fails.
+the examples docattest runs itself, whatever the language. [Pages](pages.md) covers what is checked at all (Markdown, MDX, core-only mode, prose and
+frozen pages), [surfaces](surfaces.md) what examples and facts may import (including internal
+fact-only surfaces), [duality](duality.md) the code-to-docs index, [report](report.md) the
+output and exit codes, [the command line](cli.md) the commands (`init`, `check`, `--member`,
+and CI reports), [adapters](adapters.md) the language boundary, and [protocol](protocol.md)
+how the core talks to an adapter. [Explain](explain.md) says what a directive binds and why.
+[Audit](audit.md) finds claims nobody has attested yet (and `--apply` inserts matching
+directives), [inventory](inventory.md) (`audit --inventory`) lists what a fact could read,
+[changes](changes.md) judges what a change did to the attestations, and [impact](impact.md)
+goes from a code diff to the prose it touches.
 [Coding agents](agents.md) covers what an agent runs, and how one with hooks is described.
 [Why](why.md) gives the reasoning behind the design.
 

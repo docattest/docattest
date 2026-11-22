@@ -1,5 +1,5 @@
 # walk: rows with many fields
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -26,7 +26,7 @@ stdout 15 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 9 lines
 ROWS.map((r) => r.f0)  →  [r0f0, r1f0, r2f0]
@@ -39,7 +39,7 @@ ROWS.map((r) => r.f6)  →  [r0f6, r1f6, r2f6]
 ROWS.map((r) => r.f7)  →  [r0f7, r1f7, r2f7]
 inventory: 8 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 82 lines
 [

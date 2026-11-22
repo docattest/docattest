@@ -1,5 +1,5 @@
 //! Copying a directory tree, and linking to an entry instead of copying it: what a copy of a
-//! project is made with, for a sample page's fixture and for `mutate`.
+//! project is made with for a sample page's fixture.
 
 use std::fs;
 use std::path::Path;

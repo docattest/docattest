@@ -1,5 +1,5 @@
 # ties: same score, heavier column wins
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -26,14 +26,14 @@ stdout 15 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 3 lines
 IDS  →  [i1, i2]
 NAMES  →  [alphabet, betatron]
 inventory: 2 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 20 lines
 [

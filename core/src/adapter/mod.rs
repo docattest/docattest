@@ -5,6 +5,7 @@
 //! methods send requests that may overlap, and each caller waits for the answers in a fixed
 //! order, so which error is reported never depends on timing.
 
+pub(crate) mod builtin;
 pub(crate) mod client;
 mod command;
 #[cfg(test)]
@@ -13,10 +14,13 @@ pub(crate) mod language;
 pub(crate) mod sources;
 
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use serde_json::{Value, json};
 
 use crate::api::errors::{Error, Result};
+use crate::config::NONE_ADAPTER;
+use builtin::BuiltinNone;
 pub(crate) use client::{Client, Pending};
 pub(crate) use language::{DocProse, ExpressionShape, Language};
 pub(crate) use sources::SourceFiles;
@@ -27,16 +31,45 @@ use command::{adapter_variable, find, from_dir};
 /// The protocol version this core speaks.
 pub const PROTOCOL: u64 = 1;
 
+/// How the core talks to an adapter: either a child process or the built-in `"none"` backend.
+enum Backend {
+    Process(Client),
+    Builtin(Box<Mutex<BuiltinNone>>),
+}
+
+impl Backend {
+    fn send(&self, method: &str, params: Value) -> Pending {
+        match self {
+            Backend::Process(client) => client.send(method, params),
+            Backend::Builtin(builtin) => {
+                let mut guard = builtin.lock().unwrap_or_else(|e| e.into_inner());
+                Pending::ready(guard.call(method, params))
+            }
+        }
+    }
+
+    fn call(&self, method: &str, params: Value) -> Result<Value> {
+        self.send(method, params).wait()
+    }
+
+    fn finish(self) -> Result<()> {
+        match self {
+            Backend::Process(client) => client.finish(),
+            Backend::Builtin(_) => Ok(()),
+        }
+    }
+}
+
 /// An adapter that has been started, its greeting on the way.
 pub(crate) struct Starting {
-    client: Client,
+    backend: Backend,
     greeting: Pending,
     name: String,
 }
 
 /// An adapter that has greeted: what it said of its language is known.
 pub(crate) struct Adapter {
-    client: Client,
+    backend: Backend,
     /// Info-string languages whose fenced blocks the adapter runs, lower case.
     pub block_languages: Vec<String>,
     /// Which project files are source files of the adapter's language.
@@ -91,7 +124,7 @@ impl Starting {
             ignored,
             info_words,
             vocabulary,
-            client: self.client,
+            backend: self.backend,
             name: self.name,
         })
     }
@@ -167,6 +200,11 @@ impl Adapter {
     /// Start the adapter for `name` as `launch` says, sending `hello`. The greeting's answer
     /// is awaited by [`Starting::greeted`].
     pub fn launch(name: &str, launch: &Launch, start: Start) -> Result<Starting> {
+        if name == NONE_ADAPTER && matches!(launch, Launch::Found) {
+            let backend = Backend::Builtin(Box::new(Mutex::new(BuiltinNone::default())));
+            let greeting = backend.send("hello", json!({ "protocol": PROTOCOL }));
+            return Ok(Starting { backend, greeting, name: name.to_string() });
+        }
         match launch {
             Launch::Found => Adapter::spawn(&find(name)?, None, name, start),
             Launch::Given { words, dir } => Adapter::spawn(&from_dir(words, dir), Some(dir), name, start),
@@ -180,13 +218,13 @@ impl Adapter {
     }
 
     fn spawn(argv: &[String], dir: Option<&Path>, name: &str, start: Start) -> Result<Starting> {
-        let client = Client::spawn(argv, dir, name)?;
+        let backend = Backend::Process(Client::spawn(argv, dir, name)?);
         let hello = match start {
             Start::Warm => json!({ "protocol": PROTOCOL, "warm": true }),
             Start::Cold => json!({ "protocol": PROTOCOL }),
         };
-        let greeting = client.send("hello", hello);
-        Ok(Starting { client, greeting, name: name.to_string() })
+        let greeting = backend.send("hello", hello);
+        Ok(Starting { backend, greeting, name: name.to_string() })
     }
 
     /// Whether the adapter implements the optional method `capability`.
@@ -201,22 +239,22 @@ impl Adapter {
 
     /// Send a request (after the greeting).
     pub fn send(&self, method: &str, params: Value) -> Pending {
-        self.client.send(method, params)
+        self.backend.send(method, params)
     }
 
     pub fn call(&self, method: &str, params: Value) -> Result<Value> {
-        self.client.call(method, params)
+        self.backend.call(method, params)
     }
 
     /// Close the session that was opened, then let the adapter exit.
     pub fn finish_session(self) -> Result<()> {
-        self.client.call("close", json!({}))?;
-        self.client.finish()
+        self.backend.call("close", json!({}))?;
+        self.backend.finish()
     }
 
     /// Let the adapter exit; no session was opened.
     pub fn finish(self) -> Result<()> {
-        self.client.finish()
+        self.backend.finish()
     }
 }
 

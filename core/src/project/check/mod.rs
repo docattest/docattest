@@ -8,20 +8,18 @@ mod exports_split;
 mod problems;
 mod sample;
 mod skill_warning;
+mod surfaces;
 
 use std::collections::{HashMap, HashSet};
 
 use serde_json::{Map, Value, json};
 
-use super::config_warnings::undocumented_warnings;
 use super::state::State;
 use crate::adapter::Pending;
 use crate::api::attestation::{Attestation, Body, Kind};
 use crate::api::errors::{Error, Result};
 use crate::report::order::by_page_and_line;
-use crate::report::{
-    Coverage, Outcome, PageSets, Report, SurfaceCoverage, coverage_for, exit_code_for, order_results,
-};
+use crate::report::{Coverage, Outcome, PageSets, Report, coverage_for, exit_code_for, order_results};
 use crate::text::compare_utf16;
 use checker::Checker;
 use citation_relevance::citation_relevance_warnings;
@@ -30,6 +28,7 @@ use cited_runs::refuse_without_runner;
 use exports_split::split_exports;
 use problems::{Problems, send_problems};
 use skill_warning::stale_skill_warnings;
+use surfaces::{SurfaceReports, surface_reports};
 
 /// A surface symbol an attestation exercises; `surface` is None when none exports it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -181,7 +180,7 @@ pub fn run_check(
     let SurfaceReports { surfaces, warnings, exports } =
         surface_reports(state, &checker.symbols, described, exported)?;
     let relevance = citation_relevance_warnings(state, &chosen, &checked, &checker.symbols, &exports)?;
-    let stale_skills = stale_skill_warnings(&state.files);
+    let stale_skills = stale_skill_warnings(&state.files, &state.config.adapter);
     let mut all = state.snapshots.errors.clone();
     all.extend(checked.into_iter().flatten());
     let mut coverage = coverage_of(state, &all, selected);
@@ -232,82 +231,6 @@ fn result_counts(state: &State, results: &[Outcome], selected: &HashSet<String>)
         }
     }
     counts
-}
-
-/// Each surface's coverage, the config's warnings that only its exports can tell, and the
-/// union of all resolved surfaces' export names.
-struct SurfaceReports {
-    surfaces: Vec<(String, SurfaceCoverage)>,
-    warnings: Vec<String>,
-    exports: Vec<String>,
-}
-
-fn surface_reports(
-    state: &State,
-    symbols: &Symbols,
-    described: Pending,
-    exported: Vec<Pending>,
-) -> Result<SurfaceReports> {
-    let described = described.wait()?;
-    let attested = attested_by_surface(symbols);
-    let mut reports = SurfaceReports { surfaces: Vec::new(), warnings: Vec::new(), exports: Vec::new() };
-    let mut seen_exports: HashSet<String> = HashSet::new();
-    for ((name, _), exports) in state.config.surfaces.iter().zip(exported) {
-        let names = export_names(exports.wait()?);
-        if let Some(names) = &names {
-            reports.warnings.extend(undocumented_warnings(&state.config, name, names)?);
-            for export in names {
-                if seen_exports.insert(export.clone()) {
-                    reports.exports.push(export.clone());
-                }
-            }
-        }
-        let globs = state.config.undocumented_globs(name);
-        let split = split_exports(names.unwrap_or_default(), attested.get(name.as_str()), globs)?;
-        let (resolution, warnings) = description_of(name, described.get(name))?;
-        let coverage = SurfaceCoverage {
-            symbols: split.attested + split.unattested.len() + split.undocumented.len(),
-            attested: split.attested,
-            unattested: split.unattested,
-            undocumented: (!globs.is_empty()).then_some(split.undocumented),
-            resolution,
-            warnings,
-        };
-        reports.surfaces.push((name.clone(), coverage));
-    }
-    Ok(reports)
-}
-
-/// The resolution and the warnings `describeSurfaces` gave a surface.
-fn description_of(surface: &str, description: Option<&Value>) -> Result<(Option<Value>, Vec<String>)> {
-    let resolution = description.and_then(|d| d.get("resolution")).filter(|r| truthy(r)).cloned();
-    if let Some(resolution) = &resolution {
-        resolved(surface, resolution)?;
-    }
-    let warnings = description
-        .and_then(|d| d.get("warnings"))
-        .and_then(Value::as_array)
-        .map(|a| a.iter().map(|w| w.as_str().map_or_else(|| w.to_string(), str::to_string)).collect())
-        .unwrap_or_default();
-    Ok((resolution, warnings))
-}
-
-/// A resolution names what is imported and the entry it is read from; a package, when it
-/// names one, says how it is displayed. The report prints these, so they must be there.
-fn resolved(surface: &str, resolution: &Value) -> Result<()> {
-    let string = |v: Option<&Value>| v.is_some_and(Value::is_string);
-    let package = resolution.get("package");
-    let shown = package.is_none_or(|p| string(p.get("name")) && string(p.get("display")));
-    if string(resolution.get("import")) && string(resolution.get("entry")) && shown {
-        return Ok(());
-    }
-    Err(Error::internal(format!(
-        "describeSurfaces answered a resolution for \"{surface}\" without an import, an entry or a package's name and display"
-    )))
-}
-
-fn truthy(v: &Value) -> bool {
-    !matches!(v, Value::Null | Value::Bool(false)) && v.as_str() != Some("")
 }
 
 /// The results of `chosen`, each attestation's in a list of its own, in the order given, as
@@ -379,14 +302,20 @@ pub fn build_index(attestations: &[Attestation], symbols: &Symbols) -> Vec<(Stri
 }
 
 /// Exports of a surface that no attestation against it references, less those the config
-/// says are not meant to be documented.
+/// says are not meant to be documented. Internal surfaces return an empty list.
 pub fn uncovered(state: &State, network: Network, surface: &str) -> Result<Vec<String>> {
-    if !state.config.surfaces.iter().any(|(name, _)| name == surface) {
+    if state.config.surfaces.is_empty() {
+        return Err(Error::user("no surfaces are configured in docattest.config.json"));
+    }
+    let Some((_, entry)) = state.config.surfaces.iter().find(|(name, _)| name == surface) else {
         let configured: Vec<&str> = state.config.surfaces.iter().map(|(name, _)| name.as_str()).collect();
         return Err(Error::user(format!(
             "unknown surface \"{surface}\" (configured: {})",
             configured.join(", ")
         )));
+    };
+    if entry.is_internal() {
+        return Ok(Vec::new());
     }
     let opened = open(state, network, &[]);
     let symbols = symbols_request(state);

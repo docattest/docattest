@@ -1,28 +1,28 @@
 # inventory: searches
-# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
-=== inventory scopes
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== audit --inventory scopes
 exit 0
 stdout 2 lines
 SCOPES  →  [read, write, admin]
 inventory: 1 value
 stderr empty
-=== inventory ADMIN
+=== audit --inventory ADMIN
 exit 0
 stdout 2 lines
 SCOPES  →  [read, write, admin]
 inventory: 1 value
 stderr empty
-=== inventory nothing-matches-this
+=== audit --inventory nothing-matches-this
 exit 0
 stdout 1 line
 inventory: nothing matches
 stderr empty
-=== inventory nothing-matches-this --json
+=== audit --inventory nothing-matches-this --json
 exit 0
 stdout 1 line
 []
 stderr empty
-=== inventory 
+=== audit --inventory 
 exit 0
 stdout 12 lines
 BANNER  →  docattest keeps documentation honest
@@ -38,12 +38,12 @@ log: info
 
 inventory: 7 values
 stderr empty
-=== inventory read,write
+=== audit --inventory read,write
 exit 0
 stdout 1 line
 inventory: nothing matches
 stderr empty
-=== inventory demo
+=== audit --inventory demo
 exit 0
 stdout 6 lines
 TEMPLATE  →  name: demo
@@ -53,7 +53,7 @@ log: info
 
 inventory: 1 value
 stderr empty
-=== inventory ROUTES.map --json
+=== audit --inventory ROUTES.map --json
 exit 0
 stdout 42 lines
 [
@@ -99,7 +99,7 @@ stdout 42 lines
   }
 ]
 stderr empty
-=== inventory a b
+=== audit --inventory a b
 exit 0
 stdout 12 lines
 BANNER  →  docattest keeps documentation honest
@@ -115,7 +115,7 @@ log: info
 
 inventory: 7 values
 stderr empty
-=== inventory --json honest
+=== audit --inventory --json honest
 exit 0
 stdout 7 lines
 [
@@ -131,7 +131,7 @@ exit 0
 stdout 1 line
 audit: nothing to suggest
 stderr empty
-=== inventory --quiet
+=== audit --inventory --quiet
 exit 0
 stdout 12 lines
 BANNER  →  docattest keeps documentation honest
@@ -152,7 +152,7 @@ exit 0
 stdout 1 line
 audit: nothing to suggest
 stderr empty
-=== inventory --nope
+=== audit --inventory --nope
 exit 1
 stdout empty
 stderr 1 line

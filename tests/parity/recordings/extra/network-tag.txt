@@ -1,8 +1,8 @@
 # network tag
-# recorded from: what adopting it in a Go service found
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
 === check
 exit 1
-stdout 9 lines
+stdout 11 lines
 docs/a.md
   - L1 example: network example skipped: the network is off (set DOCATTEST_NETWORK=1 to run it)
   ! L5 example: example at L5: network applies to check blocks only
@@ -11,5 +11,7 @@ coverage: 1 living page, 1 covered (2 attestations: 2 proofs, 0 of them weak, an
 surface default: 3 symbols, 0 attested, 3 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 snapshots: none
+failures:
+  docs/a.md:5 example: example at L5: network applies to check blocks only
 FAILED
 stderr empty

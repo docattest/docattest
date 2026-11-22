@@ -1,8 +1,8 @@
 # examples
-# recorded from: what adopting it in a Go service found
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
 === check
 exit 1
-stdout 11 lines
+stdout 13 lines
 docs/a.md
   ✓ L1 example: all assertions held
   ✓ L6 example: compiles
@@ -13,5 +13,7 @@ coverage: 1 living page, 1 covered (4 attestations: 4 proofs, 1 of them weak, an
 surface default: 3 symbols, 1 attested, 2 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 snapshots: none
+failures:
+  docs/a.md:14 example: example at L14: unknown tag "chekc"; did you mean "check"?
 FAILED
 stderr empty

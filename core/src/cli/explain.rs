@@ -13,7 +13,7 @@ use crate::attestations::plan::{Explained, Why, plan_explained};
 use crate::config::matcher;
 use crate::explain::{Explanation, format, to_json};
 use crate::files::project_files::ProjectFiles;
-use crate::markdown::parse::parse_page;
+use crate::markdown::parse::parse_page_for;
 use crate::project::check::results_of;
 use crate::project::plan::example_options;
 use crate::project::state::{State, select_pages};
@@ -100,7 +100,7 @@ fn explain_page(state: &State, page: &str, line: Option<usize>) -> Result<Vec<Ex
 
 fn plan_again(state: &State, page: &str) -> Result<Explained> {
     let text = state.files.read(page).map_err(Error::user)?;
-    let parsed = parse_page(&text).map_err(|why| why.on(page))?;
+    let parsed = parse_page_for(page, &text).map_err(|why| why.on(page))?;
     Ok(plan_explained(page, &parsed, &example_options(&state.config, &state.adapter)))
 }
 

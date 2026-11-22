@@ -1,5 +1,5 @@
 # unit: candidates with fact item values
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -26,7 +26,7 @@ stdout 15 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 4 lines
 KEYS  →  [A, B, plain text]
@@ -34,7 +34,7 @@ METHODS  →  [GET, POST]
 PATHS  →  [/a, /c]
 inventory: 3 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 30 lines
 [

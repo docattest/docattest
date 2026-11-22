@@ -1,8 +1,12 @@
 # hooks install: a descriptor outside the project, and one whose path needs quoting
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== hooks install --agent __HOME__/acme.json
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit --agent __HOME__/acme.json
 exit 0
-stdout 3 lines
+stdout 7 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/acme/config.json
   file.saved (**/*): npx --no docattest impact --hook --agent <home>/acme.json
   turn.ending: npx --no docattest check --hook --agent <home>/acme.json
@@ -30,9 +34,22 @@ file acme/config.json 21 lines
     ]
   }
 }
-=== hooks install --agent ../home/acme.json --root tools
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --hooks --no-audit --agent ../home/acme.json --root tools
 exit 0
-stdout 3 lines
+stdout 7 lines
+docattest init: wrote <root>/tools/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/tools/acme/config.json
   file.saved (**/*): npx --no docattest impact --hook --agent <home>/acme.json
   turn.ending: npx --no docattest check --hook --agent <home>/acme.json
@@ -60,34 +77,17 @@ file tools/acme/config.json 21 lines
     ]
   }
 }
-=== hooks install --agent my tools/it's acme.json --root docs
-exit 0
-stdout 3 lines
-docattest hooks: added to <root>/docs/acme/config.json
-  file.saved (**/*): npx --no docattest impact --hook --agent '<root>/my tools/it'\''s acme.json'
-  turn.ending: npx --no docattest check --hook --agent '<root>/my tools/it'\''s acme.json'
-stderr empty
-directory docs/
-directory docs/acme/
-file docs/acme/config.json 21 lines
+file tools/docattest.config.json 8 lines
 {
-  "schema": 3,
-  "enabled": true,
-  "automation": {
-    "file.saved": [
-      {
-        "matcher": "**/*",
-        "shell": "sh",
-        "timeoutMs": 60000,
-        "exec": "npx --no docattest impact --hook --agent '<root>/my tools/it'\\''s acme.json'"
-      }
-    ],
-    "turn.ending": [
-      {
-        "shell": "sh",
-        "timeoutMs": 60000,
-        "exec": "npx --no docattest check --hook --agent '<root>/my tools/it'\\''s acme.json'"
-      }
-    ]
-  }
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
 }
+=== init --hooks --no-audit --agent my tools/it's acme.json --root docs
+exit 1
+stdout empty
+stderr 1 line
+docattest: cannot write <root>/docs/docattest.config.json: No such file or directory (os error 2)

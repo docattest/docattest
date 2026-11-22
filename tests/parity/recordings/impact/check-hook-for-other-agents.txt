@@ -1,5 +1,5 @@
 # check --hook for other agents
-# recorded from: check --quiet prints only what needs attention
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === check --hook --agent gemini
 exit 0
 stdout 1 line
@@ -93,7 +93,7 @@ exit 1
 stdout empty
 stderr 1 line
 docattest: agent "impact-only" has no hook for check: its descriptor binds none
-=== hooks install --agent tools/check-only.json
+=== init --hooks --agent tools/check-only.json
 exit 0
 stdout 2 lines
 docattest hooks: added to <root>/c.json
@@ -109,7 +109,7 @@ file c.json 9 lines
     ]
   }
 }
-=== hooks install --agent tools/impact-only.json
+=== init --hooks --agent tools/impact-only.json
 exit 0
 stdout 2 lines
 docattest hooks: added to <root>/c.json

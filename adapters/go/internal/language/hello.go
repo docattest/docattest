@@ -15,7 +15,7 @@ func Hello() protocol.Hello {
 		SourceFiles:    protocol.SourceFiles{Include: []string{"**/*.go"}, Exclude: []string{}},
 		// What the go command itself never takes for a package of the project.
 		IgnoredNames: []string{"vendor", "testdata", "node_modules"},
-		Capabilities: []string{"tests", "runTests", "observables", "affected", "display", "problems", "mutants"},
+		Capabilities: []string{"tests", "runTests", "observables", "affected", "display", "problems"},
 		Vocabulary: map[string]string{
 			"untitled": "(computed name)",
 			"noTests":  "it declares no test function",

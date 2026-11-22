@@ -210,39 +210,36 @@ fn prints_what_it_added_then_that_nothing_was_needed() {
         (code, String::from_utf8(out).unwrap(), String::from_utf8(err).unwrap())
     };
     let file = root.0.join("conf/agent.json").display().to_string();
-    let (code, out, _) = run(&["hooks", "install", "--agent", "./flat.json"]);
+    let (code, out, _) = run(&["init", "--hooks", "--no-audit", "--agent", "./flat.json"]);
     assert_eq!(code, 0);
-    assert_eq!(
-        out,
-        format!(
+    assert!(
+        out.contains(&format!(
             "docattest hooks: added to {file}\n  edited (*.src): docattest impact --hook --agent ./flat.json\n  done: docattest check --hook --agent ./flat.json\n"
-        )
+        )),
+        "{out}"
     );
     assert_eq!(
-        run(&["hooks", "install", "--agent", "flat.json"]),
+        run(&["init", "--hooks", "--agent", "flat.json"]),
         (0, format!("docattest hooks: already installed in {file}\n"), String::new())
     );
-    let usage = "docattest: usage: docattest hooks install [--agent <name or file>] [--local] [--git]\n";
-    assert_eq!(run(&["hooks"]), (1, String::new(), usage.into()));
-    assert_eq!(run(&["hooks", "install", "x"]).0, 1);
     assert_eq!(
-        run(&["hooks", "install", "--local", "--git"]),
-        (1, String::new(), "docattest: --local cannot be used with --git\n".into())
+        run(&["init", "--hooks", "--local", "--git-hook"]),
+        (1, String::new(), "docattest: --local cannot be used with --git-hook\n".into())
     );
     assert_eq!(
-        run(&["hooks", "install", "--local", "--agent", "./flat.json"]),
+        run(&["init", "--hooks", "--local", "--agent", "./flat.json"]),
         (
             1,
             String::new(),
             "docattest: agent \"flat\" has no local settings file: its descriptor names none\n".into(),
         )
     );
-    let (code, _, err) = run(&["hooks", "install", "--agent", "nobody"]);
+    let (code, _, err) = run(&["init", "--hooks", "--agent", "nobody"]);
     assert_eq!(code, 1);
     assert!(err.starts_with("docattest: unknown agent \"nobody\" (known: "), "{err}");
     assert!(err.ends_with("pass its descriptor file, as in --agent ./nobody.json\n"), "{err}");
     // With no agent named, the one meant by default is installed, whichever it is.
-    let (code, out, _) = run(&["hooks", "install"]);
+    let (code, out, _) = run(&["init", "--hooks"]);
     let default = load_agent(None, |file| PathBuf::from(file)).unwrap().agent;
     let settings = root.0.join(default.settings.file).display().to_string();
     assert_eq!(
@@ -251,7 +248,7 @@ fn prints_what_it_added_then_that_nothing_was_needed() {
     );
     if let Some(local_file) = default.settings.local_file {
         let local = root.0.join(&local_file).display().to_string();
-        let (code, out, _) = run(&["hooks", "install", "--local"]);
+        let (code, out, _) = run(&["init", "--hooks", "--local"]);
         assert_eq!(
             (code, out.lines().next()),
             (0, Some(format!("docattest hooks: added to {local}").as_str()))
@@ -269,7 +266,7 @@ fn hooks_install_local_warns_when_local_file_is_not_gitignored() {
     crate::git::tests::git(&repo.0, &["config", "core.excludesFile", "/dev/null"]);
     let run = || {
         let (mut out, mut err) = (Vec::new(), Vec::new());
-        let args = ["hooks", "install", "--local"].map(String::from);
+        let args = ["init", "--hooks", "--local", "--no-audit"].map(String::from);
         let code = crate::cli::run(&args, &mut Io { out: &mut out, err: &mut err, cwd: repo.0.clone() });
         (code, String::from_utf8(out).unwrap())
     };

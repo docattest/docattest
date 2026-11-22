@@ -4,7 +4,6 @@ import { listTests } from './citations/listing.js';
 import { Compiler } from './compiler.js';
 import { surfaceObservables } from './inventory/observables.js';
 import { affectedExports } from './impact/affected.js';
-import { symbolMutants } from './mutants/symbol-mutants.js';
 import { FactEvaluator } from './run/facts.js';
 import { Runner } from './run/runner.js';
 import { SurfaceDeclarations } from './surfaces/declarations.js';
@@ -47,7 +46,6 @@ export function createSession(ctx: AdapterContext): AdapterSession {
     describeSurfaces: () => Promise.resolve(describeSurfaces(ctx.files, surfaces)),
     affected: (change) => Promise.resolve(affectedExports(ctx.files, specs, change)),
     inCode: (names, files) => Promise.resolve(namesInCode(ctx.files, specs, names, files)),
-    mutants: (refs, limit) => Promise.resolve(symbolMutants(ctx.files, specs, refs, limit)),
     close: async () => runner.close(),
   };
 }

@@ -1,12 +1,25 @@
 # hooks install --git: where the hook or its directory cannot be written
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
-=== hooks install --git
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --git-hook --no-audit
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 1 line
 docattest: cannot read <root>/h/pre-commit: Is a directory (os error 21)
-=== hooks install --git
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --git-hook
 exit 1
 stdout empty
 stderr 1 line
-docattest: hooks install --git needs a git repository, and <root> is not inside one
+docattest: init --git-hook needs a git repository, and <root> is not inside one

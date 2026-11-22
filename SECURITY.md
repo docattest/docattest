@@ -25,14 +25,15 @@ Other things that reach outside the project:
 
 - `docattest refresh` fetches snapshot data over HTTP(S) from the URLs the project's
   snapshot files name. No other command uses the network.
-- `docattest hooks install` writes commands into a coding agent's settings in the project,
-  `hooks install --git` writes a git pre-commit hook, and `skill install --global` writes
-  into your home directory. Each prints what it wrote.
+- `docattest init` writes `docattest.config.json`; `init --hooks` writes commands into a
+  coding agent's settings in the project, `init --agents` updates `AGENTS.md`,
+  `init --git-hook` writes a git pre-commit hook, and `init --skill --global` writes into
+  your home directory. Each prints what it wrote.
 - The launchers run the core named by `DOCATTEST_CORE` when it is set.
 
 ## Supported versions
 
-The latest release receives fixes. docattest is at 0.1, so a fix is released as a new
+The latest release receives fixes. docattest is pre-1.0, so a fix is released as a new
 patch or minor version, not backported.
 
 ## Reporting a vulnerability

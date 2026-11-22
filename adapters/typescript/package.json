@@ -1,6 +1,6 @@
 {
   "name": "docattest",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Documentation that CI can fail: pages carry their own proof, and code links back to the pages that describe it.",
   "keywords": [
     "documentation",
@@ -60,11 +60,11 @@
     "prepublishOnly": "cd ../.. && node scripts/version.ts check && node scripts/release/check-published.ts && npm run typecheck && npm run lint && npm run format:check && npm run build && npm run build:core && npm test && npm run test:docs"
   },
   "optionalDependencies": {
-    "@docattest/core-darwin-arm64": "0.4.1",
-    "@docattest/core-darwin-x64": "0.4.1",
-    "@docattest/core-linux-arm64": "0.4.1",
-    "@docattest/core-linux-x64": "0.4.1",
-    "@docattest/core-windows-x64": "0.4.1"
+    "@docattest/core-darwin-arm64": "0.5.0",
+    "@docattest/core-darwin-x64": "0.5.0",
+    "@docattest/core-linux-arm64": "0.5.0",
+    "@docattest/core-linux-x64": "0.5.0",
+    "@docattest/core-windows-x64": "0.5.0"
   },
   "peerDependencies": {
     "typescript": ">=5.4 <7"

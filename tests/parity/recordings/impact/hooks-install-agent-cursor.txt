@@ -1,8 +1,12 @@
 # hooks install: --agent cursor
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== hooks install --agent cursor
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit --agent cursor
 exit 0
-stdout 2 lines
+stdout 6 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.cursor/hooks.json
   stop: npx --no docattest check --hook --agent cursor
 stderr empty
@@ -18,12 +22,21 @@ file .cursor/hooks.json 10 lines
     ]
   }
 }
-=== hooks install --agent cursor
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --hooks --agent cursor
 exit 0
 stdout 1 line
 docattest hooks: already installed in <root>/.cursor/hooks.json
 stderr empty
-=== hooks install --agent cursor
+=== init --hooks --agent cursor
 exit 0
 stdout 1 line
 docattest hooks: already installed in <root>/.cursor/hooks.json

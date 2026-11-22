@@ -1,12 +1,25 @@
 # hooks install --git: outside a repository
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== hooks install --git
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --git-hook --no-audit
+exit 1
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
+stderr 1 line
+docattest: init --git-hook needs a git repository, and <root> is not inside one
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --git-hook --no-audit --root gone
 exit 1
 stdout empty
 stderr 1 line
-docattest: hooks install --git needs a git repository, and <root> is not inside one
-=== hooks install --git --root gone
-exit 1
-stdout empty
-stderr 1 line
-docattest: hooks install --git needs git, and git was not found on PATH
+docattest: cannot write <root>/gone/docattest.config.json: No such file or directory (os error 2)

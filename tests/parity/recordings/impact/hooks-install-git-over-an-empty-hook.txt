@@ -1,12 +1,25 @@
 # hooks install --git: over an empty hook
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== hooks install --git
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --git-hook --no-audit
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 2 lines
 docattest: <root>/my hooks/pre-commit is there already and is left as it is. To check this project before each commit, add this line to it:
   npx --no docattest check --quiet || exit 1
-=== hooks install --git
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --git-hook
 exit 1
 stdout empty
 stderr 2 lines

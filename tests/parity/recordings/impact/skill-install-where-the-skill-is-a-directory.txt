@@ -1,11 +1,24 @@
 # skill install where the skill is a directory
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
-=== skill install
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --skill --no-audit
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 1 line
 docattest: cannot read <root>/.claude/skills/docattest/SKILL.md: Is a directory (os error 21)
-=== skill install --force
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --skill --force --no-audit
 exit 1
 stdout empty
 stderr 1 line

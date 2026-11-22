@@ -1,12 +1,12 @@
 # base config invalid
-# recorded from: explain, citation shorthands, prose pages, matched, manifestField, problems, run-cited, mutate
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === check --base HEAD --json
 exit 1
 stdout empty
 stderr 1 line
-docattest: the base "HEAD" cannot be read: invalid docattest.config.json: unknown key "extra" (known: $schema, pages, frozen, prose, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); "pages" must be an array of globs; "surfaces" must name a "default" surface
+docattest: the base "HEAD" cannot be read: invalid docattest.config.json: unknown key "extra" (known: $schema, pages, frozen, prose, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); "pages" must be an array of globs
 === check --base HEAD
 exit 1
 stdout empty
 stderr 1 line
-docattest: the base "HEAD" cannot be read: invalid docattest.config.json: unknown key "extra" (known: $schema, pages, frozen, prose, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); "pages" must be an array of globs; "surfaces" must name a "default" surface
+docattest: the base "HEAD" cannot be read: invalid docattest.config.json: unknown key "extra" (known: $schema, pages, frozen, prose, sources, surfaces, setup, snapshots, adapter, runtime, ignoreTags, members, commands, undocumented); "pages" must be an array of globs

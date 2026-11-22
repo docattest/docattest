@@ -8,6 +8,7 @@ mod cases;
 mod cited;
 mod facts;
 mod generated;
+mod observables;
 mod outcomes;
 mod programs;
 

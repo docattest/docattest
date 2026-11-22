@@ -6,8 +6,8 @@ core names an agent (a core unit test fails when one does); an agent is data.
 Each agent the core ships is a **descriptor**: one JSON file, named after the agent, that
 says how it runs commands on its own events (below). An index names which shipped agent is
 meant when `--agent` is not given. Beside them are the two texts the core writes into a
-project: the authoring guide `docattest skill install` copies to where the agent looks for
-skills, and the section `docattest agents install` writes into a project's `AGENTS.md`, in
+project: the authoring guide `docattest init --skill` writes to where the agent looks for
+skills, and the section `docattest init --agents` writes into a project's `AGENTS.md`, in
 which `{docattest}` stands for the command that runs docattest.
 
 The core embeds all of them when it is built (`core/build.rs`, and `include_str!` in
@@ -37,9 +37,9 @@ Here is `gemini.json`, annotated:
   "name": "gemini",                                     // what --agent takes
   "docs": "https://geminicli.com/docs/hooks/reference/", // the page this was checked against
   "projectRoot": "\"$GEMINI_PROJECT_DIR\"",            // how a hook command writes the root
-  "skill": ".gemini/skills/docattest/SKILL.md",         // where skill install writes
+  "skill": ".gemini/skills/docattest/SKILL.md",         // where init --skill writes
   "settings": {
-    "file": ".gemini/settings.json",                    // where hooks install writes
+    "file": ".gemini/settings.json",                    // where init --hooks writes
     "hooks": "hooks",                                   // key: event name -> list of entries
     "group": "hooks",                                   // key of an entry's list of handlers
     "handler": { "type": "command" },                   // written into every handler
@@ -71,9 +71,9 @@ descriptor with the same rules and refuses an unknown key, naming its place.
 | `name` | yes | the agent's name, as `--agent` takes it: lower-case letters, digits, `-` and `_`, starting with a letter. A shipped descriptor's file is `<name>.json`. |
 | `docs` | no (every shipped one has it) | the page of the agent's own documentation the descriptor was checked against |
 | `projectRoot` | no | how a hook command of this agent writes the project root, as shell text (`"$CLAUDE_PROJECT_DIR"`). The core puts it where a launcher wrote `{root}`. Leave it out when the agent runs hooks in the project root; `.` is used then. |
-| `skill` | no | where the agent looks for a skill, relative to the project root (and to the home directory with `skill install --global`). Leave it out when the agent has no such place. |
+| `skill` | no | where the agent looks for a skill, relative to the project root (and to the home directory with `init --skill --global`). Leave it out when the agent has no such place. |
 | `settings.file` | yes | the JSON file the agent reads hooks from, relative to the project root |
-| `settings.localFile` | no | the untracked project-local settings file, relative to the project root, for `hooks install --local` |
+| `settings.localFile` | no | the untracked project-local settings file, relative to the project root, for `init --hooks --local` |
 | `settings.hooks` | yes | the top-level key of that file that maps an event name to a list of entries |
 | `settings.group` | no | when an entry groups handlers under a filter: the key of the entry's list of handlers. Leave it out when an entry is itself a handler. |
 | `settings.handler` | no | fields every handler carries besides its command (a type, a shell, a timeout) |
@@ -121,7 +121,7 @@ repo="$PWD"
 docattest() { node "$repo/scripts/with-core.ts" node "$repo/adapters/typescript/dist/launcher/main.js" "$@"; }
 agent="$repo/protocol/agents/<name>.json"
 cd "$(mktemp -d)"   # then write a docattest.config.json, a source file and a page into it
-docattest hooks install --agent "$agent"
+docattest init --hooks --agent "$agent"
 ```
 
 Then read the settings file it wrote, and feed each hook a sample event shaped as the
@@ -140,7 +140,7 @@ A shipped descriptor is held by these tests, which must pass and be updated with
 - **`docs/agents.md`**: the page lists the shipped agents, prints the refusal for an unknown
   name (which names every shipped agent), and installs and runs the hooks of each. Add your
   agent to the table and to the examples there.
-- **`tests/parity/impact.ts`**: `hooks install`, `impact --hook` and `check --hook` for
+- **`tests/parity/impact.ts`**: `init --hooks`, `impact --hook` and `check --hook` for
   every shipped agent, and for **acme**, an agent nobody ships, made up to differ from the
   shipped ones wherever a descriptor can (where its settings are and how they nest, its
   event names, where an event holds the file and the "already continuing" sign, and the
@@ -161,7 +161,7 @@ Nobody has to wait for a release. Anything given to `--agent` that is not a bare
 descriptor file:
 
 ```sh
-npx docattest hooks install --agent ./tools/my-agent.json
+npx docattest init --hooks --agent ./tools/my-agent.json
 ```
 
 The hooks it installs name the file by a path the agent can find again (relative to the

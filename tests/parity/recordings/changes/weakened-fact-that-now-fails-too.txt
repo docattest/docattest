@@ -1,5 +1,5 @@
 # weakened fact that now fails too
-# recorded from: what adopting it in a Go service found
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
 === check --base HEAD --json
 exit 1
 stdout 86 lines
@@ -92,7 +92,7 @@ stdout 86 lines
 stderr empty
 === check --base HEAD
 exit 1
-stdout 13 lines
+stdout 15 lines
 docs/retry.md
   ✗ L3 fact: expected 3, got 4 from LIMIT + 1
   ✓ L7 example: all assertions held
@@ -105,5 +105,7 @@ surface extra: 2 symbols, 0 attested, 2 not attested by any page
 snapshots: none
 changes since the base: 0 fail, 1 warning
   ⚠ docs/retry.md:3 weakened: the fact's expression changed from `LIMIT` to `LIMIT + 1`; the literal it defends did not
+failures:
+  docs/retry.md:3 fact: expected 3, got 4 from LIMIT + 1
 FAILED
 stderr empty

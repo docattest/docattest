@@ -1,8 +1,12 @@
 # hooks install --local in a git repository with gitignore
-# recorded from: hooks install --local checks gitignore
-=== hooks install --local
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --local --no-audit
 exit 0
-stdout 3 lines
+stdout 7 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.claude/settings.local.json
   PostToolUse (Edit|Write): npx --no docattest impact --hook
   Stop: npx --no docattest check --hook
@@ -33,4 +37,13 @@ file .claude/settings.local.json 25 lines
       }
     ]
   }
+}
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
 }

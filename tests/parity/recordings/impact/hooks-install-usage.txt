@@ -1,26 +1,33 @@
 # hooks install: usage
-# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
-=== hooks
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --local
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest hooks install [--agent <name or file>] [--local] [--git]
-=== hooks uninstall
+docattest: --local requires --hooks
+=== init --hooks --local --git-hook
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest hooks install [--agent <name or file>] [--local] [--git]
-=== hooks install x
-exit 1
-stdout empty
-stderr 1 line
-docattest: usage: docattest hooks install [--agent <name or file>] [--local] [--git]
-=== hooks install --json --quiet
+docattest: --local cannot be used with --git-hook
+=== init --hooks --no-audit --json --quiet
 exit 0
-stdout 3 lines
-docattest hooks: added to <root>/.claude/settings.json
-  PostToolUse (Edit|Write): npx --no docattest impact --hook
-  Stop: npx --no docattest check --hook
+stdout 15 lines
+{
+  "file": "<root>/docattest.config.json",
+  "dryRun": false,
+  "config": {
+    "$schema": "https://docattest.github.io/docattest/schema/config.json",
+    "pages": [
+      "README.md",
+      "docs/**/*.md"
+    ],
+    "adapter": "none"
+  },
+  "installed": {
+    "hooks": "<root>/.claude/settings.json"
+  }
+}
 stderr empty
 directory .claude/
 file .claude/settings.json 25 lines
@@ -48,4 +55,13 @@ file .claude/settings.json 25 lines
       }
     ]
   }
+}
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
 }

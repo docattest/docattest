@@ -4,13 +4,13 @@
 
 use std::collections::HashSet;
 
-use super::prose::{SentenceCandidate, sentences_of};
+use super::prose::{SentenceCandidate, sentences_of_page};
 use super::{Target, distinct};
 use crate::attestations::directives::{Directive, parse_directive};
 use crate::attestations::group::block_after_group;
 use crate::attestations::placement::{attested_from_above, place};
 use crate::markdown::model::{Block, BlockKind, Page};
-use crate::markdown::parse::{Positionless, parse_page};
+use crate::markdown::parse::{Positionless, parse_page_for};
 use crate::text::is_word;
 
 /// A list, or one column of a table.
@@ -48,17 +48,23 @@ pub fn is_comparable(items: &[String]) -> bool {
     distinct(items.iter().map(String::as_str).filter(|item| !item.is_empty())).len() >= 2
 }
 
-/// Candidates of a page's text.
-pub fn candidates_of(text: &str) -> Result<PageCandidates, Positionless> {
-    let page = parse_page(text)?;
-    let bound = bound_blocks(&page);
+/// Candidates of a page's text, using MDX preprocessing when `page` ends in `.mdx`.
+pub fn candidates_of_page(page: &str, text: &str) -> Result<PageCandidates, Positionless> {
+    let parsed = parse_page_for(page, text)?;
+    let bound = bound_blocks(&parsed);
     let bound_lines: Vec<(usize, usize)> =
-        bound.iter().filter_map(|at| page.flow.get(*at)).map(|b| (b.start, b.end)).collect();
+        bound.iter().filter_map(|at| parsed.flow.get(*at)).map(|b| (b.start, b.end)).collect();
     Ok(PageCandidates {
-        sentences: sentences_of(text, &bound_lines, &opened_from_above(&page)),
-        attested: attested(&page),
-        ..blocks_of(&page, &bound)
+        sentences: sentences_of_page(page, text, &bound_lines, &opened_from_above(&parsed)),
+        attested: attested(&parsed),
+        ..blocks_of(&parsed, &bound)
     })
+}
+
+/// Candidates of a Markdown page's text.
+#[cfg(test)]
+pub fn candidates_of(text: &str) -> Result<PageCandidates, Positionless> {
+    candidates_of_page("page.md", text)
 }
 
 /// The surface and expression of every fact directive on a page.

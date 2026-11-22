@@ -5,7 +5,7 @@ use super::generated::{Dependencies, HARNESS_CRATE, general, line_in, program_na
 use super::outcomes::Outcomes;
 use super::programs::PROGRAM_STARTUP;
 use crate::harness::started;
-use crate::language::{NETWORK_SKIPPED, SHOULD_PANIC, blocks, text};
+use crate::language::{NETWORK_SKIPPED, SHOULD_PANIC, blocks, output, text};
 use crate::protocol::{Cases, Diagnostic, Example, Kind, Status, Verdict};
 use crate::toolchain::cargo::{DOCS_CFG, Problem};
 use crate::toolchain::{Command, Outcome, Start, Stopped, run};
@@ -199,8 +199,24 @@ fn exited(example: &Example, block: &Block, outcome: &Outcome) -> Outcomes {
     match outcome.code {
         Some(PANICKED) if panics => Outcomes::pass("panicked, as it says it does"),
         Some(0) if panics => Outcomes::fail("ran to its end, and says it panics"),
-        Some(0) if text::asserts(&example.code) => Outcomes::pass("all assertions held"),
-        Some(0) => Outcomes::pass("ran to its end, but asserts nothing (weak)"),
+        Some(0) => {
+            if let Some(want) = output::expected(&example.code) {
+                return match output::compare(&outcome.stdout, &want) {
+                    output::OutputVerdict::Pass => Outcomes::pass("printed the output it states"),
+                    output::OutputVerdict::Fail { message, expected, actual } => Outcomes {
+                        status: Status::Fail,
+                        message,
+                        expected: Some(expected),
+                        actual: Some(actual),
+                    },
+                };
+            }
+            if text::asserts(&example.code) {
+                Outcomes::pass("all assertions held")
+            } else {
+                Outcomes::pass("ran to its end, but asserts nothing (weak)")
+            }
+        }
         code => crash(outcome, code, block),
     }
 }

@@ -14,7 +14,7 @@ use crate::counted::counted;
 use crate::files::glob::GlobMatcher;
 use crate::files::project_files::ProjectFiles;
 use crate::markdown::model::{Declared, Page};
-use crate::markdown::parse::parse_page;
+use crate::markdown::parse::parse_page_for;
 use crate::project::config_warnings::config_warnings;
 
 /// The pages, sorted into living and frozen, and the attestations planned on the living.
@@ -82,7 +82,7 @@ fn parse_pages(
             return Ok(None);
         }
         let text = files.read(page).map_err(Error::user)?;
-        parse_page(&text).map(Some).map_err(|why| why.on(page))
+        parse_page_for(page, &text).map(Some).map_err(|why| why.on(page))
     };
     crate::parallel::map_in_parallel(pages, parse).into_iter().collect()
 }

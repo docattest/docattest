@@ -3,12 +3,13 @@
 import type { ExpressionShape } from '../../api/adapter.js';
 import type { FileSource } from '../../files/source.js';
 import type { SurfaceSpec } from '../surfaces/specs.js';
+import { expectedOutput } from './output.js';
 
 const ASSERTION = /\bassert\s*[.(]/;
 
 /** Whether example code asserts anything; without an assertion it is weak coverage. */
 export function asserts(code: string): boolean {
-  return ASSERTION.test(code);
+  return ASSERTION.test(code) || expectedOutput(code) !== undefined;
 }
 
 // A code span names a symbol when it starts with it: `retry`, `retry(fn)`, `new Client()`,

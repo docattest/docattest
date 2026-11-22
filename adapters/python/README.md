@@ -99,7 +99,7 @@ export PYTHONPATH="$PWD/adapters/python"
 python3 -m docattest check --root adapters/python/tests/fixture
 ```
 
-`docattest hooks install`, `hooks install --git` and `agents install` write down a command
+`docattest init --hooks`, `init --git-hook` and `init --agents` write down a command
 that runs docattest without Node: the virtualenv's own script when the virtualenv is inside
 the project, else `docattest` when that is the script the `PATH` finds, else the script by
 its full path, else this interpreter by its full path (`python -m docattest`). <!-- test: tests/test_launcher.py > "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" -->
@@ -114,7 +114,7 @@ else (`uv run docattest`).
 
 Any agent, or none, can use the two plain commands, from anywhere inside the project:
 `docattest impact --file <path>` after an edit and `docattest check` before finishing.
-`docattest hooks install --agent gemini` (or `cursor`, or a descriptor file of your own)
+`docattest init --hooks --agent gemini` (or `cursor`, or a descriptor file of your own)
 installs hooks for another agent; [docs/agents.md](../../docs/agents.md) has the details.
 
 A bare core, run without the launcher, finds the adapter as `docattest-adapter-python` on
@@ -566,31 +566,8 @@ Nothing runs in a project held in memory. <!-- test: tests/test_cited_tests.py >
   A case its test stopped before ends as the test did, and one it never reached did not
   run. <!-- test: tests/test_unittest_report.py > "UnittestReport" > "test_a_subtest_case_its_test_never_reached_ends_as_its_test_or_did_not_run" -->
 
-## What `docattest mutate` changes
-
-<!-- tests: literals = tests/test_literal_edits.py -->
-<!-- tests: mutants = tests/test_mutants.py -->
-
-`docattest mutate` changes the code a proof reads and runs the proof again, to see whether
-it can fail. What the Python adapter changes are the literals of the value a symbol is
-assigned, found from syntax, through any re-export, to the module that declares it, one
-change at a time. <!-- test: mutants > "Mutants" > {"test_a_surface_symbol_is_changed_where_its_re_export_is_declared", "test_a_surface_reads_its_unexported_constants_from_source"} -->
-They come in source order, at any depth, at most the number the core asks for: <!-- test: literals > "Displays" > "test_nested_literals_come_in_source_order_and_dict_keys_are_literals" --> <!-- test: mutants > "Mutants" > "test_at_most_limit_edits_the_first_in_source_order" -->
-
-- A number gains one, written as Python writes its type: `8080 → 8081`, `1.5 → 2.5`. <!-- test: literals > "Numbers" > {"test_an_int_gains_one_written_in_decimal", "test_a_float_gains_one_written_as_python_writes_a_float"} -->
-- A string or bytes gains `x` before its closing quote, its prefix, quotes and escapes
-  kept: `'shop' → 'shopx'`. Each part of an implicit concatenation is a literal of its own,
-  and an f-string is none. <!-- test: literals > "Strings" > {"test_escapes_and_prefixes_are_kept", "test_bytes_gain_x_too", "test_a_triple_quoted_string_keeps_its_quotes", "test_an_implicit_concatenation_is_one_literal_per_part", "test_an_f_string_is_no_literal"} -->
-- `True` and `False` swap. <!-- test: literals > "Numbers" > "test_a_bool_is_flipped" -->
-- A list, tuple or set first loses its last item (`"B" removed`), then its items change.
-  A tuple of one item becomes `()`, and a set of one `set()`. <!-- test: literals > "Displays" > {"test_a_list_offers_its_last_item_removed_before_its_items", "test_a_single_item_leaves_an_empty_display_of_the_same_kind"} -->
-- A dict's literal keys change as its values do. <!-- test: literals > "Displays" > "test_nested_literals_come_in_source_order_and_dict_keys_are_literals" -->
-
-`None` and `...` stay as they are, and so does anything in a `lambda` or an annotation. <!-- test: literals > "Numbers" > {"test_none_and_ellipsis_are_left_alone", "test_an_annotation_is_not_the_value"} --> <!-- test: literals > "Values" > "test_a_lambda_is_not_followed_but_a_call_is" -->
-A function or class has nothing to change, and neither has a value with no literal in it,
-such as `os.getpid()` or the name of another constant; the report says which. <!-- test: mutants > "Mutants" > "test_a_symbol_without_edits_says_why" -->
-The copies of the project the proofs run in share its `__pycache__`, so attested code runs
-with `PYTHONDONTWRITEBYTECODE` set and writes no bytecode, there or in any run. <!-- test: tests/test_workers.py > "Bytecode" > "test_attested_code_writes_no_bytecode_into_the_project" -->
+Attested code runs with `PYTHONDONTWRITEBYTECODE` set and writes no bytecode into the
+project. <!-- test: tests/test_workers.py > "Bytecode" > "test_attested_code_writes_no_bytecode_into_the_project" -->
 
 ## Which Python runs your code
 

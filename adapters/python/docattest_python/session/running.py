@@ -91,14 +91,33 @@ class Running:
 
     def _submit_facts(self, group: list[Fact]) -> Future[JobResult]:
         """The facts of one page about one surface, as one job."""
-        surface = self.workspace.by_name[group[0].surface]
+        surface = self.workspace.by_name.get(group[0].surface)
+        if surface is None:
+            facts: list[FactToEvaluate] = [
+                {"expression": f.expression, "names": expression_names(f.expression), "imports": False}
+                for f in group
+            ]
+            empty_surface: SurfaceToLoad = {
+                "name": group[0].surface,
+                "import_name": "",
+                "exports": [],
+                "constants": {},
+            }
+            job: FactsJob = {
+                "type": "facts",
+                "surface": empty_surface,
+                "setup": self._setup_job(),
+                "facts": facts,
+                "refused": {},
+            }
+            return self.pool().submit(job, len(group))
         reading = self.workspace.readable(surface.name)
-        facts: list[FactToEvaluate] = []
+        facts = []
         for f in group:
             names = expression_names(f.expression)
             facts.append({"expression": f.expression, "names": names, "imports": reading.imports(names)})
         read = {name for fact in facts for name in fact["names"]}
-        job: FactsJob = {
+        job = {
             "type": "facts",
             "surface": self._surface_job(surface, read),
             "setup": self._setup_job(),
@@ -132,22 +151,32 @@ class Running:
 
     def _fact_problem(self, fact: Fact) -> str | None:
         """Why a fact cannot be evaluated, found before anything runs; None when it can be."""
+        if problem := self._surface_problem(fact):
+            return problem
+        try:
+            ast.parse(f"(\n{fact.expression}\n)", mode="eval")
+        except SyntaxError as err:
+            return f"cannot parse fact expression `{fact.expression}`: {err.msg}"
+        surface = self.workspace.by_name.get(fact.surface)
+        return None if surface is None else self._helper_clash(surface.name, fact.expression)
+
+    def _surface_problem(self, fact: Fact) -> str | None:
+        if not self.workspace.surfaces and fact.surface == "default":
+            return None
         surface = self.workspace.by_name.get(fact.surface)
         if surface is None:
             configured = ", ".join(s.name for s in self.workspace.surfaces)
             return f'unknown surface "{fact.surface}" (configured: {configured})'
         if surface.file is None:
             return f'surface "{surface.name}" ({surface.import_name}) not found'
-        expression = fact.expression
-        try:
-            ast.parse(f"(\n{expression}\n)", mode="eval")
-        except SyntaxError as err:
-            return f"cannot parse fact expression `{expression}`: {err.msg}"
-        exported = set(self.workspace.exports(surface.name) or [])
+        return None
+
+    def _helper_clash(self, surface_name: str, expression: str) -> str | None:
+        exported = set(self.workspace.exports(surface_name) or [])
         helpers = set(self.workspace.setup_entries("facts"))
         for name in expression_names(expression):
             if name in exported and name in helpers:
-                return f'fact `{expression}`: "{name}" is both an export of surface "{surface.name}" and a setup fact; rename the setup fact'
+                return f'fact `{expression}`: "{name}" is both an export of surface "{surface_name}" and a setup fact; rename the setup fact'
         return None
 
     def _surface_job(self, surface: Surface, read: set[str]) -> SurfaceToLoad:

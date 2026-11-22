@@ -59,9 +59,9 @@ assert.equal(check.status, 1);
 assert.match(check.stdout, /✗ L1 fact: expected 3, got 5 from LIMIT/);
 ```
 
-## `agents install` tells any agent to run them
+## `init --agents` tells any agent to run them
 
-`docattest agents install` writes a section into `AGENTS.md` at the project root, the file
+`docattest init --agents` writes a section into `AGENTS.md` at the project root, the file
 coding agents read their instructions from. The section says to run `impact --file` after
 an edit and `check` before finishing, with the command that runs docattest in this project.
 It stands between two markers, `<!-- docattest:begin -->` and `<!-- docattest:end -->`.
@@ -82,7 +82,7 @@ const docattest = (...args: string[]) => spawnSync(process.execPath, [cli, ...ar
 const file = join(root, 'AGENTS.md');
 // ---cut---
 writeFileSync(file, '# Our rules\n\nUse tabs.\n');
-assert.match(docattest('agents', 'install').stdout, /^docattest agents: added to /);
+assert.match(docattest('init', '--agents', '--no-audit').stdout, /docattest agents: added to /);
 
 const written = readFileSync(file, 'utf8');
 assert.ok(written.startsWith('# Our rules\n\nUse tabs.\n\n<!-- docattest:begin -->\n'));
@@ -90,26 +90,26 @@ assert.ok(written.endsWith('<!-- docattest:end -->\n'));
 assert.match(written, /run `npx --no docattest impact --file <path>`/);
 assert.match(written, /run `npx --no docattest check`/);
 
-assert.match(docattest('agents', 'install').stdout, /already up to date/);
+assert.match(docattest('init', '--agents').stdout, /already up to date/);
 
 // An older section is replaced where it stands; the text around it stays.
 writeFileSync(file, '# Our rules\n<!-- docattest:begin -->\nold\n<!-- docattest:end -->\nUse tabs.\n');
-assert.match(docattest('agents', 'install').stdout, /^docattest agents: updated in /);
+assert.match(docattest('init', '--agents').stdout, /^docattest agents: updated in /);
 const again = readFileSync(file, 'utf8');
 assert.ok(again.startsWith('# Our rules\n<!-- docattest:begin -->\n## '));
 assert.ok(again.endsWith('<!-- docattest:end -->\nUse tabs.\n'));
 
 // Markers that are not one section are refused, and the file is left alone.
 writeFileSync(file, '<!-- docattest:begin -->\nnever ends\n');
-const refused = docattest('agents', 'install');
+const refused = docattest('init', '--agents');
 assert.equal(refused.status, 1);
 assert.match(refused.stderr, /fix the markers and run again/);
 assert.equal(readFileSync(file, 'utf8'), '<!-- docattest:begin -->\nnever ends\n');
 ```
 
-## `hooks install --git` checks before each commit
+## `init --git-hook` checks before each commit
 
-`docattest hooks install --git` writes a git `pre-commit` hook that runs
+`docattest init --git-hook` writes a git `pre-commit` hook that runs
 `docattest check --quiet` and stops the commit when it fails. The hook goes where git looks
 for hooks, so `core.hooksPath` is respected, and in a project below the top of its
 repository the hook changes to the project's directory first. A `pre-commit` hook that is
@@ -141,19 +141,19 @@ const root = repository();
 const hook = join(root, '.git/hooks/pre-commit');
 const line = 'npx --no docattest check --quiet || exit 1';
 
-const first = docattest(root, 'hooks', 'install', '--git');
-assert.equal(first.stdout, `docattest hooks: added ${hook}\n  pre-commit: ${line}\n`);
+const first = docattest(root, 'init', '--git-hook', '--no-audit');
+assert.ok(first.stdout.includes(`docattest hooks: added ${hook}\n  pre-commit: ${line}\n`));
 assert.ok(readFileSync(hook, 'utf8').startsWith('#!/bin/sh\n'));
 assert.ok(readFileSync(hook, 'utf8').endsWith(`\n${line}\n`));
 assert.equal(statSync(hook).mode & 0o111, 0o111);
-assert.match(docattest(root, 'hooks', 'install', '--git').stdout, /already installed/);
+assert.match(docattest(root, 'init', '--git-hook').stdout, /already installed/);
 
 // Someone else's hook is left as it is.
 const other = repository();
 execFileSync('git', ['config', 'core.hooksPath', '.githooks'], { cwd: other, env });
 mkdirSync(join(other, '.githooks'));
 writeFileSync(join(other, '.githooks/pre-commit'), '#!/bin/sh\nnpm test\n');
-const refused = docattest(other, 'hooks', 'install', '--git');
+const refused = docattest(other, 'init', '--git-hook', '--no-audit');
 assert.equal(refused.status, 1);
 assert.ok(refused.stderr.endsWith(`add this line to it:\n  ${line}\n`));
 assert.equal(readFileSync(join(other, '.githooks/pre-commit'), 'utf8'), '#!/bin/sh\nnpm test\n');
@@ -162,7 +162,7 @@ assert.equal(readFileSync(join(other, '.githooks/pre-commit'), 'utf8'), '#!/bin/
 ## An agent with hooks is described by a descriptor
 
 Some agents run a command of the project on their own events. For such an agent,
-`docattest hooks install --agent <name>` writes two hooks into the agent's settings file:
+`docattest init --hooks --agent <name>` writes two hooks into the agent's settings file:
 `docattest impact --hook` after the agent edits a file, and `docattest check --hook` before
 it stops. In hook mode the commands read the agent's event from standard input and answer
 in the agent's JSON: `impact --hook` puts a brief of the impact into the agent's context, and
@@ -216,9 +216,9 @@ assert.deepEqual(index, { default: 'claude' });
 | `name` | the agent's name, as `--agent` takes it | a shipped descriptor is found by it |
 | `docs` | the page of the agent's documentation the descriptor was checked against | hook formats change; this is where to look when one does |
 | `projectRoot` | how a hook command of this agent writes the project root | a command such as `{root}/.venv/bin/docattest` must not hold one machine's path; left out when the agent runs hooks in the project root, where `.` will do |
-| `skill` | where the agent looks for a skill, relative to the project root or the home directory | `skill install` copies the one skill text there; left out when the agent has no such place |
-| `settings.file` | the JSON file the agent reads hooks from, relative to the project root | where `hooks install` writes |
-| `settings.localFile` | the untracked project-local settings file, relative to the project root | where `hooks install --local` writes, so a teammate without docattest is unaffected; left out when the agent has no such file |
+| `skill` | where the agent looks for a skill, relative to the project root or the home directory | `init --skill` writes the language-specific skill there; left out when the agent has no such place |
+| `settings.file` | the JSON file the agent reads hooks from, relative to the project root | where `init --hooks` writes |
+| `settings.localFile` | the untracked project-local settings file, relative to the project root | where `init --hooks --local` writes, so a teammate without docattest is unaffected; left out when the agent has no such file |
 | `settings.hooks` | the key of that file that maps an event name to a list of entries | where a hook goes in the file |
 | `settings.group` | the key under which an entry holds its list of handlers | some agents group handlers under a filter; left out when an entry is itself a handler |
 | `settings.handler` | fields every handler carries besides its command | an agent may want a type, a shell or a timeout on each |
@@ -244,7 +244,7 @@ import { fileURLToPath } from 'node:url';
 
 const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
 // ---cut---
-const unknown = spawnSync(process.execPath, [cli, 'hooks', 'install', '--agent', 'nobody'], { encoding: 'utf8' });
+const unknown = spawnSync(process.execPath, [cli, 'init', '--hooks', '--no-audit', '--agent', 'nobody'], { encoding: 'utf8' });
 assert.equal(unknown.status, 1);
 assert.equal(
   unknown.stderr,
@@ -260,7 +260,7 @@ assert.equal(
 | `cursor` | Cursor | `check` when the agent loop ends | <https://cursor.com/docs/agent/hooks> |
 | `gemini` | Gemini CLI | `impact` after `write_file` and `replace`, `check` after the agent's turn | <https://geminicli.com/docs/hooks/reference/> |
 
-`hooks install --local` writes into the agent's untracked local settings file
+`init --hooks --local` writes into the agent's untracked local settings file
 (`settings.localFile`, such as `.claude/settings.local.json` for Claude Code) instead of
 the shared settings file, so teammates who do not have docattest installed are not
 affected. Inside a git repository, if the written file is not ignored by git, docattest
@@ -281,18 +281,18 @@ spawnSync('git', ['-C', root, 'config', 'core.excludesFile', '/dev/null']);
 const { DOCATTEST_COMMAND: _unset, ...env } = process.env;
 const docattest = (...args: string[]) => spawnSync(process.execPath, [cli, ...args, '--root', root], { encoding: 'utf8', env });
 // ---cut---
-const first = docattest('hooks', 'install', '--local');
+const first = docattest('init', '--hooks', '--local', '--no-audit');
 assert.equal(first.status, 0);
 assert.match(first.stdout, /note: \.claude\/settings\.local\.json is not ignored by git/);
 const local = JSON.parse(readFileSync(join(root, '.claude/settings.local.json'), 'utf8'));
 assert.equal(local.hooks.Stop[0].hooks[0].command, 'npx --no docattest check --hook');
 
 writeFileSync(join(root, '.gitignore'), '.claude/settings.local.json\n');
-const ignored = docattest('hooks', 'install', '--local');
+const ignored = docattest('init', '--hooks', '--local');
 assert.equal(ignored.status, 0);
 assert.doesNotMatch(ignored.stdout, /not ignored by git/);
 
-const unsupported = docattest('hooks', 'install', '--local', '--agent', 'cursor');
+const unsupported = docattest('init', '--hooks', '--local', '--agent', 'cursor');
 assert.equal(unsupported.status, 1);
 assert.match(unsupported.stderr, /has no local settings file/);
 ```
@@ -325,7 +325,7 @@ const { DOCATTEST_COMMAND: _unset, ...env } = process.env;
 const docattest = (input: unknown, ...args: string[]) => spawnSync(process.execPath, [cli, ...args, '--root', root], { encoding: 'utf8', env, input: JSON.stringify(input) });
 const read = (rel: string) => JSON.parse(readFileSync(join(root, rel), 'utf8'));
 // ---cut---
-assert.equal(docattest({}, 'hooks', 'install', '--agent', 'gemini').status, 0);
+assert.equal(docattest({}, 'init', '--hooks', '--agent', 'gemini').status, 0);
 assert.deepEqual(read('.gemini/settings.json'), {
   hooks: {
     AfterTool: [{ matcher: 'write_file|replace', hooks: [{ type: 'command', command: 'npx --no docattest impact --hook --agent gemini' }] }],
@@ -336,7 +336,7 @@ const denied = JSON.parse(docattest({ stop_hook_active: false }, 'check', '--hoo
 assert.equal(denied.decision, 'deny');
 assert.match(denied.reason, /^docattest check failed: these pages no longer match the code\.\n/);
 
-assert.equal(docattest({}, 'hooks', 'install', '--agent', 'cursor').status, 0);
+assert.equal(docattest({}, 'init', '--hooks', '--agent', 'cursor').status, 0);
 assert.deepEqual(read('.cursor/hooks.json'), {
   version: 1,
   hooks: { stop: [{ command: 'npx --no docattest check --hook --agent cursor' }] },
@@ -346,7 +346,7 @@ assert.deepEqual(Object.keys(followup), ['followup_message']);
 // Once it has been sent back, it is let go.
 assert.equal(docattest({ status: 'completed', loop_count: 1 }, 'check', '--hook', '--agent', 'cursor').stdout, '');
 
-assert.equal(docattest({}, 'hooks', 'install', '--agent', 'codex').status, 0);
+assert.equal(docattest({}, 'init', '--hooks', '--agent', 'codex').status, 0);
 assert.deepEqual(read('.codex/hooks.json'), {
   hooks: {
     Stop: [{ hooks: [{ type: 'command', command: 'npx --no docattest check --hook --agent codex' }] }],
@@ -356,7 +356,7 @@ const codexBlock = JSON.parse(docattest({ stop_hook_active: false }, 'check', '-
 assert.equal(codexBlock.decision, 'block');
 assert.equal(docattest({ stop_hook_active: true }, 'check', '--hook', '--agent', 'codex').stdout, '');
 
-assert.equal(docattest({}, 'hooks', 'install', '--agent', 'antigravity').status, 0);
+assert.equal(docattest({}, 'init', '--hooks', '--agent', 'antigravity').status, 0);
 assert.deepEqual(read('.agents/hooks.json'), {
   docattest: {
     Stop: [{ type: 'command', command: 'npx --no docattest check --hook --agent antigravity' }],
@@ -401,7 +401,7 @@ const mine = {
 };
 put('tools/acme.json', JSON.stringify(mine));
 
-assert.equal(docattest({}, 'hooks', 'install', '--agent', './tools/acme.json').status, 0);
+assert.equal(docattest({}, 'init', '--hooks', '--agent', './tools/acme.json').status, 0);
 assert.deepEqual(JSON.parse(readFileSync(join(root, 'acme/config.json'), 'utf8')), {
   schema: 3,
   automation: { 'turn.ending': [{ exec: 'npx --no docattest check --hook --agent "$ACME_WORKSPACE"/tools/acme.json' }] },
@@ -413,7 +413,7 @@ assert.match(answer.message, /expected 3, got 5 from LIMIT/);
 assert.equal(docattest({ turn: { retries: 1 } }, 'check', '--hook', '--agent', 'tools/acme.json').stdout, '');
 
 put('tools/wrong.json', JSON.stringify({ ...mine, hooks: { check: { ...mine.hooks.check, reply: { template: '{text}' } } } }));
-const wrong = docattest({}, 'hooks', 'install', '--agent', 'tools/wrong.json');
+const wrong = docattest({}, 'init', '--hooks', '--agent', 'tools/wrong.json');
 assert.equal(wrong.status, 1);
 assert.equal(wrong.stderr, `docattest: ${join(root, 'tools/wrong.json')}: unknown key "hooks.check.reply.template"\n`);
 ```

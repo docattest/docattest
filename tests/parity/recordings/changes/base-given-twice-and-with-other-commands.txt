@@ -1,5 +1,5 @@
 # base given twice, and with other commands
-# recorded from: what adopting it in a Go service found
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === check --base nope --base HEAD
 exit 1
 stdout 13 lines
@@ -17,7 +17,7 @@ changes since the base: 1 fail, 0 warnings
   ✗ docs/retry.md:3 orphaned-claim: "A call is tried at most `3` times." is still on the page, but the fact that proved it (docs/retry.md:3 at the base) is gone
 FAILED
 stderr empty
-=== index --base nope
+=== where --base nope
 exit 0
 stdout 2 lines
 LIMIT

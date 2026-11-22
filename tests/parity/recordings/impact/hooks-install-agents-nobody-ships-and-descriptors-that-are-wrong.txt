@@ -1,231 +1,244 @@
 # hooks install: agents nobody ships and descriptors that are wrong
-# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
-=== hooks install --agent nobody
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit --agent nobody
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 1 line
 docattest: unknown agent "nobody" (known: antigravity, claude, codex, cursor, gemini); for another agent pass its descriptor file, as in --agent ./nobody.json
-=== hooks install --agent index
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --hooks --agent index
 exit 1
 stdout empty
 stderr 1 line
 docattest: unknown agent "index" (known: antigravity, claude, codex, cursor, gemini); for another agent pass its descriptor file, as in --agent ./index.json
-=== hooks install --agent 
+=== init --hooks --agent 
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>: cannot read this agent descriptor file
-=== hooks install --agent Claude
+=== init --hooks --agent Claude
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/Claude: cannot read this agent descriptor file
-=== hooks install --agent ./gone.json
+=== init --hooks --agent ./gone.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/gone.json: cannot read this agent descriptor file
-=== hooks install --agent bad/dir.json
+=== init --hooks --agent bad/dir.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/dir.json: cannot read this agent descriptor file
-=== hooks install --agent
+=== init --hooks --agent
 exit 1
 stdout empty
 stderr 1 line
 docattest: Option '--agent <value>' argument missing
-=== hooks install --agent bad/0.json
+=== init --hooks --agent bad/0.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/0.json is not valid JSON (key must be a string at line 1 column 3)
-=== hooks install --agent bad/1.json
+=== init --hooks --agent bad/1.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/1.json: it does not hold a JSON object
-=== hooks install --agent bad/2.json
+=== init --hooks --agent bad/2.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/2.json: it does not hold a JSON object
-=== hooks install --agent bad/3.json
+=== init --hooks --agent bad/3.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/3.json: "name" must be a string that is not empty
-=== hooks install --agent bad/4.json
+=== init --hooks --agent bad/4.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/4.json is not valid JSON (EOF while parsing a value at line 1 column 0)
-=== hooks install --agent bad/5.json
+=== init --hooks --agent bad/5.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/5.json is not valid JSON (expected value at line 1 column 1)
-=== hooks install --agent bad/6.json
+=== init --hooks --agent bad/6.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/6.json: "name" must be lower-case letters, digits, "-" and "_", starting with a letter
-=== hooks install --agent bad/7.json
+=== init --hooks --agent bad/7.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/7.json: "name" must be a string that is not empty
-=== hooks install --agent bad/8.json
+=== init --hooks --agent bad/8.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/8.json: unknown key "title"
-=== hooks install --agent bad/9.json
+=== init --hooks --agent bad/9.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/9.json: "docs" must be a string that is not empty
-=== hooks install --agent bad/10.json
+=== init --hooks --agent bad/10.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/10.json: "projectRoot" must be a string that is not empty
-=== hooks install --agent bad/11.json
+=== init --hooks --agent bad/11.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/11.json: "skill" must be a string that is not empty
-=== hooks install --agent bad/12.json
+=== init --hooks --agent bad/12.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/12.json: "settings" must be an object
-=== hooks install --agent bad/13.json
+=== init --hooks --agent bad/13.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/13.json: "settings" must be an object
-=== hooks install --agent bad/14.json
+=== init --hooks --agent bad/14.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/14.json: "settings.file" must be a string that is not empty
-=== hooks install --agent bad/15.json
+=== init --hooks --agent bad/15.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/15.json: "settings.hooks" must be a string that is not empty
-=== hooks install --agent bad/16.json
+=== init --hooks --agent bad/16.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/16.json: "settings.group" must be a string that is not empty
-=== hooks install --agent bad/17.json
+=== init --hooks --agent bad/17.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/17.json: "settings.handler" must be an object
-=== hooks install --agent bad/18.json
+=== init --hooks --agent bad/18.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/18.json: "settings.command" must be a string that is not empty
-=== hooks install --agent bad/19.json
+=== init --hooks --agent bad/19.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/19.json: "settings.defaults" must be an object
-=== hooks install --agent bad/20.json
+=== init --hooks --agent bad/20.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/20.json: unknown key "settings.path"
-=== hooks install --agent bad/21.json
+=== init --hooks --agent bad/21.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/21.json: "hooks" must be an object
-=== hooks install --agent bad/22.json
+=== init --hooks --agent bad/22.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/22.json: unknown key "hooks.stop"
-=== hooks install --agent bad/23.json
+=== init --hooks --agent bad/23.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/23.json: "hooks.impact" must be an object
-=== hooks install --agent bad/24.json
+=== init --hooks --agent bad/24.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/24.json: "hooks.impact.event" must be a string that is not empty
-=== hooks install --agent bad/25.json
+=== init --hooks --agent bad/25.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/25.json: "hooks.impact.matcher" must be a string that is not empty
-=== hooks install --agent bad/26.json
+=== init --hooks --agent bad/26.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/26.json: "hooks.impact.file" must be a list of keys that is not empty
-=== hooks install --agent bad/27.json
+=== init --hooks --agent bad/27.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/27.json: "hooks.impact.file" must be a list of keys that is not empty
-=== hooks install --agent bad/28.json
+=== init --hooks --agent bad/28.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/28.json: "hooks.impact.file" must be a list of keys that is not empty
-=== hooks install --agent bad/29.json
+=== init --hooks --agent bad/29.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/29.json: "hooks.impact.file" must be a list of keys that is not empty
-=== hooks install --agent bad/30.json
+=== init --hooks --agent bad/30.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/30.json: unknown key "hooks.impact.continuing"
-=== hooks install --agent bad/31.json
+=== init --hooks --agent bad/31.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/31.json: "hooks.impact.reply" must be an object
-=== hooks install --agent bad/32.json
+=== init --hooks --agent bad/32.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/32.json: "hooks.impact.reply.fixed" must be an object
-=== hooks install --agent bad/33.json
+=== init --hooks --agent bad/33.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/33.json: "hooks.impact.reply.text" must be a list of keys that is not empty
-=== hooks install --agent bad/34.json
+=== init --hooks --agent bad/34.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/34.json: unknown key "hooks.impact.reply.template"
-=== hooks install --agent bad/35.json
+=== init --hooks --agent bad/35.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/35.json: unknown key "hooks.check.file"
-=== hooks install --agent bad/36.json
+=== init --hooks --agent bad/36.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/36.json: "hooks.check.continuing" must be a list of keys that is not empty
-=== hooks install --agent bad/37.json
+=== init --hooks --agent bad/37.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: <root>/bad/37.json: "hooks.check.reply" must be an object
-=== hooks install --agent bad/38.json
+=== init --hooks --agent bad/38.json
 exit 1
 stdout empty
 stderr 1 line
@@ -240,7 +253,7 @@ exit 1
 stdout empty
 stderr 1 line
 docattest: unknown agent "nobody" (known: antigravity, claude, codex, cursor, gemini); for another agent pass its descriptor file, as in --agent ./nobody.json
-=== skill install --agent bad/0.json
+=== init --skill --agent bad/0.json
 exit 1
 stdout empty
 stderr 1 line

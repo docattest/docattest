@@ -233,14 +233,14 @@ class Launch(unittest.TestCase):
 
     def test_what_is_already_set_stands(self):
         _, out, _ = self.launch(
-            "hooks",
-            "install",
+            "init",
+            "--hooks",
             env={"DOCATTEST_ADAPTER_PYTHON": "mine", "DOCATTEST_COMMAND": "uv run docattest"},
         )
         self.assertEqual(out[:2], ["mine", "uv run docattest"])
 
     def test_hooks_are_told_a_command_that_runs_docattest_without_node(self):
-        _, out, _ = self.launch("hooks", "install")
+        _, out, _ = self.launch("init", "--hooks")
         command = out[1]
         self.assertNotIn("npx", command)
         self.assertRegex(command, r"\bdocattest\b")
@@ -269,10 +269,10 @@ class Launch(unittest.TestCase):
         )
 
     def test_every_command_that_writes_the_command_down_is_told_it(self):
-        for args in (["hooks", "install"], ["hooks", "install", "--git"], ["agents", "install"]):
+        for args in (["init", "--hooks"], ["init", "--git-hook"], ["init", "--agents"]):
             _, out, _ = self.launch(*args)
             self.assertRegex(out[1], r"\bdocattest\b", args)
-        for args in (["check"], ["impact", "--file", "a.py"], ["skill", "install"]):
+        for args in (["check"], ["impact", "--file", "a.py"], ["audit"]):
             _, out, _ = self.launch(*args)
             self.assertEqual(out[1], "unset", args)
 
@@ -286,13 +286,13 @@ class Launch(unittest.TestCase):
         before = os.getcwd()
         self.addCleanup(os.chdir, before)
         os.chdir(os.path.join(project, "src", "deep"))
-        self.assertEqual(launcher._root(["hooks", "install"]), project)
+        self.assertEqual(launcher._root(["init", "--hooks"]), project)
         self.assertEqual(
-            launcher._root(["hooks", "install", "--root", "."]), os.path.join(project, "src", "deep")
+            launcher._root(["init", "--hooks", "--root", "."]), os.path.join(project, "src", "deep")
         )
-        self.assertEqual(launcher._root(["hooks", "--root=..", "install"]), os.path.join(project, "src"))
+        self.assertEqual(launcher._root(["init", "--root=..", "--hooks"]), os.path.join(project, "src"))
         os.chdir(self.dir)
-        self.assertEqual(launcher._root(["hooks", "install"]), self.dir)
+        self.assertEqual(launcher._root(["init", "--hooks"]), self.dir)
 
     def test_a_missing_core_names_the_three_places(self):
         code, _, err = self.launch(

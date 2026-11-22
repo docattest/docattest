@@ -1,8 +1,8 @@
 # facts
-# recorded from: what adopting it in a Go service found
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
 === check
 exit 1
-stdout 10 lines
+stdout 12 lines
 docs/a.md
   ✓ L3 fact: N is 3
   ✓ L5 fact: 2 items match KEYS
@@ -12,5 +12,7 @@ coverage: 1 living page, 1 covered (3 attestations: 3 proofs, 0 of them weak, an
 surface default: 3 symbols, 2 attested, 1 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 snapshots: none
+failures:
+  docs/a.md:9 fact: expected 4, got 3 from N
 FAILED
 stderr empty

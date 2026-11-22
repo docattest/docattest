@@ -289,7 +289,7 @@ fn mentions(state: &State, index: &Index, names: &[String]) -> Result<Vec<Impact
             .iter()
             .map(|n| (n.as_str(), of(index, n).iter().filter(|r| r.page == **page).collect()))
             .collect();
-        let covered = covered::covered_lines(text, &on_page);
+        let covered = covered::covered_lines_for(page, text, &on_page);
         out.extend(mentions::mentions_on(page, spans, &named, &covered));
     }
     Ok(out)
@@ -312,7 +312,7 @@ fn pages_naming<'s>(
         if !holds_a_name(&text, names) {
             continue;
         }
-        if let Some(spans) = mentions::code_spans_of(&text) {
+        if let Some(spans) = mentions::code_spans_of_page(page, &text) {
             pages.push((page, text, spans));
         }
     }

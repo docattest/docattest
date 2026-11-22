@@ -11,6 +11,7 @@ import re
 from typing import TYPE_CHECKING, NamedTuple, cast
 
 from . import __version__
+from .workers.docattest_worker.output import expected_output
 from .workers.docattest_worker.values import safe_str
 
 if TYPE_CHECKING:
@@ -32,7 +33,7 @@ IGNORED_MARKERS = ["pyvenv.cfg"]
 #: Info-string words of this adapter's own; the core passes them on in an example's tags.
 CONTINUE = "continue"
 INFO_WORDS = [CONTINUE]
-CAPABILITIES = ["tests", "runTests", "observables", "affected", "display", "mutants"]
+CAPABILITIES = ["tests", "runTests", "observables", "affected", "display"]
 
 
 class SourceText(NamedTuple):
@@ -125,6 +126,8 @@ def asserts(lang: str, code: str) -> bool:
         if any(e.want.strip() or e.exc_msg is not None for e in examples):
             return True
         code = "".join(e.source for e in examples)
+    if expected_output(code) is not None:
+        return True
     return _code_asserts(code)
 
 

@@ -1,5 +1,5 @@
 # inventory: root elsewhere
-# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit --root .
 exit 0
 stdout 3 lines
@@ -7,7 +7,7 @@ docs/p.md
   ? L1 list matches SCOPES → <!-- fact: SCOPES --> above the list
 audit: 1 suggestion on 1 page, 1 match, 0 drift
 stderr empty
-=== inventory scopes --root __ROOT__
+=== audit --inventory scopes --root __ROOT__
 exit 0
 stdout 2 lines
 SCOPES  →  [read, write, admin]
@@ -18,7 +18,7 @@ exit 1
 stdout empty
 stderr 1 line
 docattest: no docattest.config.json in <root>/nowhere
-=== inventory --root
+=== audit --inventory --root
 exit 1
 stdout empty
 stderr 1 line

@@ -60,9 +60,9 @@ recording. Temporary paths, server ports and internal-error stacks are normalise
 |---|---|---|
 | [bench.ts](parity/bench.ts) | every benchmark scenario (`run` and `check --json`), and real projects: six commands each, and the median time of three | `recordings/scenarios/`, and `recordings/project/` for this repository |
 | [extra.ts](parity/extra.ts) | malformed configs, CRLF, non-ASCII, tables in lists, the queries, the command line | `recordings/extra/` |
-| [audit.ts](parity/audit.ts) | `audit` and `inventory`: target kinds, ties, thresholds, the walk's bounds, failing surfaces, searches | `recordings/audit/` |
+| [audit.ts](parity/audit.ts) | `audit` and `audit --inventory`: target kinds, ties, thresholds, the walk's bounds, failing surfaces, searches | `recordings/audit/` |
 | [changes.ts](parity/changes.ts) | `check --base`: every change type for every attestation kind, renames, freezes, user errors | `recordings/changes/` |
-| [impact.ts](parity/impact.ts) | `impact`, `impact --file`, finding the root, both hook modes, `hooks install` for every shipped agent and for one nobody ships, `hooks install --git`, `agents install`, `skill install`, `refresh` (against a local server) | `recordings/impact/` |
+| [impact.ts](parity/impact.ts) | `impact`, `impact --file`, finding the root, both hook modes, `init --hooks` for every shipped agent and for one nobody ships, `init --git-hook`, `init --agents`, `init --skill`, `refresh` (against a local server) | `recordings/impact/` |
 
 Each harness is a small runner at the path above; its cases live beside it in a directory of
 the same name, one file per feature they cover, with the projects they share in a fixtures
@@ -92,7 +92,7 @@ does. `--only <text>` runs the cases whose name contains it. Some details:
   ages and `refresh`'s dates come out as recorded on any day.
 - **Differing by design** (`extra.ts`): two cases whose behaviour the harness also states
   outright, beyond matching their recordings.
-- **Through the npm launcher** (`impact.ts`): every `hooks install` and `agents install`
+- **Through the npm launcher** (`impact.ts`): every `init --hooks` and `init --agents`
   case, and one each of `check --hook`, `impact --hook`, `impact`, `impact --file` and
   root-finding, run again through `adapters/typescript/dist/launcher/main.js` told nothing
   but `DOCATTEST_CORE`, and compared with the same recordings.
@@ -106,7 +106,7 @@ does. `--only <text>` runs the cases whose name contains it. Some details:
 - **Projects outside the repository** keep their recordings outside it:
   `--project <dir> --recordings <dir>`, as many pairs as you like.
 - **Timing.** Each project's recordings hold `timing.json`, the medians of `check --json`,
-  `index --json` and `audit --json` when it was recorded. Every run prints its own medians
+  `where --json` and `audit --json` when it was recorded. Every run prints its own medians
   beside them; `--max-ratio <x>` fails a run slower than `x` times the recorded median, and
   `--record-timing <label>` stores a run's medians under a label.
 
@@ -157,7 +157,7 @@ left out, and it says so); `--keep` keeps the projects it made.
 
 Installs the packages a release builds into new projects, as a user would, with a new home
 directory, npm cache and pip cache, and no `DOCATTEST_*` variable: `docattest --version`,
-which core the launcher runs, `check` passing and failing, `hooks install`, the programmatic
+which core the launcher runs, `check` passing and failing, `init --hooks`, the programmatic
 API and its types; the Python package with no Node on the `PATH`; both packages in one
 project, each checking the other's language; npm without the platform package (the launcher
 says what is missing); and pip refusing a wheel for another platform, when one is given.

@@ -1,5 +1,5 @@
 # walk: more nodes than the bound
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 4 lines
@@ -38,7 +38,7 @@ stdout 26 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 401 lines
 Object.keys(MANY)  →  [g0, g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14, g15, g16, g17, g18, g19, g20, g21, g22, g23, g24, g25, g26, g27, g28, g29, g30, g31, g32, g33, g34, g35, g36, g37, g38, g39, g40, g41, g42, g43, g44, g45, g46, g47, g48, g49, g50, g51, g52, g53, g54, g55, g56, g57, g58, g59]
@@ -443,7 +443,7 @@ MANY.g42.h1  →  [n42x1a, n42x1b]
 MANY.g42.h2  →  [n42x2a, n42x2b]
 inventory: 400 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 4020 lines
 [

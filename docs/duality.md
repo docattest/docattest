@@ -227,6 +227,9 @@ await assert.rejects(
 
 ## The index is the whole map and is never written to disk
 
+On the CLI, `docattest where` with no symbol prints the whole map (`--json` for JSON); in
+code, `project.index()` returns it.
+
 ```ts check
 import { createProject } from 'docattest';
 

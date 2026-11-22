@@ -1,110 +1,100 @@
 # check
-# recorded from: docattest 0.4.1
+# recorded from: docattest 0.5.0
 === check
-exit 0
-stdout 869 lines
+exit 1
+stdout 812 lines
 README.md
-  ✓ L23 fact: manifest("adapters/typescript/package.json").version is 0.4.1
-  ✓ L30 example: every command printed what the block shows
-  ✓ L41 example: every command printed what the block shows
-  ✓ L76 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
-  ✓ L78 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
-  ✓ L87 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L96 fact: manifest("adapters/go/go.mod")["go"] is 1.23
-  ✓ L112 fact: 5 code spans match Object.keys(manifest("protocol/platforms.json").platforms)
-  ✓ L134 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L175 example: every proof on the sample page held in a copy of adapters/python/tests/fixture
-  ✓ L212 example: every proof on the sample page held in a copy of adapters/go/testdata/fixture
-  ✓ L259 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
-  ✓ L285 fact: 6 values in column Reported match KINDS
-  ✓ L311 fact: 14 distinct values in column Command match COMMANDS
-  ✓ L489 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L507 example: compiles
-  ✓ L521 fact: 14 values in column Key match CONFIG_KEYS
-  ✓ L532 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
-  ✓ L533 fact: DEFAULT_TIMEOUT_MS is 10000
-  ✓ L616 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
-  ✓ L618 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
-  ✓ L619 fact: manifest("adapters/go/go.mod").go is 1.23
+  ✓ L26 fact: manifest("adapters/typescript/package.json").version is 0.5.0
+  ✓ L33 example: every command printed what the block shows
+  ✓ L44 example: every command printed what the block shows
+  ✓ L79 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
+  ✓ L81 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
+  ✓ L90 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L99 fact: manifest("adapters/go/go.mod")["go"] is 1.23
+  ✓ L115 fact: 5 code spans match Object.keys(manifest("protocol/platforms.json").platforms)
+  ✓ L142 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L183 example: every proof on the sample page held in a copy of adapters/python/tests/fixture
+  ✓ L220 example: every proof on the sample page held in a copy of adapters/go/testdata/fixture
+  ✓ L267 example: every proof on the sample page held in a copy of adapters/rust/tests/fixture
+  ✓ L293 fact: 6 values in column Reported match KINDS
+  ✓ L319 fact: 9 distinct values in column Command match COMMANDS
+  ✓ L494 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L512 example: compiles
+  ✓ L526 fact: 14 values in column Key match CONFIG_KEYS
+  ✓ L537 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
+  ✓ L538 fact: DEFAULT_TIMEOUT_MS is 10000
+  ✓ L623 fact: manifest("package.json").engines.node.replace(">=", "") is 22.18
+  ✓ L625 fact: manifest("adapters/python/pyproject.toml").project["requires-python"].replace(">=", "") is 3.10
+  ✓ L626 fact: manifest("adapters/go/go.mod").go is 1.23
 adapters/typescript/README.md
   ✓ L14 example: every command printed what the block shows
   ✓ L37 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
   ✓ L38 fact: 2 code spans match manifest("adapters/typescript/package.json").peerDependencies.typescript.match(/[\d.]+/g)
   ✓ L42 fact: 5 items match Object.keys(manifest("adapters/typescript/package.json").optionalDependencies)
-  ✓ L70 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
-  ✓ L94 test: adapters/typescript/test/unit/language/run/pool.test.ts:71 declares "runJob" > "does not count a new worker's start-up against the job's time" (not run by docattest)
-  ✓ L106 fact: file("adapters/typescript/LICENSE").match(/^(\w+) License/)[1] is MIT
-  ✓ L110 fact: matched("adapters/typescript/LICENSE", "^(\\w+) License") is MIT
-  ✓ L111 fact: manifestField("adapters/typescript/package.json", "engines.node") is >=22.12
-  ✓ L121 test: adapters/typescript/test/unit/language/run/facts.test.ts:51 declares "a fact over a constant" > "never runs the module, so an entry script that runs on import can be a surface" (not run by docattest)
-  ✓ L123 example: all assertions held
-  ✓ L150 test: adapters/typescript/test/unit/language/syntax/constant-value.test.ts:31 declares "foldConstant" > "applies operators, and reads names, members and spreads of folded values" (not run by docattest)
-  ✓ L152 test: adapters/typescript/test/unit/language/syntax/module-names.test.ts:46 declares "moduleNames" > "reads no const the module changes in place, or that names one declared below it" (not run by docattest)
-  ✓ L155 test: adapters/typescript/test/unit/language/run/facts.test.ts:69 declares "a fact over a constant" > "reads only constants of the names the surface does not export" (not run by docattest)
-  ✓ L159 test: adapters/typescript/test/unit/language/run/facts.test.ts:102 declares "a constant a fact reads" > "is attested, as `where` shows, while `uncovered` lists only exports" (not run by docattest)
-  ✓ L161 test: adapters/typescript/test/unit/language/run/facts.test.ts:109 declares "a constant a fact reads" > "is listed by `impact` when it changes, with the facts that read it" (not run by docattest)
-  ✓ L168 test: adapters/typescript/test/unit/language/symbols.test.ts:88 declares "a fact that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" (not run by docattest)
-  ✓ L168 test: adapters/typescript/test/unit/language/symbols.test.ts:88 declares "a named fact that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" (not run by docattest)
-  ✓ L168 test: adapters/typescript/test/unit/language/symbols.test.ts:88 declares "a cases runner that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" (not run by docattest)
-  ✓ L169 test: adapters/typescript/test/unit/language/symbols.test.ts:97 declares "a fact that reads a value built from other names" > "is listed by `impact` when one of those names changes" (not run by docattest)
-  ✓ L176 test: adapters/typescript/test/unit/language/run/facts.test.ts:136 declares "a value the package entry does not re-export" > "is read and attested on a surface of the module that exports it" (not run by docattest)
-  ✓ L182 test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts:57 declares "symbolMutants" > "resolves a surface's symbol through re-exports to the file that declares it" (not run by docattest)
-  ✓ L183 test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts:74 declares "symbolMutants" > "finds a constant a fact reads from source, with its surface or without one" (not run by docattest)
-  ✓ L184 test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:23 declares "literalMutants" > "adds one to a number, written as TypeScript reads a number" (not run by docattest)
-  ✓ L186 test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:38 declares "literalMutants" > "puts an x before the closing quote of a string, keeping its quotes and escapes" (not run by docattest)
-  ✓ L187 test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:46 declares "literalMutants" > "flips a boolean and leaves null and undefined alone" (not run by docattest)
-  ✓ L188 test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:52 declares "literalMutants" > "removes an array's last item before changing its items" (not run by docattest)
-  ✓ L189 test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts:101 declares "symbolMutants" > "reads the value of a name that a type shares, and keeps the length of a tuple" (not run by docattest)
-  ✓ L191 test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:67 declares "literalMutants" > "changes literals at any depth, string keys among them, in source order" (not run by docattest)
-  ✓ L191 test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts:83 declares "literalMutants" > "changes nothing inside a function, a class or a type the value holds" (not run by docattest)
-  ✓ L193 test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts:81 declares "symbolMutants" > "says why a symbol has no edits: a function, no literal, or not found" (not run by docattest)
-  ✓ L201 test: adapters/typescript/test/unit/language/symbols.test.ts:33 declares "a fact that calls a named fact of the setup module" > "attests the exports its helper reaches, as `where` and `uncovered` show" (not run by docattest)
-  ✓ L202 test: adapters/typescript/test/unit/language/symbols.test.ts:45 declares "a fact that calls a named fact of the setup module" > "is listed by `impact` when one of those exports changes" (not run by docattest)
-  ✓ L212 example: all assertions held
-  ✓ L223 test: adapters/typescript/test/unit/cells/code-spans.test.ts:21 declares "codeSpans" > "$name" (not run by docattest)
-  ✓ L225 test: adapters/typescript/test/unit/cells/code-spans.test.ts:82 declares "codeSpans and the core" > "gives what a column fact compares" (not run by docattest)
-  ✓ L228 test: adapters/typescript/test/unit/language/run/cases.test.ts:46 declares "the rows of a cases table" > "run one after another, in the page order, sharing the setup module and its state" (not run by docattest)
-  ✓ L229 test: adapters/typescript/test/unit/language/run/cases.test.ts:51 declares "the rows of a cases table" > "go on after a row that throws or rejects, in the same worker" (not run by docattest)
-  ✓ L231 test: adapters/typescript/test/unit/language/run/cases.test.ts:62 declares "the rows of a cases table" > "start again on a fresh worker after a row that times out or exits" (not run by docattest)
-  ✓ L235 test: adapters/typescript/test/unit/language/run/cases.test.ts:76 declares "cases tables" > "each load the setup module afresh, but share what a worker keeps between jobs" (not run by docattest)
-  ✓ L237 test: adapters/typescript/test/unit/language/run/cases.test.ts:102 declares "cases tables" > "run side by side, as many at once as there are workers" (not run by docattest)
-  ✓ L244 test: adapters/typescript/test/unit/language/citations/tests-in-file.test.ts:63 declares "the tests of a table the file writes" > "titles the tests of a for-of loop and a forEach over a table the file writes" (not run by docattest)
-  ✓ L251 test: adapters/typescript/test/unit/language/citations/tests-in-file.test.ts:11 declares "the tests of a table the file writes" > "titles each row of an each table as the runner prints it" (not run by docattest)
-  ✓ L255 test: adapters/typescript/test/unit/language/citations/tests-in-file.test.ts:33 declares "the tests of a table the file writes" > "titles a $name as each runner shows it, and as both do when the file names neither" (not run by docattest)
-  ✓ L257 test: adapters/typescript/test/unit/language/citations/vitest-titles.test.ts:48 declares "rows titled pair %i %s" > "pair 2 b" (not run by docattest)
-  ✓ L259 test: adapters/typescript/test/unit/language/citations/tests-in-file.test.ts:85 declares "the tests of a table the file writes" > "cannot cite what the file does not write as a literal, or changes" (not run by docattest)
-  ✓ L262 example: all assertions held
-  ✓ L300 test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:11 declares "chooseRunner" > "runs a file with the runner it imports, from the package that declares it" (not run by docattest)
-  ✓ L300 test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:24 declares "chooseRunner" > "runs a file that imports nothing with the runner the nearest package declares" (not run by docattest)
-  ✓ L300 test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:36 declares "chooseRunner" > "runs node:test with the adapter's Node from the nearest package" (not run by docattest)
-  ✓ L302 test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:48 declares "chooseRunner" > "has no runner for a file that names none, or whose runner is not installed" (not run by docattest)
-  ✓ L307 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:47 declares "invocationOf" > "runs Vitest on the file alone, selecting by name, with a JSON report" (not run by docattest)
-  ✓ L308 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:63 declares "invocationOf" > "runs Jest on exactly the file by its path, with its JSON report" (not run by docattest)
-  ✓ L311 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:75 declares "invocationOf" > "runs node:test with the adapter's reporter, stripping types where Node does not" (not run by docattest)
-  ✓ L314 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:21 declares "namePattern" > "matches exactly the full names, every character of a title taken literally" (not run by docattest)
-  ✓ L317 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:16 declares "outcomeOf" > "reads the test of exactly the cited path, not one whose titles join to the same name" (not run by docattest)
-  ✓ L317 test: adapters/typescript/test/protocol/run-tests.test.ts:104 declares "runTests" > "runs node:test tests by their exact path, a case of a table one alone" (not run by docattest)
-  ✓ L319 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:39 declares "outcomeOf" > "passes a table cited as a whole only when every row does, and names a failing row" (not run by docattest)
-  ✓ L319 test: adapters/typescript/test/protocol/run-tests.test.ts:136 declares "runTests" > "runs Vitest tests from the package that declares it, a table's rows together" (not run by docattest)
-  ✓ L322 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:36 declares "namePattern" > "selects every test under describe titles, for a table whose rows are not known" (not run by docattest)
-  ✓ L322 test: adapters/typescript/test/protocol/run-tests.test.ts:162 declares "runTests" > "runs the rows of a table built as the file runs, by its describe titles, as one" (not run by docattest)
-  ✓ L323 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:58 declares "outcomeOf" > "fails a test whose subtest failed with the subtest's message, not the summary" (not run by docattest)
-  ✓ L325 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:27 declares "outcomeOf" > "gives a failure's own lines, without its stack" (not run by docattest)
-  ✓ L327 test: adapters/typescript/test/unit/language/test-runs/node-test-report.test.ts:37 declares "readNodeTestReport" > "reads each test by the path of the tests around it, and leaves describe blocks out" (not run by docattest)
-  ✓ L327 test: adapters/typescript/test/unit/language/test-runs/json-report.test.ts:76 declares "readJsonReport" > "reads the file's tests from Vitest's report by their titles, whatever else ran" (not run by docattest)
-  ✓ L329 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:81 declares "outcomeOf" > "runs nothing of a path the run selected no test by, or of a file that cannot run" (not run by docattest)
-  ✓ L330 test: adapters/typescript/test/protocol/run-tests.test.ts:186 declares "runTests" > "runs nothing of a project in memory" (not run by docattest)
-  ✓ L332 test: adapters/typescript/test/protocol/run-tests.test.ts:178 declares "runTests" > "fails every test of a run that does not finish in time" (not run by docattest)
-  ✓ L334 test: adapters/typescript/test/unit/language/test-runs/json-report.test.ts:96 declares "readJsonReport" > "reads Jest's report, and a file that could not run" (not run by docattest)
-  ✓ L343 example: compiles
-  ✓ L355 fact: 2 items match Object.keys(manifest("adapters/typescript/package.json").bin)
+  ✓ L72 example: every proof on the sample page held in a copy of docs/.fixtures/acme-client
+  ✓ L96 test: adapters/typescript/test/unit/language/run/pool.test.ts:71 declares "runJob" > "does not count a new worker's start-up against the job's time" (not run by docattest)
+  ✓ L108 fact: file("adapters/typescript/LICENSE").match(/^(\w+) License/)[1] is MIT
+  ✓ L112 fact: matched("adapters/typescript/LICENSE", "^(\\w+) License") is MIT
+  ✓ L113 fact: manifestField("adapters/typescript/package.json", "engines.node") is >=22.12
+  ✓ L123 test: adapters/typescript/test/unit/language/run/facts.test.ts:51 declares "a fact over a constant" > "never runs the module, so an entry script that runs on import can be a surface" (not run by docattest)
+  ✓ L125 example: all assertions held
+  ✓ L152 test: adapters/typescript/test/unit/language/syntax/constant-value.test.ts:31 declares "foldConstant" > "applies operators, and reads names, members and spreads of folded values" (not run by docattest)
+  ✓ L154 test: adapters/typescript/test/unit/language/syntax/module-names.test.ts:46 declares "moduleNames" > "reads no const the module changes in place, or that names one declared below it" (not run by docattest)
+  ✓ L157 test: adapters/typescript/test/unit/language/run/facts.test.ts:69 declares "a fact over a constant" > "reads only constants of the names the surface does not export" (not run by docattest)
+  ✓ L161 test: adapters/typescript/test/unit/language/run/facts.test.ts:102 declares "a constant a fact reads" > "is attested, as `where` shows, while `uncovered` lists only exports" (not run by docattest)
+  ✓ L163 test: adapters/typescript/test/unit/language/run/facts.test.ts:109 declares "a constant a fact reads" > "is listed by `impact` when it changes, with the facts that read it" (not run by docattest)
+  ✓ L170 test: adapters/typescript/test/unit/language/symbols.test.ts:88 declares "a fact that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" (not run by docattest)
+  ✓ L170 test: adapters/typescript/test/unit/language/symbols.test.ts:88 declares "a named fact that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" (not run by docattest)
+  ✓ L170 test: adapters/typescript/test/unit/language/symbols.test.ts:88 declares "a cases runner that reads a value built from other names" > "attests the names its initializer uses, at any depth, private ones too" (not run by docattest)
+  ✓ L171 test: adapters/typescript/test/unit/language/symbols.test.ts:97 declares "a fact that reads a value built from other names" > "is listed by `impact` when one of those names changes" (not run by docattest)
+  ✓ L178 test: adapters/typescript/test/unit/language/run/facts.test.ts:136 declares "a value the package entry does not re-export" > "is read and attested on a surface of the module that exports it" (not run by docattest)
+  ✓ L186 test: adapters/typescript/test/unit/language/symbols.test.ts:33 declares "a fact that calls a named fact of the setup module" > "attests the exports its helper reaches, as `where` and `uncovered` show" (not run by docattest)
+  ✓ L187 test: adapters/typescript/test/unit/language/symbols.test.ts:45 declares "a fact that calls a named fact of the setup module" > "is listed by `impact` when one of those exports changes" (not run by docattest)
+  ✓ L197 example: all assertions held
+  ✓ L208 test: adapters/typescript/test/unit/cells/code-spans.test.ts:21 declares "codeSpans" > "$name" (not run by docattest)
+  ✓ L210 test: adapters/typescript/test/unit/cells/code-spans.test.ts:82 declares "codeSpans and the core" > "gives what a column fact compares" (not run by docattest)
+  ✓ L213 test: adapters/typescript/test/unit/language/run/cases.test.ts:46 declares "the rows of a cases table" > "run one after another, in the page order, sharing the setup module and its state" (not run by docattest)
+  ✓ L214 test: adapters/typescript/test/unit/language/run/cases.test.ts:51 declares "the rows of a cases table" > "go on after a row that throws or rejects, in the same worker" (not run by docattest)
+  ✓ L216 test: adapters/typescript/test/unit/language/run/cases.test.ts:62 declares "the rows of a cases table" > "start again on a fresh worker after a row that times out or exits" (not run by docattest)
+  ✓ L220 test: adapters/typescript/test/unit/language/run/cases.test.ts:76 declares "cases tables" > "each load the setup module afresh, but share what a worker keeps between jobs" (not run by docattest)
+  ✓ L222 test: adapters/typescript/test/unit/language/run/cases.test.ts:102 declares "cases tables" > "run side by side, as many at once as there are workers" (not run by docattest)
+  ✓ L229 test: adapters/typescript/test/unit/language/citations/tests-in-file.test.ts:63 declares "the tests of a table the file writes" > "titles the tests of a for-of loop and a forEach over a table the file writes" (not run by docattest)
+  ✓ L236 test: adapters/typescript/test/unit/language/citations/tests-in-file.test.ts:11 declares "the tests of a table the file writes" > "titles each row of an each table as the runner prints it" (not run by docattest)
+  ✓ L240 test: adapters/typescript/test/unit/language/citations/tests-in-file.test.ts:33 declares "the tests of a table the file writes" > "titles a $name as each runner shows it, and as both do when the file names neither" (not run by docattest)
+  ✓ L242 test: adapters/typescript/test/unit/language/citations/vitest-titles.test.ts:48 declares "rows titled pair %i %s" > "pair 2 b" (not run by docattest)
+  ✓ L244 test: adapters/typescript/test/unit/language/citations/tests-in-file.test.ts:85 declares "the tests of a table the file writes" > "cannot cite what the file does not write as a literal, or changes" (not run by docattest)
+  ✓ L247 example: all assertions held
+  ✓ L285 test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:11 declares "chooseRunner" > "runs a file with the runner it imports, from the package that declares it" (not run by docattest)
+  ✓ L285 test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:24 declares "chooseRunner" > "runs a file that imports nothing with the runner the nearest package declares" (not run by docattest)
+  ✓ L285 test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:36 declares "chooseRunner" > "runs node:test with the adapter's Node from the nearest package" (not run by docattest)
+  ✓ L287 test: adapters/typescript/test/unit/language/test-runs/runner-choice.test.ts:48 declares "chooseRunner" > "has no runner for a file that names none, or whose runner is not installed" (not run by docattest)
+  ✓ L292 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:47 declares "invocationOf" > "runs Vitest on the file alone, selecting by name, with a JSON report" (not run by docattest)
+  ✓ L293 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:63 declares "invocationOf" > "runs Jest on exactly the file by its path, with its JSON report" (not run by docattest)
+  ✓ L296 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:75 declares "invocationOf" > "runs node:test with the adapter's reporter, stripping types where Node does not" (not run by docattest)
+  ✓ L299 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:21 declares "namePattern" > "matches exactly the full names, every character of a title taken literally" (not run by docattest)
+  ✓ L302 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:16 declares "outcomeOf" > "reads the test of exactly the cited path, not one whose titles join to the same name" (not run by docattest)
+  ✓ L302 test: adapters/typescript/test/protocol/run-tests.test.ts:104 declares "runTests" > "runs node:test tests by their exact path, a case of a table one alone" (not run by docattest)
+  ✓ L304 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:39 declares "outcomeOf" > "passes a table cited as a whole only when every row does, and names a failing row" (not run by docattest)
+  ✓ L304 test: adapters/typescript/test/protocol/run-tests.test.ts:136 declares "runTests" > "runs Vitest tests from the package that declares it, a table's rows together" (not run by docattest)
+  ✓ L307 test: adapters/typescript/test/unit/language/test-runs/invocation.test.ts:36 declares "namePattern" > "selects every test under describe titles, for a table whose rows are not known" (not run by docattest)
+  ✓ L307 test: adapters/typescript/test/protocol/run-tests.test.ts:162 declares "runTests" > "runs the rows of a table built as the file runs, by its describe titles, as one" (not run by docattest)
+  ✓ L308 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:58 declares "outcomeOf" > "fails a test whose subtest failed with the subtest's message, not the summary" (not run by docattest)
+  ✓ L310 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:27 declares "outcomeOf" > "gives a failure's own lines, without its stack" (not run by docattest)
+  ✓ L312 test: adapters/typescript/test/unit/language/test-runs/node-test-report.test.ts:37 declares "readNodeTestReport" > "reads each test by the path of the tests around it, and leaves describe blocks out" (not run by docattest)
+  ✓ L312 test: adapters/typescript/test/unit/language/test-runs/json-report.test.ts:76 declares "readJsonReport" > "reads the file's tests from Vitest's report by their titles, whatever else ran" (not run by docattest)
+  ✓ L314 test: adapters/typescript/test/unit/language/test-runs/outcome.test.ts:81 declares "outcomeOf" > "runs nothing of a path the run selected no test by, or of a file that cannot run" (not run by docattest)
+  ✓ L315 test: adapters/typescript/test/protocol/run-tests.test.ts:186 declares "runTests" > "runs nothing of a project in memory" (not run by docattest)
+  ✓ L317 test: adapters/typescript/test/protocol/run-tests.test.ts:178 declares "runTests" > "fails every test of a run that does not finish in time" (not run by docattest)
+  ✓ L319 test: adapters/typescript/test/unit/language/test-runs/json-report.test.ts:96 declares "readJsonReport" > "reads Jest's report, and a file that could not run" (not run by docattest)
+  ✓ L328 example: compiles
+  ✓ L340 fact: 2 items match Object.keys(manifest("adapters/typescript/package.json").bin)
 adapters/typescript/src/cells/code-spans.ts
   ✓ L7 example: all assertions held
 docs/adapters.md
-  ✓ L14 fact: 14 items match COMMANDS
+  ✓ L14 fact: 9 items match COMMANDS
 docs/agents.md
   ✓ L28 example: all assertions held
-  ✓ L71 example: all assertions held
+  ✗ L71 example: AssertionError: expected /run `npx --no docattest check`/, got '# Our rules\n\nUse tabs.\n\n<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that'... 926 more characters (assert.match, block line 20)
   ✓ L123 example: all assertions held
   ✓ L174 example: all assertions held
   ✓ L241 example: all assertions held
@@ -120,6 +110,7 @@ docs/audit.md
   ✓ L266 example: all assertions held
   ✓ L313 example: all assertions held
   ✓ L341 example: all assertions held
+  ✓ L389 example: all assertions held
 docs/cases.md
   ✓ L30 example: all assertions held
   ✓ L68 example: all assertions held
@@ -177,12 +168,12 @@ docs/cli.md
   ✓ L19 example: all assertions held
   ✓ L64 example: all assertions held
   ✓ L97 example: all assertions held
-  ✓ L142 example: all assertions held
-  ✓ L193 example: all assertions held
-  ✓ L242 example: all assertions held
-  ✓ L303 example: all assertions held
-  ✓ L349 example: all assertions held
-  ✓ L375 example: all assertions held
+  ✓ L144 example: all assertions held
+  ✓ L212 example: all assertions held
+  ✓ L261 example: all assertions held
+  ✓ L322 example: all assertions held
+  ✓ L372 example: all assertions held
+  ✓ L396 example: all assertions held
 docs/console.md
   ✓ L28 example: all assertions held
   ✓ L56 example: all assertions held
@@ -200,7 +191,7 @@ docs/duality.md
   ✓ L157 example: every command printed what the block shows
   ✓ L176 example: all assertions held
   ✓ L203 example: all assertions held
-  ✓ L230 example: all assertions held
+  ✓ L233 example: all assertions held
 docs/examples.md
   ✓ L21 example: all assertions held
   ✓ L50 example: all assertions held
@@ -215,6 +206,7 @@ docs/examples.md
   ✓ L209 example: all assertions held
   ✓ L255 example: all assertions held
   ✓ L293 example: all assertions held
+  ✓ L320 example: all assertions held
 docs/explain.md
   ✓ L19 example: every command printed what the block shows
   ✓ L36 example: every command printed what the block shows
@@ -347,8 +339,8 @@ docs/index.md
   ✓ L42 fact: 6 items match KINDS
   ✓ L50 fact: 4 items match STATUSES
 docs/inventory.md
-  ✓ L12 example: all assertions held
-  ✓ L43 example: all assertions held
+  ✓ L13 example: all assertions held
+  ✓ L44 example: all assertions held
 docs/manifests.md
   ✓ L21 example: all assertions held
   ✓ L50 example: all assertions held
@@ -362,15 +354,6 @@ docs/manifests.md
   ✓ L319 example: all assertions held
   ✓ L350 example: all assertions held
   ✓ L378 example: all assertions held
-docs/mutate.md
-  ✓ L18 example: every command printed what the block shows
-  ✓ L51 example: all assertions held
-  ✓ L77 example: all assertions held
-  ✓ L109 example: all assertions held
-  ✓ L155 example: all assertions held
-  ✓ L197 example: all assertions held
-  ✓ L235 example: every command printed what the block shows
-  ✓ L255 example: all assertions held
 docs/pages.md
   ✓ L15 example: all assertions held
   ✓ L37 example: all assertions held
@@ -382,6 +365,8 @@ docs/pages.md
   ✓ L189 example: all assertions held
   ✓ L216 example: all assertions held
   ✓ L238 example: all assertions held
+  ✓ L275 example: all assertions held
+  ✓ L319 example: all assertions held
 docs/protocol.md
   ✓ L34 example: all assertions held
   ✓ L85 example: all assertions held
@@ -397,9 +382,9 @@ docs/report.md
   ✓ L95 example: all assertions held
   ✓ L119 example: all assertions held
   ✓ L148 example: all assertions held
-  ✓ L227 example: every command printed what the block shows
-  ✓ L244 example: all assertions held
-  ✓ L278 example: all assertions held
+  ✓ L230 example: every command printed what the block shows
+  ✓ L247 example: all assertions held
+  ✓ L281 example: all assertions held
 docs/snapshots.md
   ✓ L14 example: all assertions held
   ✓ L36 example: all assertions held
@@ -412,14 +397,17 @@ docs/surfaces.md
   ✓ L87 example: all assertions held
   ✓ L129 example: all assertions held
   ✓ L172 example: all assertions held
-results: 383 pass, 0 fail, 0 error, 0 skipped
-coverage: 27 living pages, 26 covered (383 attestations: 322 proofs, 0 of them weak, and 61 citations), 0 uncovered, 1 prose, 5 frozen
-warning: adapters/typescript/README.md:225 citation names `codeSpans`, which `gives what a column fact compares` does not use
-warning: adapters/typescript/README.md:330 citation names `createProject`, which `runs nothing of a project in memory` does not use
-surface default: 52 symbols, 10 attested, 42 not attested by any page
-  docattest → adapters/typescript/dist/index.js (docattest@0.4.1)
+  ✓ L195 example: all assertions held
+results: 369 pass, 1 fail, 0 error, 0 skipped
+coverage: 26 living pages, 25 covered (370 attestations: 319 proofs, 0 of them weak, and 51 citations), 0 uncovered, 1 prose, 5 frozen
+warning: adapters/typescript/README.md:210 citation names `codeSpans`, which `gives what a column fact compares` does not use
+warning: adapters/typescript/README.md:315 citation names `createProject`, which `runs nothing of a project in memory` does not use
+surface default: 49 symbols, 10 attested, 39 not attested by any page
+  docattest → adapters/typescript/dist/index.js (docattest@0.5.0)
 snapshots: none
-ok
+failures:
+  docs/agents.md:71 example: AssertionError: expected /run `npx --no docattest check`/, got '# Our rules\n\nUse tabs.\n\n<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that'... 926 more characters (assert.match, block line 20)
+FAILED
 
 member core (rust)
 README.md
@@ -428,24 +416,16 @@ README.md
   ✓ L28 fact: DEFAULT_TIMEOUT_MS is 10000
   ✓ L29 fact: DEFAULT_SNAPSHOT_MAX_AGE_DAYS is 90
   ✓ L31 fact: 2 items match ACTIONS
-  ✓ L37 test: src/config/mod.rs:297 declares "tests" > "valid_config_gets_defaults" (not run by docattest)
+  ✓ L37 test: src/config/mod.rs:304 declares "tests" > "valid_config_gets_defaults" (not run by docattest)
   ✓ L39 example: all assertions held
   ✓ L53 example: all assertions held
-  ✓ L122 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
-  ✓ L123 fact: ROOT is {root}
-  ✓ L246 test: src/mutate/effect.rs:66 declares "tests" > "an_error_that_points_at_the_changed_file_is_the_code_not_building" (not run by docattest)
-  ✓ L246 test: src/mutate/effect.rs:83 declares "tests" > "a_value_that_differs_and_an_error_about_something_else_are_how_the_code_behaves" (not run by docattest)
-  ✓ L246 test: src/mutate/verdict.rs:218 declares "tests" > "a_stillborn_mutant_kills_nothing_and_a_proof_with_only_those_is_not_mutated" (not run by docattest)
-  ✓ L246 test: src/mutate/tests.rs:44 declares "a_change_that_fails_a_proof_kills_it_one_that_breaks_the_project_is_stillborn" (not run by docattest)
-  ✓ L252 test: src/mutate/sibling.rs:117 declares "tests" > "a_claim_is_a_locked_sibling_that_another_claim_skips_and_both_go_when_dropped" (not run by docattest)
-  ✓ L252 test: src/mutate/sibling.rs:144 declares "tests" > "a_claim_is_removed_when_the_code_holding_it_panics" (not run by docattest)
-  ✓ L252 test: tests/mutate_signal.rs:41 declares "a_run_stopped_by_sigterm_removes_its_copies" (not run by docattest)
-  ✓ L252 test: src/mutate/sibling.rs:128 declares "tests" > "a_copy_a_killed_run_left_is_cleared_and_one_a_live_run_holds_is_not" (not run by docattest)
+  ✓ L123 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
+  ✓ L124 fact: ROOT is {root}
 src/text.rs
   ✓ L68 example: all assertions held
-results: 19 pass, 0 fail, 0 error, 0 skipped
-coverage: 2 living pages, 2 covered (19 attestations: 10 proofs, 0 of them weak, and 9 citations), 0 uncovered, 0 frozen
-surface default: 9 symbols, 5 attested, 4 not attested by any page
+results: 11 pass, 0 fail, 0 error, 0 skipped
+coverage: 2 living pages, 2 covered (11 attestations: 10 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen
+surface default: 10 symbols, 5 attested, 5 not attested by any page
   docattest::config → src/config/mod.rs (docattest-core)
 surface adapter: 1 symbol, 1 attested, 0 not attested by any page
   docattest::adapter → src/adapter/mod.rs (docattest-core)
@@ -480,14 +460,14 @@ README.md
   ✓ L177 test: tests/session.rs:73 declares "blocks_compile_and_run_each_as_a_program_of_its_own" (not run by docattest)
   ✓ L181 test: src/language/blocks.rs:74 declares "tests" > "a_snippet_is_the_body_of_main" (not run by docattest)
   ✓ L182 test: src/language/blocks.rs:100 declares "tests" > "hidden_lines_are_part_of_the_program_and_keep_their_place" (not run by docattest)
-  ✓ L186 test: src/language/text.rs:156 declares "tests" > "a_block_asserts_when_something_in_it_can_end_the_program" (not run by docattest)
+  ✓ L186 test: src/language/text.rs:159 declares "tests" > "a_block_asserts_when_something_in_it_can_end_the_program" (not run by docattest)
   ✓ L190 test: src/toolchain/cargo.rs:237 declares "tests" > "errors_are_read_from_the_compilers_messages" (not run by docattest)
   ✓ L201 example: every command printed what the block shows
   ✓ L211 example: all assertions held
   ✓ L216 test: src/toolchain/mod.rs:225 declares "tests" > "a_program_that_overruns_is_ended_with_what_it_started" (not run by docattest)
   ✓ L219 test: tests/session.rs:146 declares "a_blocks_time_counts_from_when_its_code_starts" (not run by docattest)
   ✓ L221 test: src/toolchain/mod.rs:244 declares "tests" > "a_program_that_never_starts_is_ended" (not run by docattest)
-  ✓ L221 test: src/running/blocks.rs:261 declares "tests" > "a_block_whose_program_never_starts_says_how_long_it_waited" (not run by docattest)
+  ✓ L221 test: src/running/blocks.rs:277 declares "tests" > "a_block_whose_program_never_starts_says_how_long_it_waited" (not run by docattest)
   ✓ L227 example: every command printed what the block shows
   ✓ L242 example: every command printed what the block shows
   ✓ L247 fact: 9 items match ASSERTING_MACROS.map(|name| format!("{name}!"))
@@ -506,7 +486,7 @@ README.md
   ✓ L377 test: tests/constants.rs:90 declares "a_fact_reads_constants_from_source" (not run by docattest)
   ✓ L383 test: src/analysis/constants/literal.rs:180 declares "tests" > "literal_values_of_std_types_are_reproduced" (not run by docattest)
   ✓ L387 test: tests/constants.rs:131 declares "only_constants_are_read_from_source" (not run by docattest)
-  ✓ L390 test: tests/endtoend.rs:188 declares "impact_of_a_constant_read_from_source" (not run by docattest)
+  ✓ L390 test: tests/endtoend.rs:190 declares "impact_of_a_constant_read_from_source" (not run by docattest)
   ✓ L395 test: tests/initializers.rs:117 declares "a_value_read_attests_what_its_initializer_uses" (not run by docattest)
   ✓ L395 test: tests/initializers.rs:150 declares "where_and_uncovered_follow_initializers" (not run by docattest)
   ✓ L397 test: tests/initializers.rs:117 declares "a_value_read_attests_what_its_initializer_uses" (not run by docattest)
@@ -546,29 +526,16 @@ README.md
   ✓ L617 test: src/running/cited/report.rs:221 declares "tests" > "a_run_whose_program_ended_early_fails_what_it_did_not_report" (not run by docattest)
   ✓ L619 test: tests/cited.rs:139 declares "a_run_that_overruns_is_ended_and_fails_its_tests" (not run by docattest)
   ✓ L623 fact: hello().ignored_names.join(", ") is target
-  ✓ L652 test: src/analysis/mutants/literals.rs:265 declares "tests" > "an_integer_gains_one_in_decimal_and_keeps_its_suffix" (not run by docattest)
-  ✓ L653 test: src/analysis/mutants/literals.rs:278 declares "tests" > "a_float_gains_one_written_as_a_float_and_keeps_its_suffix" (not run by docattest)
-  ✓ L655 test: src/analysis/mutants/literals.rs:292 declares "tests" > "a_string_gains_an_x_before_its_closing_quote_whatever_its_kind" (not run by docattest)
-  ✓ L656 test: src/analysis/mutants/literals.rs:308 declares "tests" > "a_character_and_a_byte_are_left_alone_and_a_boolean_flips" (not run by docattest)
-  ✓ L658 test: src/analysis/mutants/literals.rs:316 declares "tests" > "a_slice_loses_its_last_item_before_its_items_change" (not run by docattest)
-  ✓ L658 test: src/analysis/mutants/literals.rs:328 declares "tests" > "a_last_item_goes_with_the_comma_before_it_and_an_only_one_with_its_trailing_comma" (not run by docattest)
-  ✓ L658 test: src/analysis/mutants/literals.rs:341 declares "tests" > "a_vec_loses_its_last_item_as_a_slice_does" (not run by docattest)
-  ✓ L660 test: src/analysis/mutants/literals.rs:357 declares "tests" > "an_array_whose_length_its_type_writes_loses_no_item" (not run by docattest)
-  ✓ L661 test: src/analysis/mutants/literals.rs:368 declares "tests" > "the_fields_of_tuples_and_structs_are_values_at_any_depth" (not run by docattest)
-  ✓ L663 test: src/analysis/mutants/literals.rs:377 declares "tests" > "what_runs_when_called_types_and_lengths_are_left_alone" (not run by docattest)
-  ✓ L666 test: tests/mutants.rs:56 declares "a_reexported_constant_is_changed_where_it_is_declared" (not run by docattest)
-  ✓ L667 test: tests/mutants.rs:78 declares "a_constant_read_from_source_is_found_without_a_surface" (not run by docattest)
-  ✓ L670 test: tests/mutants.rs:94 declares "a_symbol_without_edits_says_why" (not run by docattest)
-  ✓ L689 example: every command printed what the block shows
-  ✓ L703 test: tests/helpers.rs:195 declares "a_cargo_config_that_takes_the_place_of_build_rustflags_leaves_docs_helpers_out" (not run by docattest)
-  ✓ L707 test: src/project.rs:182 declares "tests" > "copies_of_a_project_that_share_a_target_directory_build_apart" (not run by docattest)
-results: 101 pass, 0 fail, 0 error, 0 skipped
-coverage: 2 living pages, 2 covered (101 attestations: 26 proofs, 0 of them weak, and 75 citations), 0 uncovered, 0 frozen
+  ✓ L662 example: every command printed what the block shows
+  ✓ L676 test: tests/helpers.rs:195 declares "a_cargo_config_that_takes_the_place_of_build_rustflags_leaves_docs_helpers_out" (not run by docattest)
+  ✓ L680 test: src/project.rs:182 declares "tests" > "copies_of_a_project_that_share_a_target_directory_build_apart" (not run by docattest)
+results: 88 pass, 0 fail, 0 error, 0 skipped
+coverage: 2 living pages, 2 covered (88 attestations: 26 proofs, 0 of them weak, and 62 citations), 0 uncovered, 0 frozen
 surface default: 5 symbols, 4 attested, 1 not attested by any page
   docattest_rust::language → src/language/mod.rs (docattest)
 surface launcher: 6 symbols, 5 attested, 1 not attested by any page
   docattest_rust::launcher → src/launcher.rs (docattest)
-surface protocol: 35 symbols, 7 attested, 28 not attested by any page
+surface protocol: 31 symbols, 7 attested, 24 not attested by any page
   docattest_rust::protocol → src/protocol/mod.rs (docattest)
 snapshots: none
 ok
@@ -678,42 +645,23 @@ README.md
   ✓ L565 test: tests/test_cited_tests.py:149 declares "CitedTestsOnDisk" > "test_a_subtest_case_runs_with_its_test_and_ends_as_its_subtest" (not run by docattest)
   ✓ L565 test: tests/test_unittest_report.py:60 declares "UnittestReport" > "test_a_subtest_case_ends_as_its_subtest_and_its_test_as_all_its_subtests" (not run by docattest)
   ✓ L567 test: tests/test_unittest_report.py:75 declares "UnittestReport" > "test_a_subtest_case_its_test_never_reached_ends_as_its_test_or_did_not_run" (not run by docattest)
-  ✓ L577 test: tests/test_mutants.py:50 declares "Mutants" > "test_a_surface_symbol_is_changed_where_its_re_export_is_declared" (not run by docattest)
-  ✓ L577 test: tests/test_mutants.py:58 declares "Mutants" > "test_a_surface_reads_its_unexported_constants_from_source" (not run by docattest)
-  ✓ L578 test: tests/test_literal_edits.py:145 declares "Displays" > "test_nested_literals_come_in_source_order_and_dict_keys_are_literals" (not run by docattest)
-  ✓ L578 test: tests/test_mutants.py:74 declares "Mutants" > "test_at_most_limit_edits_the_first_in_source_order" (not run by docattest)
-  ✓ L580 test: tests/test_literal_edits.py:46 declares "Numbers" > "test_an_int_gains_one_written_in_decimal" (not run by docattest)
-  ✓ L580 test: tests/test_literal_edits.py:50 declares "Numbers" > "test_a_float_gains_one_written_as_python_writes_a_float" (not run by docattest)
-  ✓ L583 test: tests/test_literal_edits.py:75 declares "Strings" > "test_escapes_and_prefixes_are_kept" (not run by docattest)
-  ✓ L583 test: tests/test_literal_edits.py:82 declares "Strings" > "test_bytes_gain_x_too" (not run by docattest)
-  ✓ L583 test: tests/test_literal_edits.py:86 declares "Strings" > "test_a_triple_quoted_string_keeps_its_quotes" (not run by docattest)
-  ✓ L583 test: tests/test_literal_edits.py:92 declares "Strings" > "test_an_implicit_concatenation_is_one_literal_per_part" (not run by docattest)
-  ✓ L583 test: tests/test_literal_edits.py:102 declares "Strings" > "test_an_f_string_is_no_literal" (not run by docattest)
-  ✓ L584 test: tests/test_literal_edits.py:59 declares "Numbers" > "test_a_bool_is_flipped" (not run by docattest)
-  ✓ L586 test: tests/test_literal_edits.py:118 declares "Displays" > "test_a_list_offers_its_last_item_removed_before_its_items" (not run by docattest)
-  ✓ L586 test: tests/test_literal_edits.py:136 declares "Displays" > "test_a_single_item_leaves_an_empty_display_of_the_same_kind" (not run by docattest)
-  ✓ L587 test: tests/test_literal_edits.py:145 declares "Displays" > "test_nested_literals_come_in_source_order_and_dict_keys_are_literals" (not run by docattest)
-  ✓ L589 test: tests/test_literal_edits.py:65 declares "Numbers" > "test_none_and_ellipsis_are_left_alone" (not run by docattest)
-  ✓ L589 test: tests/test_literal_edits.py:62 declares "Numbers" > "test_an_annotation_is_not_the_value" (not run by docattest)
-  ✓ L589 test: tests/test_literal_edits.py:162 declares "Values" > "test_a_lambda_is_not_followed_but_a_call_is" (not run by docattest)
-  ✓ L591 test: tests/test_mutants.py:85 declares "Mutants" > "test_a_symbol_without_edits_says_why" (not run by docattest)
-  ✓ L593 test: tests/test_workers.py:156 declares "Bytecode" > "test_attested_code_writes_no_bytecode_into_the_project" (not run by docattest)
-  ✓ L603 example: every command printed what the block shows
-  ✓ L612 cases: README.md:612 set
-  ✓ L613 cases: README.md:613 not set
-  ✓ L614 cases: README.md:614 not set
-  ✓ L615 cases: README.md:615 not set
-  ✓ L621 fact: 5 code spans match IGNORED_NAMES
-  ✓ L622 fact: ", ".join(IGNORED_MARKERS) is pyvenv.cfg
-  ✓ L633 test: tests/test_running.py:258 declares "Running" > "test_without_fork_every_job_gets_its_own_process" (not run by docattest)
-results: 130 pass, 0 fail, 0 error, 0 skipped
-coverage: 2 living pages, 2 covered (130 attestations: 48 proofs, 0 of them weak, and 82 citations), 0 uncovered, 0 frozen
+  ✓ L570 test: tests/test_workers.py:156 declares "Bytecode" > "test_attested_code_writes_no_bytecode_into_the_project" (not run by docattest)
+  ✓ L580 example: every command printed what the block shows
+  ✓ L589 cases: README.md:589 set
+  ✓ L590 cases: README.md:590 not set
+  ✓ L591 cases: README.md:591 not set
+  ✓ L592 cases: README.md:592 not set
+  ✓ L598 fact: 5 code spans match IGNORED_NAMES
+  ✓ L599 fact: ", ".join(IGNORED_MARKERS) is pyvenv.cfg
+  ✓ L610 test: tests/test_running.py:258 declares "Running" > "test_without_fork_every_job_gets_its_own_process" (not run by docattest)
+results: 111 pass, 0 fail, 0 error, 0 skipped
+coverage: 2 living pages, 2 covered (111 attestations: 48 proofs, 0 of them weak, and 63 citations), 0 uncovered, 0 frozen
 warning: README.md:382 citation names `total`, which `test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses` does not use
 warning: README.md:382 citation names `total`, which `test_where_uncovered_and_impact_count_the_names_an_initializer_uses` does not use
 surface default: 29 symbols, 6 attested, 23 not attested by any page
-  docattest_python.language → docattest_python/language.py (docattest 0.4.1)
+  docattest_python.language → docattest_python/language.py (docattest 0.5.0)
 surface launcher: 25 symbols, 8 attested, 17 not attested by any page
-  docattest.launcher → docattest/launcher.py (docattest 0.4.1)
+  docattest.launcher → docattest/launcher.py (docattest 0.5.0)
 surface shop: 13 symbols, 3 attested, 10 not attested by any page
   shoplib → tests/fixture/src/shoplib/__init__.py (shoplib 1.2.3)
 snapshots: none
@@ -754,14 +702,7 @@ README.md
   ✓ L177 example: every proof on the sample page held in a copy of testdata/fixture
   ✓ L232 example: every command printed what the block shows
   ✓ L286 fact: 3 code spans match Hello().IgnoredNames
-  ✓ L298 test: internal/analysis/mutants_test.go:124 declares "TestMutantsChangeTheLiteralsOfAValue" (not run by docattest)
-  ✓ L300 test: internal/analysis/mutants_test.go:196 declares "TestARemovedItemLeavesAListGoReads" (not run by docattest)
-  ✓ L303 test: internal/analysis/mutants_test.go:124 declares "TestMutantsChangeTheLiteralsOfAValue" (not run by docattest)
-  ✓ L306 test: internal/analysis/mutants_test.go:124 declares "TestMutantsChangeTheLiteralsOfAValue" (not run by docattest)
-  ✓ L306 test: internal/analysis/mutants_test.go:157 declares "TestMutantsSayWhyAValueHasNone" (not run by docattest)
-  ✓ L308 test: internal/analysis/mutants_test.go:157 declares "TestMutantsSayWhyAValueHasNone" (not run by docattest)
-  ✓ L308 test: internal/analysis/mutants_test.go:268 declares "TestMutantsAreOfTheProjectsOwnFiles" (not run by docattest)
-  ✓ L316 test: internal/analysis/affected_test.go:26 declares "TestAffectedFollowsWhatNamesResolveTo" (not run by docattest)
+  ✓ L295 test: internal/analysis/affected_test.go:26 declares "TestAffectedFollowsWhatNamesResolveTo" (not run by docattest)
 docs/cases.md
   ✓ L30 test: endtoend/cells_test.go:66 declares "TestCodeSpansAreWhatAColumnFactCompares" (not run by docattest)
   ✓ L32 example: printed the output it states
@@ -859,8 +800,8 @@ docs/facts.md
   ✓ L293 test: internal/running/vet_test.go:40 declares "TestCleanDocsHelpersSayNothing" (not run by docattest)
   ✓ L296 example: every command printed what the block shows
   ✓ L310 test: endtoend/endtoend_test.go:169 declares "TestTheIndexAndTheAudit" (not run by docattest)
-results: 133 pass, 0 fail, 0 error, 0 skipped
-coverage: 6 living pages, 6 covered (133 attestations: 44 proofs, 0 of them weak, and 89 citations), 0 uncovered, 0 frozen
+results: 126 pass, 0 fail, 0 error, 0 skipped
+coverage: 6 living pages, 6 covered (126 attestations: 44 proofs, 0 of them weak, and 82 citations), 0 uncovered, 0 frozen
 surface default: 15 symbols, 2 attested, 13 not attested by any page
   github.com/docattest/docattest/adapters/go/internal/language → internal/language (github.com/docattest/docattest/adapters/go)
 surface launcher: 10 symbols, 6 attested, 4 not attested by any page
@@ -870,6 +811,8 @@ surface protocoldata: 5 symbols, 5 attested, 0 not attested by any page
 snapshots: none
 ok
 
-projects: 5 checked, 0 failed
-ok
+failures:
+  docs/agents.md:71 example: AssertionError: expected /run `npx --no docattest check`/, got '# Our rules\n\nUse tabs.\n\n<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that'... 926 more characters (assert.match, block line 20)
+projects: 5 checked, 1 failed (.)
+FAILED
 stderr empty

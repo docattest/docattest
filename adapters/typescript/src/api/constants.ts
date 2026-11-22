@@ -24,19 +24,14 @@ export type ChangeType = (typeof CHANGE_TYPES)[number];
 
 /** Subcommands of the `docattest` command line. */
 export const COMMANDS = [
+  'init',
   'check',
+  'audit',
+  'impact',
+  'explain',
   'where',
   'uncovered',
-  'index',
-  'explain',
   'refresh',
-  'skill',
-  'audit',
-  'inventory',
-  'impact',
-  'mutate',
-  'hooks',
-  'agents',
   'conformance',
 ] as const;
 

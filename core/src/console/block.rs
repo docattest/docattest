@@ -27,64 +27,48 @@ pub struct ConsolePlace<'a> {
 /// Run the block's commands, in order; the first that does not print or exit as the block
 /// shows fails it, and the rest do not run.
 pub fn run_console(attestation: &Attestation, console: &Console, place: &ConsolePlace) -> Outcome {
-    run_console_captured(attestation, console, place).0
-}
-
-/// Like [`run_console`], also returning the normalized lines printed by each step that
-/// ran and passed (for `mutate` to test what the block's transcript actually checks).
-pub fn run_console_captured(
-    attestation: &Attestation,
-    console: &Console,
-    place: &ConsolePlace,
-) -> (Outcome, Vec<Vec<String>>) {
     let verdict = |status: Status, message: &str| {
         Outcome::new(&attestation.page, attestation.line, Kind::Example, status, message)
     };
-    let stop = |status: Status, message: &str| (verdict(status, message), Vec::new());
     if cfg!(windows) {
-        return stop(Status::Skipped, "console blocks run with sh, which docattest does not use on Windows");
+        return verdict(
+            Status::Skipped,
+            "console blocks run with sh, which docattest does not use on Windows",
+        );
     }
     let key = format!("{}:{}", place.root.join(&attestation.page).display(), attestation.line);
     let Some(chain) = running_with(key) else {
-        return stop(Status::Error, "this block is already running: a command in it checks this page again");
+        return verdict(
+            Status::Error,
+            "this block is already running: a command in it checks this page again",
+        );
     };
     let written = console.cwd.as_deref().unwrap_or(".");
     let cwd = place.root.join(written);
     if !cwd.is_dir() {
-        return stop(Status::Error, &format!("cwd={written} is not a directory of the project"));
+        return verdict(Status::Error, &format!("cwd={written} is not a directory of the project"));
     }
     let prelude = match docattest_function() {
         Ok(prelude) => prelude,
-        Err(e) => return stop(Status::Error, &format!("cannot tell where docattest is: {e}")),
+        Err(e) => return verdict(Status::Error, &format!("cannot tell where docattest is: {e}")),
     };
     let adapter = place.adapters.iter().map(|(name, command)| (name.as_str(), command.clone()));
     let env: Vec<(&str, String)> = [(RUNNING_VARIABLE, chain)].into_iter().chain(adapter).collect();
     let shell = Shell { cwd: &cwd, timeout: Duration::from_millis(place.timeout_ms), env: &env };
-    let mut captured = Vec::with_capacity(console.steps.len());
     for step in &console.steps {
         let ran = match shell.run(&format!("{prelude}{}", step.command)) {
             Ok(ran) => ran,
-            Err(e) => return stop(Status::Error, &format!("{} cannot be run: {e}", at(step))),
+            Err(e) => return verdict(Status::Error, &format!("{} cannot be run: {e}", at(step))),
         };
         if let Some(failure) = judge(step, &ran, place.timeout_ms) {
             let failed = verdict(Status::Fail, &failure.message);
-            let outcome = match failure.comparison {
+            return match failure.comparison {
                 Some((expected, actual)) => failed.with_comparison(&expected, &actual),
                 None => failed,
             };
-            return (outcome, Vec::new());
         }
-        captured.push(printed_lines(&ran));
     }
-    (verdict(Status::Pass, "every command printed what the block shows"), captured)
-}
-
-fn printed_lines(ran: &Ran) -> Vec<String> {
-    let Ran::Exited { stdout, stderr, .. } = ran else { return Vec::new() };
-    let mut printed = output_lines(stdout);
-    printed.extend(output_lines(stderr));
-    drop_trailing_blanks(&mut printed);
-    printed
+    verdict(Status::Pass, "every command printed what the block shows")
 }
 
 /// The blocks whose commands are running, this one added; None when it is among them already.

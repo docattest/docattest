@@ -35,8 +35,8 @@ CI, cache a directory of its own to install into: cargo then finds that version 
 
 ```yaml
 - uses: actions/cache@v4
-  with: { path: ~/.docattest, key: "docattest-0.4.1-${{ runner.os }}-${{ runner.arch }}" }
-- run: cargo install docattest --version 0.4.1 --locked --root ~/.docattest
+  with: { path: ~/.docattest, key: "docattest-0.5.0-${{ runner.os }}-${{ runner.arch }}" }
+- run: cargo install docattest --version 0.5.0 --locked --root ~/.docattest
 - run: echo "$HOME/.docattest/bin" >> "$GITHUB_PATH"
 ```
 
@@ -60,7 +60,7 @@ docs/pricing.md
 facts and tables, as cargo's `--features` takes them (`shop/eu`); else each has its default
 features. <!-- test: tests/workspace.rs > "the_generated_crate_is_built_with_the_features_it_is_given" -->
 
-`docattest hooks install`, `hooks install --git` and `agents install` write down a command
+`docattest init --hooks`, `init --git-hook` and `init --agents` write down a command
 that runs docattest: `docattest` when that is what a shell finds on the `PATH`, else this
 command by its full path. <!-- test: src/launcher.rs > "tests" > "the_hand_over_adds_only_what_is_not_set" -->
 To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher: COMMAND_VARIABLE -->
@@ -642,33 +642,6 @@ your crate for that one command. When the compiler cannot answer (your crate doe
 compile, or a later Rust writes a format this adapter does not read), `check` says so as
 a warning and the surface keeps the exports its source declares.
 
-## What `mutate` changes
-
-`docattest mutate` asks how strong a proof is by changing what it reads and running it
-again. In Rust code, what it changes is the value a constant or a static is declared with:
-each literal of it, one at a time, where it is written.
-
-- An integer gains one, written in decimal, with its suffix kept (`3u32 → 4u32`,
-  `0x1F → 32`). <!-- test: src/analysis/mutants/literals.rs > "tests" > "an_integer_gains_one_in_decimal_and_keeps_its_suffix" -->
-  A float gains one, written as Rust reads a float (`1.5 → 2.5`, `1e3 → 1001.0`). <!-- test: src/analysis/mutants/literals.rs > "tests" > "a_float_gains_one_written_as_a_float_and_keeps_its_suffix" -->
-- A string gains an `x` before its closing quote, and keeps its prefix and escapes:
-  `"shop" → "shopx"`, `b"ab" → b"abx"`, `r#"hi"# → r#"hix"#`. <!-- test: src/analysis/mutants/literals.rs > "tests" > "a_string_gains_an_x_before_its_closing_quote_whatever_its_kind" -->
-- A boolean flips; a character and a byte are left alone. <!-- test: src/analysis/mutants/literals.rs > "tests" > "a_character_and_a_byte_are_left_alone_and_a_boolean_flips" -->
-- A slice (`&[…]`) or a `vec![…]` first loses its last item (`"LOG_LEVEL" removed`), then
-  its items change. <!-- test: src/analysis/mutants/literals.rs > "tests" > {"a_slice_loses_its_last_item_before_its_items_change", "a_last_item_goes_with_the_comma_before_it_and_an_only_one_with_its_trailing_comma", "a_vec_loses_its_last_item_as_a_slice_does"} -->
-  An array whose length its type writes (`[T; N]`, `&[T; N]`) loses no item, which would
-  not compile. <!-- test: src/analysis/mutants/literals.rs > "tests" > "an_array_whose_length_its_type_writes_loses_no_item" -->
-- The fields of tuples and of struct literals are values too, at any depth. <!-- test: src/analysis/mutants/literals.rs > "tests" > "the_fields_of_tuples_and_structs_are_values_at_any_depth" -->
-  A closure or a function the value declares runs only when called, and is left alone,
-  as are types and the length of `[x; N]`. <!-- test: src/analysis/mutants/literals.rs > "tests" > "what_runs_when_called_types_and_lengths_are_left_alone" -->
-
-The constant changed is the one the surface's module declares under the name, or the one
-a `pub use` of it leads to. <!-- test: tests/mutants.rs > "a_reexported_constant_is_changed_where_it_is_declared" -->
-A constant a fact reads from source is changed as well. <!-- test: tests/mutants.rs > "a_constant_read_from_source_is_found_without_a_surface" -->
-A function, a struct or any other item that is not a value has nothing to change, and
-neither has a constant whose value is a call or another constant's name: `mutate` says
-which of these a symbol is. <!-- test: tests/mutants.rs > "a_symbol_without_edits_says_why" -->
-
 ## Limits
 
 - `impact` has no type information, and errs towards naming too much. It cuts a crate
@@ -680,14 +653,14 @@ which of these a symbol is. <!-- test: tests/mutants.rs > "a_symbol_without_edit
   wrote that a change removes is not named: the earlier revision is not compiled.
 - What a glob re-export of another crate brings is not listed. A surface is a module of
   a crate of your workspace, not of a dependency.
-- `audit` and `inventory` see a surface's exports that are values, and not what lies
+- `audit` and `audit --inventory` see a surface's exports that are values, and not what lies
   below them (the fields of a struct, the values of a map), and on the default surface
   what the setup module's `pub` functions that take no arguments return. They do not see
   the constants a fact reads from source, so nothing of the binary `shopd`. In the
   fixture, `Money` is a struct and `rates` takes the regions:
 
   ```console check cwd=tests/fixture
-  $ docattest inventory
+  $ docattest audit --inventory
   DEFAULT_CURRENCY  →  EUR
   MAX_DISCOUNT  →  50
   TAX_RATES  →  [NL, DE, FR]
@@ -703,12 +676,8 @@ which of these a symbol is. <!-- test: tests/mutants.rs > "a_symbol_without_edit
   run: the cfg is then added to it. <!-- test: tests/helpers.rs > "a_cargo_config_that_takes_the_place_of_build_rustflags_leaves_docs_helpers_out" -->
 - Two docattest runs on one project at the same time share `target/docattest/<hash>`:
   cargo makes one build wait for the other, but they may rewrite each other's generated
-  files. Copies of a project that share its target directory, as `mutate` makes them, are
+  files. Copies of a project that share its target directory are
   workspaces of their own, and each builds in a directory of its own. <!-- test: src/project.rs > "tests" > "copies_of_a_project_that_share_a_target_directory_build_apart" -->
-- `mutate` knows a value's type only as far as its declaration writes it. A slice in a
-  struct literal whose field is an array reference (`&[T; N]`) is offered without its last
-  item, and an integer at its type's largest value is offered one more: neither compiles,
-  and the proof that reads it fails for that reason.
 - This adapter has not been run on Windows.
 
 ## Working on this package

@@ -1,8 +1,8 @@
 # snapshots
-# recorded from: what adopting it in a Go service found
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
 === check
 exit 1
-stdout 14 lines
+stdout 18 lines
 docs/.snapshots/bad.json
   ! L1 snapshot: snapshot bad is not valid JSON: EOF while parsing an object at line 1 column 1
 docs/.snapshots/date.json
@@ -16,5 +16,9 @@ coverage: 1 living page, 1 covered (1 attestation: 1 proof, 0 of them weak, and 
 surface default: 3 symbols, 1 attested, 2 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 snapshots: ok (2509 days, stale)
+failures:
+  docs/.snapshots/bad.json:1 snapshot: snapshot bad is not valid JSON: EOF while parsing an object at line 1 column 1
+  docs/.snapshots/date.json:1 snapshot: snapshot date: fetchedAt "nope" is not a date
+  docs/.snapshots/shape.json:1 snapshot: snapshot shape needs "source" (string), "fetchedAt" (YYYY-MM-DD) and "data"
 FAILED
 stderr empty

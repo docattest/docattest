@@ -1,22 +1,24 @@
 # failing: no surfaces configured
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
-exit 1
-stdout empty
-stderr 1 line
-docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
+exit 0
+stdout 1 line
+audit: nothing to suggest
+stderr empty
 === audit --json
-exit 1
-stdout empty
-stderr 1 line
-docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
-=== inventory
-exit 1
-stdout empty
-stderr 1 line
-docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
-=== inventory --json
-exit 1
-stdout empty
-stderr 1 line
-docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
+exit 0
+stdout 3 lines
+{
+  "suggestions": []
+}
+stderr empty
+=== audit --inventory
+exit 0
+stdout 1 line
+inventory: nothing matches
+stderr empty
+=== audit --inventory --json
+exit 0
+stdout 1 line
+[]
+stderr empty

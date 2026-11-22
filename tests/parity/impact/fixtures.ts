@@ -181,7 +181,7 @@ export const hook = (command: string): { type: string; command: string } => ({
 export const settings = (value: string | Fields): TextFiles => ({
   '.claude/settings.json': typeof value === 'string' ? value : JSON.stringify(value),
 });
-export const INSTALL: readonly CaseStep[] = [['hooks', 'install']];
+export const INSTALL: readonly CaseStep[] = [['init', '--hooks', '--no-audit']];
 
 // A project inside the project, with a config of its own.
 export const nested: TextFiles = {

@@ -1,5 +1,5 @@
 # threshold: block with two lines each side
-# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 1 line
@@ -12,7 +12,7 @@ stdout 3 lines
   "suggestions": []
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 4 lines
 T  →  first line here
@@ -20,7 +20,7 @@ second line here
 
 inventory: 1 value
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 7 lines
 [

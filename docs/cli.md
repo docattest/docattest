@@ -136,8 +136,10 @@ read from the directory of the config that lists it. Otherwise the member's adap
 as every adapter is: from `DOCATTEST_ADAPTER_<NAME>`, else `docattest-adapter-<name>` on
 the `PATH`.
 
-Members are checked only by `check` without pages. Named pages are the top project's, and
-`where`, `index`, `impact` and the other commands answer for one project: the one they run in.
+Members are checked by `check` without pages, or individually from the repository root with
+`--member <dir>` (which uses the member's configured `adapterCommand` and accepts optional
+page paths inside that member). Named pages without `--member` are the top project's, and
+`where`, `impact` and the other commands answer for one project: the one they run in.
 
 ```ts check
 import { spawnSync } from 'node:child_process';
@@ -167,7 +169,24 @@ assert.equal(all.status, 1);
 const lines = all.stdout.split('\n');
 assert.ok(lines.includes('member packages/good (typescript)'));
 assert.match(all.stdout, /member packages\/stale \(typescript\)\ndocs\/n\.md\n {2}✗ L1 fact: expected 4, got 3 from N/);
-assert.deepEqual(lines.slice(-3, -1), ['projects: 3 checked, 1 failed (packages/stale)', 'FAILED']);
+assert.deepEqual(lines.slice(-5, -1), [
+  'failures:',
+  '  packages/stale/docs/n.md:1 fact: expected 4, got 3 from N',
+  'projects: 3 checked, 1 failed (packages/stale)',
+  'FAILED',
+]);
+
+// --member checks just one member (using its configured adapterCommand) and accepts page paths.
+const onlyStale = docattest('.', 'check', '--member', 'packages/stale', 'docs/n.md');
+assert.equal(onlyStale.status, 1);
+assert.doesNotMatch(onlyStale.stdout, /packages\/good/);
+assert.match(onlyStale.stdout, /expected 4, got 3 from N/);
+const onlyGood = docattest('.', 'check', '--member', 'packages/good');
+assert.equal(onlyGood.status, 0);
+assert.doesNotMatch(onlyGood.stdout, /packages\/stale/);
+const missingMember = docattest('.', 'check', '--member', 'packages/missing');
+assert.equal(missingMember.status, 1);
+assert.match(missingMember.stderr, /unknown member "packages\/missing"/);
 
 // With --quiet, a member that needs nothing is left out.
 const quiet = docattest('.', 'check', '--quiet');
@@ -291,10 +310,10 @@ assert.equal(unknown.status, 1);
 assert.match(unknown.stderr, /--report takes <format>=<path>, where <format> is junit or codequality, not "xml=out.xml"/);
 ```
 
-## The agent skill installs into the project
+## `init --skill` installs a single-language agent skill
 
-`docattest skill install` copies the docattest skill, a condensed version of the authoring
-pattern for coding agents, to where the agent looks for skills. That place is the agent's
+`docattest init --skill` writes a lean, language-specific authoring skill tailored to the
+project's `adapter` where the agent looks for skills. That place is the agent's
 [descriptor](agents.md)'s to say: for Claude Code, the agent meant when `--agent` names no
 other, it is `.claude/skills/docattest/SKILL.md` in the project. With `--global` it goes
 to `~/.claude/skills/docattest/SKILL.md` instead. Installing again is a
@@ -308,57 +327,35 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
-const packaged = readFileSync(new URL('../protocol/agents/SKILL.md', import.meta.url), 'utf8');
 const root = mkdtempSync(join(tmpdir(), 'docattest-skill-'));
 const home = mkdtempSync(join(tmpdir(), 'docattest-home-'));
+writeFileSync(join(root, 'docattest.config.json'), JSON.stringify({ pages: ['README.md'], adapter: 'typescript' }));
 const docattest = (...args: string[]) =>
   spawnSync(process.execPath, [cli, ...args, '--root', root], { encoding: 'utf8', env: { ...process.env, HOME: home, USERPROFILE: home } });
 // ---cut---
 const installed = join(root, '.claude/skills/docattest/SKILL.md');
 
-assert.equal(docattest('skill', 'install').status, 0);
-assert.equal(readFileSync(installed, 'utf8'), packaged);
-assert.equal(docattest('skill', 'install').status, 0);
+assert.equal(docattest('init', '--skill').status, 0);
+const text = readFileSync(installed, 'utf8');
+assert.match(text, /## TypeScript specifics/);
+assert.doesNotMatch(text, /## Go specifics/);
+assert.equal(docattest('init', '--skill').status, 0);
 
 writeFileSync(installed, 'my own notes');
-const refused = docattest('skill', 'install');
+const refused = docattest('init', '--skill');
 assert.equal(refused.status, 1);
 assert.match(refused.stderr, /--force/);
 assert.equal(readFileSync(installed, 'utf8'), 'my own notes');
 
-assert.equal(docattest('skill', 'install', '--force').status, 0);
-assert.equal(readFileSync(installed, 'utf8'), packaged);
+assert.equal(docattest('init', '--skill', '--force').status, 0);
+assert.equal(readFileSync(installed, 'utf8'), text);
 
-assert.equal(docattest('skill', 'install', '--global').status, 0);
-assert.equal(readFileSync(join(home, '.claude/skills/docattest/SKILL.md'), 'utf8'), packaged);
+assert.equal(docattest('init', '--skill', '--global').status, 0);
+assert.equal(readFileSync(join(home, '.claude/skills/docattest/SKILL.md'), 'utf8'), text);
 
 // The same text, where another agent looks for it.
-assert.equal(docattest('skill', 'install', '--agent', 'gemini').status, 0);
-assert.equal(readFileSync(join(root, '.gemini/skills/docattest/SKILL.md'), 'utf8'), packaged);
-```
-
-## `mutate` says how strong each proof is
-
-`docattest mutate [pages…]` runs each proof that passes again against changes to what it
-reads, one at a time, and says which some change makes fail (killed), which none does
-(survived) and which nothing could be changed for (not mutated). With `--base <ref>`, only
-the proofs affected by the diff since `<ref>` (and proofs added or edited on changed pages)
-are mutated. It exits `0`, or `1` with `--fail-on-survivors` when a proof survived;
-[mutate](mutate.md) has the whole story.
-
-```ts check
-import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-
-const at = (path: string) => fileURLToPath(new URL(`../${path}`, import.meta.url));
-const cli = at('adapters/typescript/dist/launcher/main.js');
-const docattest = (...args: string[]) =>
-  spawnSync(process.execPath, [cli, ...args], { cwd: at('docs/.fixtures/mutate'), encoding: 'utf8' });
-// ---cut---
-const measured = docattest('mutate', '--json');
-assert.equal(measured.status, 0);
-assert.deepEqual(JSON.parse(measured.stdout).summary, { proofs: 5, killed: 3, survived: 1, notMutated: 1, mutants: 5, stillborn: 0 });
-assert.equal(docattest('mutate', '--fail-on-survivors').status, 1);
+assert.equal(docattest('init', '--skill', '--agent', 'gemini').status, 0);
+assert.equal(readFileSync(join(root, '.gemini/skills/docattest/SKILL.md'), 'utf8'), text);
 ```
 
 ## `conformance` holds a language adapter to the protocol
@@ -384,4 +381,64 @@ const adapter = [process.execPath, at('adapters/typescript/dist/protocol/main.js
 const run = docattest('conformance', 'run', at('adapters/typescript/conformance.json'), '--', ...adapter);
 assert.equal(run.status, 0);
 assert.match(run.stdout, /conformance \(typescript\): 14 of 14 checks hold/);
+```
+
+## `init` writes `docattest.config.json` and runs an initial gap scan
+
+`docattest init` detects the project's language adapter, its Markdown and MDX pages, and its
+default surface when one is present, writes `docattest.config.json` with its `$schema`
+URL, and runs an initial `audit` scan to reveal candidate facts and drift right away
+(`--no-audit` skips the scan). It refuses to overwrite an existing config unless `--force`
+is given (or integration flags such as `--agents`, `--hooks`, `--git-hook`, `--skill` are
+passed to wire tools into an existing project); `--dry-run` prints what it would write
+without touching the disk.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const makeDir = (prefix: string) => mkdtempSync(join(tmpdir(), prefix));
+const put = (root: string, rel: string, text: string) => {
+  mkdirSync(join(root, rel, '..'), { recursive: true });
+  writeFileSync(join(root, rel), text);
+};
+const docattest = (cwd: string, ...args: string[]) =>
+  spawnSync(process.execPath, [cli, ...args], { cwd, encoding: 'utf8' });
+// ---cut---
+const tsRoot = makeDir('docattest-init-ts-');
+put(tsRoot, 'package.json', JSON.stringify({ name: 'demo', type: 'module' }));
+put(tsRoot, 'tsconfig.json', '{}');
+put(tsRoot, 'src/index.ts', 'export const PORT = 8080;');
+put(tsRoot, 'README.md', '# Demo\n\nListens on port `8080`.\n');
+put(tsRoot, 'docs/guide.mdx', '# Guide\n');
+
+const preview = docattest(tsRoot, 'init', '--dry-run');
+assert.equal(preview.status, 0);
+assert.equal(existsSync(join(tsRoot, 'docattest.config.json')), false);
+
+const created = docattest(tsRoot, 'init');
+assert.equal(created.status, 0);
+assert.match(created.stdout, /PORT/);
+const cfg = JSON.parse(readFileSync(join(tsRoot, 'docattest.config.json'), 'utf8'));
+assert.equal(cfg.$schema, 'https://docattest.github.io/docattest/schema/config.json');
+assert.equal(cfg.adapter, 'typescript');
+assert.deepEqual(cfg.pages, ['README.md', 'docs/**/*.mdx']);
+assert.deepEqual(cfg.surfaces, { default: './src/index.ts' });
+
+// Running init again refuses without --force.
+assert.equal(docattest(tsRoot, 'init').status, 1);
+assert.equal(docattest(tsRoot, 'init', '--force', '--no-audit').status, 0);
+
+// A repo with no language manifest gets the core-only "none" adapter and no surfaces.
+const opsRoot = makeDir('docattest-init-ops-');
+put(opsRoot, 'README.md', '# Ops\n');
+put(opsRoot, 'Dockerfile', 'FROM scratch\nUSER 10001\n');
+assert.equal(docattest(opsRoot, 'init', '--no-audit').status, 0);
+const opsCfg = JSON.parse(readFileSync(join(opsRoot, 'docattest.config.json'), 'utf8'));
+assert.equal(opsCfg.adapter, 'none');
+assert.equal(opsCfg.surfaces, undefined);
 ```

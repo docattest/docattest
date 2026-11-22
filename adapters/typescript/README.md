@@ -52,7 +52,8 @@ platform), `docattest` says so and how to fix it.
 
 ## Quick start
 
-1. Add `docattest.config.json` at the project root:
+1. Run `npx docattest init` at the project root to generate `docattest.config.json` and run
+   an initial gap audit (or create it by hand):
 
    ```json
    {
@@ -65,7 +66,8 @@ platform), `docattest` says so and how to fix it.
    The *surface* is your public API: what pages may import (under your package's name) and
    what facts may read.
 
-2. Add proofs to a page, for example `docs/retries.md`:
+2. Run `npx docattest audit --apply` to bind matching claims automatically, or add proofs to
+   a page such as `docs/retries.md`:
 
    ````md check fixture=docs/.fixtures/acme-client as=docs/retries.md
    A failing call is tried at most `5` times. <!-- fact: RETRY_DEFAULTS.maxAttempts -->
@@ -82,7 +84,7 @@ platform), `docattest` says so and how to fix it.
 
 | Proof | You write | It fails when |
 |---|---|---|
-| **Example** | a block tagged `ts check` (runs) or `ts compile` (type-checks only); `js`, `tsx` and friends too | it throws, an `assert` fails, or it no longer type-checks |
+| **Example** | a block tagged `ts check` (runs, with `assert` or trailing `// Output:` / `// Unordered output:` comments) or `ts compile` (type-checks only); `js`, `tsx` and friends too | it throws, an `assert` or expected output fails, or it no longer type-checks |
 | **Fact** | `<!-- fact: expression -->` after a value, or above a list, table column or code block | the value on the page differs from `String(value)` of the expression |
 | **Cases** | `<!-- cases: runner -->` above a table, with the runner in your setup module | a row's expected result is not what the runner produces |
 | **Citation** | `<!-- test: test/retry.test.ts > "describe title" > "test title" -->` | the file no longer declares an `it` or `test` with that title |
@@ -174,23 +176,6 @@ private names. A module of the package exports such a value when the package's o
 modules use it. When the package's entry does not re-export it, that module can be a
 surface of its own (`"internal": "./src/caps.ts"`): facts read and attest the value there,
 and the package's API stays as it is. <!-- test: adapters/typescript/test/unit/language/run/facts.test.ts > "a value the package entry does not re-export" > "is read and attested on a surface of the module that exports it" -->
-
-### What `mutate` changes
-
-`docattest mutate` changes what a proof reads and runs it again. In TypeScript it changes
-the literals of the value a symbol is declared with, in the file that declares it, through
-any re-export of the surface. <!-- test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts > "symbolMutants" > "resolves a surface's symbol through re-exports to the file that declares it" -->
-A constant a fact reads from source is changed where the surface's module declares it. <!-- test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts > "symbolMutants" > "finds a constant a fact reads from source, with its surface or without one" -->
-A number gains one (`8080 → 8081`, `-5 → -4`, `10n → 11n`). <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "adds one to a number, written as TypeScript reads a number" -->
-A string, or a template with nothing to fill in, gains an `x` before its closing quote,
-its quotes and escapes kept. <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "puts an x before the closing quote of a string, keeping its quotes and escapes" -->
-A boolean is flipped, and `null` and `undefined` stay as they are. <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "flips a boolean and leaves null and undefined alone" -->
-An array first loses its last item (`'LOG_LEVEL' removed`), then its items change. <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "removes an array's last item before changing its items" -->
-An array whose type is a tuple keeps its length. <!-- test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts > "symbolMutants" > "reads the value of a name that a type shares, and keeps the length of a tuple" -->
-Literals change at any depth, in source order, the string keys of objects among them, but
-nothing inside a function, a class or a type the value holds. <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "changes literals at any depth, string keys among them, in source order" --> <!-- test: adapters/typescript/test/unit/language/syntax/literal-mutants.test.ts > "literalMutants" > "changes nothing inside a function, a class or a type the value holds" -->
-A function, a class, a type or an enum has nothing to change, nor has a value with no
-literal of its own, such as what a call returns. <!-- test: adapters/typescript/test/unit/language/mutants/symbol-mutants.test.ts > "symbolMutants" > "says why a symbol has no edits: a function, no literal, or not found" -->
 
 ### Named facts: the setup module
 

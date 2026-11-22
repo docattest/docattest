@@ -9,10 +9,11 @@ directory this file is in:
   the file you edited. It prints the documented exports your change affects and every page
   and line that describes them, and prints nothing when there are none. Read the lines it
   lists and bring them up to date with the code.
-- **Before you finish**, run `{docattest} check`. If it fails, make the page true again or
-  fix the code. Never delete or weaken a claim to make it pass.
+- **Before you finish**, run `{docattest} check --quiet` (or `{docattest} check <page>` /
+  `--member <dir>` while iterating). If it fails, make the page true again or fix the code.
+  Never delete or weaken a claim to make it pass.
 
 `{docattest} where <symbol>` lists the pages that describe an export.
 
-This section is written by `{docattest} agents install`, which replaces everything between
+This section is written by `{docattest} init --agents`, which replaces everything between
 the two markers. Write your own notes outside them.

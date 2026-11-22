@@ -1,5 +1,5 @@
 # unit: depth bound and cycles
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -26,7 +26,7 @@ stdout 15 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 10 lines
 Object.keys(DEEP)  →  [a]
@@ -40,7 +40,7 @@ Object.keys(LOOP)  →  [items, self]
 LOOP.items  →  [y1, y2]
 inventory: 9 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 76 lines
 [

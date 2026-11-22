@@ -1,8 +1,14 @@
-/** A surface as written in the config: a bare specifier, a `./path`, or both. */
+/** A surface entry passed to an adapter: a bare specifier, a `./path`, or both. */
 export type SurfaceEntry = string | { import: string; path: string };
+
+/** A surface as written in `docattest.config.json`. */
+export type ConfigSurfaceEntry =
+  string | { path: string; import?: string | undefined; internal?: boolean | undefined };
 
 /** The contents of `docattest.config.json`. */
 export interface Config {
+  /** JSON Schema URI for editor completion and validation. */
+  $schema?: string | undefined;
   /** Globs of pages to check. */
   pages: string[];
   /** Globs of pages that are listed but never parsed. */
@@ -14,12 +20,12 @@ export interface Config {
   prose?: string[] | undefined;
   /** Globs of source files whose doc comments may hold examples. */
   sources?: string[] | undefined;
-  /** Surfaces by name; `default` is required. */
-  surfaces: Record<string, SurfaceEntry>;
+  /** Surfaces by name. Optional for core-only or surface-free configs. */
+  surfaces?: Record<string, ConfigSurfaceEntry> | undefined;
   /** The setup module: case runners and named facts. */
   setup?: string | undefined;
   snapshots?: { dir: string; maxAgeDays?: number | undefined } | undefined;
-  adapter: 'typescript';
+  adapter?: string | undefined;
   runtime?: { timeoutMs?: number | undefined; workers?: number | undefined } | undefined;
   /** Info-string words added by a docs renderer (e.g. `twoslash`), accepted and ignored. */
   ignoreTags?: string[] | undefined;

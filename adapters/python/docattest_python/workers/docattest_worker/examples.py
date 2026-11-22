@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
+
 from .asserts import compile_attested, run_code
 from .channel import Channel
 from .environment import Environment
 from .failures import describe_error, failure_message
 from .jobs import BlockJob, ContinuedBlock
 from .messages import Verdict
+from .output import compare_output, expected_output
 
 
 def run_example(job: BlockJob, env: Environment, channel: Channel) -> None:
@@ -18,13 +22,34 @@ def run_example(job: BlockJob, env: Environment, channel: Channel) -> None:
     if broken:
         channel.post({"t": "verdict", "verdict": {"status": "fail", "message": broken}})
         return
+    want = expected_output(source)
+    buf = io.StringIO()
     try:
-        run_code(compile_attested(source, filename), namespace)
+        if want is not None:
+            with contextlib.redirect_stdout(buf):
+                run_code(compile_attested(source, filename), namespace)
+        else:
+            run_code(compile_attested(source, filename), namespace)
     except BaseException as err:  # noqa: BLE001 - whatever the block raised is its verdict
         verdict: Verdict = {**describe_error(err, filename, source), "status": "fail"}
     else:
-        verdict = completed(env, job["weak"], "all assertions held")
+        if want is not None:
+            verdict = _completed_output(env, buf.getvalue(), want)
+        else:
+            verdict = completed(env, job["weak"], "all assertions held")
     channel.post({"t": "verdict", "verdict": verdict})
+
+
+def _completed_output(env: Environment, got: str, want: object) -> Verdict:
+    from .output import ExpectedOutput
+
+    if env.strays:
+        return {
+            "status": "fail",
+            "message": "unhandled error from attested code: " + "; ".join(env.strays),
+        }
+    assert isinstance(want, ExpectedOutput)
+    return compare_output(got, want)
 
 
 def completed(env: Environment, weak: bool, held: str) -> Verdict:

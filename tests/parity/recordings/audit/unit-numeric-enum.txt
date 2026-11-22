@@ -1,5 +1,5 @@
 # unit: numeric enum
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -26,7 +26,7 @@ stdout 15 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 8 lines
 Object.keys(Color).filter((k) => Number.isNaN(Number(k)))  →  [Red, Green, Blue]
@@ -38,7 +38,7 @@ Color.Green  →  1
 Color.Blue  →  2
 inventory: 7 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 42 lines
 [

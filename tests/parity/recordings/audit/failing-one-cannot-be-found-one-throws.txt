@@ -1,5 +1,5 @@
 # failing: one cannot be found, one throws
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 1
 stdout empty
@@ -10,13 +10,13 @@ exit 1
 stdout empty
 stderr 1 line
 docattest: audit: surface "gone" (no-such-package) not found
-=== inventory
+=== audit --inventory
 exit 1
 stdout empty
 stderr 1 line
-docattest: inventory: surface "gone" (no-such-package) not found
-=== inventory --json
+docattest: audit: surface "gone" (no-such-package) not found
+=== audit --inventory --json
 exit 1
 stdout empty
 stderr 1 line
-docattest: inventory: surface "gone" (no-such-package) not found
+docattest: audit: surface "gone" (no-such-package) not found

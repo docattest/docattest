@@ -56,7 +56,7 @@
      "outputs": {
       "check": {
        "command": "npx docattest check",
-       "stdout": "docs/retries.md\n  ✗ L5 example: AssertionError: expected 'ok', got undefined (assert.equal, block line 2)\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✗ L5 example: AssertionError: expected 'ok', got undefined (assert.equal, block line 2)\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nfailures:\n  docs/retries.md:5 example: AssertionError: expected 'ok', got undefined (assert.equal, block line 2)\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       }
@@ -96,7 +96,7 @@
      "outputs": {
       "check": {
        "command": "npx docattest check",
-       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✗ L10 fact: expected 3, got 5 from RETRY.maxAttempts\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✗ L10 fact: expected 3, got 5 from RETRY.maxAttempts\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nfailures:\n  docs/retries.md:10 fact: expected 3, got 5 from RETRY.maxAttempts\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       }
@@ -129,7 +129,7 @@
      "outputs": {
       "check": {
        "command": "npx docattest check",
-       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✗ L10 fact: expected 5, got 3 from RETRY.maxAttempts\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✗ L10 fact: expected 5, got 3 from RETRY.maxAttempts\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nfailures:\n  docs/retries.md:10 fact: expected 5, got 3 from RETRY.maxAttempts\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       }
@@ -169,7 +169,7 @@
      "outputs": {
       "check": {
        "command": "npx docattest check",
-       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✗ L25 cases: docs/retries.md:25 third try: AssertionError: expected '800', got '600' (assert.equal)\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✗ L25 cases: docs/retries.md:25 third try: AssertionError: expected '800', got '600' (assert.equal)\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nfailures:\n  docs/retries.md:25 cases: docs/retries.md:25 third try: AssertionError: expected '800', got '600' (assert.equal)\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       }
@@ -202,7 +202,7 @@
      "outputs": {
       "check": {
        "command": "npx docattest check",
-       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✗ L25 cases: docs/retries.md:25 third try: AssertionError: expected '600', got '800' (assert.equal)\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✗ L25 cases: docs/retries.md:25 third try: AssertionError: expected '600', got '800' (assert.equal)\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nfailures:\n  docs/retries.md:25 cases: docs/retries.md:25 third try: AssertionError: expected '600', got '800' (assert.equal)\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       }
@@ -242,7 +242,7 @@
      "outputs": {
       "check": {
        "command": "npx docattest check",
-       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ! L27 test: test/retry.test.ts declares no test \"throws the last error\"; tests there: \"retry\" > \"rethrows\"\nresults: 6 pass, 0 fail, 1 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ! L27 test: test/retry.test.ts declares no test \"throws the last error\"; tests there: \"retry\" > \"rethrows\"\nresults: 6 pass, 0 fail, 1 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nfailures:\n  docs/retries.md:27 test: test/retry.test.ts declares no test \"throws the last error\"; tests there: \"retry\" > \"rethrows\"\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       }
@@ -275,7 +275,7 @@
      "outputs": {
       "check": {
        "command": "npx docattest check",
-       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ! L27 test: test/retry.test.ts declares no test \"rethrows\"; tests there: \"retry\" > \"throws the last error\"\nresults: 6 pass, 0 fail, 1 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✓ L10 fact: RETRY.maxAttempts is 3\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ! L27 test: test/retry.test.ts declares no test \"rethrows\"; tests there: \"retry\" > \"throws the last error\"\nresults: 6 pass, 0 fail, 1 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nfailures:\n  docs/retries.md:27 test: test/retry.test.ts declares no test \"rethrows\"; tests there: \"retry\" > \"throws the last error\"\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       }
@@ -316,13 +316,13 @@
      "outputs": {
       "check": {
        "command": "npx docattest check",
-       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✗ L10 fact: expected 3, got 5 from RETRY.maxAttempts\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✗ L10 fact: expected 3, got 5 from RETRY.maxAttempts\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nfailures:\n  docs/retries.md:10 fact: expected 3, got 5 from RETRY.maxAttempts\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       },
       "check-base": {
        "command": "npx docattest check --base HEAD",
-       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✗ L10 fact: expected 3, got 5 from RETRY.maxAttempts\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nchanges since the base: none\nFAILED\n",
+       "stdout": "docs/retries.md\n  ✓ L5 example: all assertions held\n  ✗ L10 fact: expected 3, got 5 from RETRY.maxAttempts\n  ✓ L14 fact: 2 items match ENV_KEYS\n  ✓ L23 cases: docs/retries.md:23 first try\n  ✓ L24 cases: docs/retries.md:24 second try\n  ✓ L25 cases: docs/retries.md:25 third try\n  ✓ L27 test: test/retry.test.ts:5 declares \"retry\" > \"throws the last error\" (not run by docattest)\nresults: 6 pass, 1 fail, 0 error, 0 skipped\ncoverage: 1 living page, 1 covered (7 attestations: 6 proofs, 0 of them weak, and 1 citation), 0 uncovered, 0 frozen\nsurface default: 5 symbols, 4 attested, 1 not attested by any page\n  acme-client → src/index.ts (acme-client@1.0.0)\nsnapshots: none\nchanges since the base: none\nfailures:\n  docs/retries.md:10 fact: expected 3, got 5 from RETRY.maxAttempts\nFAILED\n",
        "stderr": "",
        "exitCode": 1
       }
@@ -395,7 +395,7 @@
        "exitCode": 0
       },
       "index": {
-       "command": "npx docattest index",
+       "command": "npx docattest where",
        "stdout": "ENV_KEYS\n  docs/retries.md:14 fact  The client reads these variables:\nRETRY\n  docs/retries.md:10 fact  Tried at most `3` times.\nbackoff\n  docs/retries.md:20 cases  The wait doubles each time.\nretry\n  docs/retries.md:5 example  A call that works returns its value unchanged.\n  docs/retries.md:27 test  A call that keeps failing throws the last error.\n",
        "stderr": "",
        "exitCode": 0
@@ -407,7 +407,7 @@
        "exitCode": 0
       },
       "inventory": {
-       "command": "npx docattest inventory REGION",
+       "command": "npx docattest audit --inventory REGION",
        "stdout": "ENV_KEYS  →  [API_TOKEN, REGION]\ninventory: 1 value\n",
        "stderr": "",
        "exitCode": 0
@@ -500,7 +500,7 @@
     "0": {
      "outputs": {
       "install": {
-       "command": "npx docattest hooks install --git",
+       "command": "npx docattest init --git-hook",
        "stdout": "docattest hooks: added /work/acme-client/.git/hooks/pre-commit\n  pre-commit: npx --no docattest check --quiet || exit 1\n",
        "stderr": "",
        "exitCode": 0
@@ -513,13 +513,13 @@
       }
      },
      "written": {
-      ".git/hooks/pre-commit": "#!/bin/sh\n# docattest: the documentation is checked against the code before each commit.\n# Written by `docattest hooks install --git`; delete this file to undo it.\nnpx --no docattest check --quiet || exit 1\n"
+      ".git/hooks/pre-commit": "#!/bin/sh\n# docattest: the documentation is checked against the code before each commit.\n# Written by `docattest init --git-hook`; delete this file to undo it.\nnpx --no docattest check --quiet || exit 1\n"
      }
     },
     "1": {
      "outputs": {
       "install": {
-       "command": "npx docattest hooks install --git",
+       "command": "npx docattest init --git-hook",
        "stdout": "docattest hooks: added /work/acme-client/.git/hooks/pre-commit\n  pre-commit: npx --no docattest check --quiet || exit 1\n",
        "stderr": "",
        "exitCode": 0
@@ -532,7 +532,7 @@
       }
      },
      "written": {
-      ".git/hooks/pre-commit": "#!/bin/sh\n# docattest: the documentation is checked against the code before each commit.\n# Written by `docattest hooks install --git`; delete this file to undo it.\nnpx --no docattest check --quiet || exit 1\n"
+      ".git/hooks/pre-commit": "#!/bin/sh\n# docattest: the documentation is checked against the code before each commit.\n# Written by `docattest init --git-hook`; delete this file to undo it.\nnpx --no docattest check --quiet || exit 1\n"
      }
     }
    }
@@ -562,19 +562,19 @@
     "0": {
      "outputs": {
       "agents-install": {
-       "command": "npx docattest agents install",
+       "command": "npx docattest init --agents",
        "stdout": "docattest agents: added to /work/acme-client/AGENTS.md\n",
        "stderr": "",
        "exitCode": 0
       },
       "hooks-install": {
-       "command": "npx docattest hooks install",
+       "command": "npx docattest init --hooks",
        "stdout": "docattest hooks: added to /work/acme-client/.claude/settings.json\n  PostToolUse (Edit|Write): npx --no docattest impact --hook\n  Stop: npx --no docattest check --hook\n",
        "stderr": "",
        "exitCode": 0
       },
       "skill-install": {
-       "command": "npx docattest skill install",
+       "command": "npx docattest init --skill",
        "stdout": "docattest skill installed /work/acme-client/.claude/skills/docattest/SKILL.md\n",
        "stderr": "",
        "exitCode": 0
@@ -595,26 +595,26 @@
       }
      },
      "written": {
-      "AGENTS.md": "<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that is no longer true. Whatever agent you are, do these two things, from the\ndirectory this file is in:\n\n- **After you edit source code**, run `npx --no docattest impact --file <path>` with the path of\n  the file you edited. It prints the documented exports your change affects and every page\n  and line that describes them, and prints nothing when there are none. Read the lines it\n  lists and bring them up to date with the code.\n- **Before you finish**, run `npx --no docattest check`. If it fails, make the page true again or\n  fix the code. Never delete or weaken a claim to make it pass.\n\n`npx --no docattest where <symbol>` lists the pages that describe an export.\n\nThis section is written by `npx --no docattest agents install`, which replaces everything between\nthe two markers. Write your own notes outside them.\n<!-- docattest:end -->\n",
+      "AGENTS.md": "<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that is no longer true. Whatever agent you are, do these two things, from the\ndirectory this file is in:\n\n- **After you edit source code**, run `npx --no docattest impact --file <path>` with the path of\n  the file you edited. It prints the documented exports your change affects and every page\n  and line that describes them, and prints nothing when there are none. Read the lines it\n  lists and bring them up to date with the code.\n- **Before you finish**, run `npx --no docattest check --quiet` (or `npx --no docattest check <page>` /\n  `--member <dir>` while iterating). If it fails, make the page true again or fix the code.\n  Never delete or weaken a claim to make it pass.\n\n`npx --no docattest where <symbol>` lists the pages that describe an export.\n\nThis section is written by `npx --no docattest init --agents`, which replaces everything between\nthe two markers. Write your own notes outside them.\n<!-- docattest:end -->\n",
       ".claude/settings.json": "{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Edit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"npx --no docattest impact --hook\"\n          }\n        ]\n      }\n    ],\n    \"Stop\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"npx --no docattest check --hook\"\n          }\n        ]\n      }\n    ]\n  }\n}\n"
      }
     },
     "1": {
      "outputs": {
       "agents-install": {
-       "command": "npx docattest agents install",
+       "command": "npx docattest init --agents",
        "stdout": "docattest agents: added to /work/acme-client/AGENTS.md\n",
        "stderr": "",
        "exitCode": 0
       },
       "hooks-install": {
-       "command": "npx docattest hooks install",
+       "command": "npx docattest init --hooks",
        "stdout": "docattest hooks: added to /work/acme-client/.claude/settings.json\n  PostToolUse (Edit|Write): npx --no docattest impact --hook\n  Stop: npx --no docattest check --hook\n",
        "stderr": "",
        "exitCode": 0
       },
       "skill-install": {
-       "command": "npx docattest skill install",
+       "command": "npx docattest init --skill",
        "stdout": "docattest skill installed /work/acme-client/.claude/skills/docattest/SKILL.md\n",
        "stderr": "",
        "exitCode": 0
@@ -635,7 +635,7 @@
       }
      },
      "written": {
-      "AGENTS.md": "<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that is no longer true. Whatever agent you are, do these two things, from the\ndirectory this file is in:\n\n- **After you edit source code**, run `npx --no docattest impact --file <path>` with the path of\n  the file you edited. It prints the documented exports your change affects and every page\n  and line that describes them, and prints nothing when there are none. Read the lines it\n  lists and bring them up to date with the code.\n- **Before you finish**, run `npx --no docattest check`. If it fails, make the page true again or\n  fix the code. Never delete or weaken a claim to make it pass.\n\n`npx --no docattest where <symbol>` lists the pages that describe an export.\n\nThis section is written by `npx --no docattest agents install`, which replaces everything between\nthe two markers. Write your own notes outside them.\n<!-- docattest:end -->\n",
+      "AGENTS.md": "<!-- docattest:begin -->\n## Documentation that is checked (docattest)\n\nThe documentation of this project carries its own proof: examples that run, values read\nfrom the code, tables whose rows run. `npx --no docattest check` runs every proof and fails at the\npage and line that is no longer true. Whatever agent you are, do these two things, from the\ndirectory this file is in:\n\n- **After you edit source code**, run `npx --no docattest impact --file <path>` with the path of\n  the file you edited. It prints the documented exports your change affects and every page\n  and line that describes them, and prints nothing when there are none. Read the lines it\n  lists and bring them up to date with the code.\n- **Before you finish**, run `npx --no docattest check --quiet` (or `npx --no docattest check <page>` /\n  `--member <dir>` while iterating). If it fails, make the page true again or fix the code.\n  Never delete or weaken a claim to make it pass.\n\n`npx --no docattest where <symbol>` lists the pages that describe an export.\n\nThis section is written by `npx --no docattest init --agents`, which replaces everything between\nthe two markers. Write your own notes outside them.\n<!-- docattest:end -->\n",
       ".claude/settings.json": "{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Edit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"npx --no docattest impact --hook\"\n          }\n        ]\n      }\n    ],\n    \"Stop\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"npx --no docattest check --hook\"\n          }\n        ]\n      }\n    ]\n  }\n}\n"
      }
     }

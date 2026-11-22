@@ -298,6 +298,11 @@ impl Analysis {
         format!("\"{what}\" did not resolve ({why}); examples and facts that use it fail")
     }
 
+    /// Whether any surface is configured.
+    pub(crate) fn has_surfaces(&self) -> bool {
+        !self.surfaces.is_empty()
+    }
+
     /// Why a fact or a walk of a surface cannot go on, or `None` when it can.
     pub(crate) fn not_found(&self, name: &str) -> Option<String> {
         let Some(surface) = self.surface(name) else {

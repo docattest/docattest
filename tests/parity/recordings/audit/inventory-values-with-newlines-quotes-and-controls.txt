@@ -1,5 +1,5 @@
 # inventory: values with newlines, quotes and controls
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 1 line
@@ -12,12 +12,12 @@ stdout 3 lines
   "suggestions": []
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout json
 "ITEMS  →  [a, b, c\nd, ,  spaced , \"q\"]\nObject.keys(OBJ)  →  [a b, c-d]\nObject.values(OBJ)  →  [v 1, v,2]\nOBJ['a b']  →  v 1\nOBJ['c-d']  →  v,2\nT  →  line one\nline \"two\"\n\ttabbed \\ back\u0001 end\ninventory: 6 values\n"
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout json
 "[\n  {\n    \"surface\": \"default\",\n    \"expression\": \"ITEMS\",\n    \"value\": \"a, b,c\\nd,, spaced ,\\\"q\\\"\",\n    \"items\": [\n      \"a, b\",\n      \"c\\nd\",\n      \"\",\n      \" spaced \",\n      \"\\\"q\\\"\"\n    ]\n  },\n  {\n    \"surface\": \"default\",\n    \"expression\": \"Object.keys(OBJ)\",\n    \"value\": \"a b,c-d\",\n    \"items\": [\n      \"a b\",\n      \"c-d\"\n    ]\n  },\n  {\n    \"surface\": \"default\",\n    \"expression\": \"Object.values(OBJ)\",\n    \"value\": \"v 1,v,2\",\n    \"items\": [\n      \"v 1\",\n      \"v,2\"\n    ]\n  },\n  {\n    \"surface\": \"default\",\n    \"expression\": \"OBJ['a b']\",\n    \"value\": \"v 1\"\n  },\n  {\n    \"surface\": \"default\",\n    \"expression\": \"OBJ['c-d']\",\n    \"value\": \"v,2\"\n  },\n  {\n    \"surface\": \"default\",\n    \"expression\": \"T\",\n    \"value\": \"line one\\nline \\\"two\\\"\\n\\ttabbed \\\\ back\\u0001 end\"\n  }\n]\n"

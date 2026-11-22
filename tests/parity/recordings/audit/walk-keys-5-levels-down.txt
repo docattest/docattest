@@ -1,5 +1,5 @@
 # walk: keys 5 levels down
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 3 lines
@@ -26,7 +26,7 @@ stdout 15 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 11 lines
 Object.keys(DEEP)  →  [l0]
@@ -41,7 +41,7 @@ DEEP.l0.l1.l2.l3.l4.k2  →  2
 DEEP.l0.l1.l2.l3.l4.k3  →  3
 inventory: 10 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 77 lines
 [

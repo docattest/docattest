@@ -4,6 +4,52 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-11-22
+
+### Added
+
+- `docattest init`: detects language, pages and default surface, writes `docattest.config.json`
+  (with `$schema`), runs an initial gap audit by default (`--no-audit` or `--dry-run` to skip),
+  and wires integrations in one command via `--agents`, `--hooks [--local]`, `--git-hook`, and
+  `--skill [--global] [--force]`.
+- `docattest audit --apply` (`--include-drift`, `--dry-run`): inserts suggested directives
+  directly into `.md` and `.mdx` pages.
+- Core-only mode (`"adapter": "none"`, the default when `adapter` is omitted) and
+  surface-optional configs: check manifests, files, snapshots, `console check` blocks, citations,
+  or standalone examples without a language runtime or exported surface.
+- MDX support (`.mdx` pages with `{/* fact: ... */}` JSX comment directives and `md check`
+  preservation).
+- Published JSON Schema for `docattest.config.json` (`protocol/schema/config.json`, hosted at
+  `https://docattest.github.io/docattest/schema/config.json`).
+- Internal surfaces (`{ "path": "<file>", "internal": true }`): usable by `@name` facts,
+  `audit`, `impact`, and `where` while excluded from public API coverage in `check` and
+  `uncovered`.
+- Unified `Output:` / `Unordered output:` comment assertions on `check` blocks across
+  TypeScript, Python, Rust, and Go.
+- `docattest check --member <dir> [pages…]`: check a single configured member project (including
+  nested members) directly from a monorepo root using its configured `adapterCommand`.
+- Bottom-of-report `failures:` recap in mixed single-project and multi-project failing `check`
+  runs so failing `path:line` entries are not buried in long output.
+
+### Changed
+
+- Consolidated the CLI from 15 commands down to 9 (`init`, `check`, `audit`, `impact`,
+  `explain`, `where`, `uncovered`, `refresh`, `conformance`):
+  - `index` merged into `where` (no argument prints the full symbol → references map).
+  - `inventory` merged into `audit --inventory [text]`.
+  - `agents install`, `hooks install [--local] [--git]`, and `skill install [--global] [--force]`
+    absorbed into `init`.
+- `init --skill` now installs a lean, single-language `SKILL.md` tailored to the project's
+  `adapter` (~55 lines) instead of a multi-language reference, and `AGENTS.md` / `SKILL.md`
+  recommend `check --quiet`, targeted `<page>` / `--member`, and `<!-- test: ... -->` citations
+  for heavy integration scenarios.
+- Config validation now rejects `surfaces` when `adapter` is omitted or `"none"`.
+
+### Removed
+
+- Removed `docattest mutate`, the `mutants` adapter capability/RPC, and mutation testing code
+  across the core, protocol, conformance suite, and all four language adapters.
+
 ## [0.4.1] - 2026-11-21
 
 ### Added

@@ -5,9 +5,10 @@ title: Inventory: what a fact could read
 # Inventory: what a fact could read
 
 Finding a copied fact on a page is a reading task; knowing which expression reads it from
-the code is a lookup. `inventory` is the lookup: every value the surfaces offer, with the
-expression a fact would use, optionally only those whose expression or items contain a
-piece of text. An agent binding existing pages searches it instead of guessing.
+the code is a lookup. `docattest audit --inventory` (`project.inventory()` in code) is the
+lookup: every value the surfaces offer, with the expression a fact would use, optionally
+only those whose expression or items contain a piece of text. An agent binding existing
+pages searches it instead of guessing.
 
 ```ts check
 import { createProject } from 'docattest';
@@ -31,7 +32,7 @@ assert.deepEqual(await project.inventory('no such thing'), []);
 
 ## The setup module's named facts are called; nothing else is
 
-`inventory` and `audit` never call a function of a surface: a function may do anything, and
+`audit --inventory` and `audit` never call a function of a surface: a function may do anything, and
 what it returns is not known until it runs. The setup module's named facts are the
 exception, since they exist for pages to read. Each one that takes no arguments is called,
 and what it returns is read as an export is, with the expression a fact would use:

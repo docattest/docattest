@@ -184,3 +184,35 @@ const report = await createProject({
 assert.deepEqual(report.surfaces.default.unattested, []);
 assert.deepEqual(report.surfaces.server.unattested, ['LIMIT']);
 ```
+
+## Internal surfaces serve facts without public API coverage noise
+
+A package or entry point that is not part of your public API (such as a `cmd/` entrypoint or
+an internal module whose constants appear in docs) can be marked `{ "path": "…", "internal": true }`.
+Facts can read its symbols with `@name`, while `check` and `uncovered` leave it out of
+public API coverage so you never need an `undocumented` allowlist for internals.
+
+```ts check
+import { createProject } from 'docattest';
+
+const project = createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({
+      pages: ['docs/**/*.md'],
+      surfaces: {
+        default: './src/index.ts',
+        internal_cli: { path: './src/cli.ts', internal: true },
+      },
+      adapter: 'typescript',
+    }),
+    'src/index.ts': 'export const LIMIT = 3;',
+    'src/cli.ts': 'export const PORT = 8080;\nexport const SECRET_FLAG = true;',
+    'docs/app.md': 'Limit `3`. <!-- fact: LIMIT -->\n\nPort `8080`. <!-- fact @internal_cli: PORT -->',
+  },
+});
+
+const report = await project.check();
+assert.equal(report.exitCode, 0);
+assert.deepEqual(Object.keys(report.surfaces), ['default']);
+assert.deepEqual(await project.uncovered('internal_cli'), []);
+```

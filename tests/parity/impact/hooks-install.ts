@@ -8,16 +8,16 @@ export const hooksInstall: ImpactCase[] = [
     name: 'hooks install: no settings file',
     files: {},
     steps: [
-      ['hooks', 'install'],
-      ['hooks', 'install'],
+      ['init', '--hooks', '--no-audit'],
+      ['init', '--hooks'],
     ],
   },
   {
     name: 'hooks install: no settings file, by --root',
     files: { 'sub/x': '' },
     steps: [
-      ['hooks', 'install', '--root', 'sub'],
-      ['hooks', 'install', '--root', '__ROOT__/sub/'],
+      ['init', '--hooks', '--no-audit', '--root', 'sub'],
+      ['init', '--hooks', '--root', '__ROOT__/sub/'],
     ],
   },
   { name: 'hooks install: an empty object', files: settings('{}'), steps: INSTALL },
@@ -160,20 +160,19 @@ export const hooksInstall: ImpactCase[] = [
     name: 'hooks install: usage',
     files: {},
     steps: [
-      ['hooks'],
-      ['hooks', 'uninstall'],
-      ['hooks', 'install', 'x'],
-      ['hooks', 'install', '--json', '--quiet'],
+      ['init', '--local'],
+      ['init', '--hooks', '--local', '--git-hook'],
+      ['init', '--hooks', '--no-audit', '--json', '--quiet'],
     ],
   },
   {
     name: 'hooks install --local',
     files: {},
     steps: [
-      ['hooks', 'install', '--local'],
-      ['hooks', 'install', '--local'],
-      ['hooks', 'install', '--local', '--git'],
-      ['hooks', 'install', '--local', '--agent', 'cursor'],
+      ['init', '--hooks', '--local', '--no-audit'],
+      ['init', '--hooks', '--local'],
+      ['init', '--hooks', '--local', '--git-hook'],
+      ['init', '--hooks', '--local', '--agent', 'cursor'],
     ],
   },
   {
@@ -182,7 +181,7 @@ export const hooksInstall: ImpactCase[] = [
     prepare: (_root, git) => {
       repo(git);
     },
-    steps: [['hooks', 'install', '--local']],
+    steps: [['init', '--hooks', '--local', '--no-audit']],
   },
   {
     name: 'hooks install --local in a git repository with gitignore',
@@ -190,12 +189,12 @@ export const hooksInstall: ImpactCase[] = [
     prepare: (_root, git) => {
       repo(git);
     },
-    steps: [['hooks', 'install', '--local']],
+    steps: [['init', '--hooks', '--local', '--no-audit']],
   },
 ];
 
 export const hooksInstallGit: ImpactCase[] = [
-  // ------------------------------------------------------------------ hooks install --git
+  // ------------------------------------------------------------------ init --git-hook
   {
     name: 'hooks install --git: a new hook',
     files: { x: '' },
@@ -203,10 +202,10 @@ export const hooksInstallGit: ImpactCase[] = [
       repo(git);
     },
     steps: [
-      ['hooks', 'install', '--git'],
-      ['hooks', 'install', '--git'],
-      ['hooks', 'install', '--git', '--agent', 'cursor'],
-      ['hooks', 'install'],
+      ['init', '--git-hook', '--no-audit'],
+      ['init', '--git-hook'],
+      ['init', '--git-hook', '--agent', 'cursor'],
+      ['init', '--hooks'],
     ],
   },
   {
@@ -218,12 +217,12 @@ export const hooksInstallGit: ImpactCase[] = [
     },
     steps: [
       {
-        args: ['hooks', 'install', '--git'],
+        args: ['init', '--git-hook', '--no-audit'],
         cwd: 'packages/my lib',
         env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' },
       },
-      { args: ['hooks', 'install', '--git', '--root', 'packages/b'] },
-      ['hooks', 'install', '--git'],
+      { args: ['init', '--git-hook', '--no-audit', '--root', 'packages/b'] },
+      ['init', '--git-hook', '--no-audit'],
     ],
   },
   {
@@ -233,8 +232,8 @@ export const hooksInstallGit: ImpactCase[] = [
       repo(git);
     },
     steps: [
-      ['hooks', 'install', '--git', '--root', 'packages/b'],
-      ['hooks', 'install', '--git'],
+      ['init', '--git-hook', '--no-audit', '--root', 'packages/b'],
+      ['init', '--git-hook', '--no-audit'],
     ],
   },
   ...Object.entries({
@@ -255,16 +254,16 @@ export const hooksInstallGit: ImpactCase[] = [
       put({ 'my hooks/pre-commit': text });
     },
     steps: [
-      ['hooks', 'install', '--git'],
-      ['hooks', 'install', '--git'],
+      ['init', '--git-hook', '--no-audit'],
+      ['init', '--git-hook'],
     ],
   })),
   {
     name: 'hooks install --git: outside a repository',
     files: { x: '' },
     steps: [
-      ['hooks', 'install', '--git'],
-      ['hooks', 'install', '--git', '--root', 'gone'],
+      ['init', '--git-hook', '--no-audit'],
+      ['init', '--git-hook', '--no-audit', '--root', 'gone'],
     ],
   },
   {
@@ -276,9 +275,9 @@ export const hooksInstallGit: ImpactCase[] = [
       put({ 'h/pre-commit/x': '' });
     },
     steps: [
-      ['hooks', 'install', '--git'],
+      ['init', '--git-hook', '--no-audit'],
       {
-        args: ['hooks', 'install', '--git'],
+        args: ['init', '--git-hook'],
         env: {
           GIT_CONFIG_COUNT: '1',
           GIT_CONFIG_KEY_0: 'core.hooksPath',

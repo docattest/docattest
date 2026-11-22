@@ -1,11 +1,15 @@
 # agents install, then again
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== agents install
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
+=== init --agents --no-audit
 exit 0
-stdout 1 line
+stdout 5 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest agents: added to <root>/AGENTS.md
 stderr empty
-file AGENTS.md 20 lines
+file AGENTS.md 21 lines
 <!-- docattest:begin -->
 ## Documentation that is checked (docattest)
 
@@ -18,25 +22,35 @@ directory this file is in:
   the file you edited. It prints the documented exports your change affects and every page
   and line that describes them, and prints nothing when there are none. Read the lines it
   lists and bring them up to date with the code.
-- **Before you finish**, run `npx --no docattest check`. If it fails, make the page true again or
-  fix the code. Never delete or weaken a claim to make it pass.
+- **Before you finish**, run `npx --no docattest check --quiet` (or `npx --no docattest check <page>` /
+  `--member <dir>` while iterating). If it fails, make the page true again or fix the code.
+  Never delete or weaken a claim to make it pass.
 
 `npx --no docattest where <symbol>` lists the pages that describe an export.
 
-This section is written by `npx --no docattest agents install`, which replaces everything between
+This section is written by `npx --no docattest init --agents`, which replaces everything between
 the two markers. Write your own notes outside them.
 <!-- docattest:end -->
-=== agents install
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --agents
 exit 0
 stdout 1 line
 docattest agents: already up to date in <root>/AGENTS.md
 stderr empty
-=== agents install
+=== init --agents
 exit 0
 stdout 1 line
 docattest agents: updated in <root>/AGENTS.md
 stderr empty
-file AGENTS.md 20 lines
+file AGENTS.md 21 lines
 <!-- docattest:begin -->
 ## Documentation that is checked (docattest)
 
@@ -49,15 +63,16 @@ directory this file is in:
   the file you edited. It prints the documented exports your change affects and every page
   and line that describes them, and prints nothing when there are none. Read the lines it
   lists and bring them up to date with the code.
-- **Before you finish**, run `./.venv/bin/docattest check`. If it fails, make the page true again or
-  fix the code. Never delete or weaken a claim to make it pass.
+- **Before you finish**, run `./.venv/bin/docattest check --quiet` (or `./.venv/bin/docattest check <page>` /
+  `--member <dir>` while iterating). If it fails, make the page true again or fix the code.
+  Never delete or weaken a claim to make it pass.
 
 `./.venv/bin/docattest where <symbol>` lists the pages that describe an export.
 
-This section is written by `./.venv/bin/docattest agents install`, which replaces everything between
+This section is written by `./.venv/bin/docattest init --agents`, which replaces everything between
 the two markers. Write your own notes outside them.
 <!-- docattest:end -->
-=== agents install
+=== init --agents
 exit 0
 stdout 1 line
 docattest agents: already up to date in <root>/AGENTS.md

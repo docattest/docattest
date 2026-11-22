@@ -12,7 +12,7 @@ use crate::attestations::placement::attested_from_above;
 use crate::config::matcher;
 use crate::files::glob::GlobMatcher;
 use crate::markdown::model::BlockKind;
-use crate::markdown::parse::parse_page;
+use crate::markdown::parse::parse_page_for;
 
 /// A fenced block of a Markdown page, tagged or not.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -158,7 +158,7 @@ impl<'a> Side<'a> {
         let text = || text.clone();
         let mut view = PageView::default();
         if self.markdown(page) {
-            let parsed = parse_page(&text()).map_err(|why| why.on(page))?;
+            let parsed = parse_page_for(page, &text()).map_err(|why| why.on(page))?;
             view.units = markdown_units(&parsed);
             view.from_above = (attested_from_above(&parsed).into_iter())
                 .filter_map(|(line, block)| Some((line, parsed.flow.get(block)?.start)))

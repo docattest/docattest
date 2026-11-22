@@ -1,8 +1,12 @@
 # hooks install: --agent antigravity
-# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
-=== hooks install --agent antigravity
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit --agent antigravity
 exit 0
-stdout 2 lines
+stdout 6 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.agents/hooks.json
   Stop: npx --no docattest check --hook --agent antigravity
 stderr empty
@@ -18,12 +22,21 @@ file .agents/hooks.json 10 lines
     ]
   }
 }
-=== hooks install --agent antigravity
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --hooks --agent antigravity
 exit 0
 stdout 1 line
 docattest hooks: already installed in <root>/.agents/hooks.json
 stderr empty
-=== hooks install --agent antigravity
+=== init --hooks --agent antigravity
 exit 0
 stdout 1 line
 docattest hooks: already installed in <root>/.agents/hooks.json

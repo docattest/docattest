@@ -1,8 +1,12 @@
 # hooks install: --agent codex
-# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
-=== hooks install --agent codex
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit --agent codex
 exit 0
-stdout 2 lines
+stdout 6 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.codex/hooks.json
   Stop: npx --no docattest check --hook --agent codex
 stderr empty
@@ -22,12 +26,21 @@ file .codex/hooks.json 14 lines
     ]
   }
 }
-=== hooks install --agent codex
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --hooks --agent codex
 exit 0
 stdout 1 line
 docattest hooks: already installed in <root>/.codex/hooks.json
 stderr empty
-=== hooks install --agent codex
+=== init --hooks --agent codex
 exit 0
 stdout 1 line
 docattest hooks: already installed in <root>/.codex/hooks.json

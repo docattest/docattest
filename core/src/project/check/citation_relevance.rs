@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 use crate::adapter::Language;
 use crate::api::attestation::{Attestation, Body};
 use crate::api::errors::Result;
-use crate::impact::mentions::code_spans_of;
+use crate::impact::mentions::code_spans_of_page;
 use crate::project::check::Symbols;
 use crate::project::state::State;
 use crate::report::{Outcome, Status};
@@ -94,7 +94,7 @@ fn passing_citations<'a>(chosen: &[&'a Attestation], results: &[Vec<Outcome>]) -
 }
 
 fn candidate_spans(claim: &str, all_exports: &[String]) -> Vec<String> {
-    let Some(spans) = code_spans_of(claim) else { return Vec::new() };
+    let Some(spans) = code_spans_of_page("claim.md", claim) else { return Vec::new() };
     spans
         .values()
         .into_iter()

@@ -44,6 +44,16 @@ impl std::fmt::Display for Positionless {
     }
 }
 
+/// Parse a Markdown or MDX page into the page model, preprocessing `.mdx` files first.
+pub fn parse_page_for(page: &str, text: &str) -> Result<Page, Positionless> {
+    if super::mdx::is_mdx(page) { parse_page(&super::mdx::preprocess(text)) } else { parse_page(text) }
+}
+
+/// The mdast tree of a Markdown or MDX page, preprocessing `.mdx` files first.
+pub fn parse_tree_for(page: &str, text: &str) -> Option<(String, Node)> {
+    if super::mdx::is_mdx(page) { parse_tree(&super::mdx::preprocess(text)) } else { parse_tree(text) }
+}
+
 /// Parse a Markdown page into the page model.
 pub fn parse_page(text: &str) -> Result<Page, Positionless> {
     let source = normalise_newlines(text);

@@ -21,14 +21,7 @@ export interface AdapterInfo {
 }
 
 /** The optional protocol methods (PROTOCOL.md §3): this adapter implements every one. */
-const CAPABILITIES: readonly string[] = [
-  'tests',
-  'runTests',
-  'observables',
-  'affected',
-  'display',
-  'mutants',
-];
+const CAPABILITIES: readonly string[] = ['tests', 'runTests', 'observables', 'affected', 'display'];
 
 type Handler = (params: Params) => unknown;
 interface Opened {
@@ -195,7 +188,6 @@ const SESSION_METHODS = new Map<string, SessionHandler>([
   ['observables', ({ session }, p) => session.observables(p.string('surface'))],
   ['affected', ({ session, files }, p) => session.affected(changeOf(files, p))],
   ['inCode', ({ session }, p) => session.inCode(p.strings('names'), p.strings('files'))],
-  ['mutants', ({ session }, p) => session.mutants(p.symbolRefs('symbols'), p.number('limit'))],
 ]);
 
 /** `files`: source files as `{ page, text }`. */

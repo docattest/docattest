@@ -292,9 +292,9 @@ rmSync(join(root, 'src/old.ts'));
 assert.equal(docattest('impact', '--file', join(root, 'src/old.ts')).status, 0);
 ```
 
-## `docattest hooks install` makes an agent run it without being asked
+## `docattest init --hooks` makes an agent run it without being asked
 
-`docattest hooks install` adds two hooks to the settings of a coding agent that has hooks:
+`docattest init --hooks` adds two hooks to the settings of a coding agent that has hooks:
 after the agent edits or writes a file, `docattest impact --hook` puts a brief of the
 edit's impact next to it, and before it stops, `docattest check --hook` sends it back to work
 once if a page no longer matches the code. Whatever the settings file already holds is kept,
@@ -316,7 +316,7 @@ const settings = join(root, '.claude', 'settings.json');
 mkdirSync(join(root, '.claude'));
 writeFileSync(settings, JSON.stringify({ permissions: { allow: ['Bash(npm test)'] } }));
 // ---cut---
-const first = docattest('hooks', 'install');
+const first = docattest('init', '--hooks', '--no-audit');
 assert.equal(first.status, 0);
 assert.match(first.stdout, /PostToolUse \(Edit\|Write\): npx --no docattest impact --hook/);
 
@@ -327,7 +327,7 @@ assert.deepEqual(installed.hooks, {
   Stop: [{ hooks: [{ type: 'command', command: 'npx --no docattest check --hook' }] }],
 });
 
-assert.match(docattest('hooks', 'install').stdout, /already installed/);
+assert.match(docattest('init', '--hooks').stdout, /already installed/);
 assert.deepEqual(JSON.parse(readFileSync(settings, 'utf8')), installed);
 ```
 

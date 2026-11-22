@@ -1,22 +1,17 @@
 # skill usage
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== skill
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --global
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest skill install [--agent <name or file>] [--global] [--force]
-=== skill remove
+docattest: --global requires --skill
+=== init --local
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest skill install [--agent <name or file>] [--global] [--force]
-=== skill install x
+docattest: --local requires --hooks
+=== init --hooks --local --git-hook
 exit 1
 stdout empty
 stderr 1 line
-docattest: usage: docattest skill install [--agent <name or file>] [--global] [--force]
-=== skill --global
-exit 1
-stdout empty
-stderr 1 line
-docattest: usage: docattest skill install [--agent <name or file>] [--global] [--force]
+docattest: --local cannot be used with --git-hook

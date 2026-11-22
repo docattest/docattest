@@ -116,9 +116,9 @@ export const STOPS: readonly Stop[] = [
     switches: [],
     commands: [
       docattest('where', 'where', 'RETRY'),
-      docattest('index', 'index'),
+      docattest('index', 'where'),
       docattest('uncovered', 'uncovered'),
-      docattest('inventory', 'inventory', 'REGION'),
+      docattest('inventory', 'audit', '--inventory', 'REGION'),
       docattest('audit', 'audit'),
     ],
     capture: [],
@@ -138,7 +138,7 @@ export const STOPS: readonly Stop[] = [
     given: [LIMIT_RAISED],
     switches: [LIMIT_ON_PAGE],
     commands: [
-      docattest('install', 'hooks', 'install', '--git'),
+      docattest('install', 'init', '--git-hook'),
       { id: 'commit', program: 'git', args: ['commit', '-am', 'Retry five times'] },
     ],
     capture: ['.git/hooks/pre-commit'],
@@ -148,9 +148,9 @@ export const STOPS: readonly Stop[] = [
     given: [LIMIT_RAISED],
     switches: [LIMIT_ON_PAGE],
     commands: [
-      docattest('agents-install', 'agents', 'install'),
-      docattest('hooks-install', 'hooks', 'install'),
-      docattest('skill-install', 'skill', 'install'),
+      docattest('agents-install', 'init', '--agents'),
+      docattest('hooks-install', 'init', '--hooks'),
+      docattest('skill-install', 'init', '--skill'),
       {
         id: 'impact-hook',
         program: 'docattest',

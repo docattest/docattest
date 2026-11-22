@@ -21,16 +21,11 @@
           <button type="button" class="command">npm install -D docattest typescript</button>
         </li>
         <li>
-          <b>Configure</b>
-          <pre><code>// docattest.config.json
-{
-  "pages": ["docs/**/*.md"],
-  "surfaces": { "default": "./src/index.ts" },
-  "adapter": "typescript"
-}</code></pre>
+          <b>Initialize &amp; scan</b>
+          <button type="button" class="command">npx docattest init</button>
         </li>
         <li>
-          <b>Prove a sentence</b>
+          <b>Bind matching claims (or add a proof)</b>
           <pre><code>Retried `5` times. &lt;!-- fact: RETRY.maxAttempts --&gt;</code></pre>
         </li>
         <li>
@@ -45,16 +40,11 @@
           <button type="button" class="command">pip install docattest</button>
         </li>
         <li>
-          <b>Configure</b>
-          <pre><code>// docattest.config.json
-{
-  "pages": ["docs/**/*.md"],
-  "surfaces": { "default": "shoplib" },
-  "adapter": "python"
-}</code></pre>
+          <b>Initialize &amp; scan</b>
+          <button type="button" class="command">docattest init</button>
         </li>
         <li>
-          <b>Prove a sentence</b>
+          <b>Bind matching claims (or add a proof)</b>
           <pre><code>Prices are in `EUR`. &lt;!-- fact: DEFAULT_CURRENCY --&gt;</code></pre>
         </li>
         <li>
@@ -71,16 +61,11 @@
           </button>
         </li>
         <li>
-          <b>Configure</b>
-          <pre><code>// docattest.config.json
-{
-  "pages": ["docs/**/*.md"],
-  "surfaces": { "default": "." },
-  "adapter": "go"
-}</code></pre>
+          <b>Initialize &amp; scan</b>
+          <button type="button" class="command">docattest init</button>
         </li>
         <li>
-          <b>Prove a sentence</b>
+          <b>Bind matching claims (or add a proof)</b>
           <pre><code>Prices are in `EUR`. &lt;!-- fact: DefaultCurrency --&gt;</code></pre>
         </li>
         <li>
@@ -92,20 +77,14 @@
       <ol class="setup-steps" id="setup-rs" role="tabpanel" hidden>
         <li>
           <b>Install</b>
-          <button type="button" class="command">cargo install --path adapters/rust</button>
+          <button type="button" class="command">cargo install docattest</button>
         </li>
         <li>
-          <b>Configure</b>
-          <pre><code>// docattest.config.json
-{
-  "pages": ["docs/**/*.md"],
-  "sources": ["src/**/*.rs"],
-  "surfaces": { "default": "shop" },
-  "adapter": "rust"
-}</code></pre>
+          <b>Initialize &amp; scan</b>
+          <button type="button" class="command">docattest init</button>
         </li>
         <li>
-          <b>Prove a sentence</b>
+          <b>Bind matching claims (or add a proof)</b>
           <pre><code>Prices are in `EUR`. &lt;!-- fact: DEFAULT_CURRENCY --&gt;</code></pre>
         </li>
         <li>

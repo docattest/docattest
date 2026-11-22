@@ -8,7 +8,6 @@ import os
 from ..analysis.surfaces import ConfiguredSurface, SurfaceAlias
 from ..attestations import Attestation, Cases, CasesRow, Example, Fact, TestCitation
 from ..language import Snippet, SourceText
-from ..session.mutants import MutatedSymbol
 from ..session.settings import SessionSettings
 from ..test_runs.outcome import RequestedTest
 from ..workers.docattest_worker.fields import Fields, MalformedMessage
@@ -44,10 +43,6 @@ class Params(Fields):
             RequestedTest(f.string("file"), tuple(f.strings("describes")), f.string("title"))
             for f in self.objects(name)
         ]
-
-    def mutated_symbols(self, name: str) -> list[MutatedSymbol]:
-        """``mutants``' symbols, each as ``symbols`` answered it."""
-        return [MutatedSymbol(f.string("name"), f.optional_string("surface")) for f in self.objects(name)]
 
     def base(self, name: str) -> dict[str, str | None]:
         """``affected``'s earlier texts: a map of strings, null for a file that was not there."""

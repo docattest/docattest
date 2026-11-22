@@ -147,7 +147,7 @@ pub(super) fn build(
         missing: verdict.missing,
         unexpected: verdict.unexpected,
         surface: surface.clone(),
-        directive: format!("<!-- fact{at}{column}: {expression} -->"),
+        directive: crate::markdown::mdx::format_directive(page, &format!("fact{at}{column}: {expression}")),
     }
 }
 

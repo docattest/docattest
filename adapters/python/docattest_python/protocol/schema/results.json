@@ -178,51 +178,6 @@
       "required": ["name"],
       "additionalProperties": false
     },
-    "SymbolMutants": {
-      "type": "object",
-      "description": "The edits that change the literals of one symbol's declaration, each alone; why there are none when there are none.",
-      "properties": {
-        "edits": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/MutantEdit"
-          }
-        },
-        "why": {
-          "description": "Present exactly when edits is empty: the symbol is a function, method, class or type (function); a value whose declaration holds no literal (noLiteral); or nothing the project's own files declare (notFound).",
-          "enum": ["function", "noLiteral", "notFound"]
-        }
-      },
-      "required": ["edits"],
-      "additionalProperties": false
-    },
-    "MutantEdit": {
-      "type": "object",
-      "description": "One change to one file: the bytes from start to end (UTF-8 offsets, end excluded) replaced by replacement.",
-      "properties": {
-        "path": {
-          "type": "string"
-        },
-        "start": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "end": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "replacement": {
-          "type": "string"
-        },
-        "description": {
-          "description": "What changes, as the language writes it: 8080 → 8081, \"shop\" → \"shopx\", 'LOG_LEVEL' removed.",
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "required": ["path", "start", "end", "replacement", "description"],
-      "additionalProperties": false
-    },
     "TestListing": {
       "description": "What a test file declares, or why it cannot be read.",
       "anyOf": [

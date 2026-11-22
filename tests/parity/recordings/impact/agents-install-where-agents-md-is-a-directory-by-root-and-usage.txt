@@ -1,16 +1,33 @@
 # agents install where AGENTS.md is a directory, by --root, and usage
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
-=== agents install
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
+=== init --agents --no-audit
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 1 line
 docattest: cannot read <root>/AGENTS.md: Is a directory (os error 21)
-=== agents install --root sub
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --agents --no-audit --root sub
 exit 0
-stdout 1 line
+stdout 5 lines
+docattest init: wrote <root>/sub/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest agents: added to <root>/sub/AGENTS.md
 stderr empty
-file sub/AGENTS.md 20 lines
+file sub/AGENTS.md 21 lines
 <!-- docattest:begin -->
 ## Documentation that is checked (docattest)
 
@@ -23,35 +40,30 @@ directory this file is in:
   the file you edited. It prints the documented exports your change affects and every page
   and line that describes them, and prints nothing when there are none. Read the lines it
   lists and bring them up to date with the code.
-- **Before you finish**, run `npx --no docattest check`. If it fails, make the page true again or
-  fix the code. Never delete or weaken a claim to make it pass.
+- **Before you finish**, run `npx --no docattest check --quiet` (or `npx --no docattest check <page>` /
+  `--member <dir>` while iterating). If it fails, make the page true again or fix the code.
+  Never delete or weaken a claim to make it pass.
 
 `npx --no docattest where <symbol>` lists the pages that describe an export.
 
-This section is written by `npx --no docattest agents install`, which replaces everything between
+This section is written by `npx --no docattest init --agents`, which replaces everything between
 the two markers. Write your own notes outside them.
 <!-- docattest:end -->
-=== agents install --root gone
+file sub/docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --agents --no-audit --root gone
 exit 1
 stdout empty
 stderr 1 line
-docattest: cannot write <root>/gone/AGENTS.md: No such file or directory (os error 2)
-=== agents
-exit 1
-stdout empty
-stderr 1 line
-docattest: usage: docattest agents install
-=== agents remove
-exit 1
-stdout empty
-stderr 1 line
-docattest: usage: docattest agents install
-=== agents install x
-exit 1
-stdout empty
-stderr 1 line
-docattest: usage: docattest agents install
-=== agents install --agent nobody --json
+docattest: cannot write <root>/gone/docattest.config.json: No such file or directory (os error 2)
+=== init --agents --agent nobody --json
 exit 1
 stdout empty
 stderr 1 line

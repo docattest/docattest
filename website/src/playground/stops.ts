@@ -113,7 +113,7 @@ export const PAGE_STOPS: readonly PageStop[] = [
     id: 'find',
     group: 'Questions',
     name: 'Lookups',
-    shows: 'where, index, uncovered, inventory, audit',
+    shows: 'where, uncovered, audit --inventory, audit',
     who: SNOOP,
     task:
       'Nothing to change here. Press each command to ask what the docs say about the code. ' +
@@ -159,7 +159,7 @@ export const PAGE_STOPS: readonly PageStop[] = [
     who: BOLT,
     task:
       'The code already says 5 and the docs say 3. ' +
-      'Run the three installs, then play the agent: edit a file, then try to stop.',
+      'Run the three init flags, then play the agent: edit a file, then try to stop.',
     commands: [
       { id: 'agents-install', reveals: 'AGENTS.md' },
       { id: 'hooks-install', reveals: '.claude/settings.json' },

@@ -1,6 +1,6 @@
 # adapter not found: index
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== index --json
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== where --json
 exit 1
 stdout empty
 stderr 1 line

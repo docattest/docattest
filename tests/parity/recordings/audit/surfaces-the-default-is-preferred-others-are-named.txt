@@ -1,5 +1,5 @@
 # surfaces: the default is preferred, others are named
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 6 lines
@@ -62,7 +62,7 @@ stdout 48 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 6 lines
 ONLY_DEFAULT  →  [d1, d2]
@@ -72,7 +72,7 @@ SHARED  →  [s1, s2, s3]
 @server SHARED  →  [s1, s2, s3]
 inventory: 5 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 45 lines
 [

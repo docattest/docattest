@@ -82,15 +82,22 @@ impl Checked {
         top.into_iter().chain(members).chain([verdict(self.exit_code()).to_string()]).collect()
     }
 
-    /// How many projects were checked and which failed, the top one as `.`; then the verdict.
+    /// Failing entries across all projects (when any failed), how many projects were checked
+    /// and which failed (the top one as `.`), then the verdict.
     fn summary(&self) -> String {
+        let mut failures = self.top.failure_entries(None);
+        for member in &self.members {
+            failures.extend(member.report.failure_entries(Some(&member.path)));
+        }
+        let recap =
+            if failures.is_empty() { String::new() } else { format!("failures:\n{}\n", failures.join("\n")) };
         let top = (TOP, self.top.exit_code);
         let all =
             std::iter::once(top).chain(self.members.iter().map(|m| (m.path.as_str(), m.report.exit_code)));
         let failed: Vec<&str> = all.filter(|(_, code)| *code != 0).map(|(path, _)| path).collect();
         let named = if failed.is_empty() { String::new() } else { format!(" ({})", failed.join(", ")) };
         format!(
-            "projects: {} checked, {} failed{named}\n{}",
+            "{recap}projects: {} checked, {} failed{named}\n{}",
             self.members.len() + 1,
             failed.len(),
             verdict(self.exit_code())
@@ -182,6 +189,13 @@ mod tests {
         assert_eq!(
             one.format(Detail::Attention),
             "README.md\n  ✗ L1 fact: expected 4, got 3\n\nmember tools/x (rust)\ndocs/x.md\n  ✗ L1 fact: expected 4, got 3\n\nFAILED"
+        );
+        let full = one.format(Detail::Full);
+        assert!(
+            full.ends_with(
+                "\n\nfailures:\n  README.md:1 fact: expected 4, got 3\n  tools/x/docs/x.md:1 fact: expected 4, got 3\nprojects: 3 checked, 2 failed (., tools/x)\nFAILED"
+            ),
+            "{full}"
         );
     }
 }

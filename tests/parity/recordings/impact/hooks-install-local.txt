@@ -1,8 +1,12 @@
 # hooks install --local
-# recorded from: added hooks install --local, codex/antigravity descriptors, and updated SKILL.md
-=== hooks install --local
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --local --no-audit
 exit 0
-stdout 3 lines
+stdout 7 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.claude/settings.local.json
   PostToolUse (Edit|Write): npx --no docattest impact --hook
   Stop: npx --no docattest check --hook
@@ -34,17 +38,26 @@ file .claude/settings.local.json 25 lines
     ]
   }
 }
-=== hooks install --local
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --hooks --local
 exit 0
 stdout 1 line
 docattest hooks: already installed in <root>/.claude/settings.local.json
 stderr empty
-=== hooks install --local --git
+=== init --hooks --local --git-hook
 exit 1
 stdout empty
 stderr 1 line
-docattest: --local cannot be used with --git
-=== hooks install --local --agent cursor
+docattest: --local cannot be used with --git-hook
+=== init --hooks --local --agent cursor
 exit 1
 stdout empty
 stderr 1 line

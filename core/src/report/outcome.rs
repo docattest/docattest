@@ -49,9 +49,6 @@ pub struct Outcome {
     pub message: String,
     pub expected: Option<String>,
     pub actual: Option<String>,
-    /// Whether this is the compiler's diagnostics of an example, which did not run. The core
-    /// keeps it to itself: `mutate` tells a change that does not build from one that fails.
-    pub compile_diagnostics: bool,
 }
 
 impl Outcome {
@@ -66,7 +63,6 @@ impl Outcome {
             message: message.to_string(),
             expected: None,
             actual: None,
-            compile_diagnostics: false,
         }
     }
 

@@ -1,5 +1,5 @@
 # walk: list of 501 items
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 1 line
@@ -12,12 +12,12 @@ stdout 3 lines
   "suggestions": []
 }
 stderr empty
-=== inventory item499
+=== audit --inventory item499
 exit 0
 stdout 1 line
 inventory: nothing matches
 stderr empty
-=== inventory item500 --json
+=== audit --inventory item500 --json
 exit 0
 stdout 1 line
 []

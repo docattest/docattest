@@ -9,7 +9,7 @@ use super::{Io, detail, finish, network, pretty, relative};
 use crate::adapter::{Launch, Start};
 use crate::api::errors::{Error, Result};
 use crate::changes::BaseReading;
-use crate::config::{Member, ProjectConfig};
+use crate::config::{Member, ProjectConfig, load_config};
 use crate::files::source::DiskFiles;
 use crate::project::check::{CitedTests, run_check};
 use crate::project::state::{State, launch, select_pages};
@@ -22,7 +22,11 @@ use crate::snapshots::now_ms;
 pub(super) fn check(args: &[String], root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
     let report_files = ReportFiles::asked(&options.reports, &io.cwd, root)?;
     let cited = if options.run_cited { CitedTests::Run } else { CitedTests::Declared };
-    let checked = check_projects(args, root, Asked { base: options.base.as_deref(), cited })?;
+    let asked = Asked { base: options.base.as_deref(), cited };
+    let checked = match options.member.as_deref() {
+        Some(member) => check_selected_member(args, root, member, asked)?,
+        None => check_projects(args, root, asked)?,
+    };
     if options.json {
         io.out(&pretty(&checked.to_json()));
     } else {
@@ -46,6 +50,74 @@ pub(super) fn check_projects(args: &[String], root: &Path, asked: Asked) -> Resu
     let members =
         if args.is_empty() { check_members(root, None, &config.members, asked)? } else { Vec::new() };
     Ok(Checked { top, members })
+}
+
+/// Only the configured member named by `--member <dir>`, using its configured adapter launch,
+/// plus its own sub-members when no pages are named.
+fn check_selected_member(args: &[String], root: &Path, wanted: &str, asked: Asked) -> Result<Checked> {
+    let target = resolve_member(root, wanted)?;
+    let in_member = |why: Error| why.within(format!("member {}", target.path));
+    let (top, config) = check_project(args, &target.dir, &target.launch, asked).map_err(in_member)?;
+    let members = if args.is_empty() {
+        check_members(&target.dir, Some(&target.path), &config.members, asked)?
+    } else {
+        Vec::new()
+    };
+    Ok(Checked { top, members })
+}
+
+#[derive(Debug)]
+struct FoundMember {
+    path: String,
+    dir: PathBuf,
+    launch: Launch,
+}
+
+fn resolve_member(root: &Path, wanted: &str) -> Result<FoundMember> {
+    let config = load_config(&DiskFiles::new(root.to_path_buf()))?;
+    if config.members.is_empty() {
+        return Err(Error::user("no members are configured in docattest.config.json"));
+    }
+    let wanted_norm = normalise_member(wanted);
+    let mut configured = Vec::new();
+    if let Some(found) = find_member(root, None, &config.members, &wanted_norm, &mut configured)? {
+        return Ok(found);
+    }
+    Err(Error::user(format!("unknown member \"{wanted}\" (configured: {})", configured.join(", "))))
+}
+
+fn find_member(
+    dir: &Path,
+    prefix: Option<&str>,
+    members: &[Member],
+    wanted: &str,
+    configured: &mut Vec<String>,
+) -> Result<Option<FoundMember>> {
+    for member in members {
+        let path = prefix.map_or_else(|| member.path.clone(), |above| format!("{above}/{}", member.path));
+        configured.push(path.clone());
+        let launch = Launch::of_member(member.adapter_command.as_deref(), dir);
+        let in_member = |why: Error| why.within(format!("member {path}"));
+        if path == wanted {
+            let member_dir = below(dir, &member.path).map_err(in_member)?;
+            return Ok(Some(FoundMember { path, dir: member_dir, launch }));
+        }
+        if let Ok(member_dir) = below(dir, &member.path)
+            && let Ok(sub_cfg) = load_config(&DiskFiles::new(member_dir.clone()))
+            && let Some(found) = find_member(&member_dir, Some(&path), &sub_cfg.members, wanted, configured)?
+        {
+            return Ok(Some(found));
+        }
+    }
+    Ok(None)
+}
+
+fn normalise_member(raw: &str) -> String {
+    let mut s = raw.replace('\\', "/");
+    while let Some(rest) = s.strip_prefix("./") {
+        s = rest.to_string();
+    }
+    s.trim_end_matches('/').to_string()
 }
 
 /// Each member of the project in `dir` (at `path` from the top, the top when None), each
@@ -187,5 +259,32 @@ mod tests {
             said.starts_with("docattest: member core: docattest.config.json is not valid JSON"),
             "{said}"
         );
+    }
+
+    #[test]
+    fn resolve_member_finds_direct_and_nested_members_and_rejects_unknown_ones() {
+        let top = Temp::new("resolve-member");
+        top.write(
+            "docattest.config.json",
+            r#"{"pages":["README.md"],"adapter":"none","members":["packages/a"]}"#,
+        );
+        top.write(
+            "packages/a/docattest.config.json",
+            r#"{"pages":["README.md"],"adapter":"none","members":["sub"]}"#,
+        );
+        top.write("packages/a/sub/docattest.config.json", r#"{"pages":["README.md"],"adapter":"none"}"#);
+
+        assert_eq!(resolve_member(&top.0, "./packages/a/").unwrap().path, "packages/a");
+        assert_eq!(resolve_member(&top.0, "packages/a/sub").unwrap().path, "packages/a/sub");
+        let missing = resolve_member(&top.0, "nope").unwrap_err().to_string();
+        assert!(
+            missing.contains("unknown member \"nope\" (configured: packages/a, packages/a/sub)"),
+            "{missing}"
+        );
+
+        let solo = Temp::new("no-members");
+        solo.write("docattest.config.json", r#"{"pages":["README.md"],"adapter":"none"}"#);
+        let none = resolve_member(&solo.0, "packages/a").unwrap_err().to_string();
+        assert!(none.contains("no members are configured"), "{none}");
     }
 }

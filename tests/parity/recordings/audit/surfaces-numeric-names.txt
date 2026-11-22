@@ -1,5 +1,5 @@
 # surfaces: numeric names
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 5 lines
@@ -50,7 +50,7 @@ stdout 37 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 6 lines
 K  →  [k1, k2]
@@ -60,7 +60,7 @@ K  →  [k1, k2]
 @zeta K  →  [k1, k2]
 inventory: 5 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 47 lines
 [

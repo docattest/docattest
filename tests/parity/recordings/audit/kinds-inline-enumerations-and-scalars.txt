@@ -1,5 +1,5 @@
 # kinds: inline enumerations and scalars
-# recorded from: audit suggests values in sentences: inline enumerations and distinctive scalars
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 5 lines
@@ -52,7 +52,7 @@ stdout 39 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 10 lines
 CONFIG_FILE  →  docattest.config.json
@@ -66,7 +66,7 @@ Money.unit  →  eur-cents
 RETRIES  →  3
 inventory: 9 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 58 lines
 [

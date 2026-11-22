@@ -101,7 +101,7 @@ export function npmProject(project: string, shared: Shared): void {
   const failed = run('npx docattest check: a page that is no longer true', ['check'], 1);
   expect(failed.stdout.includes('expected 4, got 3'), 'the failure names both sides');
   writeFileSync(page, TS_FILES['docs/retries.md']);
-  run('npx docattest hooks install (in the temporary project)', ['hooks', 'install']);
+  run('npx docattest init --hooks (in the temporary project)', ['init', '--hooks']);
   const settings = readFileSync(join(project, '.claude', 'settings.json'), 'utf8');
   expect(settings.includes('npx --no docattest'), 'the hook runs the project’s own docattest');
   const api = steps.run('createProject from a script', 'node', ['api.mjs'], {

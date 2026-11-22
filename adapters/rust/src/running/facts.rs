@@ -22,24 +22,21 @@ use super::generated::{Dependencies, HARNESS_CRATE};
 use super::programs::{Built, Line, Program, Rendered};
 use crate::analysis::surfaces::Surface;
 use crate::language::text::identifiers;
-use crate::protocol::{Error, Evaluation, Fact, Observable, Observation};
-use serde_json::{Value, json};
+use crate::protocol::{Evaluation, Fact, Observation};
 use std::collections::HashMap;
 
 /// The lines of a facts program that come before its first fact.
 const PREAMBLE: usize = 7;
 /// The surface a fact without `@` reads (PROTOCOL.md, `observables`).
-const DEFAULT_SURFACE: &str = "default";
+pub(super) const DEFAULT_SURFACE: &str = "default";
 /// The module of a fact's closure that declares the constants it reads from source.
 const SOURCE: &str = "docattest_from_source";
-/// Hexadecimal digits after `0x` that make an address: fewer is a number someone wrote.
-const MIN_ADDRESS_DIGITS: usize = 6;
 
-/// What a program of expressions reads: a surface, through what the program is built with.
+/// What a program of expressions reads: a surface (if any), through what the program is built with.
 #[derive(Clone, Copy)]
-struct Scope<'a> {
-    surface: &'a Surface,
-    dependencies: Dependencies,
+pub(super) struct Scope<'a> {
+    pub(super) surface: Option<&'a Surface>,
+    pub(super) dependencies: Dependencies,
 }
 
 /// The facts one program reads.
@@ -99,14 +96,33 @@ impl Runner {
 
     /// Puts a fact in the group of its surface and of what its program is built with.
     fn place<'a>(&'a self, groups: &mut Vec<Group<'a>>, fact: &'a Fact) {
-        let Some(surface) = self.analysis.surface(&fact.surface) else { return };
-        let scope = Scope { surface, dependencies: self.dependencies_of(surface, &fact.expression) };
+        let surface = self.analysis.surface(&fact.surface);
+        if surface.is_none() && !(!self.analysis.has_surfaces() && fact.surface == DEFAULT_SURFACE) {
+            return;
+        }
+        let dependencies = match surface {
+            Some(surface) => self.dependencies_of(surface, &fact.expression),
+            None => self.dependencies_without_surface(&fact.expression),
+        };
+        let scope = Scope { surface, dependencies };
+        let surface_name = surface.map(|s| s.name.as_str());
         let same = |group: &&mut Group| {
-            group.scope.surface.name == surface.name && group.scope.dependencies == scope.dependencies
+            group.scope.surface.map(|s| s.name.as_str()) == surface_name
+                && group.scope.dependencies == scope.dependencies
         };
         match groups.iter_mut().find(same) {
             Some(group) => group.facts.push(fact),
             None => groups.push(Group { scope, facts: vec![fact] }),
+        }
+    }
+
+    /// What a fact's program is built with when no surfaces are configured.
+    fn dependencies_without_surface(&self, expression: &str) -> Dependencies {
+        let (helpers, crates) = (self.analysis.setup_names(), self.crate_names());
+        if identifiers(expression).into_iter().any(|name| helpers.iter().chain(&crates).any(|k| k == name)) {
+            Dependencies::Project
+        } else {
+            Dependencies::Harness
         }
     }
 
@@ -153,13 +169,15 @@ impl Runner {
 
     /// Why a fact cannot be compiled at all, or `None`.
     fn refusal(&self, fact: &Fact) -> Option<String> {
-        if let Some(missing) = self.analysis.not_found(&fact.surface) {
+        let no_surfaces = !self.analysis.has_surfaces() && fact.surface == DEFAULT_SURFACE;
+        if !no_surfaces && let Some(missing) = self.analysis.not_found(&fact.surface) {
             return Some(missing);
         }
         if let Err(err) = syn::parse_str::<syn::Expr>(&fact.expression) {
             return Some(format!("cannot parse fact expression `{}`: {err}", fact.expression));
         }
-        let (surface, helpers) = (self.analysis.surface(&fact.surface)?, self.analysis.setup_names());
+        let surface = self.analysis.surface(&fact.surface)?;
+        let helpers = self.analysis.setup_names();
         let of_surface = |name: &str| {
             self.analysis.exported(surface, name) || self.analysis.read_from_source(surface, name)
         };
@@ -173,9 +191,15 @@ impl Runner {
     }
 
     /// Reads the facts of one surface from the program built for them.
-    fn read_group(&self, surface: &Surface, facts: &[&Fact], program: Built) -> HashMap<String, Evaluation> {
+    fn read_group(
+        &self,
+        surface: Option<&Surface>,
+        facts: &[&Fact],
+        program: Built,
+    ) -> HashMap<String, Evaluation> {
         let mut out = HashMap::new();
         let mut kept: Vec<&Fact> = Vec::new();
+        let surface_name = surface.map_or(DEFAULT_SURFACE, |s| s.name.as_str());
         for (k, fact) in facts.iter().enumerate() {
             let label = format!("fact `{}`", fact.expression);
             match (program.dropped.get(&k), &program.binary) {
@@ -187,7 +211,7 @@ impl Runner {
                     let why = program.failure.clone().unwrap_or_default();
                     out.insert(
                         fact.id.clone(),
-                        Evaluation::failed(format!("surface \"{}\" failed to load: {why}", surface.name)),
+                        Evaluation::failed(format!("surface \"{surface_name}\" failed to load: {why}")),
                     );
                 }
                 (None, Some(_)) => kept.push(fact),
@@ -225,7 +249,13 @@ impl Runner {
     /// Writes the main of a program that observes expressions, each on a line of its
     /// own, for those still in it. `serves` is the harness function they are given to:
     /// `facts`, or `observables`, which takes each with its name.
-    fn facts_main(&self, scope: Scope, expressions: &[String], live: &[bool], serves: &str) -> Rendered {
+    pub(super) fn facts_main(
+        &self,
+        scope: Scope,
+        expressions: &[String],
+        live: &[bool],
+        serves: &str,
+    ) -> Rendered {
         let (imported, setup) = self.project_lines(scope);
         let mut source = format!(
             "#![allow(unused, ambiguous_glob_imports)]\nuse ::{HARNESS_CRATE}::harness::serve::{{file, manifest, manifestField, matched, snapshot}};\nuse ::{HARNESS_CRATE}::observe;\n{imported}\n{setup}\nfn main() {{\n    ::{HARNESS_CRATE}::harness::serve::{serves}(vec![\n",
@@ -251,10 +281,10 @@ impl Runner {
                 "// nothing of the project's crates".to_string(),
             );
         }
-        let imported = if scope.surface.importable() {
-            format!("use ::{}::*;", scope.surface.import)
-        } else {
-            "// a binary crate: nothing to import".to_string()
+        let imported = match scope.surface {
+            Some(surface) if surface.importable() => format!("use ::{}::*;", surface.import),
+            Some(_) => "// a binary crate: nothing to import".to_string(),
+            None => "// no surface configured".to_string(),
         };
         let setup = self
             .setup_module()
@@ -265,7 +295,10 @@ impl Runner {
     /// The closure that reads an expression, on one line, so that what the compiler says
     /// of any of it is said of its fact: with the declarations of the constants it reads
     /// from source, in a module of its own.
-    fn reader(&self, surface: &Surface, expression: &str) -> String {
+    fn reader(&self, surface: Option<&Surface>, expression: &str) -> String {
+        let Some(surface) = surface else {
+            return format!("Box::new(|| observe!({expression}))");
+        };
         let constants = self.analysis.source_constants(surface, expression);
         if constants.names.is_empty() {
             return format!("Box::new(|| observe!({expression}))");
@@ -279,115 +312,16 @@ impl Runner {
 
     /// Words the compiler's "cannot find … in this scope" as what it means on a page: the
     /// name is not exported, or is declared but not read from source, and why.
-    fn not_read(&self, complaint: &str, surface: &Surface) -> String {
+    fn not_read(&self, complaint: &str, surface: Option<&Surface>) -> String {
         let named = complaint.strip_prefix("cannot find ").and_then(|rest| rest.split('`').nth(1));
         let Some(name) = named.filter(|_| complaint.ends_with("in this scope")) else {
             return complaint.to_string();
         };
-        self.analysis.unread(surface, name).unwrap_or_else(|| {
-            format!("{name} is not exported by surface \"{}\" ({complaint})", surface.name)
-        })
-    }
-
-    /// Answers `observables`: the values a surface offers, which are those of its
-    /// exports that can be shown, each with the fact expression that reads it. A surface
-    /// that cannot be read is the project's mistake.
-    pub(crate) fn observables(&self, name: &str) -> Result<Value, Error> {
-        let user = |why: String| Error::User(format!("docattest: {why}"));
-        if let Some(missing) = self.analysis.not_found(name) {
-            return Err(user(missing));
+        match surface {
+            Some(surface) => self.analysis.unread(surface, name).unwrap_or_else(|| {
+                format!("{name} is not exported by surface \"{}\" ({complaint})", surface.name)
+            }),
+            None => format!("{name} is not in scope ({complaint})"),
         }
-        let Some(surface) = self.analysis.surface(name) else { return Ok(json!([])) };
-        let roots = self.roots(surface);
-        if roots.is_empty() {
-            return Ok(json!([]));
-        }
-        // An export that is not a value (a type, a function) does not compile as one,
-        // and is taken out of the program like a fact that does not compile.
-        let scope = Scope { surface, dependencies: Dependencies::Project };
-        let program =
-            self.build_program(roots.len(), &|live| self.facts_main(scope, &roots, live, "observables"));
-        let Some(binary) = program.binary else {
-            return program
-                .failure
-                .map_or(Ok(json!([])), |why| Err(user(format!("surface \"{name}\" failed to load: {why}"))));
-        };
-        let answers = self
-            .serve(&binary, None, 1)
-            .map_err(|why| user(format!("surface \"{name}\" could not be read: {why}")))?;
-        let answer = &answers[0];
-        if let Some(why) =
-            answer.panic.clone().or(answer.lost.clone()).or(answer.timeout.then(|| self.timed_out()))
-        {
-            return Err(user(format!("surface \"{name}\" could not be read: {why}")));
-        }
-        let found: Vec<Observable> = answer
-            .value
-            .as_array()
-            .into_iter()
-            .flatten()
-            .filter_map(|item| observable(name, item))
-            .filter(|o| !shows_an_address(&o.value))
-            .collect();
-        Ok(json!(found))
-    }
-
-    /// What `observables` reads: a surface's exports and, on the default surface, a call of
-    /// each setup helper whose name the surface does not export (a fact could not use it).
-    fn roots(&self, surface: &Surface) -> Vec<String> {
-        let mut roots = self.analysis.exports_of(&surface.name).unwrap_or_default();
-        if surface.name == DEFAULT_SURFACE {
-            let helpers = self.analysis.setup_helpers().into_iter();
-            roots.extend(helpers.filter(|h| !self.analysis.exported(surface, h)).map(|h| format!("{h}()")));
-        }
-        roots
-    }
-}
-
-/// Whether a value that is not text shows an address (`0x16b0f2f48`), as a pointer or a
-/// function pointer does: it is shown differently in each run, so it is not offered.
-fn shows_an_address(value: &Observation) -> bool {
-    if value.kind.as_deref() == Some("text") {
-        return false;
-    }
-    let text = value.text.as_bytes();
-    text.windows(2).enumerate().any(|(k, pair)| {
-        let starts = k == 0 || !(text[k - 1].is_ascii_alphanumeric() || text[k - 1] == b'_');
-        let hex = text[k + 2..].iter().take_while(|b| b.is_ascii_hexdigit()).count();
-        starts && pair == b"0x" && hex >= MIN_ADDRESS_DIGITS
-    })
-}
-
-/// One value a program read, as the protocol's Observable.
-fn observable(surface: &str, item: &Value) -> Option<Observable> {
-    Some(Observable {
-        surface: surface.to_string(),
-        expression: item["expression"].as_str()?.to_string(),
-        path: vec![item["expression"].as_str()?.to_string()],
-        value: serde_json::from_value(item["value"].clone()).ok()?,
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn value(text: &str, kind: Option<&str>) -> Observation {
-        Observation {
-            text: text.into(),
-            items: None,
-            description: String::new(),
-            kind: kind.map(str::to_string),
-        }
-    }
-
-    #[test]
-    fn a_value_that_shows_an_address_is_not_offered() {
-        assert!(shows_an_address(&value("[(\"a\", 0x1004f43c0)]", None)));
-        assert!(shows_an_address(&value("0x16b0f2f48", None)));
-        for shown in ["255", "0xFF", "x0x1004f43c0", "[\"a\"]"] {
-            assert!(!shows_an_address(&value(shown, None)), "{shown}");
-        }
-        assert!(!shows_an_address(&value("0x1004f43c0", Some("text"))));
     }
 }

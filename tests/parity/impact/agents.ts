@@ -32,10 +32,10 @@ export const otherAgents: ImpactCase[] = [
     name: `hooks install: --agent ${agent}`,
     files: acmeFiles,
     steps: [
-      ['hooks', 'install', '--agent', agent],
-      ['hooks', 'install', '--agent', agent],
+      ['init', '--hooks', '--no-audit', '--agent', agent],
+      ['init', '--hooks', '--agent', agent],
       {
-        args: ['hooks', 'install', '--agent', agent],
+        args: ['init', '--hooks', '--agent', agent],
         env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' },
       },
     ],
@@ -67,10 +67,10 @@ export const otherAgents: ImpactCase[] = [
       }),
     },
     steps: [
-      ['hooks', 'install', '--agent', 'gemini'],
-      ['hooks', 'install', '--agent', 'cursor'],
-      ['hooks', 'install', '--agent', './tools/acme.json'],
-      ['hooks', 'install'],
+      ['init', '--hooks', '--no-audit', '--agent', 'gemini'],
+      ['init', '--hooks', '--agent', 'cursor'],
+      ['init', '--hooks', '--agent', './tools/acme.json'],
+      ['init', '--hooks'],
     ],
   },
   {
@@ -87,29 +87,32 @@ export const otherAgents: ImpactCase[] = [
       }),
     },
     steps: [
-      ['hooks', 'install', '--agent', 'cursor'],
-      ['hooks', 'install', '--agent', './tools/acme.json'],
-      ['hooks', 'install', '--agent', 'gemini'],
+      ['init', '--hooks', '--no-audit', '--agent', 'cursor'],
+      ['init', '--hooks', '--agent', './tools/acme.json'],
+      ['init', '--hooks', '--agent', 'gemini'],
     ],
   },
   {
     name: 'hooks install: the command the launcher gives',
     files: acmeFiles,
     steps: [
-      { args: ['hooks', 'install'], env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' } },
       {
-        args: ['hooks', 'install', '--agent', 'cursor'],
+        args: ['init', '--hooks', '--no-audit'],
+        env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' },
+      },
+      {
+        args: ['init', '--hooks', '--agent', 'cursor'],
         env: { DOCATTEST_COMMAND: "  '/my env/bin/python' -m docattest  " },
       },
       {
-        args: ['hooks', 'install', '--agent', 'gemini'],
+        args: ['init', '--hooks', '--agent', 'gemini'],
         env: { DOCATTEST_COMMAND: 'pnpm exec docattest' },
       },
       {
-        args: ['hooks', 'install', '--agent', './tools/acme.json'],
+        args: ['init', '--hooks', '--agent', './tools/acme.json'],
         env: { DOCATTEST_COMMAND: 'a\nb "c"' },
       },
-      { args: ['agents', 'install'], env: { DOCATTEST_COMMAND: 'x\ry' } },
+      { args: ['init', '--agents'], env: { DOCATTEST_COMMAND: 'x\ry' } },
     ],
   },
   {
@@ -117,9 +120,9 @@ export const otherAgents: ImpactCase[] = [
     files: { ...acmeFiles, "my tools/it's acme.json": acme },
     home: { 'acme.json': acme },
     steps: [
-      ['hooks', 'install', '--agent', '__HOME__/acme.json'],
-      ['hooks', 'install', '--agent', '../home/acme.json', '--root', 'tools'],
-      ['hooks', 'install', '--agent', "my tools/it's acme.json", '--root', 'docs'],
+      ['init', '--hooks', '--no-audit', '--agent', '__HOME__/acme.json'],
+      ['init', '--hooks', '--no-audit', '--agent', '../home/acme.json', '--root', 'tools'],
+      ['init', '--hooks', '--no-audit', '--agent', "my tools/it's acme.json", '--root', 'docs'],
     ],
   },
   {
@@ -130,20 +133,20 @@ export const otherAgents: ImpactCase[] = [
       'bad/dir.json/x': '',
     },
     steps: [
-      ['hooks', 'install', '--agent', 'nobody'],
-      ['hooks', 'install', '--agent', 'index'],
-      ['hooks', 'install', '--agent', ''],
-      ['hooks', 'install', '--agent', 'Claude'],
-      ['hooks', 'install', '--agent', './gone.json'],
-      ['hooks', 'install', '--agent', 'bad/dir.json'],
-      ['hooks', 'install', '--agent'],
-      ...badAgents.map((_, k) => ['hooks', 'install', '--agent', `bad/${k}.json`]),
+      ['init', '--hooks', '--no-audit', '--agent', 'nobody'],
+      ['init', '--hooks', '--agent', 'index'],
+      ['init', '--hooks', '--agent', ''],
+      ['init', '--hooks', '--agent', 'Claude'],
+      ['init', '--hooks', '--agent', './gone.json'],
+      ['init', '--hooks', '--agent', 'bad/dir.json'],
+      ['init', '--hooks', '--agent'],
+      ...badAgents.map((_, k) => ['init', '--hooks', '--agent', `bad/${k}.json`]),
       {
         args: ['impact', '--hook', '--agent', 'bad/3.json'],
         stdin: event('__ROOT__/src/parse.ts'),
       },
       { args: ['check', '--hook', '--agent', 'nobody'], stdin: stop() },
-      ['skill', 'install', '--agent', 'bad/0.json'],
+      ['init', '--skill', '--agent', 'bad/0.json'],
     ],
   },
   inRepo('impact --hook for other agents', { ...base, ...acmeFiles }, parseChanged, [
@@ -262,8 +265,8 @@ export const otherAgents: ImpactCase[] = [
       { args: ['check', '--hook', '--agent', 'tools/check-only.json'], stdin: '{}' },
       { args: ['impact', '--hook', '--agent', 'tools/check-only.json'], stdin: '{}' },
       { args: ['check', '--hook', '--agent', 'tools/impact-only.json'], stdin: '{}' },
-      { args: ['hooks', 'install', '--agent', 'tools/check-only.json'] },
-      { args: ['hooks', 'install', '--agent', 'tools/impact-only.json'] },
+      { args: ['init', '--hooks', '--agent', 'tools/check-only.json'] },
+      { args: ['init', '--hooks', '--agent', 'tools/impact-only.json'] },
     ],
   },
   {
@@ -279,17 +282,17 @@ export const otherAgents: ImpactCase[] = [
     name: 'skill install for other agents',
     files: acmeFiles,
     steps: [
-      ['skill', 'install', '--agent', 'gemini'],
-      ['skill', 'install', '--agent', 'cursor'],
-      ['skill', 'install', '--agent', 'cursor', '--global'],
-      ['skill', 'install', '--agent', 'codex'],
-      ['skill', 'install', '--agent', 'antigravity'],
-      ['skill', 'install', '--agent', 'tools/acme.json'],
-      ['skill', 'install', '--agent', 'tools/acme.json'],
-      ['skill', 'install', '--agent', 'tools/acme.json', '--global', '--force'],
-      ['skill', 'install', '--agent', 'claude'],
-      ['skill', 'install', '--agent', 'tools/check-only.json'],
-      ['skill', 'install', '--agent', 'nobody'],
+      ['init', '--skill', '--no-audit', '--agent', 'gemini'],
+      ['init', '--skill', '--agent', 'cursor'],
+      ['init', '--skill', '--agent', 'cursor', '--global'],
+      ['init', '--skill', '--agent', 'codex'],
+      ['init', '--skill', '--agent', 'antigravity'],
+      ['init', '--skill', '--agent', 'tools/acme.json'],
+      ['init', '--skill', '--agent', 'tools/acme.json'],
+      ['init', '--skill', '--agent', 'tools/acme.json', '--global', '--force'],
+      ['init', '--skill', '--agent', 'claude'],
+      ['init', '--skill', '--agent', 'tools/check-only.json'],
+      ['init', '--skill', '--agent', 'nobody'],
     ],
   },
   {
@@ -317,15 +320,15 @@ export const otherAgents: ImpactCase[] = [
 ];
 
 export const agentsInstall: ImpactCase[] = [
-  // ----------------------------------------------------------------------- agents install
+  // ----------------------------------------------------------------------- init --agents
   {
     name: 'agents install, then again',
     files: {},
     steps: [
-      ['agents', 'install'],
-      ['agents', 'install'],
-      { args: ['agents', 'install'], env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' } },
-      { args: ['agents', 'install'], env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' } },
+      ['init', '--agents', '--no-audit'],
+      ['init', '--agents'],
+      { args: ['init', '--agents'], env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' } },
+      { args: ['init', '--agents'], env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' } },
     ],
   },
   ...Object.entries({
@@ -349,21 +352,18 @@ export const agentsInstall: ImpactCase[] = [
     name: `agents install into ${name}`,
     files: { 'AGENTS.md': Buffer.from(text, 'latin1') },
     steps: [
-      ['agents', 'install'],
-      ['agents', 'install'],
+      ['init', '--agents', '--no-audit'],
+      ['init', '--agents'],
     ],
   })),
   {
     name: 'agents install where AGENTS.md is a directory, by --root, and usage',
     files: { 'AGENTS.md/x': '', 'sub/x': '' },
     steps: [
-      ['agents', 'install'],
-      ['agents', 'install', '--root', 'sub'],
-      ['agents', 'install', '--root', 'gone'],
-      ['agents'],
-      ['agents', 'remove'],
-      ['agents', 'install', 'x'],
-      ['agents', 'install', '--agent', 'nobody', '--json'],
+      ['init', '--agents', '--no-audit'],
+      ['init', '--agents', '--no-audit', '--root', 'sub'],
+      ['init', '--agents', '--no-audit', '--root', 'gone'],
+      ['init', '--agents', '--agent', 'nobody', '--json'],
     ],
   },
 ];

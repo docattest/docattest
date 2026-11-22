@@ -3,6 +3,7 @@
 pub mod autolink;
 pub mod comments;
 pub mod frontmatter;
+pub mod mdx;
 pub mod model;
 pub mod parse;
 pub mod text;

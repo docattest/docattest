@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docattest.github.io/docattest/schema/config.json",
+  "title": "docattest configuration",
+  "description": "Configuration file (docattest.config.json) for docattest: documentation that CI can fail.",
+  "type": "object",
+  "required": ["pages"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema URI for editor validation and completion."
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Globs of Markdown or MDX pages to check. Gitignored files are never pages, and globs cannot start with '!': use frozen to leave pages out."
+    },
+    "adapter": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "default": "none",
+      "description": "Language adapter name (such as \"typescript\", \"python\", \"go\", \"rust\", or \"none\" for core-only checks without a language runtime). Defaults to \"none\" when omitted."
+    },
+    "surfaces": {
+      "type": "object",
+      "description": "Public API surfaces by name. Optional when pages only use manifests, files, snapshots, console blocks, citations, or standalone examples.",
+      "additionalProperties": {
+        "$ref": "#/$defs/SurfaceEntry"
+      }
+    },
+    "frozen": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Globs of pages listed in the report but never parsed or checked (e.g. changelogs, historical ADRs)."
+    },
+    "prose": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Globs of living pages with nothing to prove: still checked and audited, but counted apart rather than as uncovered."
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Globs of source files whose doc-comment examples are checked."
+    },
+    "setup": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Module or package providing cases runners and named facts."
+    },
+    "snapshots": {
+      "type": "object",
+      "required": ["dir"],
+      "additionalProperties": false,
+      "description": "Settings for pinned external snapshots read by snapshot(\"name\").",
+      "properties": {
+        "dir": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Directory holding snapshot files, relative to the project root."
+        },
+        "maxAgeDays": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 90,
+          "description": "Age in days after which a snapshot is reported as stale."
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Execution limits for running examples, facts and cases.",
+      "properties": {
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10000,
+          "description": "Per-block, per-fact or per-row time budget in milliseconds."
+        },
+        "workers": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of concurrent workers. Defaults to one per CPU."
+        }
+      }
+    },
+    "ignoreTags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]+$"
+      },
+      "description": "Extra fence info-string words added by a docs renderer (such as \"twoslash\") that docattest accepts and ignores."
+    },
+    "members": {
+      "type": "array",
+      "description": "Subdirectories holding nested docattest projects checked together with this one.",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "type": "object",
+            "required": ["path"],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "adapterCommand": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "commands": {
+      "type": "object",
+      "description": "Programs executed by console check blocks mapped to globs of the source files they are built from, used by impact.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "undocumented": {
+      "type": "object",
+      "description": "Per-surface globs of exported symbol names intentionally left undocumented.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "SurfaceEntry": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": ["path"],
+          "additionalProperties": false,
+          "properties": {
+            "import": {
+              "type": "string",
+              "minLength": 1
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "internal": {
+              "type": "boolean",
+              "description": "Mark a surface as internal/fact-only so facts can read its symbols without counting it in public API coverage or uncovered."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

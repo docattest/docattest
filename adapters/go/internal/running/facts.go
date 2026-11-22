@@ -59,11 +59,17 @@ func (r *Runner) Evaluate(facts []protocol.Fact) map[string]protocol.Evaluation 
 
 // refusal is why a fact cannot be compiled at all, or "".
 func (r *Runner) refusal(fact protocol.Fact) string {
-	if missing := r.project.NotFound(fact.Surface); missing != "" {
-		return missing
+	noSurfaces := !r.project.HasSurfaces() && fact.Surface == "default"
+	if !noSurfaces {
+		if missing := r.project.NotFound(fact.Surface); missing != "" {
+			return missing
+		}
 	}
 	if _, err := parser.ParseExpr(fact.Expression); err != nil {
 		return fmt.Sprintf("cannot parse fact expression `%s`: %v", fact.Expression, err)
+	}
+	if noSurfaces {
+		return ""
 	}
 	of := r.project.SurfaceNamed(fact.Surface)
 	importable, helpers := r.project.Importable(of), r.project.SetupExports()
@@ -98,7 +104,11 @@ func (r *Runner) unreadable(used sourceName, of *analysis.Surface) string {
 
 // evaluateGroup evaluates the facts of one surface in one program.
 func (r *Runner) evaluateGroup(of *analysis.Surface, facts []protocol.Fact) map[string]protocol.Evaluation {
-	facts, values, out := r.withSourceValues(of, facts)
+	var values sourceValues
+	out := map[string]protocol.Evaluation{}
+	if of != nil {
+		facts, values, out = r.withSourceValues(of, facts)
+	}
 	if len(facts) == 0 {
 		return out
 	}
@@ -108,13 +118,17 @@ func (r *Runner) evaluateGroup(of *analysis.Surface, facts []protocol.Fact) map[
 	}
 	program := r.buildProgram(labels, func(live []bool) string { return r.factsMain(of, facts, labels, live, values) })
 	kept := []protocol.Fact{}
+	surfaceName := "default"
+	if of != nil {
+		surfaceName = of.Name
+	}
 	for k, fact := range facts {
 		label := fmt.Sprintf("fact `%s`", fact.Expression)
 		switch complaint, dropped := program.dropped[k]; {
 		case dropped:
 			out[fact.ID] = protocol.Failed(label + ": " + notExported(complaint, of))
 		case program.binary == "":
-			out[fact.ID] = protocol.Failed(fmt.Sprintf("surface %q failed to load: %s", of.Name, program.failure))
+			out[fact.ID] = protocol.Failed(fmt.Sprintf("surface %q failed to load: %s", surfaceName, program.failure))
 		default:
 			kept = append(kept, fact)
 		}
@@ -136,6 +150,9 @@ func (r *Runner) evaluateGroup(of *analysis.Surface, facts []protocol.Fact) map[
 // notExported words the compiler's `undefined: X` as what it means on a page.
 func notExported(complaint string, of *analysis.Surface) string {
 	if found := undefined.FindStringSubmatch(complaint); found != nil {
+		if of == nil {
+			return fmt.Sprintf("%s is not in scope (%s)", found[1], complaint)
+		}
 		return fmt.Sprintf("%s is not exported by surface %q (%s)", found[1], of.Name, complaint)
 	}
 	return complaint
@@ -169,7 +186,10 @@ func (r *Runner) factsMain(of *analysis.Surface, facts []protocol.Fact, labels [
 			continue
 		}
 		r.factImports(imports, of, fact.Expression)
-		declarations := values.prelude(r.sourceRead(of, fact.Expression), imports)
+		declarations := ""
+		if of != nil {
+			declarations = values.prelude(r.sourceRead(of, fact.Expression), imports)
+		}
 		expr := typedFieldCalls(strings.TrimSpace(fact.Expression), fields)
 		fmt.Fprintf(&body, "\t\tfunc() any {\n//line %s:1\n\t\t\t%sreturn (%s)\n\t\t},\n",
 			labels[k], declarations, expr)
@@ -182,8 +202,13 @@ func (r *Runner) factsMain(of *analysis.Surface, facts []protocol.Fact, labels [
 // package, each with a dot, when it uses a name of theirs that can be imported; and
 // standard packages.
 func (r *Runner) factImports(imports *programImports, of *analysis.Surface, expression string) {
-	exported, helpers := r.project.Importable(of), r.project.SetupExports()
-	importable := !r.project.IsProgram(of)
+	helpers := r.project.SetupExports()
+	var exported map[string]bool
+	importable := false
+	if of != nil {
+		exported = r.project.Importable(of)
+		importable = !r.project.IsProgram(of)
+	}
 	for _, name := range language.Names(expression) {
 		if exported[name] && importable {
 			imports.add(".", of.Import)

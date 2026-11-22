@@ -20,6 +20,7 @@ describe('the protocol schemas', () => {
     expect(names).toEqual([
       'agent.json',
       'attestations.json',
+      'config.json',
       'kit.json',
       'language.json',
       'messages.json',

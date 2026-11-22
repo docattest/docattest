@@ -267,7 +267,6 @@ SESSION_METHODS: dict[str, Callable[[Session, Params], object]] = {
     "observables": lambda s, p: s.running.observables(p.string("surface")),
     "affected": lambda s, p: s.affected(p.base("base"), p.strings("changed")),
     "inCode": lambda s, p: s.workspace.in_code(p.strings("names"), p.strings("files")),
-    "mutants": lambda s, p: s.mutants.mutants(p.mutated_symbols("symbols"), p.integer("limit")),
 }
 
 

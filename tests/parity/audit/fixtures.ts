@@ -45,7 +45,12 @@ export const range = <T>(n: number, f: (k: number) => T): T[] =>
 export const nest = (depth: number, leaf: string): string =>
   range(depth, (k) => `l${k}`).reduceRight((inner, key) => `{ ${key}: ${inner} }`, leaf);
 
-export const ALL: Runs = [['audit'], ['audit', '--json'], ['inventory'], ['inventory', '--json']];
+export const ALL: Runs = [
+  ['audit'],
+  ['audit', '--json'],
+  ['audit', '--inventory'],
+  ['audit', '--inventory', '--json'],
+];
 export const AUDIT: Runs = [['audit'], ['audit', '--json']];
 
 export const TEMPLATE = 'name: demo\nregion: eu\nport: 8080\nlog: info\n';

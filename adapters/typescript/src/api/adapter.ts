@@ -39,30 +39,6 @@ export interface SymbolRef {
   surface?: string;
 }
 
-/**
- * One change to one file of the project, for `mutate`: the bytes of its UTF-8 text from
- * `start` to `end` (excluded) replaced by `replacement`.
- */
-export interface MutantEdit {
-  /** Project-relative. */
-  path: string;
-  start: number;
-  end: number;
-  replacement: string;
-  /** What changes, as the source writes it: `8080 → 8081`, `'LOG_LEVEL' removed`. */
-  description: string;
-}
-
-/**
- * Why a symbol offers no edit: it is a function, class or type, whose value is computed when
- * it runs; a value whose declaration holds no literal; or nothing the project declares.
- */
-export type NoMutantReason = 'function' | 'noLiteral' | 'notFound';
-
-/** The edits to the literals of one symbol's declaration, or why there are none. */
-export type SymbolMutants =
-  { edits: [MutantEdit, ...MutantEdit[]] } | { edits: []; why: NoMutantReason };
-
 /** A test or describe block a test file declares, by its literal title. */
 export interface DeclaredTest {
   title: string;
@@ -210,11 +186,6 @@ export interface AdapterSession extends Adapter {
    * from. An adapter that cannot tell returns every name.
    */
   inCode(names: readonly string[], files: readonly string[]): Promise<string[]>;
-  /**
-   * For each symbol, in order, at most `limit` edits that each change one literal of its
-   * declaration, the first in source order; or why it has none.
-   */
-  mutants(symbols: readonly SymbolRef[], limit: number): Promise<SymbolMutants[]>;
   /** Release workers and anything else the session holds. */
   close(): Promise<void>;
 }

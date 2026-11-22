@@ -1,11 +1,24 @@
 # agents install into a second end
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== agents install
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --agents --no-audit
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 1 line
 docattest: <root>/AGENTS.md: the docattest section must be one "<!-- docattest:begin -->" with one "<!-- docattest:end -->" after it; fix the markers and run again
-=== agents install
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --agents
 exit 1
 stdout empty
 stderr 1 line

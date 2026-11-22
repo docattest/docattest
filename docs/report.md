@@ -220,7 +220,10 @@ singular for one and the plural otherwise (`1 living page`, `2 symbols`). The te
 command line's; the programmatic API returns the report object it is printed from. The
 coverage line counts the frozen pages and names the uncovered ones, as many to a line as fit
 in 100 columns; after a check of named pages it names none, since the rest of the project
-is not what was asked about. The report object lists both, always. Here it
+is not what was asked about. When a failing report mixes passes with failures, a `failures:`
+recap repeats each failing `page:line` right above `FAILED` so failures do not get buried in
+long output (a multi-project check recaps every failing project's `path:line` at the end too).
+The report object lists both, always. Here it
 is for a small project, [docs/.fixtures/text-report](.fixtures/text-report), whose one page
 says `N` is 4 where the code says 3:
 

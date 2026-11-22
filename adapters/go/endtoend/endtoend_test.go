@@ -187,8 +187,8 @@ func TestTheIndexAndTheAudit(t *testing.T) {
 			t.Errorf("audit: no %q in %q", want, out)
 		}
 	}
-	if out, _ := docattest(t, "../testdata/fixture", "inventory"); !strings.Contains(out, "@shipping Carriers  →  [post, courier, drone]") {
-		t.Errorf("inventory: %q", out)
+	if out, _ := docattest(t, "../testdata/fixture", "audit", "--inventory"); !strings.Contains(out, "@shipping Carriers  →  [post, courier, drone]") {
+		t.Errorf("audit --inventory: %q", out)
 	}
 }
 

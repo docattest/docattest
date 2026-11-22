@@ -264,3 +264,89 @@ assert.deepEqual(report.results[0].symbols, ['double']);
 In an in-memory project the default surface is importable under the name
 `docattest-fixture`; in a real project it is the name in `package.json`, or the `import`
 the surface names (see [surfaces](surfaces.md)).
+
+## MDX pages use `{/* … */}` directives
+
+Pages ending in `.mdx` use JSX comments (`{/* fact: ... */}`, `{/* cases: ... */}`,
+`{/* test: ... */}`) instead of HTML comments, which MDX rejects. Top-level `import` /
+`export` lines and standalone JSX wrapper tags (`<Tabs>`, `<TabItem>`, `<Callout>`) are
+ignored while preserving exact line numbers.
+
+```ts check
+import { createProject } from 'docattest';
+
+const report = await createProject({
+  files: {
+    'docattest.config.json': JSON.stringify({
+      pages: ['docs/**/*.mdx'],
+      surfaces: { default: './src/index.ts' },
+      adapter: 'typescript',
+    }),
+    'src/index.ts': "export const RETRIES = 3;\nexport const ENV_KEYS = ['API_TOKEN', 'REGION'];",
+    'docs/retries.mdx': [
+      "import { Tabs, TabItem } from '@astrojs/starlight/components';",
+      '',
+      '# Retries',
+      '',
+      '<Tabs>',
+      '<TabItem label="Defaults">',
+      'A call is tried at most `3` times. {/* fact: RETRIES */}',
+      '</TabItem>',
+      '</Tabs>',
+      '',
+      '{/* fact: ENV_KEYS */}',
+      '- `API_TOKEN`',
+      '- `REGION`',
+      '',
+    ].join('\n'),
+  },
+}).check();
+
+assert.deepEqual(
+  report.results.map((r) => [r.line, r.status]),
+  [[7, 'pass'], [11, 'pass']],
+);
+```
+
+## Core-only mode (`adapter: "none"`) and surface-optional configs
+
+Both `adapter` and `surfaces` are optional in `docattest.config.json`. Omitting `adapter`
+(or setting `"adapter": "none"`) runs entirely in the Rust core with no language runtime:
+`matched()`, `manifestField()`, `file()`, `manifest()`, `snapshot()`, and `console check`
+all work out of the box. A language adapter can also omit `surfaces` when pages only check
+manifests, files, console blocks, citations, or standalone examples.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const root = mkdtempSync(join(tmpdir(), 'docattest-core-only-'));
+const put = (rel: string, text: string) => { mkdirSync(join(root, rel, '..'), { recursive: true }); writeFileSync(join(root, rel), text); };
+put('Dockerfile', 'FROM scratch\nUSER 10001\n');
+put('package.json', JSON.stringify({ name: 'ops', version: '2.4.0' }));
+put('docattest.config.json', JSON.stringify({ pages: ['README.md'] }));
+put('README.md', [
+  'Version `2.4.0`. <!-- fact: manifest("package.json").version -->',
+  'Runs as user `10001`. <!-- fact: matched("Dockerfile", "^USER (\\\\d+)$") -->',
+  '',
+  '```console check',
+  '$ echo ready',
+  'ready',
+  '```',
+].join('\n'));
+// ---cut---
+const coreOnly = spawnSync(process.execPath, [cli, 'check', '--json', '--root', root], { encoding: 'utf8' });
+assert.equal(coreOnly.status, 0);
+assert.deepEqual(JSON.parse(coreOnly.stdout).results.map((r: { status: string }) => r.status), ['pass', 'pass', 'pass']);
+
+// With a language adapter and no surfaces, language expressions over manifests work too.
+put('docattest.config.json', JSON.stringify({ pages: ['README.md'], adapter: 'typescript' }));
+put('README.md', 'Major version `2`. <!-- fact: manifest("package.json").version.split(".")[0] -->\n');
+const surfaceOptional = spawnSync(process.execPath, [cli, 'check', '--json', '--root', root], { encoding: 'utf8' });
+assert.equal(surfaceOptional.status, 0);
+assert.equal(JSON.parse(surfaceOptional.stdout).results[0].status, 'pass');
+```

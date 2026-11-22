@@ -32,7 +32,7 @@ TRACE_VARIABLE = "DOCATTEST_TRACE"
 # In the command, the project root: the core says how it is spelt where the command is written.
 ROOT = "{root}"
 # The commands that write the command down; only for them is it worked out.
-WRITERS = ("hooks", "agents")
+WRITERS = ("init",)
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 

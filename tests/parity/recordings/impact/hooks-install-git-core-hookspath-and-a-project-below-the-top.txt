@@ -1,8 +1,12 @@
 # hooks install --git: core.hooksPath, and a project below the top
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== hooks install --git
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --git-hook --no-audit
 exit 0
-stdout 2 lines
+stdout 6 lines
+docattest init: wrote <root>/packages/my lib/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added <root>/.githooks/pre-commit
   pre-commit: (cd 'packages/my lib' && ./.venv/bin/docattest check --quiet) || exit 1
 stderr empty
@@ -10,17 +14,52 @@ directory .githooks/
 file .githooks/pre-commit 4 lines
 #!/bin/sh
 # docattest: the documentation is checked against the code before each commit.
-# Written by `docattest hooks install --git`; delete this file to undo it.
+# Written by `docattest init --git-hook`; delete this file to undo it.
 (cd 'packages/my lib' && ./.venv/bin/docattest check --quiet) || exit 1
-=== hooks install --git --root packages/b
+file packages/my lib/docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --git-hook --no-audit --root packages/b
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/packages/b/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 2 lines
 docattest: <root>/.githooks/pre-commit is there already and is left as it is. To check this project before each commit, add this line to it:
   (cd packages/b && npx --no docattest check --quiet) || exit 1
-=== hooks install --git
+file packages/b/docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --git-hook --no-audit
 exit 1
-stdout empty
+stdout 4 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 stderr 2 lines
 docattest: <root>/.githooks/pre-commit is there already and is left as it is. To check this project before each commit, add this line to it:
   npx --no docattest check --quiet || exit 1
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}

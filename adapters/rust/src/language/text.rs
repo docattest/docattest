@@ -69,9 +69,12 @@ pub fn tokens(text: &str) -> Option<Vec<Token>> {
 }
 
 /// Whether a block can fail by its own doing: it calls a macro or a method that ends the
-/// program when something is not as expected. A block that cannot be read is not called
-/// weak.
+/// program when something is not as expected, or declares a trailing `// Output:` comment.
+/// A block that cannot be read is not called weak.
 pub fn asserts(code: &str) -> bool {
+    if crate::language::output::expected(code).is_some() {
+        return true;
+    }
     let Some(tokens) = tokens(&visible(code)) else { return true };
     let is = |k: Option<usize>, mark: &str| {
         k.and_then(|k| tokens.get(k)).is_some_and(|token| token.text() == mark)

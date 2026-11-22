@@ -1,8 +1,8 @@
 # text and column facts
-# recorded from: what adopting it in a Go service found
+# recorded from: add check --member, failure recap, and quiet/citation agent guidance
 === check
 exit 1
-stdout 10 lines
+stdout 13 lines
 docs/a.md
   ✓ L1 fact: KEYS.join("\n") matches the block
   ✗ L7 fact: missing: b; unexpected: c (comparing column k on the page with KEYS)
@@ -12,5 +12,8 @@ coverage: 1 living page, 1 covered (3 attestations: 3 proofs, 0 of them weak, an
 surface default: 3 symbols, 1 attested, 2 not attested by any page
   fixture → src/index.ts (fixture@1.0.0)
 snapshots: none
+failures:
+  docs/a.md:7 fact: missing: b; unexpected: c (comparing column k on the page with KEYS)
+  docs/a.md:14 fact: fact at L14 has no target: put it after a code span or number on the same line, at the end of a sentence with code spans, or at the end of a line or paragraph before a list, table or fenced block
 FAILED
 stderr empty

@@ -1,8 +1,12 @@
 # hooks install: the command the launcher gives
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== hooks install
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit
 exit 0
-stdout 3 lines
+stdout 7 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.claude/settings.json
   PostToolUse (Edit|Write): "$CLAUDE_PROJECT_DIR"/.venv/bin/docattest impact --hook
   Stop: "$CLAUDE_PROJECT_DIR"/.venv/bin/docattest check --hook
@@ -34,7 +38,16 @@ file .claude/settings.json 25 lines
     ]
   }
 }
-=== hooks install --agent cursor
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --hooks --agent cursor
 exit 0
 stdout 2 lines
 docattest hooks: added to <root>/.cursor/hooks.json
@@ -52,7 +65,7 @@ file .cursor/hooks.json 10 lines
     ]
   }
 }
-=== hooks install --agent gemini
+=== init --hooks --agent gemini
 exit 0
 stdout 3 lines
 docattest hooks: added to <root>/.gemini/settings.json
@@ -86,12 +99,12 @@ file .gemini/settings.json 25 lines
     ]
   }
 }
-=== hooks install --agent ./tools/acme.json
+=== init --hooks --agent ./tools/acme.json
 exit 1
 stdout empty
 stderr 1 line
 docattest: DOCATTEST_COMMAND must be one line (got "a\nb \"c\"")
-=== agents install
+=== init --agents
 exit 1
 stdout empty
 stderr 1 line

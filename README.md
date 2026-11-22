@@ -10,17 +10,20 @@ proof: examples that run, values in the prose that are compared with your code, 
 whose rows are tests. When the code changes and a sentence stops being true, the build
 fails at that page and line.
 
-- **Works on the docs you already have.** Proofs are HTML comments and tagged code
-  blocks, invisible when the page is rendered.
-- **TypeScript/JavaScript, Python, Go and Rust** today, from one shared core.
+- **Works on the docs you already have.** Proofs are HTML comments (`<!-- ... -->`) in
+  Markdown, JSX comments (`{/* ... */}`) in MDX, and tagged code blocks — invisible when
+  rendered.
+- **TypeScript/JavaScript, Python, Go and Rust** from one shared core, or core-only
+  (`"adapter": "none"`) with no language runtime.
 - **No generated files, no lockfiles, no model calls.** The page runs.
-- **Adopt one page at a time.** A page with no proofs is reported, not failed.
+- **Adopt one page at a time.** Run `docattest init` to detect config and surface existing
+  drift right away; pages without proofs are reported, not failed.
 
 Try it in your browser: the [playground](https://docattest.github.io/docattest/playground.html)
 lets you break a small project's code and watch docattest catch its docs. The
 [website](https://docattest.github.io/docattest/) has the short tour.
 
-> **Status:** `0.4.1` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
+> **Status:** `0.5.0` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
 > crates.io, and for Go by `go install` (see [Install](#install)).
 
 ## What it looks like
@@ -114,9 +117,14 @@ There is no install script and nothing is downloaded when docattest runs.
 
 ## Quick start
 
+In any project, run `docattest init` (`npx docattest init` in Node) to detect your language,
+docs pages and default surface, write `docattest.config.json`, and run an initial gap audit
+against your existing docs. Run `docattest audit --apply` to insert matching directives
+automatically, or follow the language examples below.
+
 ### TypeScript
 
-1. Add `docattest.config.json` at the project root:
+1. Run `npx docattest init` (or create `docattest.config.json` at the project root):
 
    ```json
    {
@@ -285,7 +293,7 @@ project drop the `npx`.
 <!-- fact column=Reported: KINDS -->
 | Proof | Reported | You write | It fails when |
 |---|---|---|---|
-| **Example** | `example` | a code block tagged `check` (runs) or `compile` (type-checks only); a `console check` block of commands and their output, or an `md check fixture=<dir>` sample page, which docattest runs itself | the code throws, an assertion fails, or it no longer compiles; a command prints or exits otherwise; a proof on the sample page fails |
+| **Example** | `example` | a code block tagged `check` (runs, with assertions or `Output:` / `Unordered output:` comments) or `compile` (type-checks only); a `console check` block of commands and their output, or an `md check fixture=<dir>` sample page, which docattest runs itself | the code throws, an assertion or expected output fails, or it no longer compiles; a command prints or exits otherwise; a proof on the sample page fails |
 | **Fact** | `fact` | `<!-- fact: expression -->` after a value, or above a list, table column, code block or one field of a JSON, TOML or YAML block | the page's value differs from what the expression gives |
 | **Cases** | `cases` | `<!-- cases: runner -->` above a table | a row's expected result is not what the runner produces |
 | **Citation** | `test` | `<!-- test: file > "test name" -->` after a sentence | the test it names no longer exists |
@@ -311,22 +319,18 @@ report.
 <!-- fact column=Command: COMMANDS -->
 | Command | Usage | What it does |
 |---|---|---|
-| `check` | `check [pages…]` | Run every proof, or just those pages. Exit 1 on a failure. |
+| `init` | `init [--agents] [--hooks [--local]] [--git-hook] [--skill] [--no-audit]` | Detect language, pages and default surface, write `docattest.config.json`, run an initial gap scan, and optionally wire coding-agent or git integrations. |
+| `check` | `check [pages…] [--member <dir>]` | Run every proof, just those pages, or one member project in a monorepo. Exit 1 on a failure. |
 | `check` | `check --base <ref>` | Also fail when a proof was removed since `<ref>` but its claim was kept. |
 | `check` | `check --report <format>=<path>` | Also write the report for another CI service: JUnit XML (`junit`) or GitLab Code Quality (`codequality`). |
-| `where` | `where <symbol>` | The pages, lines and sentences that describe a symbol. |
-| `uncovered` | `uncovered` | Public symbols no page describes yet. |
-| `index` | `index` | The whole symbol-to-pages map. |
-| `explain` | `explain <page>[:<line>]` | What each directive on the line, or on the page, binds and why, the sentence it defends, and what checking it gives. |
-| `audit` | `audit` | Lists, tables, blocks and values in sentences that look copied from the code and have no proof, with the directive to add. |
-| `inventory` | `inventory [text]` | Values a fact could read, each with its expression, the setup module's named facts included. |
+| `audit` | `audit [--apply [--include-drift] [--dry-run]]` | Lists, tables, blocks and values in sentences that look copied from the code and have no proof, with the directive to add; `--apply` inserts matching directives directly. |
+| `audit` | `audit --inventory [text]` | Values a fact could read, each with its expression, the setup module's named facts included. |
 | `impact` | `impact [--base <ref>]` | The documented symbols your diff affects and the prose that names them. |
 | `impact` | `impact --file <path>` | The same for one edited file's change; silent when nothing is affected. |
-| `mutate` | `mutate [pages…] [--base <ref>]` | Run each proof again against changes to what it reads, and list the proofs no change makes fail: how strong the documentation is. |
+| `explain` | `explain <page>[:<line>]` | What each directive on the line, or on the page, binds and why, the sentence it defends, and what checking it gives. |
+| `where` | `where [symbol]` | The pages, lines and sentences that describe a symbol, or the whole symbol-to-pages map when no symbol is given. |
+| `uncovered` | `uncovered` | Public symbols no page describes yet. |
 | `refresh` | `refresh [name]` | Refetch snapshots from their source. |
-| `hooks` | `hooks install` | Add hooks to a coding agent's settings (`--local` for the user-local file), or `--git` for a pre-commit hook. |
-| `agents` | `agents install` | Write a docattest section into `AGENTS.md`. |
-| `skill` | `skill install` | Install the authoring guide where your coding agent looks for skills. |
 | `conformance` | `conformance run <kit.json> -- <adapter command>` | Hold a language adapter to the protocol; for adapter authors. |
 
 Most commands take `--json`. `check --quiet` prints only what needs attention, then `ok` or
@@ -344,10 +348,11 @@ default it is the nearest directory at or above the current one that has a
 You do not need to rewrite anything. Start with one page:
 
 ```sh
-npx docattest audit                 # suggests directives for lists, tables and values copied from the code
-npx docattest inventory maxAttempts # finds the expression for a value you see in the prose
-npx docattest check docs/retries.md # check just the page you are working on
-npx docattest uncovered             # what is left
+npx docattest init                        # detect config and print initial gaps & drift
+npx docattest audit --apply               # inserts matching directives directly into your pages
+npx docattest audit --inventory maxAttempts # finds the expression for a value you see in the prose
+npx docattest check docs/retries.md       # check just the page you are working on
+npx docattest uncovered                   # what is left
 ```
 
 Pages without proofs are counted as uncovered and never fail the build.
@@ -372,7 +377,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --if-present
-      - uses: docattest/docattest@v0.4.1
+      - uses: docattest/docattest@v0.5.0
         with:
           args: --base origin/main
 ```
@@ -449,7 +454,7 @@ npx docattest impact --base main    # the prose a branch touches
 ### Check before every commit
 
 ```sh
-npx docattest hooks install --git
+npx docattest init --git-hook
 ```
 
 This writes a `pre-commit` hook that runs `docattest check --quiet`. An existing hook is
@@ -458,16 +463,16 @@ never modified; docattest prints the line to add to it instead.
 ### Use it with a coding agent
 
 docattest asks two things of any agent: run `impact --file <path>` after editing code, and
-`check` before finishing.
+`check --quiet` before finishing. Wire it up in one command:
 
 ```sh
-npx docattest agents install        # tells every agent that reads AGENTS.md
-npx docattest hooks install         # Claude Code runs both automatically
-npx docattest skill install         # teaches the agent how to write proofs
+npx docattest init --agents --hooks --skill
 ```
 
+`--agents` writes the docattest section of `AGENTS.md`, `--hooks` installs agent hooks
+(`--local` writes the gitignored local settings file, e.g. `.claude/settings.local.json`),
+and `--skill` installs a concise, language-specific authoring skill.
 `--agent gemini`, `--agent cursor`, `--agent codex`, `--agent antigravity` or `--agent ./my-agent.json` targets another agent.
-Add `--local` to `hooks install` to write the agent's gitignored local settings file (for Claude Code, `.claude/settings.local.json`) instead of committing hooks for every teammate.
 See [agents](docs/agents.md).
 
 ### Document something outside your repo
@@ -521,9 +526,9 @@ test it.
 <!-- fact column=Key: CONFIG_KEYS -->
 | Key | Meaning |
 |---|---|
-| `pages` | Globs of the Markdown pages to check. Required. What git ignores is never a page, and a glob cannot start with `!`: use `frozen` to leave pages out. |
-| `adapter` | The project's language: `"typescript"`, `"python"`, `"go"` or `"rust"`. Required. |
-| `surfaces` | Your public API, by name. `default` is required. An entry is an entry file, a package or module name (a package's directory or import path in Go, a module path in Rust), or `{ "import": "<name>", "path": "<file>" }`. |
+| `pages` | Globs of the Markdown (`.md`) or MDX (`.mdx`) pages to check. Required. What git ignores is never a page, and a glob cannot start with `!`: use `frozen` to leave pages out. |
+| `adapter` | The project's language: `"typescript"`, `"python"`, `"go"`, `"rust"`, or `"none"` (core-only checks without a language runtime). Defaults to `"none"` when omitted. |
+| `surfaces` | Your public API, by name. Optional: omit it when pages only check manifests, files, snapshots, console blocks, citations or standalone examples. An entry is an entry file, a package or module name, `{ "import": "<name>", "path": "<file>" }`, or `{ "path": "<file>", "internal": true }` for an internal fact-only package excluded from public API coverage. |
 | `undocumented` | By surface, globs of the symbols that are not meant to be documented, written as `uncovered` prints their names: `{ "default": ["internal*", "Program*"] }`. `uncovered` leaves them out, the report counts them apart, and a glob that matches no symbol is a warning. See [duality](docs/duality.md#symbols-not-meant-to-be-documented-are-counted-apart). |
 | `sources` | Globs of source files whose doc-comment examples are checked. |
 | `frozen` | Globs of pages that are listed in the report but never checked. |
@@ -534,7 +539,7 @@ test it.
 | `ignoreTags` | Words a docs renderer adds to code fences (such as `twoslash`), accepted and otherwise ignored. |
 | `members` | Directories below this one that hold projects of their own, in any language, which `check` checks with this one. An entry is a directory, or `{ "path": "<dir>", "adapterCommand": ["<program>", …] }` when the launcher you run cannot start that project's adapter. See [the command line](docs/cli.md). |
 | `commands` | The programs your console blocks run, each with globs of the files it is built from: `{ "mytool": ["src/**/*.ts"] }`. `impact` then lists the blocks that run one whose files changed. See [impact](docs/impact.md). |
-| `$schema` | Ignored, so an editor can be pointed at a schema. |
+| `$schema` | Ignored at runtime; point editors at `https://docattest.github.io/docattest/schema/config.json` (written automatically by `docattest init`). |
 
 Examples run in isolated workers with the network off; set `DOCATTEST_NETWORK=1` to allow it.
 
@@ -580,8 +585,8 @@ against).
 ## FAQ
 
 **Does it change how my docs render?**
-No. Directives are HTML comments, and `check` is an extra word on a code fence that
-renderers ignore.
+No. Directives are HTML comments (`<!-- ... -->`) in Markdown or JSX comments (`{/* ... */}`)
+in MDX, and `check` is an extra word on a code fence that renderers ignore.
 
 **How is this different from doctest or snippet testing?**
 Those check that code blocks run. docattest also checks the prose: values in sentences,
@@ -598,12 +603,14 @@ treat your tests. See [SECURITY.md](SECURITY.md).
 
 **Can I use it for another language?**
 The core is language-neutral and talks to a per-language adapter over a small protocol.
-[adapters/README.md](adapters/README.md) is the guide to adding a language,
+You can also start immediately with `"adapter": "none"` (files, manifests, snapshots, and
+`console check` blocks without a language runtime). To add full language support,
+[adapters/README.md](adapters/README.md) is the guide,
 [PROTOCOL.md](protocol/PROTOCOL.md) is the protocol, and
 `docattest conformance run` checks an adapter.
 
 **reStructuredText?**
-Not yet. Pages are Markdown.
+Not yet. Pages are Markdown (`.md`) and MDX (`.mdx`).
 
 ## Repository layout
 

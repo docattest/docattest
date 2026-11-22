@@ -101,14 +101,14 @@ const projects = options.flatMap((token, k): Project[] => {
 const PROJECT_COMMANDS = [
   ['check', '--json'],
   ['check'],
-  ['index', '--json'],
+  ['where', '--json'],
   ['uncovered', '--json'],
   ['audit', '--json'],
-  ['inventory', '--json'],
+  ['audit', '--inventory', '--json'],
 ];
 const TIMED = [
   ['check', '--json'],
-  ['index', '--json'],
+  ['where', '--json'],
   ['audit', '--json'],
 ];
 const GIT_ENV = { ...gitEnv('bench'), ...FIXED_GIT_DATES };

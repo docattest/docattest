@@ -47,7 +47,7 @@ export const cases: ExtraCase[] = [
     project({ 'docs/a.md': '`3` <!-- fact: N -->\n' }, config({ adapter: 'python' })),
     ['check'],
   ],
-  ['adapter not found: index', project({}, config({ adapter: 'python' })), ['index', '--json']],
+  ['adapter not found: index', project({}, config({ adapter: 'python' })), ['where', '--json']],
   ['adapter not found: audit', project({}, config({ adapter: 'rust_2024' })), ['audit']],
   ['adapter not found: refresh', project({}, config({ adapter: 'python' })), ['refresh']],
   [
@@ -197,7 +197,7 @@ export const cases: ExtraCase[] = [
   [
     'positionless literal',
     project({ 'docs/a.md': "See 'www.example.com' for more.\n" }),
-    ['index', '--json'],
+    ['where', '--json'],
   ],
   [
     'doc comments',
@@ -263,12 +263,12 @@ export const cases: ExtraCase[] = [
       'docs/a.md':
         '# A\n\nAt most `3` tries. <!-- fact: N -->\n\n```ts check\nimport { add, N } from "fixture";\nassert.equal(add(N, 2), 5);\n```\n',
     }),
-    ['index'],
+    ['where'],
   ],
   [
     'index json',
     project({ 'docs/a.md': 'At most `3` tries. <!-- fact: N -->\n' }),
-    ['index', '--json'],
+    ['where', '--json'],
   ],
   ['where', project({ 'docs/a.md': 'At most `3` tries. <!-- fact: N -->\n' }), ['where', 'N']],
   [
@@ -278,7 +278,7 @@ export const cases: ExtraCase[] = [
   ],
   ['where nothing', project({ 'docs/a.md': '# A\n' }), ['where', 'nope']],
   ['where toString', project({ 'docs/a.md': '# A\n' }), ['where', 'toString']],
-  ['where usage', project({}), ['where']],
+  ['where usage', project({}), ['where', 'a', 'b']],
   ['uncovered', project({ 'docs/a.md': 'At most `3` tries. <!-- fact: N -->\n' }), ['uncovered']],
   ['uncovered json', project({ 'docs/a.md': '# A\n' }), ['uncovered', '--json']],
   ['uncovered surface flag', project({ 'docs/a.md': '# A\n' }), ['uncovered', '--surface']],

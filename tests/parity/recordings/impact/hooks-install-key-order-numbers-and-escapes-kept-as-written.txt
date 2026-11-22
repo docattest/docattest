@@ -1,11 +1,24 @@
 # hooks install: key order, numbers and escapes kept as written
-# recorded from: the core without the JavaScript emulation: serde_json's JSON messages and order, whole-character cuts, plain errors (exit 1 for a failed write or fetch)
-=== hooks install
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit
 exit 0
-stdout 3 lines
+stdout 7 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.claude/settings.json
   PostToolUse (Edit|Write): npx --no docattest impact --hook
   Stop: npx --no docattest check --hook
 stderr empty
 file .claude/settings.json json
 "{\n  \"z\": 1.0,\n  \"10\": 1e+21,\n  \"2\": -0.0,\n  \"a\": \"again\",\n  \"Ã©\": \"Ã©\\n\\t\\u0001 / \\\" \\\\ ð ð â¨\",\n  \"hooks\": {\n    \"Stop\": [\n      {\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"npx --no docattest check --hook\"\n          }\n        ]\n      }\n    ],\n    \"1\": [],\n    \"PostToolUse\": [\n      {\n        \"hooks\": [],\n        \"matcher\": \"*\"\n      },\n      {\n        \"matcher\": \"Edit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"npx --no docattest impact --hook\"\n          }\n        ]\n      }\n    ]\n  },\n  \"__proto__\": {\n    \"x\": 1\n  },\n  \"constructor\": 2\n}\n"
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}

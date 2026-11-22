@@ -87,10 +87,16 @@ export class FactEvaluator {
 
   /** The fact with its names bound, or why it cannot be evaluated. */
   private bind(fact: FactAttestation): BoundFact | string {
-    const entry = this.entryOf(fact.surface);
-    if (typeof entry !== 'object') return entry;
+    const noSurfaces = this.surfaces.length === 0 && fact.surface === 'default';
+    if (!noSurfaces) {
+      const entry = this.entryOf(fact.surface);
+      if (typeof entry !== 'object') return entry;
+    }
     const problem = expressionProblem(fact.expression);
     if (problem !== undefined) return problem;
+    if (noSurfaces) {
+      return { ...fact, binding: { ok: true, loads: false, constants: [] } };
+    }
     // Checked here from the setup module's syntax, so a clash fails even when the surface
     // alone could evaluate the expression; the worker catches the dynamic cases.
     const binding = bindFactNames(expressionIdentifiers(fact.expression), {
@@ -104,12 +110,15 @@ export class FactEvaluator {
 
   private async group(facts: BoundFact[], values: Map<string, Evaluation>): Promise<void> {
     const [first] = facts;
-    const file = this.surfaces.find((s) => s.spec.name === first?.surface)?.entry;
-    if (!first || !file) return;
+    if (!first) return;
+    const file = first.binding.loads
+      ? this.surfaces.find((s) => s.spec.name === first.surface)?.entry
+      : undefined;
+    if (first.binding.loads && !file) return;
     const job: Job = {
       type: 'facts',
       surface: first.surface,
-      file: first.binding.loads ? file : undefined,
+      file,
       constants: [...new Map(facts.flatMap((f) => f.binding.constants))],
       setup: this.setup(),
       facts: facts.map(item),

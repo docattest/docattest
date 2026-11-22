@@ -1,22 +1,59 @@
 # surfaces: no default
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
-exit 1
-stdout empty
-stderr 1 line
-docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
+exit 0
+stdout 3 lines
+docs/p.md
+  ? L1 list matches K → <!-- fact @b: K --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
+stderr empty
 === audit --json
-exit 1
-stdout empty
-stderr 1 line
-docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
-=== inventory
-exit 1
-stdout empty
-stderr 1 line
-docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
-=== inventory --json
-exit 1
-stdout empty
-stderr 1 line
-docattest: invalid docattest.config.json: "surfaces" must name a "default" surface
+exit 0
+stdout 15 lines
+{
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 1,
+      "target": "list",
+      "expression": "K",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "b",
+      "directive": "<!-- fact @b: K -->"
+    }
+  ]
+}
+stderr empty
+=== audit --inventory
+exit 0
+stdout 3 lines
+@b K  →  [k1, k2]
+@a K  →  [k1, k2]
+inventory: 2 values
+stderr empty
+=== audit --inventory --json
+exit 0
+stdout 20 lines
+[
+  {
+    "surface": "b",
+    "expression": "K",
+    "value": "k1,k2",
+    "items": [
+      "k1",
+      "k2"
+    ]
+  },
+  {
+    "surface": "a",
+    "expression": "K",
+    "value": "k1,k2",
+    "items": [
+      "k1",
+      "k2"
+    ]
+  }
+]
+stderr empty

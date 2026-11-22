@@ -469,31 +469,6 @@
         "$ref": "results.json#/$defs/SymbolRef"
       }
     },
-    "mutants.params": {
-      "type": "object",
-      "properties": {
-        "symbols": {
-          "type": "array",
-          "items": {
-            "$ref": "results.json#/$defs/SymbolRef"
-          }
-        },
-        "limit": {
-          "description": "The most edits to answer for one symbol.",
-          "type": "integer",
-          "minimum": 1
-        }
-      },
-      "required": ["symbols", "limit"],
-      "additionalProperties": false
-    },
-    "mutants.result": {
-      "description": "One entry for each of the symbols, in their order.",
-      "type": "array",
-      "items": {
-        "$ref": "results.json#/$defs/SymbolMutants"
-      }
-    },
     "inCode.params": {
       "type": "object",
       "properties": {

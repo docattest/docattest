@@ -1,46 +1,46 @@
-// `skill install`, in the project and `--global`, and its usage.
+// `init --skill`, in the project and `--global`, and its usage.
 import type { ImpactCase } from './types.ts';
 
 export const skillInstall: ImpactCase[] = [
-  // ------------------------------------------------------------------------ skill install
+  // ------------------------------------------------------------------------ init --skill
   {
     name: 'skill install, then again',
     files: {},
     steps: [
-      ['skill', 'install'],
-      ['skill', 'install'],
-      ['skill', 'install', '--force'],
+      ['init', '--skill', '--no-audit'],
+      ['init', '--skill'],
+      ['init', '--skill', '--force', '--no-audit'],
     ],
   },
   {
     name: 'skill install over an edited copy',
     files: { '.claude/skills/docattest/SKILL.md': 'edited\n' },
     steps: [
-      ['skill', 'install'],
-      ['skill', 'install', '--force'],
-      ['skill', 'install'],
+      ['init', '--skill', '--no-audit'],
+      ['init', '--skill', '--force', '--no-audit'],
+      ['init', '--skill'],
     ],
   },
   {
     name: 'skill install over an empty copy',
     files: { '.claude/skills/docattest/SKILL.md': '' },
     steps: [
-      ['skill', 'install'],
-      ['skill', 'install', '--force'],
+      ['init', '--skill', '--no-audit'],
+      ['init', '--skill', '--force', '--no-audit'],
     ],
   },
   {
     name: 'skill install beside other skills',
     files: { '.claude/skills/other/SKILL.md': 'other\n', '.claude/settings.json': '{}' },
-    steps: [['skill', 'install']],
+    steps: [['init', '--skill', '--no-audit']],
   },
   {
     name: 'skill install --global',
     files: {},
     steps: [
-      ['skill', 'install', '--global'],
-      ['skill', 'install', '--global'],
-      ['skill', 'install'],
+      ['init', '--skill', '--global', '--no-audit'],
+      ['init', '--skill', '--global'],
+      ['init', '--skill'],
     ],
   },
   {
@@ -48,34 +48,38 @@ export const skillInstall: ImpactCase[] = [
     files: {},
     home: { '.claude/skills/docattest/SKILL.md': 'mine\n' },
     steps: [
-      ['skill', 'install', '--global'],
-      ['skill', 'install', '--global', '--force'],
+      ['init', '--skill', '--global', '--no-audit'],
+      ['init', '--skill', '--global', '--force', '--no-audit'],
     ],
   },
   {
     name: 'skill install --root',
     files: { 'sub/x': '' },
     steps: [
-      ['skill', 'install', '--root', 'sub'],
-      ['skill', 'install', '--root', '__ROOT__/sub', '--global'],
+      ['init', '--skill', '--no-audit', '--root', 'sub'],
+      ['init', '--skill', '--root', '__ROOT__/sub', '--global'],
     ],
   },
   {
     name: 'skill install where the skill is a directory',
     files: { '.claude/skills/docattest/SKILL.md/x': '' },
     steps: [
-      ['skill', 'install'],
-      ['skill', 'install', '--force'],
+      ['init', '--skill', '--no-audit'],
+      ['init', '--skill', '--force', '--no-audit'],
     ],
   },
   {
     name: 'skill install where .claude is a file',
     files: { '.claude': 'x' },
-    steps: [['skill', 'install']],
+    steps: [['init', '--skill', '--no-audit']],
   },
   {
     name: 'skill usage',
     files: {},
-    steps: [['skill'], ['skill', 'remove'], ['skill', 'install', 'x'], ['skill', '--global']],
+    steps: [
+      ['init', '--global'],
+      ['init', '--local'],
+      ['init', '--hooks', '--local', '--git-hook'],
+    ],
   },
 ];

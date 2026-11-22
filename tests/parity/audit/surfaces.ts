@@ -19,10 +19,10 @@ export const severalSurfaces: AuditCase[] = [
     'surfaces: search across surfaces',
     TWO_SURFACES({ 'docs/p.md': 'x\n' }),
     [
-      ['inventory', 'S'],
-      ['inventory', 'ports', '--json'],
-      ['inventory', 'WELCOME'],
-      ['inventory', 'server'],
+      ['audit', '--inventory', 'S'],
+      ['audit', '--inventory', 'ports', '--json'],
+      ['audit', '--inventory', 'WELCOME'],
+      ['audit', '--inventory', 'server'],
     ],
   ],
   [
@@ -70,7 +70,12 @@ export const severalSurfaces: AuditCase[] = [
         adapter: 'typescript',
       }),
     },
-    [['audit'], ['audit', '--json'], ['inventory', 'EOL'], ['inventory', 'signals', '--json']],
+    [
+      ['audit'],
+      ['audit', '--json'],
+      ['audit', '--inventory', 'EOL'],
+      ['audit', '--inventory', 'signals', '--json'],
+    ],
   ],
 ];
 
@@ -130,7 +135,7 @@ export const failingSurfaces: AuditCase[] = [
       ...one('await new Promise(() => {});\nexport const K = 1;\n', list('k1', 'k2')),
       'docattest.config.json': config({ runtime: { timeoutMs: 700 } }),
     },
-    [['audit'], ['inventory', '--json']],
+    [['audit'], ['audit', '--inventory', '--json']],
   ],
   ['failing: no config', { 'README.md': '# x\n' }],
   [

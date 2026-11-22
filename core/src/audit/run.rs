@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use serde_json::{Value, json};
 
-use super::candidates::{PageCandidates, candidates_of};
+use super::candidates::{PageCandidates, candidates_of_page};
 use super::inventory::Inventory;
 use super::suggest::suggest_for_page;
 use super::{Observable, Observation, Suggestion};
@@ -47,7 +47,7 @@ fn candidates(state: &State) -> Result<Vec<(&String, PageCandidates)>> {
     let files = &state.files;
     let find = |page: &&String| -> Result<PageCandidates> {
         let text = files.read(page).map_err(Error::user)?;
-        candidates_of(&text).map_err(|why| why.on(page))
+        candidates_of_page(page, &text).map_err(|why| why.on(page))
     };
     let found = crate::parallel::map_in_parallel(&pages, find);
     pages.into_iter().zip(found).map(|(page, found)| Ok((page, found?))).collect()

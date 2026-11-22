@@ -1,5 +1,5 @@
 # surfaces: an external package
-# recorded from: docattest 0.1.4: what adopting it in three projects found
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 1
 stdout empty
@@ -10,13 +10,13 @@ exit 1
 stdout empty
 stderr 1 line
 docattest: audit: surface "os" failed to load: Error: Cannot find module node:os
-=== inventory EOL
+=== audit --inventory EOL
 exit 1
 stdout empty
 stderr 1 line
-docattest: inventory: surface "os" failed to load: Error: Cannot find module node:os
-=== inventory signals --json
+docattest: audit: surface "os" failed to load: Error: Cannot find module node:os
+=== audit --inventory signals --json
 exit 1
 stdout empty
 stderr 1 line
-docattest: inventory: surface "os" failed to load: Error: Cannot find module node:os
+docattest: audit: surface "os" failed to load: Error: Cannot find module node:os

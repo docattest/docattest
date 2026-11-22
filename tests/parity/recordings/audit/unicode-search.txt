@@ -1,11 +1,11 @@
 # unicode: search
-# recorded from: text reports write a count's noun in the singular for one; impact lists a cited test as cited, not proven; impact --file fails on a path that names no file of the project; usage text
-=== inventory GRÖSSE
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== audit --inventory GRÖSSE
 exit 0
 stdout 1 line
 inventory: nothing matches
 stderr empty
-=== inventory größe --json
+=== audit --inventory größe --json
 exit 0
 stdout 12 lines
 [
@@ -21,30 +21,30 @@ stdout 12 lines
   }
 ]
 stderr empty
-=== inventory σίσυφος
+=== audit --inventory σίσυφος
 exit 0
 stdout 2 lines
 K  →  [Größe, ΣΊΣΥΦΟΣ, İstanbul]
 inventory: 1 value
 stderr empty
-=== inventory σίσυφοσ
+=== audit --inventory σίσυφοσ
 exit 0
 stdout 1 line
 inventory: nothing matches
 stderr empty
-=== inventory déjà
+=== audit --inventory déjà
 exit 0
 stdout 2 lines
 TITLE  →  DÉJÀ vu
 inventory: 1 value
 stderr empty
-=== inventory i̇stanbul
+=== audit --inventory i̇stanbul
 exit 0
 stdout 2 lines
 K  →  [Größe, ΣΊΣΥΦΟΣ, İstanbul]
 inventory: 1 value
 stderr empty
-=== inventory İ
+=== audit --inventory İ
 exit 0
 stdout 2 lines
 K  →  [Größe, ΣΊΣΥΦΟΣ, İstanbul]

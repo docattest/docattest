@@ -1,8 +1,12 @@
 # hooks install: one of the two installed
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
-=== hooks install
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+=== init --hooks --no-audit
 exit 0
-stdout 2 lines
+stdout 6 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
 docattest hooks: added to <root>/.claude/settings.json
   PostToolUse (Edit|Write): npx --no docattest impact --hook
 stderr empty
@@ -31,4 +35,13 @@ file .claude/settings.json 25 lines
       }
     ]
   }
+}
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
 }

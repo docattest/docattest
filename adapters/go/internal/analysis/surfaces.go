@@ -236,6 +236,11 @@ func (p *Project) unresolved(found *Surface) string {
 	return fmt.Sprintf("%q did not resolve (%s); examples and facts that use it fail", what, why)
 }
 
+// HasSurfaces reports whether the project configures any surface.
+func (p *Project) HasSurfaces() bool {
+	return len(p.surfaces) > 0
+}
+
 // NotFound is why a fact or a walk of a surface cannot go on, or "" when it can.
 func (p *Project) NotFound(name string) string {
 	found := p.SurfaceNamed(name)

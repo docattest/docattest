@@ -1,5 +1,5 @@
 # verify: a setup helper named like an export
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
 === audit
 exit 0
 stdout 4 lines
@@ -38,14 +38,14 @@ stdout 26 lines
   ]
 }
 stderr empty
-=== inventory
+=== audit --inventory
 exit 0
 stdout 3 lines
 K  →  [k1, k2]
 helper  →  [h1, h2]
 inventory: 2 values
 stderr empty
-=== inventory --json
+=== audit --inventory --json
 exit 0
 stdout 20 lines
 [

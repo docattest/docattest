@@ -22,7 +22,6 @@ func (s *Session) Methods() map[string]protocol.Handler {
 		"observables":      s.onObservables,
 		"affected":         s.onAffected,
 		"inCode":           s.onInCode,
-		"mutants":          s.onMutants,
 	}
 }
 
@@ -141,15 +140,4 @@ func (s *Session) onInCode(raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	return s.project.InCode(params.Names, params.Files)
-}
-
-func (s *Session) onMutants(raw json.RawMessage) (any, error) {
-	params, err := protocol.Decode[struct {
-		Symbols []protocol.SymbolRef `json:"symbols"`
-		Limit   int                  `json:"limit"`
-	}](raw)
-	if err != nil {
-		return nil, err
-	}
-	return s.project.Mutants(params.Symbols, params.Limit)
 }

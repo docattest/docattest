@@ -12,19 +12,14 @@ to over a small line-based protocol. This package's adapter is the TypeScript on
 Python, Go and Rust packages each bring their own.
 
 The CLI exposes these commands, whichever adapter serves a project: <!-- fact: COMMANDS -->
+- `init`
 - `check`
+- `audit`
+- `impact`
+- `explain`
 - `where`
 - `uncovered`
-- `index`
-- `explain`
 - `refresh`
-- `skill`
-- `audit`
-- `inventory`
-- `impact`
-- `mutate`
-- `hooks`
-- `agents`
 - `conformance`
 
 ## What an adapter answers

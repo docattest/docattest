@@ -59,7 +59,7 @@ pub fn install_git_hook(root: &Path, command: &str) -> Result<GitHook> {
         )));
     }
     let script = format!(
-        "#!/bin/sh\n# docattest: the documentation is checked against the code before each commit.\n# Written by `docattest hooks install --git`; delete this file to undo it.\n{line}\n"
+        "#!/bin/sh\n# docattest: the documentation is checked against the code before each commit.\n# Written by `docattest init --git-hook`; delete this file to undo it.\n{line}\n"
     );
     text_file::write_text(&path, &script).map_err(failed)?;
     make_executable(&path).map_err(|e| failed(text_file::failure("make executable", &file, &e)))?;
@@ -90,11 +90,9 @@ fn git_paths(root: &Path) -> Result<(String, PathBuf)> {
             let hooks = Path::new(lines.next().unwrap_or_default()).components().collect();
             Ok((prefix, hooks))
         }
-        Err(Failure::Missing) => {
-            Err(Error::user("hooks install --git needs git, and git was not found on PATH"))
-        }
+        Err(Failure::Missing) => Err(Error::user("init --git-hook needs git, and git was not found on PATH")),
         Err(Failure::Failed(_)) => Err(Error::user(format!(
-            "hooks install --git needs a git repository, and {} is not inside one",
+            "init --git-hook needs a git repository, and {} is not inside one",
             root.display()
         ))),
     }
@@ -162,7 +160,7 @@ mod tests {
         assert_eq!(
             install_git_hook(&plain.0, NPX).unwrap_err().to_string(),
             format!(
-                "docattest: hooks install --git needs a git repository, and {} is not inside one",
+                "docattest: init --git-hook needs a git repository, and {} is not inside one",
                 plain.0.display()
             )
         );
