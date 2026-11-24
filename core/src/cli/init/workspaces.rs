@@ -45,7 +45,12 @@ pub fn detect_workspace(root: &Path, listed: &[String]) -> (Vec<String>, Vec<Det
         return (Vec::new(), Vec::new());
     }
     let dirs = workspace_package_dirs(&patterns, listed);
-    let pages = workspace_readme_globs(&patterns, listed);
+    let mut pages = workspace_readme_globs(&patterns, listed);
+    for doc in workspace_extra_docs(&dirs, listed) {
+        if !pages.contains(&doc) {
+            pages.push(doc);
+        }
+    }
     let surfaces = workspace_surfaces(root, &dirs, listed);
     (pages, surfaces)
 }
@@ -113,6 +118,28 @@ fn workspace_readme_globs(patterns: &[String], listed: &[String]) -> Vec<String>
                 .is_ok_and(|m| listed.iter().any(|f| m.is_match(f)))
         {
             out.push(glob);
+        }
+    }
+    out
+}
+
+/// Top-level Markdown files in workspace packages that are not boilerplate repository docs.
+const SKIP_PACKAGE_DOCS: [&str; 6] =
+    ["readme.md", "changelog.md", "license.md", "contributing.md", "security.md", "code_of_conduct.md"];
+
+fn workspace_extra_docs(dirs: &[String], listed: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    for dir in dirs {
+        let prefix = format!("{dir}/");
+        for file in listed {
+            let Some(name) = file.strip_prefix(&prefix) else { continue };
+            if name.contains('/') || !name.to_ascii_lowercase().ends_with(".md") {
+                continue;
+            }
+            if SKIP_PACKAGE_DOCS.iter().any(|skip| name.eq_ignore_ascii_case(skip)) {
+                continue;
+            }
+            out.push(file.clone());
         }
     }
     out

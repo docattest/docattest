@@ -1,26 +1,41 @@
 # unit: functions, instances, types, ragged rows
-# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+# recorded from: docattest 0.6.0
 === audit
 exit 0
-stdout 1 line
-audit: nothing to suggest
+stdout 3 lines
+docs/p.md
+  ? L11 list matches typeKeys('T') → <!-- fact: typeKeys('T') --> above the list
+audit: 1 suggestion on 1 page, 1 match, 0 drift
 stderr empty
 === audit --json
 exit 0
-stdout 3 lines
+stdout 15 lines
 {
-  "suggestions": []
+  "suggestions": [
+    {
+      "page": "docs/p.md",
+      "line": 11,
+      "target": "list",
+      "expression": "typeKeys('T')",
+      "status": "match",
+      "missing": [],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: typeKeys('T') -->"
+    }
+  ]
 }
 stderr empty
 === audit --inventory
 exit 0
-stdout 2 lines
+stdout 3 lines
 ROWS.map((r) => r.n)  →  [n1, n2, n3]
-inventory: 1 value
+typeKeys('T')  →  [t1, t2]
+inventory: 2 values
 stderr empty
 === audit --inventory --json
 exit 0
-stdout 12 lines
+stdout 21 lines
 [
   {
     "surface": "default",
@@ -30,6 +45,15 @@ stdout 12 lines
       "n1",
       "n2",
       "n3"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('T')",
+    "value": "t1,t2",
+    "items": [
+      "t1",
+      "t2"
     ]
   }
 ]

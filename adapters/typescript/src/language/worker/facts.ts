@@ -3,7 +3,13 @@ import { observe } from './observe.js';
 import type { FactItem, FactsJob } from '../run/protocol.js';
 import { InternalError } from '../../api/errors.js';
 import { compileFunction, type CompiledFunction } from './compile.js';
-import { exportedEntries, FACT_FUNCTIONS, freshRegistry, type WorkerContext } from './context.js';
+import {
+  ALL_FACT_FUNCTIONS,
+  exportedEntries,
+  FACT_FUNCTIONS,
+  freshRegistry,
+  type WorkerContext,
+} from './context.js';
 import { describeError } from './describe.js';
 import { offline } from './network.js';
 import type { ModuleRegistry } from './registry.js';
@@ -16,7 +22,7 @@ const RESERVED = new Set(
     'false finally for function if import in instanceof new null return super switch this throw',
     'true try typeof var void while with yield let static implements interface package private',
     'protected public await arguments eval',
-    ...FACT_FUNCTIONS,
+    ...ALL_FACT_FUNCTIONS,
   ]
     .join(' ')
     .split(' '),
@@ -38,10 +44,37 @@ export async function runFacts(
   const surface = new Map([...exports, ...job.constants]);
   ctx.post({ type: 'ready', id });
   const helpers = new SetupFacts(registry, job.setup, surface);
+  const typeFns = makeTypeHelpers(job);
   for (const fact of job.facts.slice(start)) {
-    const evaluation = await evaluate(fact, job.surface, helpers, ctx);
+    const evaluation = await evaluate(fact, job.surface, helpers, ctx, typeFns);
     ctx.post({ type: 'item', id, outcome: { kind: 'evaluation', evaluation } });
   }
+}
+
+interface TypeHelpers {
+  typeKeys: (name: string) => string[];
+  typeValues: (name: string) => string[];
+}
+
+function makeTypeHelpers(job: FactsJob): TypeHelpers {
+  return {
+    typeKeys: (name: string) => {
+      const found = Object.hasOwn(job.typeKeys, name) ? job.typeKeys[name] : undefined;
+      if (found === undefined) {
+        throw new Error(`type "${name}" has no exported object keys on surface "${job.surface}"`);
+      }
+      return [...found];
+    },
+    typeValues: (name: string) => {
+      const found = Object.hasOwn(job.typeValues, name) ? job.typeValues[name] : undefined;
+      if (found === undefined) {
+        throw new Error(
+          `type "${name}" is not an exported literal union on surface "${job.surface}"`,
+        );
+      }
+      return [...found];
+    },
+  };
 }
 
 // A job whose facts read only constants from source never runs the surface's module.
@@ -63,6 +96,7 @@ async function evaluate(
   surface: string,
   helpers: SetupFacts,
   ctx: WorkerContext,
+  typeFns: TypeHelpers,
 ): Promise<Evaluation> {
   const label = `fact \`${fact.expression}\``;
   const bindings = await helpers.bindingsFor(fact, surface);
@@ -72,6 +106,8 @@ async function evaluate(
     const evaluateFact = factFunction(names, fact.code)(
       ...names.map((n) => bindings.get(n)),
       ...FACT_FUNCTIONS.map((n) => ctx[n]),
+      typeFns.typeKeys,
+      typeFns.typeValues,
     );
     if (typeof evaluateFact !== 'function') {
       throw new InternalError('the fact module exported no function');
@@ -98,7 +134,7 @@ function evaluationError(err: unknown, label: string, surface: string): string {
 function factFunction(names: readonly string[], code: string): CompiledFunction {
   const body = `"use strict"; const exports = {}; ${code}; return exports.default;`;
   return compileFunction(
-    `(function (${[...names, ...FACT_FUNCTIONS].join(', ')}) {${body}\n})`,
+    `(function (${[...names, ...ALL_FACT_FUNCTIONS].join(', ')}) {${body}\n})`,
     'fact.js',
   );
 }

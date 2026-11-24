@@ -11,7 +11,7 @@ import type { FileSource } from '../files/source.js';
 import { citedSymbols } from './citations/listing.js';
 import type { Compiler } from './compiler.js';
 import { blockFile, isSourceFile, pagePath } from './languages.js';
-import { expressionIdentifiers } from './syntax/expression.js';
+import { expressionIdentifiers, typeFactTargets } from './syntax/expression.js';
 import { helperSymbols, objectKeys } from './syntax/setup-module.js';
 import { dedupe, importedSymbols, type SurfaceOf } from './syntax/imports.js';
 import type { SurfaceDeclarations } from './surfaces/declarations.js';
@@ -103,8 +103,9 @@ export class SymbolResolver {
 
   private fact(f: FactAttestation): SymbolRef[] {
     const identifiers = expressionIdentifiers(f.expression);
+    const typeNames = typeFactTargets(f.expression);
     const exported = new Set(this.compiler.exports(f.surface) ?? []);
-    const direct = identifiers
+    const direct = [...identifiers, ...typeNames]
       .filter((n) => this.attestable(f.surface, n))
       .map((name) => ({ name, surface: f.surface }));
     const helpers = this.setupKeys('facts').filter(

@@ -25,8 +25,7 @@ export function createSession(ctx: AdapterContext): AdapterSession {
   const declarations = new SurfaceDeclarations(ctx.files, surfaces);
   const symbols = new SymbolResolver(ctx.files, surfaces, compiler, ctx.setup, declarations);
   const runner = new Runner(ctx, surfaces);
-  const exportsOf = (name: string) => compiler.exports(name);
-  const facts = new FactEvaluator(ctx, surfaces, runner, exportsOf, declarations);
+  const facts = new FactEvaluator(ctx, surfaces, runner, compiler, declarations);
   return {
     compile: (examples) => Promise.resolve(compiler.compile(examples)),
     evaluate: async (list) => facts.evaluate(list),
@@ -42,7 +41,8 @@ export function createSession(ctx: AdapterContext): AdapterSession {
     tests: (file) => Promise.resolve(listTests(ctx.files, file)),
     runTests: (tests, timeoutMs) =>
       runCitedTests(ctx.files, tests, { timeoutMs, workers: ctx.workers }),
-    observables: async (name) => surfaceObservables(facts, compiler.exports(name) ?? [], name),
+    observables: async (name) =>
+      surfaceObservables(facts, compiler.exports(name) ?? [], name, compiler.typeFacts(name)),
     describeSurfaces: () => Promise.resolve(describeSurfaces(ctx.files, surfaces)),
     affected: (change) => Promise.resolve(affectedExports(ctx.files, specs, change)),
     inCode: (names, files) => Promise.resolve(namesInCode(ctx.files, specs, names, files)),

@@ -1,8 +1,8 @@
 # audit --inventory --json
-# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+# recorded from: docattest 0.6.0
 === audit --inventory --json
 exit 0
-stdout 84 lines
+stdout 455 lines
 [
   {
     "surface": "default",
@@ -84,6 +84,377 @@ stdout 84 lines
       "fail",
       "error",
       "skipped"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeValues('AuditStatus')",
+    "value": "match,drift",
+    "items": [
+      "match",
+      "drift"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeValues('AuditTarget')",
+    "value": "example,list,column,block,inline,scalar",
+    "items": [
+      "example",
+      "list",
+      "column",
+      "block",
+      "inline",
+      "scalar"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('CasesAttestation')",
+    "value": "kind,runner,header,rows,id,page,line,claim,error",
+    "items": [
+      "kind",
+      "runner",
+      "header",
+      "rows",
+      "id",
+      "page",
+      "line",
+      "claim",
+      "error"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('CasesRow')",
+    "value": "line,name,values",
+    "items": [
+      "line",
+      "name",
+      "values"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Change')",
+    "value": "type,page,line,severity,message",
+    "items": [
+      "type",
+      "page",
+      "line",
+      "severity",
+      "message"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('CheckOptions')",
+    "value": "pages,base",
+    "items": [
+      "pages",
+      "base"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Config')",
+    "value": "$schema,pages,frozen,prose,sources,surfaces,setup,snapshots,adapter,runtime,ignoreTags,members,commands,undocumented",
+    "items": [
+      "$schema",
+      "pages",
+      "frozen",
+      "prose",
+      "sources",
+      "surfaces",
+      "setup",
+      "snapshots",
+      "adapter",
+      "runtime",
+      "ignoreTags",
+      "members",
+      "commands",
+      "undocumented"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Coverage')",
+    "value": "living,covered,uncovered,prose,frozen,attestations,proofs,weak,cited,citedRun",
+    "items": [
+      "living",
+      "covered",
+      "uncovered",
+      "prose",
+      "frozen",
+      "attestations",
+      "proofs",
+      "weak",
+      "cited",
+      "citedRun"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('ExampleAttestation')",
+    "value": "kind,lang,mode,network,code,weak,owner,tags,id,page,line,claim,error",
+    "items": [
+      "kind",
+      "lang",
+      "mode",
+      "network",
+      "code",
+      "weak",
+      "owner",
+      "tags",
+      "id",
+      "page",
+      "line",
+      "claim",
+      "error"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('ExplainedAlias')",
+    "value": "line,kind,name,file,citedAt",
+    "items": [
+      "line",
+      "kind",
+      "name",
+      "file",
+      "citedAt"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('ExplainedAttestation')",
+    "value": "line,kind,placed,rule,alias,attestation,results",
+    "items": [
+      "line",
+      "kind",
+      "placed",
+      "rule",
+      "alias",
+      "attestation",
+      "results"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Explanation')",
+    "value": "page,directives",
+    "items": [
+      "page",
+      "directives"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('FactAttestation')",
+    "value": "kind,expression,surface,ordered,column,field,target,id,page,line,claim,error",
+    "items": [
+      "kind",
+      "expression",
+      "surface",
+      "ordered",
+      "column",
+      "field",
+      "target",
+      "id",
+      "page",
+      "line",
+      "claim",
+      "error"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeValues('FactRule')",
+    "value": "column,field,block-below,code-span,literal,sentence-spans,sentence-span,block-after",
+    "items": [
+      "column",
+      "field",
+      "block-below",
+      "code-span",
+      "literal",
+      "sentence-spans",
+      "sentence-span",
+      "block-after"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Impact')",
+    "value": "base,symbols,manifests,files,commands,references",
+    "items": [
+      "base",
+      "symbols",
+      "manifests",
+      "files",
+      "commands",
+      "references"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('ImpactOptions')",
+    "value": "base,baseFiles",
+    "items": [
+      "base",
+      "baseFiles"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('ImpactReference')",
+    "value": "symbol,page,line,kind,claim,proven",
+    "items": [
+      "symbol",
+      "page",
+      "line",
+      "kind",
+      "claim",
+      "proven"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('InventoryEntry')",
+    "value": "surface,expression,value,items",
+    "items": [
+      "surface",
+      "expression",
+      "value",
+      "items"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('MemberReport')",
+    "value": "path,adapter,report",
+    "items": [
+      "path",
+      "adapter",
+      "report"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Project')",
+    "value": "check,where,uncovered,index,explain,impact,refresh,audit,inventory,writes",
+    "items": [
+      "check",
+      "where",
+      "uncovered",
+      "index",
+      "explain",
+      "impact",
+      "refresh",
+      "audit",
+      "inventory",
+      "writes"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('ProjectInput')",
+    "value": "root,files,env",
+    "items": [
+      "root",
+      "files",
+      "env"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Reference')",
+    "value": "page,line,kind,claim",
+    "items": [
+      "page",
+      "line",
+      "kind",
+      "claim"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Report')",
+    "value": "results,coverage,surfaces,snapshots,warnings,exitCode,changes,members",
+    "items": [
+      "results",
+      "coverage",
+      "surfaces",
+      "snapshots",
+      "warnings",
+      "exitCode",
+      "changes",
+      "members"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Result')",
+    "value": "page,line,kind,status,symbols,expected,actual,message",
+    "items": [
+      "page",
+      "line",
+      "kind",
+      "status",
+      "symbols",
+      "expected",
+      "actual",
+      "message"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('SnapshotStatus')",
+    "value": "name,source,fetchedAt,ageDays,warning",
+    "items": [
+      "name",
+      "source",
+      "fetchedAt",
+      "ageDays",
+      "warning"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('SurfaceCoverage')",
+    "value": "symbols,attested,unattested,undocumented,resolution,warnings",
+    "items": [
+      "symbols",
+      "attested",
+      "unattested",
+      "undocumented",
+      "resolution",
+      "warnings"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('SurfaceResolution')",
+    "value": "import,entry,package",
+    "items": [
+      "import",
+      "entry",
+      "package"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('TestAttestation')",
+    "value": "kind,file,title,describes,id,page,line,claim,error",
+    "items": [
+      "kind",
+      "file",
+      "title",
+      "describes",
+      "id",
+      "page",
+      "line",
+      "claim",
+      "error"
     ]
   }
 ]

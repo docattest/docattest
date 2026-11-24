@@ -1,8 +1,8 @@
 /**
- * What a suggestion's literal is: a list, a table column, a fenced block, an enumeration
- * written inline in a sentence (its code spans), or a single value in prose.
+ * What a suggestion's target is: a list, a table column, a fenced block, an untagged code
+ * example importing a surface, an inline enumeration in a sentence, or a single value in prose.
  */
-export type AuditTarget = 'list' | 'column' | 'block' | 'inline' | 'scalar';
+export type AuditTarget = 'list' | 'column' | 'block' | 'example' | 'inline' | 'scalar';
 
 /** `match` when page and code agree, `drift` when they nearly agree. */
 export type AuditStatus = 'match' | 'drift';

@@ -1,5 +1,5 @@
 import type { ModuleName } from '../syntax/module-names.js';
-import { FACT_FUNCTIONS } from '../worker/context.js';
+import { ALL_FACT_FUNCTIONS } from '../worker/context.js';
 import { ambiguous } from './protocol.js';
 
 /** What a fact's names may be bound to, by name. */
@@ -24,7 +24,7 @@ export type FactBinding =
       loads: boolean;
     };
 
-const BUILT_IN: ReadonlySet<string> = new Set(FACT_FUNCTIONS);
+const BUILT_IN: ReadonlySet<string> = new Set(ALL_FACT_FUNCTIONS);
 
 /**
  * Bind a fact's names. A constant of the surface's module is read from source, exported or

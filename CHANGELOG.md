@@ -4,6 +4,26 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-11-24
+
+### Added
+
+- **Untagged code-block auditing in `docattest audit`**: Untagged fenced code blocks in
+  runnable languages that import a configured surface are now compile-checked during `audit`.
+  Broken examples are reported immediately as `drift` with their compiler diagnostics; valid
+  examples are reported as `match` and can be tagged with `compile` via `docattest audit --apply`.
+- **TypeScript type-level facts and audit inventory (`typeKeys` / `typeValues`)**: Facts can
+  now read property names of exported TypeScript interfaces/object types via
+  `typeKeys('InterfaceName')` and literal members of exported string/number literal unions via
+  `typeValues('UnionName')` directly from the TypeScript checker (no runtime module load
+  required, fully tracked by `where`, `uncovered`, and `impact`). `docattest audit` also
+  indexes type-only exports automatically.
+- **Workspace package doc discovery in `docattest init`**: Monorepo `init` now includes
+  non-boilerplate top-level Markdown files in workspace packages (such as `API_ENDPOINTS.md`)
+  alongside `README.md`, while still excluding `CHANGELOG.md`, `LICENSE.md`, and similar files.
+- **Updated agent skill (`SKILL.md`)**: Documented `typeKeys` / `typeValues`, untagged
+  example auditing, and a concise adoption checklist for existing repositories.
+
 ## [0.5.4] - 2026-11-24
 
 ### Fixed

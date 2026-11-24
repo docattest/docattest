@@ -1,10 +1,13 @@
 import * as path from 'node:path';
 import type { AdapterContext, Evaluation } from '../../api/adapter.js';
 import type { FactAttestation } from '../../api/attestation.js';
+import type { Compiler } from '../compiler.js';
+import { EMPTY_TYPE_FACTS } from '../program/types.js';
 import { expressionIdentifiers, expressionProblem } from '../syntax/expression.js';
 import { objectKeys } from '../syntax/setup-module.js';
 import type { SurfaceDeclarations } from '../surfaces/declarations.js';
 import type { ResolvedSurface } from '../surfaces/resolve.js';
+import { TYPE_FACT_FUNCTIONS } from '../worker/context.js';
 import { bindFactNames, type FactBinding } from './fact-names.js';
 import { transpile } from './transpile.js';
 import type { ItemResult } from './jobs.js';
@@ -13,6 +16,8 @@ import type { Runner } from './runner.js';
 
 /** A fact whose names are bound, ready to run. */
 type BoundFact = FactAttestation & { binding: Extract<FactBinding, { ok: true }> };
+
+type TypeIndex = Pick<Compiler, 'exports' | 'typeFacts'>;
 
 /**
  * Evaluates fact expressions: one job per page and surface (two when some of its facts read
@@ -26,8 +31,8 @@ export class FactEvaluator {
     private readonly ctx: AdapterContext,
     private readonly surfaces: readonly ResolvedSurface[],
     private readonly runner: Runner,
-    /** Statically known exports of a surface, by name. */
-    private readonly exportsOf: (surface: string) => string[] | undefined,
+    /** Statically known exports and types of a surface. */
+    private readonly types: TypeIndex,
     private readonly declarations: SurfaceDeclarations,
   ) {
     const setup = ctx.setup;
@@ -66,6 +71,8 @@ export class FactEvaluator {
       surface,
       file: file.entry,
       constants: [],
+      typeKeys: {},
+      typeValues: {},
       setup: undefined,
       facts: [],
     };
@@ -101,7 +108,7 @@ export class FactEvaluator {
     // alone could evaluate the expression; the worker catches the dynamic cases.
     const binding = bindFactNames(expressionIdentifiers(fact.expression), {
       surface: fact.surface,
-      exported: new Set(this.exportsOf(fact.surface) ?? []),
+      exported: new Set(this.types.exports(fact.surface) ?? []),
       helpers: new Set(this.helperNames),
       declared: this.declarations.of(fact.surface),
     });
@@ -115,13 +122,20 @@ export class FactEvaluator {
       ? this.surfaces.find((s) => s.spec.name === first.surface)?.entry
       : undefined;
     if (first.binding.loads && !file) return;
+    const itemsToRun = facts.map(item);
+    const needsTypes = itemsToRun.some((f) =>
+      f.identifiers.some((id) => (TYPE_FACT_FUNCTIONS as readonly string[]).includes(id)),
+    );
+    const typeInfo = needsTypes ? this.types.typeFacts(first.surface) : EMPTY_TYPE_FACTS;
     const job: Job = {
       type: 'facts',
       surface: first.surface,
       file,
       constants: [...new Map(facts.flatMap((f) => f.binding.constants))],
+      typeKeys: Object.fromEntries(typeInfo.keys),
+      typeValues: Object.fromEntries(typeInfo.values),
       setup: this.setup(),
-      facts: facts.map(item),
+      facts: itemsToRun,
     };
     const { failure, items } = await this.runner.execute(job, facts.length);
     const failed = failure && failureMessage(first.surface, failure);

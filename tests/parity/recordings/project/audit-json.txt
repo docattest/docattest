@@ -1,9 +1,54 @@
 # audit --json
-# recorded from: the TypeScript reference implementation (dist/cli/main.js, retired)
+# recorded from: docattest 0.6.0
 === audit --json
 exit 0
-stdout 3 lines
+stdout 48 lines
 {
-  "suggestions": []
+  "suggestions": [
+    {
+      "page": "docs/explain.md",
+      "line": 70,
+      "target": "inline",
+      "expression": "typeKeys('ExplainedAttestation')",
+      "status": "drift",
+      "missing": [],
+      "unexpected": [
+        "actual",
+        "explain --json",
+        "project.explain(page, line)"
+      ],
+      "surface": "default",
+      "directive": "<!-- fact: typeKeys('ExplainedAttestation') -->"
+    },
+    {
+      "page": "docs/explain.md",
+      "line": 71,
+      "target": "inline",
+      "expression": "typeKeys('ExplainedAlias')",
+      "status": "drift",
+      "missing": [
+        "kind",
+        "line"
+      ],
+      "unexpected": [
+        "alias"
+      ],
+      "surface": "default",
+      "directive": "<!-- fact: typeKeys('ExplainedAlias') -->"
+    },
+    {
+      "page": "docs/protocol.md",
+      "line": 121,
+      "target": "inline",
+      "expression": "typeKeys('ProjectInput')",
+      "status": "drift",
+      "missing": [
+        "env"
+      ],
+      "unexpected": [],
+      "surface": "default",
+      "directive": "<!-- fact: typeKeys('ProjectInput') -->"
+    }
+  ]
 }
 stderr empty

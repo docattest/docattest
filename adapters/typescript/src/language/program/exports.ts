@@ -21,7 +21,7 @@ export function exportOrigins(program: ts.Program, file: string): Map<string, Se
   return origins;
 }
 
-function exportedSymbols(program: ts.Program, file: string): ts.Symbol[] | undefined {
+export function exportedSymbols(program: ts.Program, file: string): ts.Symbol[] | undefined {
   const source = program.getSourceFile(file);
   if (!source) return undefined;
   const checker = program.getTypeChecker();

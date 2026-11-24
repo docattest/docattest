@@ -7,6 +7,12 @@ import type { Strays } from './strays.js';
 /** What every fact expression may call besides the surface, each by its name here. */
 export const FACT_FUNCTIONS = ['snapshot', 'manifest', 'file', 'matched', 'manifestField'] as const;
 
+/** Type-level fact helpers supplied per surface from the TypeScript checker. */
+export const TYPE_FACT_FUNCTIONS = ['typeKeys', 'typeValues'] as const;
+
+/** All built-in function names available in fact expressions. */
+export const ALL_FACT_FUNCTIONS = [...FACT_FUNCTIONS, ...TYPE_FACT_FUNCTIONS] as const;
+
 /** What a job executor needs from its worker. */
 export interface WorkerContext {
   host: HostClient;

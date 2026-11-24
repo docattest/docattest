@@ -7,10 +7,12 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use serde_json::{Value, json};
 
 use super::candidates::{PageCandidates, candidates_of_page};
+use super::examples::{collect_results, plan_examples, send_compile};
 use super::inventory::Inventory;
 use super::suggest::suggest_for_page;
 use super::{Observable, Observation, Suggestion};
 use crate::adapter::Pending;
+use crate::api::attestation::Attestation;
 use crate::api::errors::{Error, Result};
 use crate::config::DEFAULT_SURFACE;
 use crate::files::project_files::ProjectFiles;
@@ -23,11 +25,13 @@ use crate::report::order::by_page_and_line;
 /// no directive. Advisory and read-only: nothing is written and nothing on the pages is run.
 /// A surface that cannot be loaded is an error, not an empty audit.
 pub fn run_audit(state: &State, network: Network) -> Result<Vec<Suggestion>> {
-    // The adapter loads the surfaces while the pages are read for candidates.
-    let opened = open(state, network, &[]);
-    let offered = request_values(state);
     let pages = candidates(state)?;
     crate::trace::mark("candidates found");
+    let planned_examples = plan_examples(state, &pages);
+    let example_refs: Vec<&Attestation> = planned_examples.iter().map(|p| &p.attestation).collect();
+    let opened = open(state, network, &example_refs);
+    let offered = request_values(state);
+    let compiled = send_compile(state, &planned_examples);
     opened.wait()?;
     let observables = offered.wait()?;
     let inventory = Inventory::new(&observables);
@@ -35,6 +39,7 @@ pub fn run_audit(state: &State, network: Network) -> Result<Vec<Suggestion>> {
         pages.iter().flat_map(|(page, found)| suggest_for_page(page, found, &inventory)).collect();
     crate::trace::mark("suggested");
     let mut suggestions = verified(state, suggested, &observables)?;
+    suggestions.extend(collect_results(&planned_examples, compiled)?);
     suggestions.sort_by(|a, b| by_page_and_line((&a.page, a.line), (&b.page, b.line)));
     Ok(suggestions)
 }

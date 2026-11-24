@@ -55,6 +55,10 @@ export interface FactsJob {
   file: string | undefined;
   /** The constants of the surface's module the facts read, folded from its source. */
   constants: [string, unknown][];
+  /** Property names of exported types on this surface, when a fact calls `typeKeys`. */
+  typeKeys: Readonly<Record<string, readonly string[]>>;
+  /** Literal values of exported union types on this surface, when a fact calls `typeValues`. */
+  typeValues: Readonly<Record<string, readonly string[]>>;
   setup: { file: string; label: string } | undefined;
   facts: FactItem[];
 }

@@ -9,6 +9,7 @@
 
 pub mod apply;
 pub mod candidates;
+pub mod examples;
 pub mod inline;
 pub mod inventory;
 pub mod listing;
@@ -29,6 +30,7 @@ pub enum Target {
     List,
     Column,
     Block,
+    Example,
     Inline,
     /// A code span or a bare number, as the page writes it (`` `PORT` ``, `8080`): the
     /// directive goes right after it, so that it binds that value alone.
@@ -43,6 +45,7 @@ impl Target {
             Target::List => "list",
             Target::Column => "column",
             Target::Block => "block",
+            Target::Example => "example",
             Target::Inline => "inline",
             Target::Scalar { .. } => "scalar",
         }

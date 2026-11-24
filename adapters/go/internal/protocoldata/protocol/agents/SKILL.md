@@ -19,6 +19,7 @@ Two commands matter whatever else you do:
 |---|---|
 | "Calling X with Y does Z" | Fenced block tagged `check` with an assertion or `Output:` |
 | "X is 3", "defaults to `eu`", list/table/field from code | `<!-- fact: expr -->` (modifiers: `@surface`, `ordered`, `column=<name>`, `field=<path>`) |
+| TypeScript interface keys or literal union values | `<!-- fact: typeKeys('Options') -->` or `<!-- fact: typeValues('LogLevel') -->` |
 | "Rule 1… Rule 2…" over one operation | `<!-- cases: runner -->` above a Markdown table |
 | Manifest or config file value | `manifest('file')` or `manifestField('file', 'a.b')` |
 | Arbitrary project file value | `matched('Dockerfile', '^USER ([0-9]+)$')` or `file('path')` |
@@ -33,8 +34,14 @@ Two commands matter whatever else you do:
 - Place scalar facts right after the value (`` `3` <!-- fact: N --> ``), at sentence end, or alone on the line directly above it.
 - Place list/column/block/field facts on the line immediately before the list, table or fenced block.
 - Inspect bindings without guessing: `docattest explain <page>[:<line>]`.
-- Find missing facts or drift: `docattest audit` (auto-insert matches with `docattest audit --apply`).
+- Find missing facts, broken untagged examples, or drift: `docattest audit` (auto-insert matching directives and `compile` tags with `docattest audit --apply`).
 - Find docs for a symbol: `docattest where <symbol>`; find unattested exports: `docattest uncovered`.
 - Prefer `<!-- test: ... -->` citations for heavy integration scenarios instead of putting setup scaffolding inside a `check` block; reserve `check` blocks for short examples readers benefit from seeing. Run `docattest check --run-cited` in CI so citations run their tests.
 - Never export internals just for docs — mark internal packages `"internal": true` in `surfaces` or use a docs helper.
 - Never make CI green by deleting a proof, weakening an assertion, or freezing a living page (`check --base` catches all three).
+
+## Adopting on an existing repo
+
+- Check for Markdown docs outside `init`'s default globs (nested package guides, skills, API inventories) and mark narrative or external-tool pages under `prose` in `docattest.config.json`.
+- Run `docattest audit` first to catch broken untagged code examples and matching facts/types, then convert high-value SDK/API examples to `check` or `compile`.
+- Attest documented package/dependency/engine versions with `manifestField(...)` and cite existing unit/integration tests with `<!-- test: ... -->`.

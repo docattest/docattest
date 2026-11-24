@@ -8,6 +8,7 @@ fn place(target: &Target) -> String {
         Target::List => "above the list".into(),
         Target::Column => "above the table".into(),
         Target::Block => "above the block".into(),
+        Target::Example => "on the fence".into(),
         Target::Inline => "at the end of the sentence".into(),
         Target::Scalar { after } => format!("after {after}"),
     }
@@ -30,6 +31,13 @@ pub fn format_audit(suggestions: &[Suggestion]) -> String {
 }
 
 fn verdict(s: &Suggestion) -> String {
+    if s.target == Target::Example {
+        return if s.status == Status::Match {
+            format!("compiles against {}", s.expression)
+        } else {
+            format!("fails to compile against {} ({})", s.expression, s.unexpected.join("; "))
+        };
+    }
     if s.status == Status::Match {
         return format!("matches {}", s.expression);
     }

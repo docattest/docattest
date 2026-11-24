@@ -160,6 +160,14 @@ fn apply_one(lines: &mut Vec<String>, s: &Suggestion) -> bool {
             lines.insert(idx, format!("{indent}{}", s.directive));
             true
         }
+        Target::Example => {
+            let trimmed = lines[idx].trim_end();
+            if trimmed.split_whitespace().any(|w| w == s.directive) {
+                return false;
+            }
+            lines[idx] = format!("{trimmed} {}", s.directive);
+            true
+        }
         Target::Inline => {
             lines[idx] = insert_after_sentence(&lines[idx], &s.directive);
             true
@@ -239,17 +247,19 @@ mod tests {
 
     #[test]
     fn inserts_list_inline_and_scalar_directives_without_shifting_lines() {
-        let page = "Regions:\n\n- `eu`\n- `us`\n\nPort 8080 is used. Tags `a`, `b` are valid. More.\n";
+        let page = "Regions:\n\n- `eu`\n- `us`\n\nPort 8080 is used. Tags `a`, `b` are valid. More.\n\n```ts\nimport { x } from 'pkg';\n```\n";
         let items = [
             suggestion(3, Target::List, "<!-- fact: REGIONS -->"),
             suggestion(6, Target::Scalar { after: "8080".into() }, "<!-- fact: PORT -->"),
             suggestion(6, Target::Inline, "<!-- fact: TAGS -->"),
+            suggestion(8, Target::Example, "compile"),
         ];
         let refs: Vec<&Suggestion> = items.iter().collect();
         let (out, applied) = apply_to_text(page, &refs);
-        assert_eq!(applied.len(), 3);
+        assert_eq!(applied.len(), 4);
         assert!(out.contains("<!-- fact: REGIONS -->\n- `eu`"));
         assert!(out.contains("Port 8080 <!-- fact: PORT --> is used."));
+        assert!(out.contains("```ts compile\nimport { x } from 'pkg';"));
     }
 
     #[test]

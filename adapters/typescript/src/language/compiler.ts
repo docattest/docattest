@@ -4,6 +4,7 @@ import type { ExampleAttestation } from '../api/attestation.js';
 import type { FileSource } from '../files/source.js';
 import { blockFile } from './languages.js';
 import { exportOrigins, exportsOf } from './program/exports.js';
+import { EMPTY_TYPE_FACTS, surfaceTypeFacts, type SurfaceTypeFacts } from './program/types.js';
 import {
   createProgram,
   diagnosticsFor,
@@ -21,6 +22,7 @@ export class Compiler {
   private readonly parsed = new Map<string, ts.SourceFile>();
   private readonly exportCache = new Map<string, string[] | undefined>();
   private readonly originCache = new Map<string, Map<string, Set<string>>>();
+  private readonly typeFactsCache = new Map<string, SurfaceTypeFacts>();
 
   constructor(
     private readonly files: FileSource,
@@ -58,6 +60,17 @@ export class Compiler {
       this.originCache.set(name, origins);
     }
     return origins;
+  }
+
+  /** Type-level keys and literal union values of a surface's exported declarations. */
+  typeFacts(name: string): SurfaceTypeFacts {
+    let cached = this.typeFactsCache.get(name);
+    if (!cached) {
+      const file = this.typesFile(name);
+      cached = file ? surfaceTypeFacts(this.getProgram('exports'), file) : EMPTY_TYPE_FACTS;
+      this.typeFactsCache.set(name, cached);
+    }
+    return cached;
   }
 
   private typesFile(name: string): string | undefined {

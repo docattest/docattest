@@ -27,6 +27,24 @@ export function expressionIdentifiers(expression: string): string[] {
   return referencedNames(parseSource('fact.ts', wrap(expression)), () => true);
 }
 
+/** Exported type names passed as string literals to `typeKeys('...')` or `typeValues('...')`. */
+export function typeFactTargets(expression: string): string[] {
+  const names: string[] = [];
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      (node.expression.text === 'typeKeys' || node.expression.text === 'typeValues')
+    ) {
+      const [first] = node.arguments;
+      if (first && ts.isStringLiteralLike(first)) names.push(first.text);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(parseSource('fact.ts', wrap(expression)));
+  return unique(names);
+}
+
 /**
  * Names the code at `root` refers to, once each: not property names, bindings or the
  * parameters of a function in it. A node, `root` included, is looked into only when

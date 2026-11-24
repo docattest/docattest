@@ -34,12 +34,21 @@ pub struct BlockCandidate {
     pub text: String,
 }
 
+/// An untagged fenced code block that may compile against a configured surface.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExampleCandidate {
+    pub line: usize,
+    pub info: String,
+    pub code: String,
+}
+
 /// Everything on one page `audit` may compare with a surface.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct PageCandidates {
     /// Lists, and the comparable columns of each table grouped together.
     pub sets: Vec<Vec<SetCandidate>>,
     pub blocks: Vec<BlockCandidate>,
+    pub examples: Vec<ExampleCandidate>,
     pub sentences: Vec<SentenceCandidate>,
     /// The surface and expression of every fact on the page.
     pub attested: HashSet<(String, String)>,
@@ -118,19 +127,26 @@ fn blocks_of(page: &Page, bound: &HashSet<usize>) -> PageCandidates {
             sets.push(group);
         }
     }
-    let blocks = page
-        .code
-        .iter()
-        .filter(|code| !bound.contains(&code.block))
-        .filter_map(|code| page.flow.get(code.block))
-        .filter_map(|block| match &block.kind {
-            BlockKind::Code { info, value } if !is_example(info) => {
-                Some(BlockCandidate { line: block.start, text: value.clone() })
-            }
-            _ => None,
-        })
-        .collect();
-    PageCandidates { sets, blocks, ..PageCandidates::default() }
+    let (blocks, examples) = unbound_code_blocks(page, bound);
+    PageCandidates { sets, blocks, examples, ..PageCandidates::default() }
+}
+
+fn unbound_code_blocks(page: &Page, bound: &HashSet<usize>) -> (Vec<BlockCandidate>, Vec<ExampleCandidate>) {
+    let mut blocks = Vec::new();
+    let mut examples = Vec::new();
+    for code in &page.code {
+        if bound.contains(&code.block) {
+            continue;
+        }
+        if let Some(block) = page.flow.get(code.block)
+            && let BlockKind::Code { info, value } = &block.kind
+            && !is_example(info)
+        {
+            blocks.push(BlockCandidate { line: block.start, text: value.clone() });
+            examples.push(ExampleCandidate { line: block.start, info: info.clone(), code: value.clone() });
+        }
+    }
+    (blocks, examples)
 }
 
 /// Whether `info` holds `check` or `compile` as a whole word (word characters are ASCII).

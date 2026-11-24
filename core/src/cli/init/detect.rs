@@ -263,6 +263,8 @@ mod tests {
         mono.write("packages/core/package.json", r#"{"name":"@acme/core"}"#);
         mono.write("packages/core/src/index.ts", "export const A = 1;\n");
         mono.write("packages/core/README.md", "# Core\n");
+        mono.write("packages/core/API_ENDPOINTS.md", "# Endpoints\n");
+        mono.write("packages/core/CHANGELOG.md", "# Changelog\n");
         mono.write("packages/ssh/package.json", r#"{"name":"@acme/ssh","main":"dist/index.js"}"#);
         mono.write("packages/ssh/dist/index.js", "export const B = 2;\n");
         mono.write("packages/schema/package.json", r#"{"name":"@acme/schema","main":"./dist/index.js"}"#);
@@ -276,7 +278,10 @@ mod tests {
 
         let detected = detect(&mono.0);
         assert_eq!(detected.adapter, "typescript");
-        assert_eq!(detected.pages, vec!["README.md", "docs/**/*.md", "packages/*/README.md"]);
+        assert_eq!(
+            detected.pages,
+            vec!["README.md", "docs/**/*.md", "packages/*/README.md", "packages/core/API_ENDPOINTS.md"]
+        );
         assert_eq!(
             detected.surfaces,
             vec![

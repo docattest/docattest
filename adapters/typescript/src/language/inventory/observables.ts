@@ -7,12 +7,15 @@ import type { FactAttestation } from '../../api/attestation.js';
 import { UserError } from '../../api/errors.js';
 import { planExport } from './plan.js';
 import { helperProbeExpression, parseHelperProbe, parseProbe, probeExpression } from './probe.js';
+import type { SurfaceTypeFacts } from '../program/types.js';
 import type { FactEvaluator } from '../run/facts.js';
 
 const PAGE = '__docattest_audit__';
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 /** The surface a fact without `@` reads (PROTOCOL.md: `observables`). */
 const DEFAULT_SURFACE = 'default';
+/** Bound type-level inventory entries so huge generated interfaces do not dominate audit. */
+const MAX_TYPE_ITEMS = 64;
 
 /**
  * Observables of one surface's exports, each with the expression that reads it; on the
@@ -23,6 +26,7 @@ export async function surfaceObservables(
   evaluator: FactEvaluator,
   names: readonly string[],
   surface: string,
+  typeFacts?: SurfaceTypeFacts,
 ): Promise<Observable[]> {
   const exported = names.filter((n) => IDENTIFIER.test(n) && n !== 'default');
   const helpers =
@@ -49,7 +53,41 @@ export async function surfaceObservables(
     if (!found) return [];
     return planExport(found.awaited ? `(await ${name}())` : `${name}()`, found.nodes);
   });
-  return [...ofExports, ...ofHelpers].map((p) => ({ surface, ...p }));
+  const ofTypes = typeFacts ? typeObservables(exported, typeFacts) : [];
+  return [...ofExports, ...ofHelpers, ...ofTypes].map((p) => ({ surface, ...p }));
+}
+
+function typeObservables(
+  exported: readonly string[],
+  typeFacts: SurfaceTypeFacts,
+): Omit<Observable, 'surface'>[] {
+  const out: Omit<Observable, 'surface'>[] = [];
+  for (const name of exported) {
+    if (!typeFacts.typeOnly.has(name)) continue;
+    const unionValues = typeFacts.values.get(name);
+    if (unionValues && unionValues.length >= 2 && unionValues.length <= MAX_TYPE_ITEMS) {
+      out.push(typeList(`typeValues('${name}')`, name, unionValues));
+      continue;
+    }
+    const propKeys = typeFacts.keys.get(name);
+    if (propKeys && propKeys.length >= 2 && propKeys.length <= MAX_TYPE_ITEMS) {
+      out.push(typeList(`typeKeys('${name}')`, name, propKeys));
+    }
+  }
+  return out;
+}
+
+function typeList(
+  expression: string,
+  name: string,
+  items: readonly string[],
+): Omit<Observable, 'surface'> {
+  const list = [...items];
+  return {
+    expression,
+    path: [name],
+    value: { text: list.join(','), items: list, description: 'an array' },
+  };
 }
 
 async function evaluateAll(
