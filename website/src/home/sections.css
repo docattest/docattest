@@ -288,6 +288,21 @@
 .setup-steps .command {
   justify-self: start;
 }
+.setup-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-width: 0;
+}
+.setup-or {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--dim);
+}
+.setup-or code {
+  overflow-wrap: anywhere;
+}
 
 @media (max-width: 860px) {
   .steps,

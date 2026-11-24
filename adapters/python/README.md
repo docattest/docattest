@@ -1,11 +1,144 @@
 # docattest for Python
 
-[docattest](../../README.md) for Python projects: documentation that CI can fail. Your
+[docattest](../../README.md) for Python projects: **documentation that CI can fail**. Your
 Markdown pages carry examples that run, facts that are compared with values in your code,
 tables whose rows are tests, and citations of tests you already have.
 
 Try it in your browser first: the [playground](https://docattest.github.io/docattest/playground.html)
 lets you break a small project's code and watch docattest catch its docs.
+
+Python 3.10 or newer. <!-- fact: manifest("pyproject.toml")["project"]["requires-python"].removeprefix(">=") --> Standard library only: no dependencies, and Node is never needed.
+
+## Install
+
+```sh
+pip install docattest
+```
+
+The prebuilt docattest core comes inside the wheel for macOS, Linux (glibc and musl) and
+Windows, so nothing is downloaded when docattest runs.
+
+## Quick start
+
+1. Run `docattest init` at the project root to detect your pages and Python surface, write
+   `docattest.config.json`, and run an initial gap audit against your existing docs.
+2. Run `docattest audit --apply` to bind matching claims automatically, or add proofs to a
+   page (see [A page](#a-page) below).
+3. Run `docattest check`. It exits `1` when a page and the code disagree.
+
+Wire up coding agents (`AGENTS.md`, hooks, and a concise Python skill) in one command:
+
+```sh
+docattest init --agents --hooks --skill
+```
+
+## A page
+
+This page documents the small shop library that this package's tests use
+(`tests/fixture/`), and this guide checks it inside a copy of that project:
+
+````markdown check fixture=tests/fixture
+# Pricing
+
+A discount is a whole percentage taken off a price.
+
+```python check
+from shoplib import Money, apply_discount
+
+assert apply_discount(Money(1000), 25) == Money(750)
+```
+
+The same as an interpreter session:
+
+```pycon check
+>>> from shoplib import Money, total
+>>> total([Money(1000)], "NL")
+Money(cents=1210, currency='EUR')
+```
+
+Prices are in `EUR` unless told otherwise. <!-- fact: DEFAULT_CURRENCY -->
+
+Tax is known for these regions: <!-- fact: TAX_RATES -->
+- `NL`
+- `DE`
+- `FR`
+
+<!-- cases: discount -->
+| case           | price | percent | result |
+|----------------|-------|---------|--------|
+| a quarter off  | 1000  | 25      | 750    |
+| rounds half up | 999   | 50      | 500    |
+
+Discounts above the maximum are refused. <!-- test: tests/test_pricing.py > "TestTotals" > "test_rejects_big_discounts" -->
+````
+
+```sh
+docattest check          # exit 1 when a page and the code disagree
+docattest uncovered      # exports no page attests
+docattest where total    # the pages, lines and sentences that attest a symbol
+docattest audit          # lists, tables and values that look copied from the code, with no directive
+docattest impact         # after an edit: the exports it affects and the prose that names them
+```
+
+A failing proof is reported with its line, what the page expected and what the code gave.
+The same project has a page that is wrong on purpose, once for each way a proof can fail:
+
+```console check cwd=tests/fixture
+$ docattest check --quiet docs/broken.md
+docs/broken.md
+  ✗ L5 example: AssertionError: expected Money(cents=700, currency='EUR'), got Money(cents=750, currency='EUR') (block line 3)
+  ✗ L11 example: `quote("NL")`: expected 2, got 1 (block line 2)
+  ✗ L17 example: cannot import name 'aply_discount' from 'shoplib' (src/shoplib/__init__.py) (block line 1)
+  ✗ L21 example: ShopError: No carrier serves the region (block line 2)
+  ✗ L26 example: timed out after 3000 ms
+  ✗ L31 example: URLError: <urlopen error network access is disabled for attestations; tag the block `check network` to allow it> (block line 2)
+  ! L36 example: example at L36: unknown tag "chekc"; did you mean "check"?
+  ✗ L40 fact: expected 60, got 50 from MAX_DISCOUNT
+  ✗ L42 fact: missing: DE, FR; unexpected: BE (2 items on the page, 3 in TAX_RATES)
+  ! L46 fact: fact `_round(0.5)`: _round is not exported by surface "default" (NameError: name '_round' is not defined)
+  ✗ L51 cases: docs/broken.md:51 wrong on purpose: AssertionError: expected '800', got '750'
+  ✗ L52 cases: docs/broken.md:52 too much: ShopError: The discount is outside the allowed range
+  ! L54 cases: cases runner "nope" at L54 is not in `cases` of docs/docattest_setup.py (known: discount, delivery)
+  ! L59 test: tests/test_pricing.py declares no test "test_that_was_renamed"; tests there: "test_discount_rounds_half_up", "TestTotals" > "test_adds_tax", "TestTotals" > "test_rejects_big_discounts"
+FAILED
+[exit 1]
+```
+
+## Configure
+
+`docattest.config.json` <!-- fact @launcher: CONFIG_FILE --> at the project root:
+
+```json
+{
+  "pages": ["README.md", "docs/**/*.md"],
+  "sources": ["src/**/*.py"],
+  "surfaces": { "default": "shoplib" },
+  "setup": "docs/docattest_setup.py",
+  "adapter": "python"
+}
+```
+
+- **`surfaces`** name what pages are allowed to observe. An entry is
+  - a module name, `"shoplib"` or `"shoplib.shipping"`: imported as written. It is looked
+    for in the project root, then in `src/`, then wherever `import` finds it;
+  - a path, `"./src/shoplib"` or `"./shoplib/shipping.py"`: that file of the project,
+    imported under the name Python gives it (`src/shoplib/shipping.py` is
+    `shoplib.shipping`: the path from the first directory without an `__init__.py`);
+  - both, `{ "import": "shoplib", "path": "build/lib/shoplib/__init__.py" }`: examples
+    import `import`, and it is read from `path`.
+
+  A surface may be a program, a `__main__.py` (`"shopd": "./src/shopd/__main__.py"`):
+  importing it would run it, so its constants are all that facts read of it (see
+  [Facts](#facts), below).
+- **What a surface exports** is its `__all__` when that is written out as a list. Otherwise
+  it is the module's public names: every function, class and assigned name that does not
+  start with `_`, and, in a package's `__init__.py`, what it imports from its own package
+  (`from .pricing import total` is a re-export; `import os` is not). `uncovered` lists the
+  exports no page attests.
+- **`sources`** are the Python files whose docstrings hold examples (see below).
+- **`setup`** is a Python module with the runners of cases tables and named facts.
+
+## How the package works
 
 This package is what a Python user installs. It provides two commands: <!-- fact: list(manifest("pyproject.toml")["project"]["scripts"]) -->
 - **`docattest`**, the command you run. It is a launcher: it finds the docattest core (one
@@ -17,14 +150,6 @@ This package is what a Python user installs. It provides two commands: <!-- fact
 
 The distribution is called `docattest` <!-- fact: manifest("pyproject.toml")["project"]["name"] -->.
 Its import packages are `docattest` (the launcher) and `docattest_python` (the adapter). <!-- fact: [p for p in manifest("pyproject.toml")["tool"]["setuptools"]["packages"] if "." not in p] -->
-
-Python 3.10 or newer. <!-- fact: manifest("pyproject.toml")["project"]["requires-python"].removeprefix(">=") --> Standard library only: no dependencies.
-
-## Install
-
-```sh
-pip install docattest                 # the commands docattest and docattest-adapter-python
-```
 
 The core comes inside the wheel: there is one wheel for each of 5 <!-- fact: len(platforms()) -->
 platforms, `py3-none-<platform>` (the Python code is pure; only the core is native), and pip
@@ -122,112 +247,6 @@ A bare core, run without the launcher, finds the adapter as `docattest-adapter-p
 the `PATH`, or through `DOCATTEST_ADAPTER_PYTHON` <!-- fact @launcher: ADAPTER_VARIABLE -->: a JSON array
 (`["python3", "/path/to/adapters/python/bin/docattest-adapter-python"]`) or a command line
 split on spaces.
-
-## Configure
-
-`docattest.config.json` <!-- fact @launcher: CONFIG_FILE --> at the project root:
-
-```json
-{
-  "pages": ["README.md", "docs/**/*.md"],
-  "sources": ["src/**/*.py"],
-  "surfaces": { "default": "shoplib" },
-  "setup": "docs/docattest_setup.py",
-  "adapter": "python"
-}
-```
-
-- **`surfaces`** name what pages are allowed to observe. An entry is
-  - a module name, `"shoplib"` or `"shoplib.shipping"`: imported as written. It is looked
-    for in the project root, then in `src/`, then wherever `import` finds it;
-  - a path, `"./src/shoplib"` or `"./shoplib/shipping.py"`: that file of the project,
-    imported under the name Python gives it (`src/shoplib/shipping.py` is
-    `shoplib.shipping`: the path from the first directory without an `__init__.py`);
-  - both, `{ "import": "shoplib", "path": "build/lib/shoplib/__init__.py" }`: examples
-    import `import`, and it is read from `path`.
-
-  A surface may be a program, a `__main__.py` (`"shopd": "./src/shopd/__main__.py"`):
-  importing it would run it, so its constants are all that facts read of it (see
-  [Facts](#facts), below).
-- **What a surface exports** is its `__all__` when that is written out as a list. Otherwise
-  it is the module's public names: every function, class and assigned name that does not
-  start with `_`, and, in a package's `__init__.py`, what it imports from its own package
-  (`from .pricing import total` is a re-export; `import os` is not). `uncovered` lists the
-  exports no page attests.
-- **`sources`** are the Python files whose docstrings hold examples (see below).
-- **`setup`** is a Python module with the runners of cases tables and named facts.
-
-## A page
-
-This page documents the small shop library that this package's tests use
-(`tests/fixture/`), and this guide checks it inside a copy of that project:
-
-````markdown check fixture=tests/fixture
-# Pricing
-
-A discount is a whole percentage taken off a price.
-
-```python check
-from shoplib import Money, apply_discount
-
-assert apply_discount(Money(1000), 25) == Money(750)
-```
-
-The same as an interpreter session:
-
-```pycon check
->>> from shoplib import Money, total
->>> total([Money(1000)], "NL")
-Money(cents=1210, currency='EUR')
-```
-
-Prices are in `EUR` unless told otherwise. <!-- fact: DEFAULT_CURRENCY -->
-
-Tax is known for these regions: <!-- fact: TAX_RATES -->
-- `NL`
-- `DE`
-- `FR`
-
-<!-- cases: discount -->
-| case           | price | percent | result |
-|----------------|-------|---------|--------|
-| a quarter off  | 1000  | 25      | 750    |
-| rounds half up | 999   | 50      | 500    |
-
-Discounts above the maximum are refused. <!-- test: tests/test_pricing.py > "TestTotals" > "test_rejects_big_discounts" -->
-````
-
-```sh
-docattest check          # exit 1 when a page and the code disagree
-docattest uncovered      # exports no page attests
-docattest where total    # the pages, lines and sentences that attest a symbol
-docattest audit          # lists, tables and values that look copied from the code, with no directive
-docattest impact         # after an edit: the exports it affects and the prose that names them
-```
-
-A failing proof is reported with its line, what the page expected and what the code gave.
-The same project has a page that is wrong on purpose, once for each way a proof can fail:
-
-```console check cwd=tests/fixture
-$ docattest check --quiet docs/broken.md
-docs/broken.md
-  ✗ L5 example: AssertionError: expected Money(cents=700, currency='EUR'), got Money(cents=750, currency='EUR') (block line 3)
-  ✗ L11 example: `quote("NL")`: expected 2, got 1 (block line 2)
-  ✗ L17 example: cannot import name 'aply_discount' from 'shoplib' (src/shoplib/__init__.py) (block line 1)
-  ✗ L21 example: ShopError: No carrier serves the region (block line 2)
-  ✗ L26 example: timed out after 3000 ms
-  ✗ L31 example: URLError: <urlopen error network access is disabled for attestations; tag the block `check network` to allow it> (block line 2)
-  ! L36 example: example at L36: unknown tag "chekc"; did you mean "check"?
-  ✗ L40 fact: expected 60, got 50 from MAX_DISCOUNT
-  ✗ L42 fact: missing: DE, FR; unexpected: BE (2 items on the page, 3 in TAX_RATES)
-  ! L46 fact: fact `_round(0.5)`: _round is not exported by surface "default" (NameError: name '_round' is not defined)
-  ✗ L51 cases: docs/broken.md:51 wrong on purpose: AssertionError: expected '800', got '750'
-  ✗ L52 cases: docs/broken.md:52 too much: ShopError: The discount is outside the allowed range
-  ! L54 cases: cases runner "nope" at L54 is not in `cases` of docs/docattest_setup.py (known: discount, delivery)
-  ! L59 test: tests/test_pricing.py declares no test "test_that_was_renamed"; tests there: "test_discount_rounds_half_up", "TestTotals" > "test_adds_tax", "TestTotals" > "test_rejects_big_discounts"
-FAILED
-[exit 1]
-```
 
 ## What each attestation means in Python
 

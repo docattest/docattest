@@ -1,6 +1,6 @@
 # docattest for Rust
 
-[docattest](../../README.md) for Rust projects: documentation that CI can fail. Your
+[docattest](../../README.md) for Rust projects: **documentation that CI can fail**. Your
 Markdown pages carry examples that run, facts that are compared with values in your code,
 tables whose rows are tests, and citations of tests you already have. The examples in your
 doc comments are checked the same way.
@@ -8,17 +8,8 @@ doc comments are checked the same way.
 Try it in your browser first: the [playground](https://docattest.github.io/docattest/playground.html)
 lets you break a small project's code and watch docattest catch its docs.
 
-This package is what a Rust user installs. It provides two commands:
-
-- **`docattest`**, the command you run. The docattest core is written in Rust, so this
-  command is built with the core inside it: it tells the core how to start the Rust adapter
-  and what command runs docattest in your project, and runs it.
-- **`docattest-adapter-rust`**, the adapter: the program that answers everything that
-  needs Rust. You do not run it yourself. It speaks
-  [the adapter protocol](../../protocol/PROTOCOL.md), version 1. <!-- fact @protocol: VERSION -->
-
-Your project needs `cargo` on the `PATH`, as it does to be built: examples and facts are
-compiled by it. Node, Python and Go are never needed.
+Your project needs `cargo` on the `PATH`, as it does to be built. Node, Python and Go are
+never needed.
 
 ## Install
 
@@ -26,9 +17,9 @@ compiled by it. Node, Python and Go are never needed.
 cargo install docattest
 ```
 
-That builds both commands, the core among them (the crate `docattest-core`), and puts them
-side by side in cargo's bin directory. Nothing is downloaded when docattest runs. From a
-checkout of the repository, `cargo install --path adapters/rust` does the same.
+That builds both commands (`docattest` with the core built in, and `docattest-adapter-rust`)
+into cargo's bin directory. Nothing is downloaded when docattest runs. From a checkout of
+the repository, `cargo install --path adapters/rust` does the same.
 
 Building takes a minute or two (no prebuilt binary is published for `cargo binstall`). In
 CI, cache a directory of its own to install into: cargo then finds that version there.
@@ -40,67 +31,19 @@ CI, cache a directory of its own to install into: cargo then finds that version 
 - run: echo "$HOME/.docattest/bin" >> "$GITHUB_PATH"
 ```
 
-Another core runs in place of the one built in when `DOCATTEST_CORE` names it. <!-- fact @launcher: CORE_VARIABLE -->
-That core is asked for its version (`--version --json`) and refused when it speaks another
-protocol than this package. <!-- test: src/launcher.rs > "tests" > "a_core_someone_names_is_asked_what_it_speaks" -->
-`DOCATTEST_TRACE=1` says which core runs. A bare core, run without this command, finds the
-adapter as `docattest-adapter-rust` on the `PATH`, or through `DOCATTEST_ADAPTER_RUST`. <!-- fact @launcher: ADAPTER_VARIABLE -->
-That variable holds a JSON array (`["/path/to/docattest-adapter-rust"]`) or a command line
-split on spaces.
+## Quick start
 
-`DOCATTEST_CARGO` names the `cargo` the adapter runs, when it is not the one on the `PATH`:
+1. Run `docattest init` at the project root to detect your pages and Rust crate surface,
+   write `docattest.config.json`, and run an initial gap audit against your existing docs.
+2. Run `docattest audit --apply` to bind matching claims automatically, or add proofs to a
+   page (see [A page](#a-page) below).
+3. Run `docattest check`. It exits `1` when a page and the code disagree.
 
-```console check cwd=tests/fixture
-$ DOCATTEST_CARGO=/no/such/cargo docattest check docs/pricing.md | head -2
-docs/pricing.md
-  ✗ L5 example: cargo could not read the project: /no/such/cargo could not be run: No such file or directory (os error 2) (block line 1)
+Wire up coding agents (`AGENTS.md`, hooks, and a concise Rust skill) in one command:
+
+```sh
+docattest init --agents --hooks --skill
 ```
-
-`DOCATTEST_CARGO_FEATURES` names the features your crates are built with for examples,
-facts and tables, as cargo's `--features` takes them (`shop/eu`); else each has its default
-features. <!-- test: tests/workspace.rs > "the_generated_crate_is_built_with_the_features_it_is_given" -->
-
-`docattest init --hooks`, `init --git-hook` and `init --agents` write down a command
-that runs docattest: `docattest` when that is what a shell finds on the `PATH`, else this
-command by its full path. `AGENTS.md` is committed, so a full path is never written there:
-it gets `docattest` instead. <!-- test: src/launcher.rs > "tests" > "the_hand_over_adds_only_what_is_not_set" -->
-To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher: COMMAND_VARIABLE -->
-
-## Configure
-
-`docattest.config.json` at the project root:
-
-```json
-{
-  "pages": ["README.md", "docs/**/*.md"],
-  "sources": ["src/**/*.rs"],
-  "surfaces": { "default": "shop", "shipping": "shop::shipping" },
-  "setup": "docs/docattest_setup.rs",
-  "adapter": "rust"
-}
-```
-
-- **`surfaces`** name what pages are allowed to observe. A surface is one module of a
-  library of your cargo workspace that its users can import: a module declared without
-  `pub`, or one below it, is refused, with a warning that names it. <!-- test: tests/workspace.rs > "a_private_module_is_no_surface_and_says_why" -->
-  An entry is
-  - a module path, `"shop"` or `"shop::shipping"`: the crate's root, or a module below it;
-  - a path, `"."` (the package there, by its root module) or `"./src/shipping.rs"` (the
-    module that file is);
-  - both, `{ "import": "shop::shipping", "path": "src/shipping.rs" }`.
-
-  A surface may be a binary crate, which nothing imports, by a path: its root file
-  (`"./src/bin/shopd.rs"`, `"./src/main.rs"`), the file of one of its modules, or the
-  directory of a package that has no library and one binary. Facts read only its
-  constants (see [Facts](#facts)). <!-- test: tests/constants.rs > "a_fact_reads_constants_from_source" -->
-- **What a surface exports** is every `pub` item its module declares, except modules and
-  [docs helpers](#docs-helpers-cfgdocattest), and what it re-exports with `pub use` (a
-  glob's by the exports of the module it names). <!-- test: src/analysis/modules.rs > "tests" > "exports_are_public_items_and_what_is_reexported" -->
-  `uncovered` lists the exports no page attests. A crate whose root only declares modules
-  exports nothing at its root: name the modules as surfaces. A binary exports nothing.
-- **`sources`** are the Rust files whose doc-comment examples are checked (see below).
-- **`setup`** is one Rust file with the runners of cases tables and what facts may use by
-  name.
 
 ## A page
 
@@ -167,6 +110,79 @@ results: 0 pass, 10 fail, 5 error, 0 skipped
 FAILED
 [exit 1]
 ```
+
+## Configure
+
+`docattest.config.json` at the project root:
+
+```json
+{
+  "pages": ["README.md", "docs/**/*.md"],
+  "sources": ["src/**/*.rs"],
+  "surfaces": { "default": "shop", "shipping": "shop::shipping" },
+  "setup": "docs/docattest_setup.rs",
+  "adapter": "rust"
+}
+```
+
+- **`surfaces`** name what pages are allowed to observe. A surface is one module of a
+  library of your cargo workspace that its users can import: a module declared without
+  `pub`, or one below it, is refused, with a warning that names it. <!-- test: tests/workspace.rs > "a_private_module_is_no_surface_and_says_why" -->
+  An entry is
+  - a module path, `"shop"` or `"shop::shipping"`: the crate's root, or a module below it;
+  - a path, `"."` (the package there, by its root module) or `"./src/shipping.rs"` (the
+    module that file is);
+  - both, `{ "import": "shop::shipping", "path": "src/shipping.rs" }`.
+
+  A surface may be a binary crate, which nothing imports, by a path: its root file
+  (`"./src/bin/shopd.rs"`, `"./src/main.rs"`), the file of one of its modules, or the
+  directory of a package that has no library and one binary. Facts read only its
+  constants (see [Facts](#facts)). <!-- test: tests/constants.rs > "a_fact_reads_constants_from_source" -->
+- **What a surface exports** is every `pub` item its module declares, except modules and
+  [docs helpers](#docs-helpers-cfgdocattest), and what it re-exports with `pub use` (a
+  glob's by the exports of the module it names). <!-- test: src/analysis/modules.rs > "tests" > "exports_are_public_items_and_what_is_reexported" -->
+  `uncovered` lists the exports no page attests. A crate whose root only declares modules
+  exports nothing at its root: name the modules as surfaces. A binary exports nothing.
+- **`sources`** are the Rust files whose doc-comment examples are checked (see below).
+- **`setup`** is one Rust file with the runners of cases tables and what facts may use by
+  name.
+
+## How the package works
+
+This package is what a Rust user installs. It provides two commands:
+
+- **`docattest`**, the command you run. The docattest core is written in Rust, so this
+  command is built with the core inside it: it tells the core how to start the Rust adapter
+  and what command runs docattest in your project, and runs it.
+- **`docattest-adapter-rust`**, the adapter: the program that answers everything that
+  needs Rust. You do not run it yourself. It speaks
+  [the adapter protocol](../../protocol/PROTOCOL.md), version 1. <!-- fact @protocol: VERSION -->
+
+Another core runs in place of the one built in when `DOCATTEST_CORE` names it. <!-- fact @launcher: CORE_VARIABLE -->
+That core is asked for its version (`--version --json`) and refused when it speaks another
+protocol than this package. <!-- test: src/launcher.rs > "tests" > "a_core_someone_names_is_asked_what_it_speaks" -->
+`DOCATTEST_TRACE=1` says which core runs. A bare core, run without this command, finds the
+adapter as `docattest-adapter-rust` on the `PATH`, or through `DOCATTEST_ADAPTER_RUST`. <!-- fact @launcher: ADAPTER_VARIABLE -->
+That variable holds a JSON array (`["/path/to/docattest-adapter-rust"]`) or a command line
+split on spaces.
+
+`DOCATTEST_CARGO` names the `cargo` the adapter runs, when it is not the one on the `PATH`:
+
+```console check cwd=tests/fixture
+$ DOCATTEST_CARGO=/no/such/cargo docattest check docs/pricing.md | head -2
+docs/pricing.md
+  ✗ L5 example: cargo could not read the project: /no/such/cargo could not be run: No such file or directory (os error 2) (block line 1)
+```
+
+`DOCATTEST_CARGO_FEATURES` names the features your crates are built with for examples,
+facts and tables, as cargo's `--features` takes them (`shop/eu`); else each has its default
+features. <!-- test: tests/workspace.rs > "the_generated_crate_is_built_with_the_features_it_is_given" -->
+
+`docattest init --hooks`, `init --git-hook` and `init --agents` write down a command
+that runs docattest: `docattest` when that is what a shell finds on the `PATH`, else this
+command by its full path. `AGENTS.md` is committed, so a full path is never written there:
+it gets `docattest` instead. <!-- test: src/launcher.rs > "tests" > "the_hand_over_adds_only_what_is_not_set" -->
+To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher: COMMAND_VARIABLE -->
 
 ## What each attestation means in Rust
 

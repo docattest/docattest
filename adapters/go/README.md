@@ -1,11 +1,136 @@
 # docattest for Go
 
-[docattest](../../README.md) for Go projects: documentation that CI can fail. Your Markdown
+[docattest](../../README.md) for Go projects: **documentation that CI can fail**. Your Markdown
 pages carry examples that run, facts that are compared with values in your code, tables
 whose rows are tests, and citations of tests you already have.
 
 Try it in your browser first: the [playground](https://docattest.github.io/docattest/playground.html)
 lets you break a small project's code and watch docattest catch its docs.
+
+Your project needs a `go` command (1.21 or later) on the `PATH`, as it does to be built.
+Node and Python are never needed.
+
+## Install
+
+```sh
+go install github.com/docattest/docattest/adapters/go/cmd/...@latest
+```
+
+Installing needs Go 1.23 or later. <!-- fact: manifest("go.mod")["go"] -->
+`go install` puts the commands in `$(go env GOBIN)`, or in `$(go env GOPATH)/bin` when
+`GOBIN` is not set, and that directory must be on your `PATH` for a shell to find
+`docattest`:
+
+```sh
+export PATH="$(go env GOPATH)/bin:$PATH"
+```
+
+That one `go install` brings the launcher, the Go adapter, and the prebuilt core for your
+platform (macOS, Linux, or Windows) — nothing is downloaded when docattest runs.
+
+## Quick start
+
+1. Run `docattest init` at the project root to detect your pages and Go surface, write
+   `docattest.config.json`, and run an initial gap audit against your existing docs.
+2. Run `docattest audit --apply` to bind matching claims automatically, or add proofs to a
+   page (see [A page](#a-page) below).
+3. Run `docattest check`. It exits `1` when a page and the code disagree.
+
+Wire up coding agents (`AGENTS.md`, hooks, and a concise Go skill) in one command:
+
+```sh
+docattest init --agents --hooks --skill
+```
+
+## A page
+
+````markdown check fixture=testdata/fixture
+# Pricing
+
+A discount is a whole percentage taken off a price.
+
+```go check
+import (
+	"fmt"
+
+	"example.com/shop"
+)
+
+price, err := shop.ApplyDiscount(shop.EUR(1000), 25)
+if err != nil {
+	panic(err)
+}
+fmt.Println(price)
+// Output: 7.50 EUR
+```
+
+Prices are in `EUR` unless told otherwise. <!-- fact: DefaultCurrency -->
+
+Tax is known for these regions: <!-- fact: TaxRates -->
+- `NL`
+- `DE`
+- `FR`
+
+<!-- cases: discount -->
+| case           | price | percent | result |
+|----------------|-------|---------|--------|
+| a quarter off  | 1000  | 25      | 750    |
+| rounds half up | 999   | 50      | 500    |
+
+Discounts above the maximum are refused. <!-- test: shop_test.go > "TestTotals" > "rejects big discounts" -->
+````
+
+```sh
+docattest check          # exit 1 when a page and the code disagree
+docattest uncovered      # exports no page attests
+docattest where Total    # the pages, lines and sentences that attest a symbol
+docattest audit          # lists, tables and values that look copied from the code, with no directive
+docattest impact         # after an edit: the exports it affects and the prose that names them
+```
+
+## Configure
+
+`docattest.config.json` at the project root:
+
+```json
+{
+  "pages": ["README.md", "docs/**/*.md"],
+  "sources": ["**/*.go"],
+  "surfaces": { "default": ".", "shipping": "./shipping" },
+  "setup": "docs/docattest_setup.go",
+  "adapter": "go"
+}
+```
+
+- **`surfaces`** name what pages are allowed to observe. A surface is one Go package, a
+  `package main` included (its constants and literal variables are what
+  [facts](docs/facts.md) can read). An entry is
+  - a path, `"."` or `"./shipping"` (or a file of the package, `"./shipping/quote.go"`):
+    the package in that directory of the project, imported under its import path in the
+    module;
+  - an import path, `"example.com/shop/shipping"`: a package of the module, or of one of
+    its dependencies, which the go command is asked to find;
+  - both, `{ "import": "example.com/shop", "path": "internal/shop" }`: examples import
+    `import`, and the package is read from `path`.
+- **What a surface exports** is every exported name its package declares at the top
+  level: functions, types, variables and constants, but for what its docs helper files
+  declare ([facts](docs/facts.md#docs-helpers)). Methods and fields belong to their type.
+  `uncovered` lists the exports no page attests.
+- **What an attestation uses** (what `where` and `uncovered` count) is read as `go/types`
+  resolves its names. A local name that shadows an export is not a use of it, and a method
+  or field selected on a value is a use of the type that declares it, which for one
+  promoted from an embedded type is that type. A method called through an interface is a
+  use of the interface, not of the types that implement it: which method runs is known only
+  when the program runs, and the code that made the value names its type where it made it. <!-- test: internal/analysis/symbols_test.go > "TestSymbolsAreResolvedByType" -->
+- **The module** is the nearest `go.mod` at or above the first surface that names a path,
+  else at or above the project root. One project is one module, and its setup package may
+  be a second ([a setup module](docs/cases.md#a-setup-module)).
+- **`sources`** are the Go files whose testable examples are checked
+  ([examples](docs/examples.md#testable-examples-in-source-files)).
+- **`setup`** is a package of the module, or a module of its own, named by its directory or
+  one of its files, with the runners of cases tables and what facts may use by name.
+
+## How the package works
 
 This package is what a Go user installs. It provides two commands:
 
@@ -21,32 +146,14 @@ Both are Go programs. Beyond the standard library they import two modules: <!-- 
 - `golang.org/x/tools`
 
 The `go/packages` of `golang.org/x/tools` lists your project's packages, as gopls does, and
-`go/types` checks them; the `modfile` of `golang.org/x/mod` reads your `go.mod` files. Your
-project needs a `go` command (1.21 or later) on the `PATH`, as it does to be built:
-packages are listed and examples and facts compiled by it. Node and Python are never
-needed.
+`go/types` checks them; the `modfile` of `golang.org/x/mod` reads your `go.mod` files.
 
 On recent macOS, use Go 1.23 or later, or set `CGO_ENABLED=0`. Every program docattest
 builds imports `net` (to keep examples off the network), and an earlier Go links such a
 program without the `LC_UUID` load command, which the macOS loader now refuses to run.
 
-## Install
-
-```sh
-go install github.com/docattest/docattest/adapters/go/cmd/...@latest
-```
-
-It needs Go 1.23 or later. <!-- fact: manifest("go.mod")["go"] -->
-`go install` puts the commands in `$(go env GOBIN)`, or in `$(go env GOPATH)/bin` when
-`GOBIN` is not set, and that directory must be on your `PATH` for a shell to find
-`docattest`:
-
-```sh
-export PATH="$(go env GOPATH)/bin:$PATH"
-```
-
-That one `go install` brings the launcher (`docattest`), the Go adapter
-(`docattest-adapter-go`) and the core for your platform:
+`go install` brings the launcher (`docattest`), the Go adapter (`docattest-adapter-go`)
+and the core for your platform:
 
 <!-- fact column=platform @protocoldata: Platforms() -->
 | system | platform |
@@ -129,94 +236,6 @@ docs/shipping.md
   ! L3 fact: surface "shipping" failed to load: the go command could not be run: fork/exec /no/such/go: no such file or directory
 ...
 [exit 1]
-```
-
-## Configure
-
-`docattest.config.json` at the project root:
-
-```json
-{
-  "pages": ["README.md", "docs/**/*.md"],
-  "sources": ["**/*.go"],
-  "surfaces": { "default": ".", "shipping": "./shipping" },
-  "setup": "docs/docattest_setup.go",
-  "adapter": "go"
-}
-```
-
-- **`surfaces`** name what pages are allowed to observe. A surface is one Go package, a
-  `package main` included (its constants and literal variables are what
-  [facts](docs/facts.md) can read). An entry is
-  - a path, `"."` or `"./shipping"` (or a file of the package, `"./shipping/quote.go"`):
-    the package in that directory of the project, imported under its import path in the
-    module;
-  - an import path, `"example.com/shop/shipping"`: a package of the module, or of one of
-    its dependencies, which the go command is asked to find;
-  - both, `{ "import": "example.com/shop", "path": "internal/shop" }`: examples import
-    `import`, and the package is read from `path`.
-- **What a surface exports** is every exported name its package declares at the top
-  level: functions, types, variables and constants, but for what its docs helper files
-  declare ([facts](docs/facts.md#docs-helpers)). Methods and fields belong to their type.
-  `uncovered` lists the exports no page attests.
-- **What an attestation uses** (what `where` and `uncovered` count) is read as `go/types`
-  resolves its names. A local name that shadows an export is not a use of it, and a method
-  or field selected on a value is a use of the type that declares it, which for one
-  promoted from an embedded type is that type. A method called through an interface is a
-  use of the interface, not of the types that implement it: which method runs is known only
-  when the program runs, and the code that made the value names its type where it made it. <!-- test: internal/analysis/symbols_test.go > "TestSymbolsAreResolvedByType" -->
-- **The module** is the nearest `go.mod` at or above the first surface that names a path,
-  else at or above the project root. One project is one module, and its setup package may
-  be a second ([a setup module](docs/cases.md#a-setup-module)).
-- **`sources`** are the Go files whose testable examples are checked
-  ([examples](docs/examples.md#testable-examples-in-source-files)).
-- **`setup`** is a package of the module, or a module of its own, named by its directory or
-  one of its files, with the runners of cases tables and what facts may use by name.
-
-## A page
-
-````markdown check fixture=testdata/fixture
-# Pricing
-
-A discount is a whole percentage taken off a price.
-
-```go check
-import (
-	"fmt"
-
-	"example.com/shop"
-)
-
-price, err := shop.ApplyDiscount(shop.EUR(1000), 25)
-if err != nil {
-	panic(err)
-}
-fmt.Println(price)
-// Output: 7.50 EUR
-```
-
-Prices are in `EUR` unless told otherwise. <!-- fact: DefaultCurrency -->
-
-Tax is known for these regions: <!-- fact: TaxRates -->
-- `NL`
-- `DE`
-- `FR`
-
-<!-- cases: discount -->
-| case           | price | percent | result |
-|----------------|-------|---------|--------|
-| a quarter off  | 1000  | 25      | 750    |
-| rounds half up | 999   | 50      | 500    |
-
-Discounts above the maximum are refused. <!-- test: shop_test.go > "TestTotals" > "rejects big discounts" -->
-````
-
-```sh
-docattest check          # exit 1 when a page and the code disagree
-docattest uncovered      # exports no page attests
-docattest where Total    # the pages, lines and sentences that attest a symbol
-docattest audit          # lists, tables and values that look copied from the code, with no directive
-docattest impact         # after an edit: the exports it affects and the prose that names them
 ```
 
 ## When a page and the code disagree
