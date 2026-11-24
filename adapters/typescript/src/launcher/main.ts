@@ -25,9 +25,10 @@ if (given(process.env.DOCATTEST_TRACE) !== undefined) {
   process.stderr.write(`[trace launcher] core ${core}\n`);
 }
 
-const done = spawnSync(core, process.argv.slice(2), {
+const argv = process.argv.slice(2);
+const done = spawnSync(core, argv, {
   stdio: 'inherit',
-  env: coreEnvironment(process.env),
+  env: coreEnvironment(process.env, process.cwd(), argv),
 });
 if (done.error) {
   process.stderr.write(`docattest: cannot run the core (${core}): ${done.error.message}\n`);

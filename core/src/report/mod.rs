@@ -273,7 +273,7 @@ impl Report {
             c.frozen.len()
         )];
         if detail == Detail::Full && !c.uncovered.is_empty() {
-            lines.extend(wrapped("  uncovered: ", &c.uncovered));
+            lines.extend(uncovered_lines(&c.uncovered));
         }
         lines
     }
@@ -313,6 +313,19 @@ impl Report {
         let ages: Vec<String> = self.snapshots.iter().map(snapshot_age).collect();
         format!("snapshots: {}", ages.join(", "))
     }
+}
+
+/// Maximum uncovered page paths listed inline in text output before summarizing the rest.
+const MAX_UNCOVERED_SHOWN: usize = 10;
+
+/// Format the uncovered pages line(s), summarizing when many pages are not yet covered.
+fn uncovered_lines(uncovered: &[String]) -> Vec<String> {
+    if uncovered.len() <= MAX_UNCOVERED_SHOWN {
+        return wrapped("  uncovered: ", uncovered);
+    }
+    let mut shown = uncovered[..MAX_UNCOVERED_SHOWN].to_vec();
+    shown.push(format!("and {} more", uncovered.len() - MAX_UNCOVERED_SHOWN));
+    wrapped("  uncovered: ", &shown)
 }
 
 /// How wide a line of the text report grows before a list goes on to the next line.

@@ -110,6 +110,16 @@ fn frozen_pages_are_counted_and_uncovered_ones_named_only_when_every_page_ran() 
 }
 
 #[test]
+fn many_uncovered_pages_are_summarized_in_text_while_json_keeps_all() {
+    let many = report(pages(15), Vec::new());
+    let text = many.format(Detail::Full);
+    assert!(text.contains("docs/guide/page-10.md"), "{text}");
+    assert!(text.contains("and 5 more"), "{text}");
+    assert!(!text.contains("docs/guide/page-11.md"), "{text}");
+    assert_eq!(many.to_json()["coverage"]["uncovered"].as_array().map(Vec::len), Some(15));
+}
+
+#[test]
 fn the_configs_warnings_are_printed_and_kept_in_the_json_only_when_there_are_some() {
     let mut warned = report(Vec::new(), Vec::new());
     assert!(warned.to_json().get("warnings").is_none());

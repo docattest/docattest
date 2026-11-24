@@ -2,8 +2,8 @@ import ts from '../ts.cjs';
 import type { SymbolRef } from '../../api/adapter.js';
 import { parseSource } from './parse.js';
 
-/** Maps an import specifier to the surface it names, if any. */
-export type SurfaceOf = (specifier: string) => string | undefined;
+/** Maps an import specifier (and optional imported export name) to the surface it names, if any. */
+export type SurfaceOf = (specifier: string, name?: string) => string | undefined;
 
 /** Surface symbols a module imports: named, default and namespace member accesses. */
 export function importedSymbols(fileName: string, code: string, surfaceOf: SurfaceOf): SymbolRef[] {
@@ -26,27 +26,45 @@ type SurfaceImport =
 /** What a module's import declarations bind from surfaces, in source order. */
 export function surfaceImports(source: ts.SourceFile, surfaceOf: SurfaceOf): SurfaceImport[] {
   return source.statements.flatMap((statement) => {
-    const surface = importSurface(statement, surfaceOf);
-    if (!surface || !ts.isImportDeclaration(statement)) return [];
-    return clauseImports(statement.importClause, surface);
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) {
+      return [];
+    }
+    return clauseImports(statement.importClause, statement.moduleSpecifier.text, surfaceOf);
   });
 }
 
 // The default import first, then the named imports or the namespace, as written.
-function clauseImports(clause: ts.ImportClause | undefined, surface: string): SurfaceImport[] {
+function clauseImports(
+  clause: ts.ImportClause | undefined,
+  specifier: string,
+  surfaceOf: SurfaceOf,
+): SurfaceImport[] {
   if (!clause) return [];
   const found: SurfaceImport[] = [];
   if (clause.name) {
-    found.push({ kind: 'symbol', local: clause.name.text, name: 'default', surface });
+    const surface = surfaceOf(specifier, 'default');
+    if (surface) found.push({ kind: 'symbol', local: clause.name.text, name: 'default', surface });
   }
-  const bindings = clause.namedBindings;
-  if (bindings && ts.isNamespaceImport(bindings)) {
-    found.push({ kind: 'namespace', local: bindings.name.text, surface });
-  } else if (bindings) {
-    for (const el of bindings.elements) {
-      const name = (el.propertyName ?? el.name).text;
-      found.push({ kind: 'symbol', local: el.name.text, name, surface });
-    }
+  if (clause.namedBindings) {
+    found.push(...bindingImports(clause.namedBindings, specifier, surfaceOf));
+  }
+  return found;
+}
+
+function bindingImports(
+  bindings: ts.NamedImportBindings,
+  specifier: string,
+  surfaceOf: SurfaceOf,
+): SurfaceImport[] {
+  if (ts.isNamespaceImport(bindings)) {
+    const surface = surfaceOf(specifier);
+    return surface ? [{ kind: 'namespace', local: bindings.name.text, surface }] : [];
+  }
+  const found: SurfaceImport[] = [];
+  for (const el of bindings.elements) {
+    const name = (el.propertyName ?? el.name).text;
+    const surface = surfaceOf(specifier, name);
+    if (surface) found.push({ kind: 'symbol', local: el.name.text, name, surface });
   }
   return found;
 }

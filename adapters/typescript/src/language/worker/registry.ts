@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { requireDependency } from '../node/dependency.js';
 import { IMPORT_META } from '../run/protocol.js';
-import { compileFunction } from './compile.js';
+import { compileFunction, type CompiledFunction } from './compile.js';
 import type { HostClient } from './host-client.js';
 
 /** A CommonJS module record; code may replace `exports`. */
@@ -51,29 +51,18 @@ export class ModuleRegistry {
   }
 
   private execute(file: string, code: string, record: ModuleRecord, block: boolean): unknown {
-    const names = [
-      'exports',
-      'require',
-      'module',
-      '__filename',
-      '__dirname',
-      IMPORT_META,
-      ...Object.keys(this.globals),
-    ];
-    const wrapper = `(${block ? 'async ' : ''}function (${names.join(', ')}) {${code}\n})`;
-    const run = compileFunction(wrapper, file);
+    const names = ['exports', 'require', 'module', IMPORT_META, ...Object.keys(this.globals)];
+    // Bind __filename and __dirname in an outer closure so CommonJS files can read them while
+    // ESM modules declaring `const __dirname = ...` shadow them without SyntaxError, keeping
+    // `"use strict"` as a directive prologue and source line numbers unchanged.
+    const fn = `${block ? 'async ' : ''}function (${names.join(', ')})`;
+    const wrapper = `((__filename, __dirname) => (${fn} {${code}\n}))`;
+    const factory = compileFunction(wrapper, file);
     const dirname = path.dirname(file);
+    const run = factory(file, dirname) as CompiledFunction;
     const meta = { url: pathToFileURL(file).href, filename: file, dirname };
     const require = (specifier: string) => this.require(specifier, file);
-    const args = [
-      record.exports,
-      require,
-      record,
-      file,
-      dirname,
-      meta,
-      ...Object.values(this.globals),
-    ];
+    const args = [record.exports, require, record, meta, ...Object.values(this.globals)];
     // CommonJS runs with `this` as the module's exports; a block is a module body.
     return run.apply(block ? undefined : record.exports, args);
   }

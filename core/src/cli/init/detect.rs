@@ -5,6 +5,7 @@ use std::path::Path;
 
 use serde_json::{Map, Value, json};
 
+use super::workspaces::{DetectedSurface, detect_workspace};
 use crate::config::NONE_ADAPTER;
 use crate::files::project_files::ProjectFiles;
 use crate::files::source::DiskFiles;
@@ -18,7 +19,7 @@ pub const CONFIG_SCHEMA_URL: &str = "https://docattest.github.io/docattest/schem
 pub struct DetectedConfig {
     pub adapter: String,
     pub pages: Vec<String>,
-    pub surface: Option<String>,
+    pub surfaces: Vec<DetectedSurface>,
 }
 
 impl DetectedConfig {
@@ -27,22 +28,39 @@ impl DetectedConfig {
         obj.insert("$schema".into(), json!(CONFIG_SCHEMA_URL));
         obj.insert("pages".into(), json!(self.pages));
         obj.insert("adapter".into(), json!(self.adapter));
-        if let Some(surface) = &self.surface {
-            obj.insert("surfaces".into(), json!({ "default": surface }));
+        if !self.surfaces.is_empty() {
+            let mut surfaces = Map::new();
+            for surface in &self.surfaces {
+                surfaces.insert(surface.name.clone(), surface.to_json());
+            }
+            obj.insert("surfaces".into(), Value::Object(surfaces));
         }
         Value::Object(obj)
     }
 }
 
-/// Inspect `root` and detect its adapter, Markdown/MDX page globs, and default surface.
+/// Inspect `root` and detect its adapter, Markdown/MDX page globs, and surfaces.
 pub fn detect(root: &Path) -> DetectedConfig {
     let mut files = DiskFiles::new(root.to_path_buf());
     files.ignore_what_git_ignores(ignored_by_git(root));
     let listed = files.list();
     let adapter = detect_adapter(root, &listed);
-    let pages = detect_pages(&listed);
-    let surface = detect_surface(root, &adapter, &listed);
-    DetectedConfig { adapter, pages, surface }
+    let mut pages = detect_pages(&listed);
+    let mut surfaces = detect_surface(root, &adapter, &listed)
+        .map(|s| vec![DetectedSurface::plain("default", s)])
+        .unwrap_or_default();
+    if adapter == "typescript" {
+        let (ws_pages, ws_surfaces) = detect_workspace(root, &listed);
+        for glob in ws_pages {
+            if !pages.contains(&glob) {
+                pages.push(glob);
+            }
+        }
+        if surfaces.is_empty() {
+            surfaces = ws_surfaces;
+        }
+    }
+    DetectedConfig { adapter, pages, surfaces }
 }
 
 fn detect_adapter(root: &Path, listed: &[String]) -> String {
@@ -69,6 +87,7 @@ fn prefers_typescript(root: &Path, listed: &[String]) -> bool {
         return false;
     }
     let has_ts_or_js = root.join("tsconfig.json").is_file()
+        || root.join("pnpm-workspace.yaml").is_file()
         || listed.iter().any(|f| f.starts_with("src/") && (f.ends_with(".ts") || f.ends_with(".js")));
     let other_lang = ["Cargo.toml", "go.mod", "pyproject.toml"].iter().any(|f| root.join(f).is_file());
     has_ts_or_js || !other_lang
@@ -193,7 +212,7 @@ mod tests {
         let detected = detect(&tmp.0);
         assert_eq!(detected.adapter, "typescript");
         assert_eq!(detected.pages, vec!["README.md", "docs/**/*.mdx"]);
-        assert_eq!(detected.surface.as_deref(), Some("./src/index.ts"));
+        assert_eq!(detected.surfaces, vec![DetectedSurface::plain("default", "./src/index.ts")]);
     }
 
     #[test]
@@ -204,7 +223,7 @@ mod tests {
         let detected = detect(&tmp.0);
         assert_eq!(detected.adapter, "none");
         assert_eq!(detected.pages, vec!["README.md"]);
-        assert_eq!(detected.surface, None);
+        assert!(detected.surfaces.is_empty());
     }
 
     #[test]
@@ -215,7 +234,7 @@ mod tests {
         rust.write("README.md", "# Crate\n");
         let detected = detect(&rust.0);
         assert_eq!(detected.adapter, "rust");
-        assert_eq!(detected.surface.as_deref(), Some("my_crate"));
+        assert_eq!(detected.surfaces, vec![DetectedSurface::plain("default", "my_crate")]);
 
         let py = Temp::new("init-py");
         py.write("pyproject.toml", "[project]\nname = \"my-pkg\"\n");
@@ -223,6 +242,40 @@ mod tests {
         py.write("README.md", "# Pkg\n");
         let detected = detect(&py.0);
         assert_eq!(detected.adapter, "python");
-        assert_eq!(detected.surface.as_deref(), Some("my_pkg"));
+        assert_eq!(detected.surfaces, vec![DetectedSurface::plain("default", "my_pkg")]);
+    }
+
+    #[test]
+    fn detects_pnpm_monorepo_workspace_surfaces_and_readmes() {
+        let mono = Temp::new("init-mono");
+        mono.write("package.json", r#"{"name":"acme-monorepo","private":true}"#);
+        mono.write("pnpm-workspace.yaml", "packages:\n  - 'packages/*'\n");
+        mono.write("README.md", "# Acme\n");
+        mono.write("docs/intro.md", "# Intro\n");
+        mono.write("packages/core/package.json", r#"{"name":"@acme/core"}"#);
+        mono.write("packages/core/src/index.ts", "export const A = 1;\n");
+        mono.write("packages/core/README.md", "# Core\n");
+        mono.write("packages/ssh/package.json", r#"{"name":"@acme/ssh","main":"dist/index.js"}"#);
+        mono.write("packages/ssh/dist/index.js", "export const B = 2;\n");
+        mono.write("packages/docs-site/package.json", r#"{"name":"@acme/docs"}"#);
+
+        let detected = detect(&mono.0);
+        assert_eq!(detected.adapter, "typescript");
+        assert_eq!(detected.pages, vec!["README.md", "docs/**/*.md", "packages/*/README.md"]);
+        assert_eq!(
+            detected.surfaces,
+            vec![
+                DetectedSurface {
+                    name: "core".into(),
+                    import: Some("@acme/core".into()),
+                    path: "./packages/core/src/index.ts".into(),
+                },
+                DetectedSurface {
+                    name: "ssh".into(),
+                    import: Some("@acme/ssh".into()),
+                    path: "./packages/ssh/dist/index.js".into(),
+                },
+            ]
+        );
     }
 }

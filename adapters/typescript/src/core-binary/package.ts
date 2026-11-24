@@ -2,13 +2,73 @@
 // what command runs docattest in a project that installed it. Shared by the `docattest`
 // launcher (main.ts) and the programmatic API (src/client/), so that both run the same core
 // in the same way. Imports nothing but Node's own modules and ./locate.js.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findCore, given, platformName, surroundings, type Found, type Pinned } from './locate.js';
 
-/** How a project that installed docattest from npm runs it: its own copy, never a download. */
+/** Default command for npm projects: its own copy, never a download. */
 const COMMAND = 'npx --no docattest';
+
+const PACKAGE_MANAGERS: readonly [string, string][] = [
+  ['pnpm', 'pnpm exec docattest'],
+  ['yarn', 'yarn docattest'],
+  ['bun', 'bunx docattest'],
+  ['npm', COMMAND],
+];
+
+const LOCKFILES: readonly [string, string][] = [
+  ['pnpm-lock.yaml', 'pnpm exec docattest'],
+  ['yarn.lock', 'yarn docattest'],
+  ['bun.lock', 'bunx docattest'],
+  ['bun.lockb', 'bunx docattest'],
+  ['package-lock.json', COMMAND],
+];
+
+/**
+ * Detect how to run `docattest` in the target project from its `packageManager` field or
+ * lockfile (pnpm → `pnpm exec docattest`, yarn → `yarn docattest`, bun → `bunx docattest`,
+ * else `npx --no docattest`).
+ */
+export function detectCommand(cwd: string, argv: readonly string[] = []): string {
+  const start = targetDir(cwd, argv);
+  for (let dir = start; ; dir = path.dirname(dir)) {
+    const found = commandInDir(dir);
+    if (found) return found;
+    if (path.dirname(dir) === dir) return COMMAND;
+  }
+}
+
+function targetDir(cwd: string, argv: readonly string[]): string {
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    const next = argv[i + 1];
+    if (arg === '--root' && next !== undefined) return path.resolve(cwd, next);
+    if (arg?.startsWith('--root=')) return path.resolve(cwd, arg.slice('--root='.length));
+  }
+  return path.resolve(cwd);
+}
+
+function commandInDir(dir: string): string | undefined {
+  const pkgPath = path.join(dir, 'package.json');
+  if (existsSync(pkgPath)) {
+    try {
+      const parsed = JSON.parse(readFileSync(pkgPath, 'utf8')) as { packageManager?: unknown };
+      if (typeof parsed.packageManager === 'string') {
+        const pm = parsed.packageManager.split('@')[0]?.trim();
+        const hit = PACKAGE_MANAGERS.find(([name]) => name === pm);
+        if (hit) return hit[1];
+      }
+    } catch {
+      // Ignore malformed package.json during command detection.
+    }
+  }
+  for (const [lockfile, command] of LOCKFILES) {
+    if (existsSync(path.join(dir, lockfile))) return command;
+  }
+  return undefined;
+}
 
 const here = (relative: string) => fileURLToPath(new URL(relative, import.meta.url));
 
@@ -83,12 +143,16 @@ export function packageCore(): Found {
  * what command runs docattest. What is already set stands: a developer's own adapter, a
  * wrapper's own command.
  */
-export function coreEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+export function coreEnvironment(
+  env: NodeJS.ProcessEnv,
+  cwd: string = process.cwd(),
+  argv: readonly string[] = [],
+): NodeJS.ProcessEnv {
   const adapter = [process.execPath, here('../protocol/main.js')];
   return {
     ...env,
     DOCATTEST_ADAPTER_TYPESCRIPT:
       given(env.DOCATTEST_ADAPTER_TYPESCRIPT) ?? JSON.stringify(adapter),
-    DOCATTEST_COMMAND: given(env.DOCATTEST_COMMAND) ?? COMMAND,
+    DOCATTEST_COMMAND: given(env.DOCATTEST_COMMAND) ?? detectCommand(cwd, argv),
   };
 }

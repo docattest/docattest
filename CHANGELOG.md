@@ -4,6 +4,38 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.3] - 2026-11-24
+
+### Added
+
+- `docattest init` now detects npm, Yarn, and pnpm monorepo workspaces (`pnpm-workspace.yaml`
+  and `package.json#workspaces`), adding workspace `README.md` globs to `pages` and proposing
+  package surfaces automatically.
+- TypeScript launcher now detects the project's package manager from `package.json#packageManager`
+  or lockfiles (`pnpm-lock.yaml` → `pnpm exec docattest`, `yarn.lock` → `yarn docattest`,
+  `bun.lock`/`bun.lockb` → `bunx docattest`, falling back to `npx --no docattest`).
+
+### Changed
+
+- `docattest check` text output now summarizes long lists of uncovered pages after the first 10
+  (`… and N more`) so results stay above the fold during incremental adoption (`--json` keeps
+  the full list).
+- `audit` precision improvements: skips consecutive `0, 1, 2, …` / `1, 2, 3, …` integer
+  sequences (such as numeric enum discriminants matching offset columns), skips prose
+  description table columns that merely mention code spans in sentences, and restricts
+  camelCase scalar matching to lowercase-initial identifiers (excluding PascalCase type/enum
+  names).
+
+### Fixed
+
+- TypeScript: ESM modules declaring `const __dirname = ...` or `const __filename = ...` no
+  longer fail to load with `SyntaxError: Identifier '__dirname' has already been declared`.
+- TypeScript: `<!-- test: ... -->` citations whose unit tests import from relative submodules
+  (for both source surfaces and built `dist/` surfaces) now correlate symbols accurately
+  without false-positive relevance warnings.
+- TypeScript: surface entries written as `{ "path": "packages/.../file.ts", "internal": true }`
+  without a leading `./` now resolve as project file paths consistently with `{ "import", "path" }`.
+
 ## [0.5.2] - 2026-11-24
 
 ### Added

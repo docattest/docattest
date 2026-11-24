@@ -142,3 +142,34 @@ describe('a value the package entry does not re-export', () => {
     expect(await project.uncovered()).toEqual(['allowed']);
   });
 });
+
+describe('ESM __dirname declarations and internal surface paths without ./', () => {
+  it('loads an ESM surface declaring const __dirname and resolves paths without ./', async () => {
+    const project = createProject({
+      files: {
+        'docattest.config.json': JSON.stringify({
+          pages: ['docs/**/*.md'],
+          surfaces: {
+            default: './src/index.ts',
+            internal: { path: 'src/internal.ts', internal: true },
+          },
+          adapter: 'typescript',
+        }),
+        'src/index.ts': [
+          "import * as path from 'node:path';",
+          "import { fileURLToPath } from 'node:url';",
+          'const __filename = fileURLToPath(import.meta.url);',
+          'const __dirname = path.dirname(__filename);',
+          'export const DIR_BASE = path.basename(__dirname);',
+        ].join('\n'),
+        'src/internal.ts': "const SECRET_SCOPE = 'read:all';\nexport const ok = true;\n",
+        'docs/a.md': [
+          'Lives in `src`. <!-- fact: DIR_BASE -->',
+          'Default scope is `read:all`. <!-- fact @internal: SECRET_SCOPE -->',
+        ].join('\n'),
+      },
+    });
+    const report = await project.check();
+    expect(report.results.map((r) => r.status)).toEqual(['pass', 'pass']);
+  });
+});

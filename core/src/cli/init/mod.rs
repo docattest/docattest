@@ -2,6 +2,7 @@
 //! `docattest.config.json`, optionally wire agent/git integrations, and run an initial gap audit.
 
 mod detect;
+mod workspaces;
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -203,9 +204,12 @@ fn format_init(path: &Path, detected: &DetectedConfig, dry_run: bool) -> String 
     lines.push(format!("docattest init: {verb} {}", path.display()));
     lines.push(format!("  adapter: {}", detected.adapter));
     lines.push(format!("  pages: {}", detected.pages.join(", ")));
-    match &detected.surface {
-        Some(surface) => lines.push(format!("  surface default: {surface}")),
-        None => lines.push("  surfaces: none (add surfaces later to bind facts to exported code)".into()),
+    if detected.surfaces.is_empty() {
+        lines.push("  surfaces: none (add surfaces later to bind facts to exported code)".into());
+    } else {
+        for surface in &detected.surfaces {
+            lines.push(format!("  surface {}: {}", surface.name, surface.display_entry()));
+        }
     }
     lines.join("\n")
 }

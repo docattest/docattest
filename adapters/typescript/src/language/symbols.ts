@@ -15,9 +15,14 @@ import { expressionIdentifiers } from './syntax/expression.js';
 import { helperSymbols, objectKeys } from './syntax/setup-module.js';
 import { dedupe, importedSymbols, type SurfaceOf } from './syntax/imports.js';
 import type { SurfaceDeclarations } from './surfaces/declarations.js';
+import { nearestPackage, sameDirectory } from './surfaces/packages.js';
 import type { ResolvedSurface } from './surfaces/resolve.js';
 
 const stem = (file: string) => file.replace(/\.[mc]?[jt]sx?$/, '');
+const sameModule = (file: string, target: string) => {
+  const s = stem(file);
+  return s === target || s === `${target}${path.sep}index`;
+};
 
 /** Which surface symbols each attestation exercises, from syntax and the checker's exports. */
 export class SymbolResolver {
@@ -132,15 +137,51 @@ export class SymbolResolver {
       : objectKeys(this.setup, code, group);
   }
 
-  /** A setup module or test file may import a surface by specifier or by a relative path. */
+  /**
+   * A setup module or test file may import a surface by package specifier, by a relative path
+   * to the surface's entry, or by a relative path to a submodule whose exports that surface
+   * re-exports (including source modules behind a built `dist/` surface of the same package).
+   */
   private surfaceOf(from: string): SurfaceOf {
-    return (specifier) => {
+    return (specifier, name) => {
       const named = this.byImport.get(specifier);
       if (named || !specifier.startsWith('.')) return named;
       const target = stem(path.resolve(path.dirname(from), specifier));
-      return this.surfaces.find((s) => s.entry !== undefined && stem(s.entry) === target)?.spec
-        .name;
+      const direct = this.surfaces.find(
+        (s) => s.entry !== undefined && sameModule(s.entry, target),
+      );
+      if (direct) return direct.spec.name;
+      return this.surfaceByOrigin(target, name) ?? this.surfaceByPackage(target, name);
     };
+  }
+
+  private surfaceByOrigin(target: string, name: string | undefined): string | undefined {
+    for (const s of this.surfaces) {
+      const origins = this.compiler.origins(s.spec.name);
+      if (name !== undefined) {
+        const files = origins.get(name);
+        if (files && [...files].some((f) => sameModule(f, target))) return s.spec.name;
+      } else {
+        for (const files of origins.values()) {
+          if ([...files].some((f) => sameModule(f, target))) return s.spec.name;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  private surfaceByPackage(target: string, name: string | undefined): string | undefined {
+    const pkg = nearestPackage(this.files, `${target}.ts`);
+    if (!pkg) return undefined;
+    for (const s of this.surfaces) {
+      if (s.entry === undefined) continue;
+      const surfacePkg = nearestPackage(this.files, s.entry);
+      if (!surfacePkg || !sameDirectory(this.files, pkg.dir, surfacePkg.dir)) continue;
+      if (name === undefined || this.compiler.exports(s.spec.name)?.includes(name)) {
+        return s.spec.name;
+      }
+    }
+    return undefined;
   }
 
   private known(refs: readonly SymbolRef[]): SymbolRef[] {

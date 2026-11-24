@@ -253,9 +253,9 @@ surfaces equals it:
 - text is distinctive with at least four characters, when its core (ignoring leading or
   trailing punctuation) is not a plain word or short number: it holds internal punctuation
   or digits (`DOCATTEST_CORE`, `batch-large`, `docattest.config.json`, `/etc/ld.so.preload`,
-  `:8080`), or a lowercase letter followed by an uppercase one (`maxRetries`). `queue`,
-  `Production`, `JSON`, `/proc` and `.git` are plain words and match unrelated prose too
-  often;
+  `:8080`), or starts with a lowercase letter and has camelCase (`maxRetries`). `queue`,
+  `Production`, `PoolAccount`, `JSON`, `/proc` and `.git` are plain words or type/enum
+  names and match unrelated prose too often;
 - a value two surface values share (`eur-cents` as both `CURRENCY` and `Money.unit`) says
   nothing about which one the page copied, so it is never suggested.
 

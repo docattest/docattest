@@ -29,7 +29,7 @@ export function surfaceSpecs(
     if (typeof entry !== 'string') {
       return { name, import: entry.import, path: normalise(entry.path) };
     }
-    if (!isPathLike(entry)) return { name, import: entry };
+    if (!isPathLike(entry) && !files.exists(entry)) return { name, import: entry };
     const specifier = name === 'default' ? pkg : `${pkg}/${name}`;
     return { name, import: specifier, path: path.posix.normalize(normalise(entry)) };
   });

@@ -55,8 +55,21 @@ pub fn is_distinctive(value: &str) -> bool {
         return core.len() >= MIN_VALUE_DIGITS;
     }
     let chars: Vec<char> = core.chars().collect();
-    let camel = chars.windows(2).any(|pair| pair[0].is_lowercase() && pair[1].is_uppercase());
+    let camel = chars[0].is_lowercase()
+        && chars.windows(2).any(|pair| pair[0].is_lowercase() && pair[1].is_uppercase());
     camel || !chars.iter().all(|c| c.is_alphabetic())
+}
+
+/// Whether `items` are consecutive integers starting at 0 or 1 (`0, 1, 2, ...` or `1, 2, 3, ...`),
+/// such as numeric enum discriminants, which collide with unrelated offset or step columns.
+fn is_sequential_integers(items: &[&str]) -> bool {
+    let mut nums = Vec::with_capacity(items.len());
+    for item in items {
+        let Ok(n) = item.parse::<i64>() else { return false };
+        nums.push(n);
+    }
+    nums.sort_unstable();
+    matches!(nums.first(), Some(0 | 1)) && nums.windows(2).all(|w| w[1] == w[0] + 1)
 }
 
 /// Too trivial to be evidence: shorter than two characters, one digit (negative or not), or
@@ -83,7 +96,7 @@ pub fn collapse(text: &str) -> String {
 pub fn compare_sets(page_items: &[String], code_items: &[String]) -> Option<Verdict> {
     let page = distinct(page_items.iter().map(String::as_str).filter(|item| !item.is_empty()));
     let code = distinct(code_items.iter().map(String::as_str));
-    if page.len() < 2 || code.len() < 2 {
+    if page.len() < 2 || code.len() < 2 || is_sequential_integers(&code) {
         return None;
     }
     let in_page: HashSet<&str> = page.iter().copied().collect();
@@ -215,6 +228,9 @@ pub(crate) mod tests {
         assert_eq!(sets(&["yes", "no", "on"], &["yes", "no", "on"]), None);
         assert_eq!(sets(&["alpha"], &["alpha"]), None);
         assert_eq!(sets(&["80", "443"], &["80", "443"]).unwrap().status, Status::Match);
+        // Consecutive 0-based or 1-based numeric sequences (enum discriminants) are ignored.
+        assert_eq!(sets(&["0", "2", "4"], &["0", "1", "2", "3", "4"]), None);
+        assert_eq!(sets(&["1", "2", "3"], &["1", "2", "3"]), None);
     }
 
     #[test]
@@ -264,6 +280,8 @@ pub(crate) mod tests {
             "1.5",
             "queue",
             "Production",
+            "AddFee",
+            "PoolAccount",
             "JSON",
             "Größe",
             "a-b",

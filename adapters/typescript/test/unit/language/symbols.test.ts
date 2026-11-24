@@ -104,3 +104,43 @@ describe.each(PROOFS)('%s that reads a value built from other names', (_, page) 
     ]);
   });
 });
+
+describe('a citation whose unit test imports a relative submodule', () => {
+  it('attributes symbols imported from a submodule re-exported by a source or built surface', async () => {
+    const files = {
+      'package.json': JSON.stringify({ name: '@acme/keys', version: '1.0.0' }),
+      'docattest.config.json': JSON.stringify({
+        pages: ['docs/**/*.md'],
+        surfaces: {
+          default: './src/index.ts',
+          built: { import: '@acme/built', path: 'packages/built/dist/index.js' },
+        },
+        adapter: 'typescript',
+      }),
+      'src/publicKeys.ts': 'export function parseKeys(raw: string) { return raw.trim(); }\n',
+      'src/index.ts': "export { parseKeys } from './publicKeys.js';\n",
+      'test/publicKeys.test.ts': [
+        "import { parseKeys } from '../src/publicKeys.js';",
+        "it('parses keys', () => { parseKeys('a'); });",
+      ].join('\n'),
+      'packages/built/package.json': JSON.stringify({ name: '@acme/built', version: '1.0.0' }),
+      'packages/built/dist/index.js': 'export function buildKey() { return 1; }\n',
+      'packages/built/dist/index.d.ts': 'export declare function buildKey(): number;\n',
+      'packages/built/src/key.ts': 'export function buildKey() { return 1; }\n',
+      'packages/built/src/__tests__/key.test.ts': [
+        "import { buildKey } from '../key.js';",
+        "it('builds key', () => { buildKey(); });",
+      ].join('\n'),
+      'docs/a.md': [
+        '`parseKeys` trims keys. <!-- test: test/publicKeys.test.ts > "parses keys" -->',
+        '`buildKey` creates a key. <!-- test: packages/built/src/__tests__/key.test.ts > "builds key" -->',
+      ].join('\n'),
+    };
+    const project = createProject({ files });
+    const report = await project.check();
+    expect(report.results.map((r) => r.status)).toEqual(['pass', 'pass']);
+    expect(report.warnings).toBeUndefined();
+    expect((await project.where('parseKeys')).map((r) => r.kind)).toEqual(['test']);
+    expect((await project.where('buildKey')).map((r) => r.kind)).toEqual(['test']);
+  });
+});

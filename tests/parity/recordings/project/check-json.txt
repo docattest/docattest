@@ -1,8 +1,8 @@
 # check --json
-# recorded from: adapter README quick-start reorder and homepage install box
+# recorded from: docattest 0.5.3
 === check --json
 exit 0
-stdout 7190 lines
+stdout 7192 lines
 {
   "results": [
     {
@@ -11,9 +11,9 @@ stdout 7190 lines
       "kind": "fact",
       "status": "pass",
       "symbols": [],
-      "message": "manifest(\"adapters/typescript/package.json\").version is 0.5.2",
-      "expected": "0.5.2",
-      "actual": "0.5.2"
+      "message": "manifest(\"adapters/typescript/package.json\").version is 0.5.3",
+      "expected": "0.5.3",
+      "actual": "0.5.3"
     },
     {
       "page": "README.md",
@@ -456,7 +456,9 @@ stdout 7190 lines
       "line": 208,
       "kind": "test",
       "status": "pass",
-      "symbols": [],
+      "symbols": [
+        "codeSpans"
+      ],
       "message": "adapters/typescript/test/unit/cells/code-spans.test.ts:21 declares \"codeSpans\" > \"$name\" (not run by docattest)"
     },
     {
@@ -465,6 +467,7 @@ stdout 7190 lines
       "kind": "test",
       "status": "pass",
       "symbols": [
+        "codeSpans",
         "createProject"
       ],
       "message": "adapters/typescript/test/unit/cells/code-spans.test.ts:82 declares \"codeSpans and the core\" > \"gives what a column fact compares\" (not run by docattest)"
@@ -3746,8 +3749,8 @@ stdout 7190 lines
         "entry": "adapters/typescript/dist/index.js",
         "package": {
           "name": "docattest",
-          "version": "0.5.2",
-          "display": "docattest@0.5.2"
+          "version": "0.5.3",
+          "display": "docattest@0.5.3"
         }
       },
       "warnings": []
@@ -3756,7 +3759,6 @@ stdout 7190 lines
   "snapshots": [],
   "exitCode": 0,
   "warnings": [
-    "adapters/typescript/README.md:210 citation names `codeSpans`, which `gives what a column fact compares` does not use",
     "adapters/typescript/README.md:315 citation names `createProject`, which `runs nothing of a project in memory` does not use"
   ],
   "members": [
@@ -5907,8 +5909,8 @@ stdout 7190 lines
               "entry": "docattest_python/language.py",
               "package": {
                 "name": "docattest",
-                "version": "0.5.2",
-                "display": "docattest 0.5.2"
+                "version": "0.5.3",
+                "display": "docattest 0.5.3"
               }
             },
             "warnings": []
@@ -5940,8 +5942,8 @@ stdout 7190 lines
               "entry": "docattest/launcher.py",
               "package": {
                 "name": "docattest",
-                "version": "0.5.2",
-                "display": "docattest 0.5.2"
+                "version": "0.5.3",
+                "display": "docattest 0.5.3"
               }
             },
             "warnings": []

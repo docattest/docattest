@@ -1,8 +1,8 @@
 # where --json
-# recorded from: docattest 0.5.2
+# recorded from: docattest 0.5.3
 === where --json
 exit 0
-stdout 976 lines
+stdout 988 lines
 {
   "CHANGE_TYPES": [
     {
@@ -122,6 +122,18 @@ stdout 976 lines
       "line": 197,
       "kind": "example",
       "claim": "A cases runner is a function of the setup module's `cases` export, called once per row with the row's cells by column. It gets each cell's text as the page writes it, code spans with their backticks ([cases](../../docs/cases.md#a-runner-receives-each-cell-as-written)). `codeSpans`, which this package exports, takes the code out: it gives the content of every code span in a cell, in order, as a fact over the cell's column compares it."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 208,
+      "kind": "test",
+      "claim": "As CommonMark has it, a backtick escaped with a backslash opens no span, and neither does one inside an HTML tag or comment, an autolink, or a link's destination or title."
+    },
+    {
+      "page": "adapters/typescript/README.md",
+      "line": 210,
+      "kind": "test",
+      "claim": "Each cell of that table is also written into a page under a `fact column=` that lists what `codeSpans` gives, and the core must agree."
     },
     {
       "page": "adapters/typescript/src/cells/code-spans.ts",
