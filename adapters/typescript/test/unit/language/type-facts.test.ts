@@ -17,6 +17,7 @@ describe('typeKeys and typeValues facts', () => {
         '  logLevel?: LogLevel;',
         '}',
         'export type Extended = ClientOptions & { retries?: number };',
+        "export type JobBody = { strategy: 'SIMPLE'; timeout: number } | { strategy: 'SCHEDULED'; schedule: string; timeout: number };",
         "export const RUNTIME = 'ok';",
       ].join('\n'),
       'README.md': [
@@ -32,11 +33,13 @@ describe('typeKeys and typeValues facts', () => {
         '| `logLevel` | verbosity |',
         '',
         'Extended keys: `network`, `rpc`, `logLevel`, `retries`. <!-- fact: typeKeys("Extended") -->',
+        '',
+        'Job body keys: `strategy`, `timeout`, `schedule`. <!-- fact: typeKeys("JobBody") -->',
       ].join('\n'),
     };
     const project = createProject({ files });
     const report = await project.check();
-    expect(report.results.filter((r) => r.status === 'pass')).toHaveLength(3);
+    expect(report.results.filter((r) => r.status === 'pass')).toHaveLength(4);
     expect(report.results.filter((r) => r.status !== 'pass')).toHaveLength(0);
 
     const where = await project.where('LogLevel');

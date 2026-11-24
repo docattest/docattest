@@ -1,8 +1,8 @@
 # audit --inventory --json
-# recorded from: docattest 0.6.0
+# recorded from: docattest 0.6.1
 === audit --inventory --json
 exit 0
-stdout 455 lines
+stdout 525 lines
 [
   {
     "surface": "default",
@@ -84,6 +84,38 @@ stdout 455 lines
       "fail",
       "error",
       "skipped"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Attestation')",
+    "value": "kind,lang,mode,network,code,weak,owner,tags,id,page,line,claim,error,expression,surface,ordered,column,field,target,runner,header,rows,file,title,describes",
+    "items": [
+      "kind",
+      "lang",
+      "mode",
+      "network",
+      "code",
+      "weak",
+      "owner",
+      "tags",
+      "id",
+      "page",
+      "line",
+      "claim",
+      "error",
+      "expression",
+      "surface",
+      "ordered",
+      "column",
+      "field",
+      "target",
+      "runner",
+      "header",
+      "rows",
+      "file",
+      "title",
+      "describes"
     ]
   },
   {
@@ -284,6 +316,18 @@ stdout 455 lines
   },
   {
     "surface": "default",
+    "expression": "typeKeys('FactTarget')",
+    "value": "kind,value,items,from,text",
+    "items": [
+      "kind",
+      "value",
+      "items",
+      "from",
+      "text"
+    ]
+  },
+  {
+    "surface": "default",
     "expression": "typeKeys('Impact')",
     "value": "base,symbols,manifests,files,commands,references",
     "items": [
@@ -336,6 +380,15 @@ stdout 455 lines
       "path",
       "adapter",
       "report"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Placement')",
+    "value": "where,line",
+    "items": [
+      "where",
+      "line"
     ]
   },
   {
@@ -416,6 +469,23 @@ stdout 455 lines
       "fetchedAt",
       "ageDays",
       "warning"
+    ]
+  },
+  {
+    "surface": "default",
+    "expression": "typeKeys('Suggestion')",
+    "value": "page,line,expression,status,missing,unexpected,surface,directive,target,after",
+    "items": [
+      "page",
+      "line",
+      "expression",
+      "status",
+      "missing",
+      "unexpected",
+      "surface",
+      "directive",
+      "target",
+      "after"
     ]
   },
   {

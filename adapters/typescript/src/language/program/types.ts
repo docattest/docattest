@@ -63,8 +63,18 @@ function literalUnionValues(type: ts.Type): readonly string[] | undefined {
   return seen.size >= 2 ? [...seen] : undefined;
 }
 
-/** Own named properties of an interface, object type literal, or object intersection. */
+/** Own named properties of an interface, object type literal, intersection, or object union. */
 function objectPropertyKeys(checker: ts.TypeChecker, type: ts.Type): readonly string[] | undefined {
+  if (type.isUnion()) {
+    if (!type.types.every((part) => isPlainObjectType(checker, part))) return undefined;
+    const seen = new Set<string>();
+    for (const part of type.types) {
+      for (const prop of checker.getPropertiesOfType(part)) {
+        if (!prop.name.startsWith('__@')) seen.add(prop.name);
+      }
+    }
+    return seen.size > 0 ? [...seen] : undefined;
+  }
   if (!isPlainObjectType(checker, type)) return undefined;
   const props = checker
     .getPropertiesOfType(type)

@@ -23,7 +23,7 @@ Try it in your browser: the [playground](https://docattest.github.io/docattest/p
 lets you break a small project's code and watch docattest catch its docs. The
 [website](https://docattest.github.io/docattest/) has the short tour.
 
-> **Status:** `0.6.0` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
+> **Status:** `0.6.1` <!-- fact: manifest("adapters/typescript/package.json").version -->, pre-release: on npm, PyPI and
 > crates.io, and for Go by `go install` (see [Install](#install)).
 
 ## What it looks like
@@ -377,7 +377,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --if-present
-      - uses: docattest/docattest@v0.6.0
+      - uses: docattest/docattest@v0.6.1
         with:
           args: --base origin/main
 ```

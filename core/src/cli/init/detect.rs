@@ -7,6 +7,7 @@ use serde_json::{Map, Value, json};
 
 use super::workspaces::{DetectedSurface, detect_workspace, has_compiler_transform};
 use crate::config::NONE_ADAPTER;
+use crate::files::glob::GlobMatcher;
 use crate::files::project_files::ProjectFiles;
 use crate::files::source::DiskFiles;
 use crate::git::ignored::ignored_by_git;
@@ -51,8 +52,11 @@ pub fn detect(root: &Path) -> DetectedConfig {
         .unwrap_or_default();
     if adapter == "typescript" {
         let (ws_pages, ws_surfaces) = detect_workspace(root, &listed);
+        let existing = GlobMatcher::new(&pages).ok();
         for glob in ws_pages {
-            if !pages.contains(&glob) {
+            let is_literal = !glob.contains('*') && !glob.contains('?') && !glob.contains('[');
+            let covered = is_literal && existing.as_ref().is_some_and(|m| m.is_match(&glob));
+            if !covered && !pages.contains(&glob) {
                 pages.push(glob);
             }
         }
@@ -257,8 +261,10 @@ mod tests {
     fn detects_pnpm_monorepo_workspace_surfaces_and_readmes() {
         let mono = Temp::new("init-mono");
         mono.write("package.json", r#"{"name":"acme-monorepo","private":true}"#);
-        mono.write("pnpm-workspace.yaml", "packages:\n  - 'packages/*'\n");
+        mono.write("pnpm-workspace.yaml", "packages:\n  - 'packages/*'\n  - 'docs'\n");
         mono.write("README.md", "# Acme\n");
+        mono.write("docs/package.json", r#"{"name":"@acme/docs-site","private":true}"#);
+        mono.write("docs/index.md", "# Docs\n");
         mono.write("docs/intro.md", "# Intro\n");
         mono.write("packages/core/package.json", r#"{"name":"@acme/core"}"#);
         mono.write("packages/core/src/index.ts", "export const A = 1;\n");
