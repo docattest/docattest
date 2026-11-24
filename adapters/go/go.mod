@@ -7,4 +7,11 @@ require (
 	golang.org/x/tools v0.30.0
 )
 
-require golang.org/x/sync v0.11.0 // indirect
+require (
+	github.com/docattest/docattest/go-core/core-darwin-arm64 v0.6.1
+	github.com/docattest/docattest/go-core/core-darwin-x64 v0.6.1
+	github.com/docattest/docattest/go-core/core-linux-arm64 v0.6.1
+	github.com/docattest/docattest/go-core/core-linux-x64 v0.6.1
+	github.com/docattest/docattest/go-core/core-windows-x64 v0.6.1
+	golang.org/x/sync v0.11.0 // indirect
+)
