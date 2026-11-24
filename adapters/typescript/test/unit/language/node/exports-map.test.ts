@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { requireDependency } from '../../../../src/language/node/dependency.js';
 import { resolveThroughExports } from '../../../../src/language/node/exports-map.js';
 import { nearestPackage, workspacePackages } from '../../../../src/language/surfaces/packages.js';
 import { staleCopyWarning } from '../../../../src/language/surfaces/stale.js';
@@ -32,6 +33,29 @@ describe('resolveThroughExports', () => {
     );
     expect(resolveThroughExports('esm/missing', from)).toBeUndefined();
     expect(resolveThroughExports('absent', from)).toBeUndefined();
+  });
+
+  it('prefers the import condition over a require stub and loads it via requireDependency', () => {
+    const root = project({
+      'node_modules/esm-guarded/package.json': JSON.stringify({
+        name: 'esm-guarded',
+        type: 'module',
+        exports: {
+          '.': {
+            require: './stub.cjs',
+            import: './index.js',
+          },
+        },
+      }),
+      'node_modules/esm-guarded/stub.cjs':
+        'throw new Error("cannot be imported in a CommonJS module using require()");\n',
+      'node_modules/esm-guarded/index.js': 'export const ANSWER = 42;\n',
+    });
+    const from = join(root, 'entry.js');
+    expect(resolveThroughExports('esm-guarded', from)).toBe(
+      join(root, 'node_modules/esm-guarded/index.js'),
+    );
+    expect(requireDependency('esm-guarded', from)).toMatchObject({ ANSWER: 42 });
   });
 });
 

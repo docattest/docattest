@@ -9,7 +9,14 @@ fn strings(items: &[&str]) -> Vec<String> {
 }
 
 fn column(line: usize, end: usize, items: &[&str], name: &str) -> SetCandidate {
-    SetCandidate { target: Target::Column, line, end, items: strings(items), column: Some(name.into()) }
+    SetCandidate {
+        target: Target::Column,
+        line,
+        end,
+        items: strings(items),
+        column: Some(name.into()),
+        headings: Vec::new(),
+    }
 }
 
 #[test]
@@ -34,7 +41,8 @@ fn takes_lists_and_table_columns_with_fact_item_values() {
                 line: 3,
                 end: 5,
                 items: strings(&["A", "B", "plain text"]),
-                column: None
+                column: None,
+                headings: Vec::new(),
             }],
             vec![column(7, 10, &["GET", "POST"], "Method"), column(7, 10, &["/a", "/b", "/c"], "Path")],
         ]
@@ -50,13 +58,41 @@ fn leaves_out_lists_and_columns_with_fewer_than_two_distinct_items() {
 
 #[test]
 fn skips_prose_description_columns_that_mention_inline_code() {
-    let found = found(&[
+    let prose = found(&[
         "| Option | Description |",
         "|---|---|",
         "| `network` | Target cluster (`devnet` or `mainnet`) for RPC calls. |",
         "| `timeout` | Maximum wait before failing the request. |",
     ]);
-    assert_eq!(found.sets, vec![vec![column(1, 4, &["network", "timeout"], "Option")]]);
+    assert_eq!(prose.sets, vec![vec![column(1, 4, &["network", "timeout"], "Option")]]);
+
+    // Also skips when the code-mentioning cell itself has few words outside backticks while
+    // sibling rows are plain prose descriptions.
+    let mixed = found(&[
+        "| Variable | Description |",
+        "|---|---|",
+        "| `APP_ENV` | Target environment: `local`, `staging`, or `prod` |",
+        "| `APP_KEY` | Path to a signing key file on disk (required for prod) |",
+    ]);
+    assert_eq!(mixed.sets, vec![vec![column(1, 4, &["APP_ENV", "APP_KEY"], "Variable")]]);
+}
+
+#[test]
+fn tracks_active_heading_stack_for_set_candidates() {
+    let found = found(&[
+        "# Accounts",
+        "## Deposit",
+        "### Fields",
+        "- `user`",
+        "- `vault`",
+        "## Withdraw",
+        "### Fields",
+        "- `user`",
+        "- `vault`",
+    ]);
+    assert_eq!(found.sets.len(), 2);
+    assert_eq!(found.sets[0][0].headings, strings(&["Accounts", "Deposit", "Fields"]));
+    assert_eq!(found.sets[1][0].headings, strings(&["Accounts", "Withdraw", "Fields"]));
 }
 
 #[test]

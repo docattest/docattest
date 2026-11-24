@@ -272,6 +272,7 @@ impl PageBuilder<'_> {
         let end = mdast_end(node, self.source).unwrap_or(end);
         let kind = match node {
             Node::Heading(h) => BlockKind::Heading {
+                depth: h.depth,
                 text: content_range(&h.children, self.source)
                     .map(|(a, b)| prose(slice(self.source, a, b)))
                     .unwrap_or_default(),
@@ -387,10 +388,7 @@ fn table_of(table: &MdTable, source: &str) -> Table {
 // Cases runners receive cells as written, so a cell keeps its code spans and comments;
 // only the pipe escape, which exists because of the table itself, is undone.
 fn cell_raw(cell: &Node, source: &str) -> String {
-    let children = match cell {
-        Node::TableCell(MdCell { children, .. }) => children.as_slice(),
-        _ => &[],
-    };
+    let Node::TableCell(MdCell { children, .. }) = cell else { return String::new() };
     content_range(children, source)
         .map(|(a, b)| trim(&slice(source, a, b).replace("\\|", "|")).to_string())
         .unwrap_or_default()

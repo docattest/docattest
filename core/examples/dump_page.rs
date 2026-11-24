@@ -21,7 +21,7 @@ fn dump(page: &Page) -> Value {
     let block = |b: &docattest::debug::model::Block| {
         let mut v = json!({ "type": b.type_name(), "start": b.start, "end": b.end, "previous": b.previous });
         match &b.kind {
-            BlockKind::Heading { text } | BlockKind::Paragraph { text } => v["text"] = json!(text),
+            BlockKind::Heading { text, .. } | BlockKind::Paragraph { text } => v["text"] = json!(text),
             BlockKind::List { items } => {
                 v["items"] = items.iter().map(|i| json!({"line": i.line, "value": i.value})).collect()
             }

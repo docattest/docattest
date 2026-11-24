@@ -1,19 +1,19 @@
+import * as fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolveThroughExports } from './exports-map.js';
 
 /**
- * Load a third-party dependency natively. Node's CommonJS resolution is used unchanged;
- * only when a package's exports map has no `require` path (ESM-only packages) is it
- * resolved through import conditions and loaded with require(esm), which Node 22.12+ has.
+ * Load a third-party dependency natively. Node's CommonJS resolution is tried first; when a
+ * package has no `require` path (ESM-only) or its `require` entry is a CJS-rejection stub
+ * that throws on load, fall back to its `import` entry through Node 22.12+ `require(esm)`.
  */
 export function requireDependency(specifier: string, base: string): unknown {
   const load = createRequire(base);
   try {
     return load(specifier) as unknown;
   } catch (err) {
-    if (!isNotExported(err)) throw err;
     const file = resolveThroughExports(specifier, base);
-    if (!file) throw err;
+    if (!file || sameResolved(load, specifier, file)) throw err;
     return load(file) as unknown;
   }
 }
@@ -27,6 +27,18 @@ export function resolveDependency(specifier: string, base: string): string | und
   }
 }
 
-function isNotExported(err: unknown): boolean {
-  return err instanceof Error && 'code' in err && err.code === 'ERR_PACKAGE_PATH_NOT_EXPORTED';
+function sameResolved(load: NodeJS.Require, specifier: string, file: string): boolean {
+  try {
+    return realPath(load.resolve(specifier)) === realPath(file);
+  } catch {
+    return false;
+  }
+}
+
+function realPath(file: string): string {
+  try {
+    return fs.realpathSync(file);
+  } catch {
+    return file;
+  }
 }

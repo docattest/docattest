@@ -60,6 +60,7 @@ impl Table {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BlockKind {
     Heading {
+        depth: u8,
         text: String,
     },
     Paragraph {

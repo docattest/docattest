@@ -95,7 +95,7 @@ fn prose_before(page: &Page, block: usize) -> Option<&str> {
         previous = page.flow.get(previous)?.previous?;
     }
     match &page.flow.get(previous)?.kind {
-        BlockKind::Paragraph { text } | BlockKind::Heading { text } => Some(text),
+        BlockKind::Paragraph { text } | BlockKind::Heading { text, .. } => Some(text),
         _ => None,
     }
 }

@@ -52,7 +52,7 @@ fn best_column(page: &str, group: &[SetCandidate], inventory: &Inventory) -> Opt
             let items = o.value.items.as_deref().unwrap_or(&[]);
             compare_sets(&candidate.items, items).map(|verdict| Ranked { verdict, observable: o })
         });
-        let Some(ranked) = pick(verdicts) else { continue };
+        let Some(ranked) = pick_with_headings(verdicts, &candidate.headings) else { continue };
         if best.as_ref().is_none_or(|(b, _)| stronger(&ranked.verdict, &b.verdict)) {
             best = Some((ranked, candidate));
         }
@@ -76,22 +76,87 @@ fn stronger(a: &Verdict, b: &Verdict) -> bool {
 /// The strongest verdict, or None when another of equal strength disagrees about what is
 /// missing or unexpected: two values fit equally well, and guessing would mislead.
 pub(super) fn pick<'a>(ranked: impl Iterator<Item = Ranked<'a>>) -> Option<Ranked<'a>> {
-    let mut best: Option<Ranked> = None;
+    pick_with_headings(ranked, &[])
+}
+
+/// Like [`pick`], breaking equal-verdict ties with identical differences by preferring the
+/// expression whose identifier tokens overlap most with the enclosing Markdown headings.
+fn pick_with_headings<'a>(
+    ranked: impl Iterator<Item = Ranked<'a>>,
+    headings: &[String],
+) -> Option<Ranked<'a>> {
+    let context = heading_tokens(headings);
+    let mut best: Option<(Ranked<'a>, usize)> = None;
     let mut tied = false;
     for r in ranked {
+        let overlap = if context.is_empty() { 0 } else { token_overlap(&r.observable.expression, &context) };
         match &best {
-            Some(b) if !stronger(&r.verdict, &b.verdict) => {
-                if !stronger(&b.verdict, &r.verdict) && !same_difference(&b.verdict, &r.verdict) {
+            Some((b, best_overlap)) if !stronger(&r.verdict, &b.verdict) => {
+                if stronger(&b.verdict, &r.verdict) {
+                    continue;
+                }
+                if !same_difference(&b.verdict, &r.verdict) {
                     tied = true;
+                } else if overlap > *best_overlap {
+                    best = Some((r, overlap));
                 }
             }
             _ => {
-                best = Some(r);
+                best = Some((r, overlap));
                 tied = false;
             }
         }
     }
-    if tied { None } else { best }
+    if tied { None } else { best.map(|(r, _)| r) }
+}
+
+fn heading_tokens(headings: &[String]) -> HashSet<String> {
+    let mut tokens = HashSet::new();
+    for heading in headings {
+        tokens.extend(identifier_tokens(heading));
+        for word in heading.split_whitespace() {
+            let joined: String =
+                word.chars().filter(|c| c.is_alphanumeric()).flat_map(char::to_lowercase).collect();
+            if joined.chars().count() >= 2 {
+                tokens.insert(joined);
+            }
+        }
+    }
+    tokens
+}
+
+fn token_overlap(expression: &str, context: &HashSet<String>) -> usize {
+    identifier_tokens(expression).into_iter().filter(|tok| context.contains(tok)).count()
+}
+
+/// Split an identifier or heading into lowercase alphanumeric words across punctuation and
+/// camelCase boundaries.
+fn identifier_tokens(text: &str) -> HashSet<String> {
+    let mut out = HashSet::new();
+    let mut current = String::new();
+    let mut prev: Option<char> = None;
+    for ch in text.chars() {
+        if !ch.is_alphanumeric() {
+            push_token(&mut out, &mut current);
+            prev = None;
+            continue;
+        }
+        if prev.is_some_and(|p| p.is_lowercase() && ch.is_uppercase()) {
+            push_token(&mut out, &mut current);
+        }
+        current.extend(ch.to_lowercase());
+        prev = Some(ch);
+    }
+    push_token(&mut out, &mut current);
+    out
+}
+
+fn push_token(out: &mut HashSet<String>, current: &mut String) {
+    if current.chars().count() >= 2 {
+        out.insert(std::mem::take(current));
+    } else {
+        current.clear();
+    }
 }
 
 fn same_difference(a: &Verdict, b: &Verdict) -> bool {
@@ -267,6 +332,46 @@ pub(crate) mod tests {
         assert_eq!(
             brief(page, &[template(), template()]),
             one(1, "block", "match", "<!-- fact: TEMPLATE -->")
+        );
+    }
+
+    #[test]
+    fn breaks_equal_set_ties_using_enclosing_headings() {
+        let page = [
+            "# Vault",
+            "## Close",
+            "### Accounts",
+            "| Name | Role |",
+            "|---|---|",
+            "| `user` | owner |",
+            "| `vault` | pool |",
+            "## Deposit",
+            "### Accounts",
+            "| Name | Role |",
+            "|---|---|",
+            "| `user` | owner |",
+            "| `vault` | pool |",
+            "## Withdraw",
+            "### Accounts",
+            "| Name | Role |",
+            "|---|---|",
+            "| `user` | owner |",
+            "| `vault` | pool |",
+        ]
+        .join("\n")
+            + "\n";
+        let observables = [
+            value("Vault.CLOSE_ACCOUNTS", &["user", "vault"]),
+            value("Vault.DEPOSIT_ACCOUNTS", &["user", "vault"]),
+            value("Vault.WITHDRAW_ACCOUNTS", &["user", "vault"]),
+        ];
+        assert_eq!(
+            brief(&page, &observables),
+            vec![
+                (4, "column", "match", "<!-- fact column=Name: Vault.CLOSE_ACCOUNTS -->".into()),
+                (10, "column", "match", "<!-- fact column=Name: Vault.DEPOSIT_ACCOUNTS -->".into()),
+                (16, "column", "match", "<!-- fact column=Name: Vault.WITHDRAW_ACCOUNTS -->".into()),
+            ]
         );
     }
 }

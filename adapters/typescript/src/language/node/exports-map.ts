@@ -8,7 +8,7 @@ import { isObject, objectOrNothing } from '../../json.js';
 // this finds the file they export so it can be loaded with require(esm).
 
 /** Conditions active when resolving for import under Node, matched in exports-map order. */
-const CONDITIONS = new Set(['node', 'import', 'module-sync', 'require', 'default']);
+const CONDITIONS = new Set(['node', 'import', 'module-sync', 'default']);
 
 /** The file a bare specifier resolves to under import conditions, or undefined. */
 export function resolveThroughExports(specifier: string, from: string): string | undefined {

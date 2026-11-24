@@ -16,12 +16,20 @@ use crate::git::ignored::is_ignored;
 use crate::json::{parse_json, pretty};
 use serde_json::{Map, Value};
 
-/// A hook that was added: the agent's event, its filter, the command written for it.
+/// What to do when a settings file already has a docattest hook for an action.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExistingHooks {
+    Keep,
+    Replace,
+}
+
+/// A hook that was added or updated: the agent's event, its filter, the command written for it.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Added {
     pub event: String,
     pub matcher: Option<String>,
     pub command: String,
+    pub updated: bool,
 }
 
 /// How a hook is told which agent runs it: nothing for the agent meant by default, the name
@@ -49,14 +57,15 @@ pub fn install_hooks(
     agent: &Agent,
     command: impl Fn(&str) -> String,
 ) -> Result<(String, Vec<Added>)> {
-    install_hooks_into(root, &agent.settings.file, agent, command)
+    install_hooks_into(root, &agent.settings.file, agent, ExistingHooks::Keep, command)
 }
 
-/// Compute the hooks to add to `settings_file` (relative to `root`), without writing.
+/// Compute the hooks to add or update in `settings_file` (relative to `root`), without writing.
 pub fn plan_hooks_into(
     root: &Path,
     settings_file: &str,
     agent: &Agent,
+    existing: ExistingHooks,
     command: impl Fn(&str) -> String,
 ) -> Result<(String, Vec<Added>, Option<String>)> {
     let layout = &agent.settings;
@@ -67,18 +76,19 @@ pub fn plan_hooks_into(
         return Err(Error::user(format!("{file} does not hold a JSON object")));
     };
     let mut hooks = existing_hooks(settings, &layout.hooks, &file)?;
-    let mut added = Vec::new();
+    let plan = HookPlan { agent, existing, file: &file };
+    let mut changed = Vec::new();
     for action in ACTIONS {
-        if let Some(hook) = add_hook(&mut hooks, agent, action, &command, &file)? {
-            added.push(hook);
+        if let Some(hook) = add_or_update_hook(&mut hooks, &plan, action, command(action))? {
+            changed.push(hook);
         }
     }
-    if added.is_empty() {
-        return Ok((file, added, None));
+    if changed.is_empty() {
+        return Ok((file, changed, None));
     }
     add_defaults(settings, &layout.defaults);
     settings.insert(layout.hooks.clone(), Value::Object(hooks));
-    Ok((file, added, Some(format!("{}\n", pretty(&read)))))
+    Ok((file, changed, Some(format!("{}\n", pretty(&read)))))
 }
 
 /// Merge the agent's hooks into `settings_file` (relative to `root`).
@@ -86,13 +96,14 @@ pub fn install_hooks_into(
     root: &Path,
     settings_file: &str,
     agent: &Agent,
+    existing: ExistingHooks,
     command: impl Fn(&str) -> String,
 ) -> Result<(String, Vec<Added>)> {
-    let (file, added, text) = plan_hooks_into(root, settings_file, agent, command)?;
+    let (file, changed, text) = plan_hooks_into(root, settings_file, agent, existing, command)?;
     if let Some(text) = text {
         text_file::write_text(&root.join(settings_file), &text).map_err(Error::user)?;
     }
-    Ok((file, added))
+    Ok((file, changed))
 }
 
 /// The hooks the settings hold already, by event.
@@ -104,26 +115,46 @@ fn existing_hooks(settings: &Map<String, Value>, key: &str, file: &str) -> Resul
     }
 }
 
-/// Adds the action's hook to its event's list, unless the agent binds no event to the action
-/// or the list runs it already.
-fn add_hook(
+struct HookPlan<'a> {
+    agent: &'a Agent,
+    existing: ExistingHooks,
+    file: &'a str,
+}
+
+/// Adds the action's hook to its event's list, or updates its command in place when
+/// `plan.existing == ExistingHooks::Replace`.
+fn add_or_update_hook(
     hooks: &mut Map<String, Value>,
-    agent: &Agent,
+    plan: &HookPlan<'_>,
     action: &str,
-    command: &impl Fn(&str) -> String,
-    file: &str,
+    next: String,
 ) -> Result<Option<Added>> {
-    let Some(binding) = agent.binding(action) else {
+    let Some(binding) = plan.agent.binding(action) else {
         return Ok(None);
     };
-    let mut entries = event_entries(hooks, &agent.settings.hooks, binding, file)?;
-    if entries.iter().any(|entry| has_command(entry, agent, action)) {
-        return Ok(None);
+    let mut entries = event_entries(hooks, &plan.agent.settings.hooks, binding, plan.file)?;
+    if entries.iter().any(|entry| has_command(entry, plan.agent, action)) {
+        if plan.existing == ExistingHooks::Keep
+            || !replace_in_entries(&mut entries, plan.agent, action, &next)
+        {
+            return Ok(None);
+        }
+        hooks.insert(binding.event.clone(), Value::Array(entries));
+        return Ok(Some(Added {
+            event: binding.event.clone(),
+            matcher: binding.matcher.clone(),
+            command: next,
+            updated: true,
+        }));
     }
-    let command = command(action);
-    entries.push(Value::Object(hook_entry(&agent.settings, binding, &command)));
+    entries.push(Value::Object(hook_entry(&plan.agent.settings, binding, &next)));
     hooks.insert(binding.event.clone(), Value::Array(entries));
-    Ok(Some(Added { event: binding.event.clone(), matcher: binding.matcher.clone(), command }))
+    Ok(Some(Added {
+        event: binding.event.clone(),
+        matcher: binding.matcher.clone(),
+        command: next,
+        updated: false,
+    }))
 }
 
 /// The list of an event's hooks, as the settings hold it.
@@ -196,25 +227,74 @@ fn has_command(entry: &Value, agent: &Agent, action: &str) -> bool {
     handlers.iter().any(ours)
 }
 
-/// Install (or preview under `--dry-run`) coding-agent hooks (`init --hooks [--agent <name or file>] [--local]`).
+/// Replace any docattest command for `action` inside `entries` with `next`. Returns `true`
+/// when at least one command changed.
+fn replace_in_entries(entries: &mut [Value], agent: &Agent, action: &str, next: &str) -> bool {
+    let mut changed = false;
+    for entry in entries {
+        if replace_in_entry(entry, agent, action, next) {
+            changed = true;
+        }
+    }
+    changed
+}
+
+fn replace_in_entry(entry: &mut Value, agent: &Agent, action: &str, next: &str) -> bool {
+    let key = &agent.settings.command;
+    let Some(group) = &agent.settings.group else {
+        return replace_handler_command(entry, key, action, next);
+    };
+    let Value::Object(obj) = entry else { return false };
+    let Some(Value::Array(handlers)) = obj.get_mut(group) else { return false };
+    let mut changed = false;
+    for handler in handlers {
+        if replace_handler_command(handler, key, action, next) {
+            changed = true;
+        }
+    }
+    changed
+}
+
+fn replace_handler_command(handler: &mut Value, key: &str, action: &str, next: &str) -> bool {
+    let Value::Object(map) = handler else { return false };
+    let Some(Value::String(current)) = map.get(key) else { return false };
+    if !is_ours(current, action) || current == next {
+        return false;
+    }
+    map.insert(key.to_string(), Value::String(next.to_string()));
+    true
+}
+
+/// Install (or preview under `--dry-run`) coding-agent hooks (`init --hooks [--agent <name or file>] [--local] [--force]`).
 pub(super) fn install_agent_hooks(root: &Path, options: &Options, io: &mut Io) -> Result<Integration> {
     let loaded = load_agent(options.agent.as_deref(), |given| resolve(&io.cwd, given))?;
     let target = settings_target(&loaded.agent, options.local)?;
     let run = docattest_command(loaded.agent.root_as())?;
     let which = agent_argument(&loaded, root);
     let build = |action: &str| format!("{run} {action} --hook{which}");
-    let (file, added) = if options.dry_run {
-        let (file, added, _) = plan_hooks_into(root, target, &loaded.agent, build)?;
-        (file, added)
+    let existing = if options.force { ExistingHooks::Replace } else { ExistingHooks::Keep };
+    let (file, changed) = if options.dry_run {
+        let (file, changed, _) = plan_hooks_into(root, target, &loaded.agent, existing, build)?;
+        (file, changed)
     } else {
-        install_hooks_into(root, target, &loaded.agent, build)?
+        install_hooks_into(root, target, &loaded.agent, existing, build)?
     };
     if !options.json {
-        print_installed(io, &file, &added, options.dry_run);
+        print_installed(io, &file, &changed, options.dry_run);
         warn_if_unignored(io, root, target, options.local);
     }
-    let action = if added.is_empty() { Action::Unchanged } else { Action::Add };
+    let action = hooks_action(&changed);
     Ok(Integration { file, action })
+}
+
+fn hooks_action(changed: &[Added]) -> Action {
+    if changed.is_empty() {
+        Action::Unchanged
+    } else if changed.iter().all(|h| h.updated) {
+        Action::Update
+    } else {
+        Action::Add
+    }
 }
 
 fn warn_if_unignored(io: &mut Io, root: &Path, target: &str, local: bool) {
@@ -234,14 +314,20 @@ fn settings_target(agent: &Agent, local: bool) -> Result<&str> {
     })
 }
 
-fn print_installed(io: &mut Io, file: &str, added: &[Added], dry_run: bool) {
-    if added.is_empty() {
+fn print_installed(io: &mut Io, file: &str, changed: &[Added], dry_run: bool) {
+    if changed.is_empty() {
         io.out(&format!("docattest hooks: already installed in {file}"));
         return;
     }
-    let verb = if dry_run { "would add to" } else { "added to" };
+    let updated_only = changed.iter().all(|h| h.updated);
+    let verb = match (updated_only, dry_run) {
+        (true, true) => "would update in",
+        (true, false) => "updated in",
+        (false, true) => "would add to",
+        (false, false) => "added to",
+    };
     io.out(&format!("docattest hooks: {verb} {file}"));
-    for hook in added {
+    for hook in changed {
         let matcher = hook.matcher.as_deref().map(|m| format!(" ({m})")).unwrap_or_default();
         io.out(&format!("  {}{matcher}: {}", hook.event, hook.command));
     }

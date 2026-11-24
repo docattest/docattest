@@ -141,22 +141,43 @@ fn read_package_json(path: &Path) -> Option<Value> {
 }
 
 fn package_entry(root: &Path, dir: &str, pkg: &Value, listed: &[String]) -> Option<String> {
+    if has_compiler_transform(&root.join(dir))
+        && let Some(built) = built_entry(root, dir, pkg)
+    {
+        return Some(built);
+    }
     for candidate in ["src/index.ts", "src/index.tsx", "src/index.js", "index.ts", "index.js"] {
         let rel = format!("{dir}/{candidate}");
         if listed.iter().any(|f| f == &rel) {
             return Some(format!("./{rel}"));
         }
     }
+    built_entry(root, dir, pkg)
+}
+
+fn built_entry(root: &Path, dir: &str, pkg: &Value) -> Option<String> {
     for key in ["main", "module"] {
         if let Some(raw) = pkg.get(key).and_then(Value::as_str) {
             let clean = raw.trim_start_matches("./");
-            let rel = format!("{dir}/{clean}");
+            let rel = if dir.is_empty() { clean.to_string() } else { format!("{dir}/{clean}") };
             if root.join(&rel).is_file() {
                 return Some(format!("./{rel}"));
             }
         }
     }
     None
+}
+
+/// Whether `dir/tsconfig.json` declares a custom TypeScript compiler transform plugin
+/// (`compilerOptions.plugins[].transform`), meaning raw `.ts` sources cannot run without a build.
+pub(super) fn has_compiler_transform(dir: &Path) -> bool {
+    let Ok(text) = fs::read_to_string(dir.join("tsconfig.json")) else { return false };
+    let Ok(tsconfig) = serde_json::from_str::<Value>(&text) else { return false };
+    tsconfig
+        .get("compilerOptions")
+        .and_then(|o| o.get("plugins"))
+        .and_then(Value::as_array)
+        .is_some_and(|plugins| plugins.iter().any(|p| p.get("transform").is_some()))
 }
 
 fn unique_surface_name(pkg_name: &str, dir: &str, used: &mut BTreeSet<String>) -> String {

@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde_json::{Map, Value, json};
 
-use super::workspaces::{DetectedSurface, detect_workspace};
+use super::workspaces::{DetectedSurface, detect_workspace, has_compiler_transform};
 use crate::config::NONE_ADAPTER;
 use crate::files::project_files::ProjectFiles;
 use crate::files::source::DiskFiles;
@@ -134,21 +134,29 @@ fn detect_surface(root: &Path, adapter: &str, listed: &[String]) -> Option<Strin
 }
 
 fn detect_ts_surface(root: &Path, listed: &[String]) -> Option<String> {
+    let built = || -> Option<String> {
+        let pkg: Value = serde_json::from_str(&fs::read_to_string(root.join("package.json")).ok()?).ok()?;
+        for key in ["main", "module"] {
+            if let Some(entry) = pkg.get(key).and_then(Value::as_str) {
+                let clean = entry.trim_start_matches("./");
+                if root.join(clean).is_file() {
+                    return Some(format!("./{clean}"));
+                }
+            }
+        }
+        None
+    };
+    if has_compiler_transform(root)
+        && let Some(entry) = built()
+    {
+        return Some(entry);
+    }
     for candidate in ["src/index.ts", "src/index.tsx", "src/index.js", "index.ts", "index.js"] {
         if listed.iter().any(|f| f == candidate) {
             return Some(format!("./{candidate}"));
         }
     }
-    let pkg: Value = serde_json::from_str(&fs::read_to_string(root.join("package.json")).ok()?).ok()?;
-    for key in ["main", "module"] {
-        if let Some(entry) = pkg.get(key).and_then(Value::as_str) {
-            let clean = entry.trim_start_matches("./");
-            if root.join(clean).is_file() {
-                return Some(format!("./{clean}"));
-            }
-        }
-    }
-    None
+    built()
 }
 
 fn detect_python_surface(root: &Path, listed: &[String]) -> Option<String> {
@@ -257,6 +265,13 @@ mod tests {
         mono.write("packages/core/README.md", "# Core\n");
         mono.write("packages/ssh/package.json", r#"{"name":"@acme/ssh","main":"dist/index.js"}"#);
         mono.write("packages/ssh/dist/index.js", "export const B = 2;\n");
+        mono.write("packages/schema/package.json", r#"{"name":"@acme/schema","main":"./dist/index.js"}"#);
+        mono.write(
+            "packages/schema/tsconfig.json",
+            r#"{"compilerOptions":{"plugins":[{"transform":"custom-transform"}]}}"#,
+        );
+        mono.write("packages/schema/src/index.ts", "export const S = 3;\n");
+        mono.write("packages/schema/dist/index.js", "export const S = 3;\n");
         mono.write("packages/docs-site/package.json", r#"{"name":"@acme/docs"}"#);
 
         let detected = detect(&mono.0);
@@ -269,6 +284,11 @@ mod tests {
                     name: "core".into(),
                     import: Some("@acme/core".into()),
                     path: "./packages/core/src/index.ts".into(),
+                },
+                DetectedSurface {
+                    name: "schema".into(),
+                    import: Some("@acme/schema".into()),
+                    path: "./packages/schema/dist/index.js".into(),
                 },
                 DetectedSurface {
                     name: "ssh".into(),

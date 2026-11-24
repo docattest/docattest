@@ -23,6 +23,8 @@ pub struct SetCandidate {
     pub items: Vec<String>,
     /// The column's header, as a `column=` directive names it.
     pub column: Option<String>,
+    /// Active Markdown headings enclosing this candidate, outermost first.
+    pub headings: Vec<String>,
 }
 
 /// A fenced block that is not an example.
@@ -98,13 +100,24 @@ fn opened_from_above(page: &Page) -> Vec<usize> {
 
 /// The lists, tables and fenced blocks of a parsed page that `bound` leaves out.
 fn blocks_of(page: &Page, bound: &HashSet<usize>) -> PageCandidates {
-    let sets = page
-        .flow
-        .iter()
-        .enumerate()
-        .filter(|(at, _)| !bound.contains(at))
-        .filter_map(|(_, block)| block_sets(page, block))
-        .collect();
+    let mut headings: Vec<(u8, String)> = Vec::new();
+    let mut sets = Vec::new();
+    for (at, block) in page.flow.iter().enumerate() {
+        if let BlockKind::Heading { depth, text } = &block.kind {
+            while headings.last().is_some_and(|(d, _)| d >= depth) {
+                headings.pop();
+            }
+            headings.push((*depth, text.clone()));
+            continue;
+        }
+        if bound.contains(&at) {
+            continue;
+        }
+        let active: Vec<String> = headings.iter().map(|(_, text)| text.clone()).collect();
+        if let Some(group) = block_sets(page, block, &active) {
+            sets.push(group);
+        }
+    }
     let blocks = page
         .code
         .iter()
@@ -132,7 +145,7 @@ fn is_example(info: &str) -> bool {
 }
 
 // A list is one candidate, a table one candidate per column that could be compared.
-fn block_sets(page: &Page, block: &Block) -> Option<Vec<SetCandidate>> {
+fn block_sets(page: &Page, block: &Block, headings: &[String]) -> Option<Vec<SetCandidate>> {
     match &block.kind {
         BlockKind::List { items } => {
             let items: Vec<String> = items.iter().map(|i| i.value.clone()).collect();
@@ -143,6 +156,7 @@ fn block_sets(page: &Page, block: &Block) -> Option<Vec<SetCandidate>> {
                     end: block.end,
                     items,
                     column: None,
+                    headings: headings.to_vec(),
                 }]
             })
         }
@@ -159,6 +173,7 @@ fn block_sets(page: &Page, block: &Block) -> Option<Vec<SetCandidate>> {
                     end: block.end,
                     items: table.column_values(c),
                     column: Some(column.clone()),
+                    headings: headings.to_vec(),
                 })
                 .filter(|c| is_comparable(&c.items))
                 .collect();
@@ -174,19 +189,23 @@ const PROSE_WORDS_OUTSIDE_CODE: usize = 4;
 /// Whether a table column consists mostly of prose description cells that merely mention inline
 /// code spans (e.g. a `Description` column mentioning `` `devnet` `` and `` `mainnet` ``).
 fn is_prose_column(table: &crate::markdown::model::Table, col: usize) -> bool {
-    let mut with_code = 0usize;
-    let mut prose_with_code = 0usize;
+    let mut non_empty = 0usize;
+    let mut prose = 0usize;
+    let mut has_code = false;
     for row in &table.rows {
         let Some(cell) = row.cells.get(col) else { continue };
-        if !cell.raw.contains('`') {
+        if cell.raw.trim().is_empty() {
             continue;
         }
-        with_code += 1;
+        non_empty += 1;
+        if cell.raw.contains('`') {
+            has_code = true;
+        }
         if prose_words_outside_code(&cell.raw) >= PROSE_WORDS_OUTSIDE_CODE {
-            prose_with_code += 1;
+            prose += 1;
         }
     }
-    with_code > 0 && prose_with_code * 2 >= with_code
+    has_code && non_empty > 0 && prose * 2 >= non_empty
 }
 
 /// Count alphabetic words in `raw` outside backtick-delimited inline code spans.

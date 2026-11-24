@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.4] - 2026-11-24
+
+### Fixed
+
+- TypeScript: third-party dependencies whose `exports` map points `require` at a CommonJS
+  rejection stub (or lists `require` before `import`) now fall back to their `import` entry
+  through Node 22+ `require(esm)`.
+- `docattest init --hooks --force` now updates existing docattest hook commands in place
+  (for example upgrading `npx --no docattest` to `pnpm exec docattest`) instead of leaving
+  them untouched while preserving unrelated hooks.
+- `docattest init` now detects TypeScript compiler transform plugins
+  (`compilerOptions.plugins[].transform` in `tsconfig.json`) and prefers a package's built
+  `main`/`module` entry when present on disk over untransformed `.ts` sources.
+- `docattest audit`: mixed prose/inline-code description columns are skipped even when
+  individual cells have few words outside backticks, and equal-scoring exact set matches
+  break ties using enclosing Markdown headings so sections sharing identical item sets bind
+  to their matching export.
+
 ## [0.5.3] - 2026-11-24
 
 ### Added

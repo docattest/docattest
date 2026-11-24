@@ -281,3 +281,100 @@ fn hooks_install_local_warns_when_local_file_is_not_gitignored() {
     assert_eq!(code, 0);
     assert!(!out.contains("not ignored by git"), "{out}");
 }
+
+#[test]
+fn replace_updates_existing_docattest_hooks_in_place_for_grouped_and_flat_layouts() {
+    let root = Temp::new("hooks-replace");
+
+    // Grouped layout: replaces docattest commands while leaving unrelated user hooks untouched.
+    let grouped = agent(GROUPED);
+    root.write(
+        ".agent/settings.json",
+        r#"{"allow":["ls"],"events":{"AfterEdit":[{"matcher":"shell","handlers":[{"kind":"shell","line":"echo hi"}]},{"matcher":"edit|write","handlers":[{"kind":"shell","line":"npx --no docattest impact --hook"}]}],"BeforeStop":[{"handlers":[{"kind":"shell","line":"npx --no docattest check --hook"}]}]}}"#,
+    );
+    let (file, changed) = install_hooks_into(
+        &root.0,
+        &grouped.settings.file,
+        &grouped,
+        ExistingHooks::Replace,
+        command("pnpm exec docattest"),
+    )
+    .unwrap();
+    assert_eq!(changed.len(), 2);
+    assert!(changed.iter().all(|h| h.updated));
+    assert_eq!(
+        changed.iter().map(|h| h.command.as_str()).collect::<Vec<_>>(),
+        vec!["pnpm exec docattest impact --hook", "pnpm exec docattest check --hook"]
+    );
+    let text = fs::read_to_string(&file).unwrap();
+    assert!(text.contains("echo hi"), "{text}");
+    assert!(!text.contains("npx --no"), "{text}");
+    assert!(text.contains("pnpm exec docattest impact --hook"), "{text}");
+    assert!(text.contains("pnpm exec docattest check --hook"), "{text}");
+    // Re-running Replace with identical commands makes no changes.
+    let (_, again) = install_hooks_into(
+        &root.0,
+        &grouped.settings.file,
+        &grouped,
+        ExistingHooks::Replace,
+        command("pnpm exec docattest"),
+    )
+    .unwrap();
+    assert!(again.is_empty());
+
+    // Flat layout: replaces docattest commands in place without touching unrelated entries.
+    let flat = agent(FLAT);
+    root.write(
+        "conf/agent.json",
+        r#"{"on":{"done":[{"run":"echo bye"},{"shell":true,"run":"npx --no docattest check --hook"}],"edited":[{"matcher":"*.src","shell":true,"run":"npx --no docattest impact --hook"}]}}"#,
+    );
+    let (flat_file, flat_changed) = install_hooks_into(
+        &root.0,
+        &flat.settings.file,
+        &flat,
+        ExistingHooks::Replace,
+        command("pnpm exec docattest"),
+    )
+    .unwrap();
+    assert_eq!(flat_changed.len(), 2);
+    assert!(flat_changed.iter().all(|h| h.updated));
+    let flat_text = fs::read_to_string(&flat_file).unwrap();
+    assert!(flat_text.contains("echo bye"), "{flat_text}");
+    assert!(!flat_text.contains("npx --no"), "{flat_text}");
+    assert!(flat_text.contains("pnpm exec docattest check --hook"), "{flat_text}");
+    assert!(flat_text.contains("pnpm exec docattest impact --hook"), "{flat_text}");
+}
+
+#[test]
+fn init_hooks_force_updates_stale_commands_and_respects_dry_run() {
+    let root = Temp::new("hooks-force-cli");
+    root.write("docattest.config.json", r#"{"adapter":"none","pages":["README.md"]}"#);
+    root.write("flat.json", FLAT);
+    root.write(
+        "conf/agent.json",
+        r#"{"on":{"done":[{"shell":true,"run":"npx --no docattest check --hook --agent ./flat.json"}],"edited":[{"matcher":"*.src","shell":true,"run":"npx --no docattest impact --hook --agent ./flat.json"}]}}"#,
+    );
+    let run = |args: &[&str]| {
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let argv: Vec<String> = args.iter().map(|a| a.to_string()).collect();
+        let code = crate::cli::run(&argv, &mut Io { out: &mut out, err: &mut err, cwd: root.0.clone() });
+        (code, String::from_utf8(out).unwrap(), String::from_utf8(err).unwrap())
+    };
+    let file = root.0.join("conf/agent.json").display().to_string();
+    // Without --force, existing hooks are kept as-is.
+    let (code, out, _) = run(&["init", "--hooks", "--agent", "./flat.json"]);
+    assert_eq!(code, 0);
+    assert_eq!(out, format!("docattest hooks: already installed in {file}\n"));
+    // With --force --dry-run, previews the update without modifying the file.
+    let (code, out, _) = run(&["init", "--hooks", "--force", "--dry-run", "--agent", "./flat.json"]);
+    assert_eq!(code, 0);
+    assert!(out.contains(&format!("docattest hooks: would update in {file}\n")), "{out}");
+    assert!(fs::read_to_string(&file).unwrap().contains("npx --no"));
+    // With --force, updates the file in place and reports "updated in".
+    let (code, out, _) = run(&["init", "--hooks", "--force", "--agent", "./flat.json"]);
+    assert_eq!(code, 0);
+    assert!(out.starts_with(&format!("docattest hooks: updated in {file}\n")), "{out}");
+    let after = fs::read_to_string(&file).unwrap();
+    assert!(!after.contains("npx --no"), "{after}");
+    assert!(after.contains("docattest impact --hook --agent ./flat.json"), "{after}");
+}
