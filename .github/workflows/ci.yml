@@ -1,7 +1,7 @@
-# Every pull request and push to main: fast OS-independent static checks, core built once
-# per OS and fanned out across parallel parity/schema/mirror/docs/adapter jobs, the core's
-# tests on Windows, and the packages a release would build for Linux, installed and run
-# (tests/smoke/run.ts).
+# Every pull request and push to main: fast static checks, core built once on Linux and fanned
+# out across parallel parity/schema/mirror/docs/adapter jobs, and the Linux packages built once
+# and smoke-tested on both the newest and oldest supported toolchains (tests/smoke/run.ts).
+# Full 5-platform builds and smoke tests (including macOS and Windows) run in release.yml.
 name: ci
 
 on:
@@ -74,13 +74,9 @@ jobs:
           cargo fmt --check
           cargo clippy --all-targets -- -D warnings
 
-  # Build and test the Rust core once per OS, then share the binary with downstream jobs.
+  # Build and test the Rust core once on Linux, then share the binary with downstream jobs.
   build-core:
-    strategy:
-      fail-fast: false
-      matrix:
-        runner: [ubuntu-24.04, macos-15]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
@@ -94,19 +90,15 @@ jobs:
         run: cargo build --release
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ci-core-${{ matrix.runner }}
+          name: ci-core-ubuntu-24.04
           path: core/target/release/docattest
           if-no-files-found: error
 
-  # OS-sensitive checks on both Linux and macOS: TypeScript package tests and docattest on
-  # its own docs + all 4 language members via this repository's own GitHub Action.
+  # TypeScript package tests and docattest on its own docs + all 4 language members via this
+  # repository's own GitHub Action.
   docs-and-ts:
     needs: build-core
-    strategy:
-      fail-fast: false
-      matrix:
-        runner: [ubuntu-24.04, macos-15]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
@@ -125,7 +117,7 @@ jobs:
           toolchain: stable
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: ci-core-${{ matrix.runner }}
+          name: ci-core-ubuntu-24.04
           path: core/target/release
       - run: chmod +x core/target/release/docattest
       - run: npm ci && npm run build
@@ -135,14 +127,10 @@ jobs:
         env:
           DOCATTEST_CORE: ${{ github.workspace }}/core/target/release/docattest
 
-  # OS-sensitive adapter test suites on both Linux and macOS (Python, Go, Rust).
+  # Adapter test suites (Python, Go, Rust).
   adapters:
     needs: build-core
-    strategy:
-      fail-fast: false
-      matrix:
-        runner: [ubuntu-24.04, macos-15]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
@@ -157,7 +145,7 @@ jobs:
           toolchain: stable
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: ci-core-${{ matrix.runner }}
+          name: ci-core-ubuntu-24.04
           path: core/target/release
       - run: chmod +x core/target/release/docattest
       - name: Python adapter and launcher
@@ -251,29 +239,11 @@ jobs:
           node tests/schema.ts --candidate "$PWD/core/target/release/docattest"
           node tests/mirror.ts --core "$PWD/core/target/release/docattest"
 
-  # The core's tests on Windows, which a release builds a core for: paths and line endings
-  # differ there, and a difference found here is not found first by a release.
-  core-windows:
-    runs-on: windows-2025
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
-        with:
-          toolchain: stable
-      - name: cargo test
-        working-directory: core
-        run: cargo test
-
-  # What a release does for linux-x64, end to end: the static core, every package, a fresh
-  # install of each. The release workflow does the same for every platform. Twice: once on
-  # the toolchains the build uses, and once on the oldest a user is promised (Node, TypeScript
-  # and Python from the manifests, scripts/minimums.ts; Go from the Go guide, which no
-  # manifest holds), so a minimum that stops working fails here and not for a user.
+  # What a release does for linux-x64, end to end: build the static core and every package
+  # once, then smoke-test fresh installs on both the newest toolchains and the oldest
+  # supported toolchains (Node, TypeScript and Python from the manifests, scripts/minimums.ts;
+  # Go 1.21 from the Go guide), so a minimum that stops working fails here and not for a user.
   packages:
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchains: [newest, oldest]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -303,22 +273,24 @@ jobs:
           npm pack --workspace adapters/typescript --pack-destination out/npm
           python adapters/python/build_wheel.py --out out/wheels --core "linux-x64=$core"
           node scripts/release/go-archive.ts --platform linux-x64 --core "$core" --out out/go
+      - name: smoke test (newest toolchains)
+        env:
+          GOTOOLCHAIN: local
+        run: |
+          node tests/smoke/run.ts --npm out/npm --wheels out/wheels --go out/go \
+            --work "$RUNNER_TEMP/smoke-newest"
       - name: the oldest toolchains, read from the manifests
         id: minimums
-        if: matrix.toolchains == 'oldest'
         run: |
           node scripts/minimums.ts >> "$GITHUB_OUTPUT"
           echo "harness=$(which node)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        if: matrix.toolchains == 'oldest'
         with:
           node-version: ${{ steps.minimums.outputs.node }}
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
-        if: matrix.toolchains == 'oldest'
         with:
           python-version: ${{ steps.minimums.outputs.python }}
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
-        if: matrix.toolchains == 'oldest'
         with:
           go-version: '1.21'
           cache: false
@@ -326,11 +298,11 @@ jobs:
       # command it starts for a user (npm, npx, node, python, go) is found on the PATH, where
       # the oldest toolchains now come first. GOTOOLCHAIN=local keeps go from fetching a newer
       # toolchain on its own.
-      - name: smoke test
+      - name: smoke test (oldest toolchains)
         env:
           GOTOOLCHAIN: local
-          HARNESS: ${{ steps.minimums.outputs.harness || 'node' }}
+          HARNESS: ${{ steps.minimums.outputs.harness }}
           TYPESCRIPT: ${{ steps.minimums.outputs.typescript }}
         run: |
           "$HARNESS" tests/smoke/run.ts --npm out/npm --wheels out/wheels --go out/go \
-            --work "$RUNNER_TEMP/smoke" ${TYPESCRIPT:+--typescript "$TYPESCRIPT"}
+            --work "$RUNNER_TEMP/smoke-oldest" --typescript "$TYPESCRIPT"
