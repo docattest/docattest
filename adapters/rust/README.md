@@ -35,8 +35,8 @@ CI, cache a directory of its own to install into: cargo then finds that version 
 
 ```yaml
 - uses: actions/cache@v4
-  with: { path: ~/.docattest, key: "docattest-0.5.1-${{ runner.os }}-${{ runner.arch }}" }
-- run: cargo install docattest --version 0.5.1 --locked --root ~/.docattest
+  with: { path: ~/.docattest, key: "docattest-0.5.2-${{ runner.os }}-${{ runner.arch }}" }
+- run: cargo install docattest --version 0.5.2 --locked --root ~/.docattest
 - run: echo "$HOME/.docattest/bin" >> "$GITHUB_PATH"
 ```
 
@@ -62,7 +62,8 @@ features. <!-- test: tests/workspace.rs > "the_generated_crate_is_built_with_the
 
 `docattest init --hooks`, `init --git-hook` and `init --agents` write down a command
 that runs docattest: `docattest` when that is what a shell finds on the `PATH`, else this
-command by its full path. <!-- test: src/launcher.rs > "tests" > "the_hand_over_adds_only_what_is_not_set" -->
+command by its full path. `AGENTS.md` is committed, so a full path is never written there:
+it gets `docattest` instead. <!-- test: src/launcher.rs > "tests" > "the_hand_over_adds_only_what_is_not_set" -->
 To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher: COMMAND_VARIABLE -->
 
 ## Configure

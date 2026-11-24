@@ -2,9 +2,10 @@
 //! values a page copied into a sentence rather than into a list, a table or a block.
 //!
 //! A sentence ends at `.`, `!` or `?` before whitespace or the end of its paragraph, as
-//! wherever docattest reads sentences. A directive binds the sentence it sits in, or the one
-//! before it when nothing but whitespace comes between them; a sentence it binds is left out.
-//! Conservative on purpose, as for lists: any comment that opens like a directive binds.
+//! wherever docattest reads sentences. A fact or cases directive binds the sentence it sits
+//! in, or the one before it when nothing but whitespace comes between them; a sentence it
+//! binds is left out. A test citation binds no value, so its sentence stays in. Conservative
+//! on purpose, as for lists: any comment that opens like a fact or cases directive binds.
 
 use markdown::mdast::Node;
 
@@ -96,12 +97,18 @@ enum Token<'a> {
     Other,
 }
 
+/// Whether a comment opens a value-binding directive (`fact` or `cases`). Test citations and
+/// test-file aliases do not pin literal values, so they leave a sentence open for scalar/set audit.
+fn binds_values(text: &str) -> bool {
+    opening(text).is_some_and(|(_, keyword)| keyword.binds_values())
+}
+
 fn tokens<'a>(node: &'a Node, source: &'a str, out: &mut Vec<Token<'a>>) {
     let line = line_of(node);
     match node {
         Node::Text(t) => {
             out.push(Token::Text { value: &t.value, line });
-            if opening(&t.value).is_some() {
+            if binds_values(&t.value) {
                 out.push(Token::Directive);
             }
         }
@@ -109,7 +116,12 @@ fn tokens<'a>(node: &'a Node, source: &'a str, out: &mut Vec<Token<'a>>) {
             let written = node.position().map_or("", |p| slice(source, p.start.offset, p.end.offset));
             out.push(Token::Code { value: &c.value, written, line });
         }
-        Node::Html(html) if opening(&html.value).is_some() => out.push(Token::Directive),
+        Node::Html(html) => match opening(&html.value) {
+            Some((_, keyword)) if keyword.binds_values() => out.push(Token::Directive),
+            // A test citation attests behaviour: the values of its sentence stay open to audit.
+            Some(_) => {}
+            None => out.push(Token::Other),
+        },
         Node::Break(_) => out.push(Token::Text { value: "\n", line }),
         _ => match node.children() {
             Some(children) => children.iter().for_each(|child| tokens(child, source, out)),
@@ -256,6 +268,13 @@ mod tests {
         );
         assert_eq!(spans(&found), [vec!["C"], vec!["D"]]);
         assert_eq!(read("Use `a` and `b`. <!-- fact KEYS --> And `c`.\n").len(), 1);
+    }
+
+    #[test]
+    fn a_test_citation_does_not_bind_values_in_a_sentence() {
+        let found =
+            read("Reads `/etc/ld.so.preload`. <!-- test: guard_test.go > \"TestPreload\" --> And `x`.\n");
+        assert_eq!(spans(&found), [vec!["/etc/ld.so.preload"], vec!["x"]]);
     }
 
     #[test]

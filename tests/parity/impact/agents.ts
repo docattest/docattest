@@ -331,6 +331,21 @@ export const agentsInstall: ImpactCase[] = [
       { args: ['init', '--agents'], env: { DOCATTEST_COMMAND: '{root}/.venv/bin/docattest' } },
     ],
   },
+  {
+    // A launcher's absolute path is one machine's: AGENTS.md is committed, so it gets `docattest`.
+    name: 'agents install never writes an absolute path',
+    files: {},
+    steps: [
+      {
+        args: ['init', '--agents', '--no-audit'],
+        env: { DOCATTEST_COMMAND: "'/opt/my tools/bin/docattest'" },
+      },
+      {
+        args: ['init', '--agents', '--dry-run', '--json'],
+        env: { DOCATTEST_COMMAND: '/opt/tools/bin/docattest' },
+      },
+    ],
+  },
   ...Object.entries({
     'an empty file': '',
     'a file of the project': '# Agents\n\nUse tabs.\n',

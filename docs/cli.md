@@ -457,3 +457,23 @@ const opsCfg = JSON.parse(readFileSync(join(opsRoot, 'docattest.config.json'), '
 assert.equal(opsCfg.adapter, 'none');
 assert.equal(opsCfg.surfaces, undefined);
 ```
+
+## A merged command says which command took it over
+
+`index`, `inventory`, `agents`, `hooks` and `skill` were merged into other commands. Asked
+for one of them, docattest exits `1` and names the command that does its work now; any other
+unknown name gets the usage.
+
+```ts check
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const cli = fileURLToPath(new URL('../adapters/typescript/dist/launcher/main.js', import.meta.url));
+const docattest = (...args: string[]) => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+// ---cut---
+const index = docattest('index');
+assert.equal(index.status, 1);
+assert.equal(index.stderr, 'docattest: "index" was merged into another command: run docattest where\n');
+assert.match(docattest('hooks', 'install').stderr, /run docattest init --hooks/);
+assert.match(docattest('bogus').stderr, /^docattest: unknown command "bogus"\n\nusage:/);
+```

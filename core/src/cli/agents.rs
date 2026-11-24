@@ -5,7 +5,8 @@
 use std::path::Path;
 
 use super::Io;
-use super::command::docattest_command;
+use super::command::portable_command;
+use super::integration::{Action, Integration};
 use crate::api::errors::{Error, Result};
 use crate::files::text_file;
 
@@ -105,25 +106,37 @@ fn appended(existing: &[u8], section: &str) -> Vec<u8> {
 }
 
 /// Install (or preview under `--dry-run`) the docattest section of `AGENTS.md` (`init --agents`).
-pub(super) fn install_agents(root: &Path, options: &super::args::Options, io: &mut Io) -> Result<String> {
-    let section = agents_section(&docattest_command(".")?);
+pub(super) fn install_agents(
+    root: &Path,
+    options: &super::args::Options,
+    io: &mut Io,
+) -> Result<Integration> {
+    let (command, local_path) = portable_command(".")?;
+    let section = agents_section(&command);
     let (file, outcome) = if options.dry_run {
         let (file, outcome, _) = plan_section(root, &section)?;
         (file, outcome)
     } else {
         install_section(root, &section)?
     };
-    let said = match (outcome, options.dry_run) {
-        (SectionOutcome::Added, false) => "added to",
-        (SectionOutcome::Added, true) => "would add to",
-        (SectionOutcome::Updated, false) => "updated in",
-        (SectionOutcome::Updated, true) => "would update in",
-        (SectionOutcome::Unchanged, _) => "already up to date in",
-    };
+    let (said, action) = section_outcome(outcome, options.dry_run);
     if !options.json {
         io.out(&format!("docattest agents: {said} {file}"));
+        if let Some(local) = local_path {
+            io.out(&format!("note: using `{command}` in {AGENTS_FILE} instead of local path {local}"));
+        }
     }
-    Ok(file)
+    Ok(Integration { file, action })
+}
+
+fn section_outcome(outcome: SectionOutcome, dry_run: bool) -> (&'static str, Action) {
+    match (outcome, dry_run) {
+        (SectionOutcome::Added, false) => ("added to", Action::Add),
+        (SectionOutcome::Added, true) => ("would add to", Action::Add),
+        (SectionOutcome::Updated, false) => ("updated in", Action::Update),
+        (SectionOutcome::Updated, true) => ("would update in", Action::Update),
+        (SectionOutcome::Unchanged, _) => ("already up to date in", Action::Unchanged),
+    }
 }
 
 #[cfg(test)]

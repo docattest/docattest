@@ -8,8 +8,8 @@ use super::prose::{SentenceCandidate, sentences_of_page};
 use super::{Target, distinct};
 use crate::attestations::directives::{Directive, parse_directive};
 use crate::attestations::group::block_after_group;
-use crate::attestations::placement::{attested_from_above, place};
-use crate::markdown::model::{Block, BlockKind, Page};
+use crate::attestations::placement::{Placement, place};
+use crate::markdown::model::{Block, BlockKind, Comment, Page};
 use crate::markdown::parse::{Positionless, parse_page_for};
 use crate::text::is_word;
 
@@ -78,13 +78,21 @@ fn attested(page: &Page) -> HashSet<(String, String)> {
         .collect()
 }
 
-/// The first lines of the paragraphs whose first sentence a directive on the line above
-/// attests.
+/// The first lines of the paragraphs whose first sentence a value-binding directive on the line
+/// above attests.
 fn opened_from_above(page: &Page) -> Vec<usize> {
-    attested_from_above(page)
-        .into_iter()
-        .filter_map(|(_, block)| page.flow.get(block))
-        .map(|b| b.start)
+    page.comments
+        .iter()
+        .filter_map(|comment| {
+            let directive = parse_directive(&comment.body, comment.line)?;
+            if !directive.keyword().binds_values() {
+                return None;
+            }
+            match place(page, comment, &directive) {
+                Placement::Above(at) => page.flow.get(at.block).map(|b| b.start),
+                _ => None,
+            }
+        })
         .collect()
 }
 
@@ -159,41 +167,51 @@ fn block_sets(page: &Page, block: &Block) -> Option<Vec<SetCandidate>> {
     }
 }
 
-// Conservative on purpose: a list, table or block right after any docattest directive, where
-// it takes effect, is treated as bound, and so is a table holding a directive in a cell.
+// Conservative on purpose: a list, table or block right after any value-binding directive,
+// where it takes effect, is treated as bound, and so is a table holding one in a cell.
 // Blocks are named by their index in `page.flow`.
 fn bound_blocks(page: &Page) -> HashSet<usize> {
     let table_block =
         |table: usize| page.flow.iter().position(|b| matches!(b.kind, BlockKind::Table(t) if t == table));
     let mut blocks = HashSet::new();
     for written in &page.comments {
-        let Some(directive) = parse_directive(&written.body, written.line) else {
-            continue;
-        };
-        let placed = place(page, written, &directive);
-        let comment = placed.comment().unwrap_or(written);
-        if let Some(at) = comment.table.and_then(table_block) {
-            blocks.insert(at);
-        }
-        if !comment.ends_line {
-            continue;
-        }
-        let next = block_after_group(page, comment).map(|(index, _)| index);
-        if let Some(at) = next
-            && matches!(
-                page.flow[at].kind,
-                BlockKind::List { .. } | BlockKind::Table(_) | BlockKind::Code { .. }
-            )
+        record_bound_comment(page, written, table_block, &mut blocks);
+    }
+    for open in &page.unclosed {
+        if open.keyword.binds_values()
+            && let Some(at) = open.table.and_then(table_block)
         {
             blocks.insert(at);
         }
     }
-    for open in &page.unclosed {
-        if let Some(at) = open.table.and_then(table_block) {
-            blocks.insert(at);
-        }
-    }
     blocks
+}
+
+/// Records the block a value-binding directive binds: the table it sits in, or the list,
+/// table or fenced block right after it.
+fn record_bound_comment(
+    page: &Page,
+    written: &Comment,
+    table_block: impl Fn(usize) -> Option<usize>,
+    blocks: &mut HashSet<usize>,
+) {
+    let Some(directive) = parse_directive(&written.body, written.line) else {
+        return;
+    };
+    if !directive.keyword().binds_values() {
+        return;
+    }
+    let placed = place(page, written, &directive);
+    let comment = placed.comment().unwrap_or(written);
+    if let Some(at) = comment.table.and_then(table_block) {
+        blocks.insert(at);
+    }
+    if comment.ends_line
+        && let Some((at, _)) = block_after_group(page, comment)
+        && matches!(page.flow[at].kind, BlockKind::List { .. } | BlockKind::Table(_) | BlockKind::Code { .. })
+    {
+        blocks.insert(at);
+    }
 }
 
 #[cfg(test)]
@@ -304,6 +322,21 @@ mod tests {
     fn treats_a_malformed_directive_as_binding_too() {
         let found = found(&["<!-- fact KEYS -->", "- `A`", "- `B`"]);
         assert_eq!(found.sets, Vec::<Vec<SetCandidate>>::new());
+    }
+
+    #[test]
+    fn a_test_citation_binds_no_list_and_no_sentence_below_it() {
+        let found = found(&[
+            "<!-- test: a.test.ts > \"keys\" -->",
+            "Reads `/etc/app.conf`.",
+            "",
+            "<!-- test: a.test.ts > \"keys\" -->",
+            "- `A`",
+            "- `B`",
+        ]);
+        let spans: Vec<&[String]> = found.sentences.iter().map(|s| s.spans.as_slice()).collect();
+        assert_eq!(spans[0], ["/etc/app.conf".to_string()]);
+        assert_eq!(found.sets.len(), 1);
     }
 
     #[test]

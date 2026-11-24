@@ -194,6 +194,12 @@ impl Keyword {
     pub fn needs_colon(self) -> bool {
         matches!(self, Keyword::Test | Keyword::Tests)
     }
+
+    /// Whether a directive with this keyword pins the values it is written by: a fact or a
+    /// cases table does; a test citation or a test file alias attests behaviour, not values.
+    pub fn binds_values(self) -> bool {
+        matches!(self, Keyword::Fact | Keyword::Cases)
+    }
 }
 
 /// A `<!-- fact`, `<!-- cases`, `<!-- test:` or `<!-- tests:` opening that never closes.

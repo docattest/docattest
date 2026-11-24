@@ -211,8 +211,25 @@ jobs:
           mkdir alpine && tar -xzf npm/docattest-core-linux-${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}-*.tgz -C alpine
           docker run --rm -v "$PWD/alpine/package/bin:/core:ro" alpine:3.22 /core/docattest --version
 
+  # The release builds from the tag, and CI runs on pushes to main: without this, a tag on a
+  # commit whose CI failed would be published. It waits while CI is still running it.
+  ci-passed:
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+      - name: CI passed the tagged commit
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/release/ci-passed.ts "$GITHUB_SHA"
+
   publish:
-    needs: [package, smoke]
+    needs: [package, smoke, ci-passed]
     # Twice gated: the variable is unset until the owner sets it, and the environment asks a
     # reviewer to approve each run.
     if: github.ref_type == 'tag' && vars.DOCATTEST_PUBLISH == 'true'

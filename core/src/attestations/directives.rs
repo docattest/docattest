@@ -30,6 +30,19 @@ pub enum Directive {
     Invalid { as_kind: Keyword, message: String },
 }
 
+impl Directive {
+    /// The keyword it is written with; for one that does not parse, the keyword it was meant as.
+    pub fn keyword(&self) -> Keyword {
+        match self {
+            Directive::Fact(_) => Keyword::Fact,
+            Directive::Cases { .. } => Keyword::Cases,
+            Directive::Test(_) => Keyword::Test,
+            Directive::Alias(_) => Keyword::Tests,
+            Directive::Invalid { as_kind, .. } => *as_kind,
+        }
+    }
+}
+
 /// Parse a comment body; None when the comment is not a docattest directive.
 pub fn parse_directive(body: &str, line: usize) -> Option<Directive> {
     let text = trim(body);

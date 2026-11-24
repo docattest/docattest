@@ -4,6 +4,34 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.2] - 2026-11-24
+
+### Added
+
+- Asking for a merged v0.4 command (`index`, `inventory`, `agents`, `hooks`, or `skill`) now
+  names the replacement command instead of printing the generic usage message.
+- Release workflow now verifies that CI passed on the tagged commit before publishing.
+
+### Changed
+
+- `docattest init --json` reports integrations under `integrations` (was `installed`), each as
+  `{ "file", "action" }` where `action` is `add`, `update`, `replace` or `unchanged`, in dry
+  runs and real runs alike.
+- `audit`: a single value in prose is distinctive only when its core, ignoring leading and
+  trailing punctuation, is not a plain word, so one-segment paths and flags such as `/proc`,
+  `.git` or `--help` are no longer suggested. Multi-segment paths (`/etc/app.conf`) still are.
+- Generated `SKILL.md` now notes running `docattest check --run-cited` in CI alongside
+  guidance on preferring `<!-- test: ... -->` citations for heavy scenarios.
+
+### Fixed
+
+- `docattest init --agents` no longer writes a machine-local absolute path into the committed
+  `AGENTS.md` when docattest is run by its full path: it writes `docattest` and prints a note.
+- `audit` treats `<!-- test: ... -->` citations as attesting behaviour, not values: a sentence,
+  list or table carrying only a citation is still audited for copied values.
+- Error messages are no longer printed ahead of output already written to standard output
+  when both streams go to the same place.
+
 ## [0.5.1] - 2026-11-22
 
 ### Added

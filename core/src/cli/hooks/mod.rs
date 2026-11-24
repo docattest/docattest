@@ -6,6 +6,7 @@ use std::path::Path;
 
 use super::args::Options;
 use super::command::{docattest_command, is_ours};
+use super::integration::{Action, Integration};
 use super::{Io, relative, resolve};
 use crate::agents::{ACTIONS, Agent, Binding, Loaded, Settings, load_agent};
 use crate::api::errors::{Error, Result};
@@ -196,7 +197,7 @@ fn has_command(entry: &Value, agent: &Agent, action: &str) -> bool {
 }
 
 /// Install (or preview under `--dry-run`) coding-agent hooks (`init --hooks [--agent <name or file>] [--local]`).
-pub(super) fn install_agent_hooks(root: &Path, options: &Options, io: &mut Io) -> Result<String> {
+pub(super) fn install_agent_hooks(root: &Path, options: &Options, io: &mut Io) -> Result<Integration> {
     let loaded = load_agent(options.agent.as_deref(), |given| resolve(&io.cwd, given))?;
     let target = settings_target(&loaded.agent, options.local)?;
     let run = docattest_command(loaded.agent.root_as())?;
@@ -212,7 +213,8 @@ pub(super) fn install_agent_hooks(root: &Path, options: &Options, io: &mut Io) -
         print_installed(io, &file, &added, options.dry_run);
         warn_if_unignored(io, root, target, options.local);
     }
-    Ok(file)
+    let action = if added.is_empty() { Action::Unchanged } else { Action::Add };
+    Ok(Integration { file, action })
 }
 
 fn warn_if_unignored(io: &mut Io, root: &Path, target: &str, local: bool) {
@@ -246,12 +248,16 @@ fn print_installed(io: &mut Io, file: &str, added: &[Added], dry_run: bool) {
 }
 
 /// Install (or preview under `--dry-run`) the git pre-commit hook (`init --git-hook`).
-pub(super) fn install_git(root: &Path, options: &Options, io: &mut Io) -> Result<String> {
+pub(super) fn install_git(root: &Path, options: &Options, io: &mut Io) -> Result<Integration> {
     let command = docattest_command(".")?;
     let hook = if options.dry_run {
         super::git_hook::plan_git_hook(root, &command)?.0
     } else {
         super::git_hook::install_git_hook(root, &command)?
+    };
+    let action = match hook.outcome {
+        HookOutcome::AlreadyThere => Action::Unchanged,
+        HookOutcome::Added => Action::Add,
     };
     if !options.json {
         match hook.outcome {
@@ -264,7 +270,7 @@ pub(super) fn install_git(root: &Path, options: &Options, io: &mut Io) -> Result
             }
         }
     }
-    Ok(hook.file)
+    Ok(Integration { file: hook.file, action })
 }
 
 #[cfg(test)]

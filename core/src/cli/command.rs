@@ -24,6 +24,33 @@ pub fn docattest_command(root_as: &str) -> Result<String> {
     command_from(std::env::var(COMMAND_VARIABLE).ok().as_deref(), root_as)
 }
 
+/// A portable shell command for committed repository files (such as `AGENTS.md`). Falls back
+/// to `docattest` instead of baking in a machine-local absolute binary path, returning the
+/// replaced path when it does so.
+pub fn portable_command(root_as: &str) -> Result<(String, Option<String>)> {
+    portable_command_from(std::env::var(COMMAND_VARIABLE).ok().as_deref(), root_as)
+}
+
+/// The same, for what the launcher said (or did not).
+pub fn portable_command_from(told: Option<&str>, root_as: &str) -> Result<(String, Option<String>)> {
+    let command = command_from(told, root_as)?;
+    if is_absolute_executable(&command) {
+        return Ok((BARE_COMMAND.to_string(), Some(command)));
+    }
+    Ok((command, None))
+}
+
+/// Whether `command` starts with an absolute filesystem path (POSIX, Windows drive, or UNC),
+/// optionally quoted for a shell.
+fn is_absolute_executable(command: &str) -> bool {
+    let first = command.trim_start().trim_start_matches(['\'', '"']);
+    if first.starts_with('/') || first.starts_with("\\\\") {
+        return true;
+    }
+    let bytes = first.as_bytes();
+    bytes.len() >= 3 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' && matches!(bytes[2], b'\\' | b'/')
+}
+
 /// The same, for what the launcher said (or did not).
 pub fn command_from(told: Option<&str>, root_as: &str) -> Result<String> {
     let told = trim(told.unwrap_or_default());
@@ -102,6 +129,31 @@ mod tests {
         assert_eq!(
             command_from(Some("a\nb"), "."),
             Err(Error::User("docattest: DOCATTEST_COMMAND must be one line (got \"a\\nb\")".into()))
+        );
+    }
+
+    #[test]
+    fn portable_command_replaces_machine_local_absolute_paths_with_docattest() {
+        assert_eq!(portable_command_from(None, "."), Ok(("docattest".into(), None)));
+        assert_eq!(
+            portable_command_from(Some("npx --no docattest"), "."),
+            Ok(("npx --no docattest".into(), None))
+        );
+        assert_eq!(
+            portable_command_from(Some("{root}/.venv/bin/docattest"), "."),
+            Ok(("./.venv/bin/docattest".into(), None))
+        );
+        assert_eq!(
+            portable_command_from(Some("/usr/local/bin/docattest"), "."),
+            Ok(("docattest".into(), Some("/usr/local/bin/docattest".into())))
+        );
+        assert_eq!(
+            portable_command_from(Some("'/my tools/bin/docattest'"), "."),
+            Ok(("docattest".into(), Some("'/my tools/bin/docattest'".into())))
+        );
+        assert_eq!(
+            portable_command_from(Some(r"C:\tools\docattest.exe"), "."),
+            Ok(("docattest".into(), Some(r"C:\tools\docattest.exe".into())))
         );
     }
 

@@ -9,8 +9,8 @@ adapter, and its subpackages follow the path of a request: <!-- fact: [p.split("
   where it enters, as an `internal` error that names it.
 - `session/` is the project that `open` describes and the parts that answer questions
   about it: a workspace (the project's files, modules, surfaces and setup module), what
-  `compile` reports, the symbols and tests of attestations, the edits `mutants` offers for
-  symbols, the work sent to the pool, and the cited tests it runs.
+  `compile` reports, the symbols and tests of attestations, the work sent to the pool, and
+  the cited tests it runs.
 - `analysis/` reads Python modules without importing them: what a module binds and
   exports, the values of its constants, which names a piece of code uses, what a
   configured surface resolves to and what a fact may read of it, which exports a change

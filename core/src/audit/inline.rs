@@ -154,4 +154,15 @@ mod tests {
         let surface = [value("LANGUAGES", &["python", "py", "pycon"]), scalar("CORE", "DOCATTEST_CORE")];
         assert_eq!(brief(page, &surface), [one(1, "list", "<!-- fact: LANGUAGES -->")]);
     }
+
+    #[test]
+    fn suggests_distinctive_scalars_even_in_test_cited_sentences_and_skips_single_segment_paths() {
+        let page = "- Blocks `/etc/ld.so.preload` injection. <!-- test: guard_test.go > \"TestPreload\" -->\n\
+                    - Reads `/proc` entries.\n";
+        let surface = [scalar("preloadFile", "/etc/ld.so.preload"), scalar("procRoot", "/proc")];
+        assert_eq!(
+            brief(page, &surface),
+            [one(1, "after `/etc/ld.so.preload`", "<!-- fact: preloadFile -->")]
+        );
+    }
 }

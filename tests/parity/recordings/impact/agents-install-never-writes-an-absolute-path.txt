@@ -1,0 +1,58 @@
+# agents install never writes an absolute path
+# recorded from: portable AGENTS.md command and typed integrations JSON
+=== init --agents --no-audit
+exit 0
+stdout 6 lines
+docattest init: wrote <root>/docattest.config.json
+  adapter: none
+  pages: README.md, docs/**/*.md
+  surfaces: none (add surfaces later to bind facts to exported code)
+docattest agents: added to <root>/AGENTS.md
+note: using `docattest` in AGENTS.md instead of local path '/opt/my tools/bin/docattest'
+stderr empty
+file AGENTS.md 21 lines
+<!-- docattest:begin -->
+## Documentation that is checked (docattest)
+
+The documentation of this project carries its own proof: examples that run, values read
+from the code, tables whose rows run. `docattest check` runs every proof and fails at the
+page and line that is no longer true. Whatever agent you are, do these two things, from the
+directory this file is in:
+
+- **After you edit source code**, run `docattest impact --file <path>` with the path of
+  the file you edited. It prints the documented exports your change affects and every page
+  and line that describes them, and prints nothing when there are none. Read the lines it
+  lists and bring them up to date with the code.
+- **Before you finish**, run `docattest check --quiet` (or `docattest check <page>` /
+  `--member <dir>` while iterating). If it fails, make the page true again or fix the code.
+  Never delete or weaken a claim to make it pass.
+
+`docattest where <symbol>` lists the pages that describe an export.
+
+This section is written by `docattest init --agents`, which replaces everything between
+the two markers. Write your own notes outside them.
+<!-- docattest:end -->
+file docattest.config.json 8 lines
+{
+  "$schema": "https://docattest.github.io/docattest/schema/config.json",
+  "pages": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "adapter": "none"
+}
+=== init --agents --dry-run --json
+exit 0
+stdout 11 lines
+{
+  "file": "<root>/docattest.config.json",
+  "dryRun": true,
+  "kept": true,
+  "integrations": {
+    "agents": {
+      "file": "<root>/AGENTS.md",
+      "action": "unchanged"
+    }
+  }
+}
+stderr empty

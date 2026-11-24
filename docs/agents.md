@@ -64,6 +64,8 @@ assert.match(check.stdout, /✗ L1 fact: expected 3, got 5 from LIMIT/);
 `docattest init --agents` writes a section into `AGENTS.md` at the project root, the file
 coding agents read their instructions from. The section says to run `impact --file` after
 an edit and `check` before finishing, with the command that runs docattest in this project.
+`AGENTS.md` is committed, so a command that starts with an absolute path (one machine's
+install) is written as plain `docattest`, with a note saying so.
 It stands between two markers, `<!-- docattest:begin -->` and `<!-- docattest:end -->`.
 Running the command again replaces what is between the markers and nothing else: a file
 that has no section gets one at its end, and text outside the markers is never changed.

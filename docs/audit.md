@@ -250,10 +250,12 @@ surfaces equals it:
 
 - a number is distinctive with at least three digits (`8080`, `0.125`), never `3` or `90`,
   which equal a count or an index;
-- text is distinctive with at least four characters, when it is not a plain word: it holds
-  something other than letters (`DOCATTEST_CORE`, `batch-large`, `docattest.config.json`),
-  or a lowercase letter followed by an uppercase one (`maxRetries`). `queue`, `Production`
-  and `JSON` are words, and a word equals the enum member named after it;
+- text is distinctive with at least four characters, when its core (ignoring leading or
+  trailing punctuation) is not a plain word or short number: it holds internal punctuation
+  or digits (`DOCATTEST_CORE`, `batch-large`, `docattest.config.json`, `/etc/ld.so.preload`,
+  `:8080`), or a lowercase letter followed by an uppercase one (`maxRetries`). `queue`,
+  `Production`, `JSON`, `/proc` and `.git` are plain words and match unrelated prose too
+  often;
 - a value two surface values share (`eur-cents` as both `CURRENCY` and `Money.unit`) says
   nothing about which one the page copied, so it is never suggested.
 
@@ -307,8 +309,10 @@ assert.deepEqual(drift.suggestions.map((s) => [s.target, s.status, s.missing]), 
 
 ## What is never suggested
 
-Anything a directive already binds, a sentence included, anything on a frozen page, and
-anything inside fenced code, where a list is code rather than a claim.
+Anything a value-binding directive (`fact` or `cases`) already binds, a sentence included
+(`<!-- test: ... -->` citations attest behaviour rather than literal values, so they leave
+distinctive values open to audit), anything on a frozen page, and anything inside fenced
+code, where a list is code rather than a claim.
 
 ```ts check
 import { createProject } from 'docattest';

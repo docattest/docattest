@@ -1,10 +1,10 @@
 # check
-# recorded from: docattest 0.5.1
+# recorded from: docattest 0.5.2
 === check
 exit 0
-stdout 808 lines
+stdout 809 lines
 README.md
-  ✓ L26 fact: manifest("adapters/typescript/package.json").version is 0.5.1
+  ✓ L26 fact: manifest("adapters/typescript/package.json").version is 0.5.2
   ✓ L33 example: every command printed what the block shows
   ✓ L44 example: every command printed what the block shows
   ✓ L79 fact: manifest("adapters/typescript/package.json").engines.node.replace(">=", "") is 22.12
@@ -94,23 +94,23 @@ docs/adapters.md
   ✓ L14 fact: 9 items match COMMANDS
 docs/agents.md
   ✓ L28 example: all assertions held
-  ✓ L71 example: all assertions held
-  ✓ L123 example: all assertions held
-  ✓ L174 example: all assertions held
-  ✓ L241 example: all assertions held
-  ✓ L270 example: all assertions held
-  ✓ L310 example: all assertions held
-  ✓ L377 example: all assertions held
+  ✓ L73 example: all assertions held
+  ✓ L125 example: all assertions held
+  ✓ L176 example: all assertions held
+  ✓ L243 example: all assertions held
+  ✓ L272 example: all assertions held
+  ✓ L312 example: all assertions held
+  ✓ L379 example: all assertions held
 docs/audit.md
   ✓ L28 example: all assertions held
   ✓ L51 example: all assertions held
   ✓ L85 example: all assertions held
   ✓ L134 example: all assertions held
   ✓ L201 example: all assertions held
-  ✓ L266 example: all assertions held
-  ✓ L313 example: all assertions held
-  ✓ L341 example: all assertions held
-  ✓ L389 example: all assertions held
+  ✓ L268 example: all assertions held
+  ✓ L317 example: all assertions held
+  ✓ L345 example: all assertions held
+  ✓ L393 example: all assertions held
 docs/cases.md
   ✓ L30 example: all assertions held
   ✓ L68 example: all assertions held
@@ -174,6 +174,7 @@ docs/cli.md
   ✓ L322 example: all assertions held
   ✓ L372 example: all assertions held
   ✓ L396 example: all assertions held
+  ✓ L467 example: all assertions held
 docs/console.md
   ✓ L28 example: all assertions held
   ✓ L56 example: all assertions held
@@ -398,12 +399,12 @@ docs/surfaces.md
   ✓ L129 example: all assertions held
   ✓ L172 example: all assertions held
   ✓ L195 example: all assertions held
-results: 370 pass, 0 fail, 0 error, 0 skipped
-coverage: 26 living pages, 25 covered (370 attestations: 319 proofs, 0 of them weak, and 51 citations), 0 uncovered, 1 prose, 5 frozen
+results: 371 pass, 0 fail, 0 error, 0 skipped
+coverage: 26 living pages, 25 covered (371 attestations: 320 proofs, 0 of them weak, and 51 citations), 0 uncovered, 1 prose, 5 frozen
 warning: adapters/typescript/README.md:210 citation names `codeSpans`, which `gives what a column fact compares` does not use
 warning: adapters/typescript/README.md:315 citation names `createProject`, which `runs nothing of a project in memory` does not use
 surface default: 49 symbols, 10 attested, 39 not attested by any page
-  docattest → adapters/typescript/dist/index.js (docattest@0.5.1)
+  docattest → adapters/typescript/dist/index.js (docattest@0.5.2)
 snapshots: none
 ok
 
@@ -429,7 +430,7 @@ surface adapter: 1 symbol, 1 attested, 0 not attested by any page
   docattest::adapter → src/adapter/mod.rs (docattest-core)
 surface agents: 3 symbols, 1 attested, 2 not attested by any page
   docattest::agents → src/agents/mod.rs (docattest-core)
-surface command: 6 symbols, 2 attested, 4 not attested by any page
+surface command: 8 symbols, 2 attested, 6 not attested by any page
   docattest::cli::command → src/cli/command.rs (docattest-core)
 surface text: 9 symbols, 1 attested, 8 not attested by any page
   docattest::text → src/text.rs (docattest-core)
@@ -439,7 +440,7 @@ ok
 member adapters/rust (rust)
 CONTRIBUTING.md
   ✓ L38 example: every command printed what the block shows
-  ✓ L78 test: tests/endtoend.rs:21 declares "the_adapter_conforms_to_the_protocol" (not run by docattest)
+  ✓ L77 test: tests/endtoend.rs:21 declares "the_adapter_conforms_to_the_protocol" (not run by docattest)
 README.md
   ✓ L18 fact: VERSION is 1
   ✓ L43 fact: CORE_VARIABLE is DOCATTEST_CORE
@@ -447,86 +448,86 @@ README.md
   ✓ L47 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_RUST
   ✓ L53 example: every command printed what the block shows
   ✓ L61 test: tests/workspace.rs:125 declares "the_generated_crate_is_built_with_the_features_it_is_given" (not run by docattest)
-  ✓ L65 test: src/launcher.rs:134 declares "tests" > "the_hand_over_adds_only_what_is_not_set" (not run by docattest)
-  ✓ L66 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
-  ✓ L84 test: tests/workspace.rs:98 declares "a_private_module_is_no_surface_and_says_why" (not run by docattest)
-  ✓ L94 test: tests/constants.rs:90 declares "a_fact_reads_constants_from_source" (not run by docattest)
-  ✓ L97 test: src/analysis/modules.rs:307 declares "tests" > "exports_are_public_items_and_what_is_reexported" (not run by docattest)
-  ✓ L106 example: every proof on the sample page held in a copy of tests/fixture
-  ✓ L146 example: every command printed what the block shows
-  ✓ L174 fact: 2 code spans match hello().block_languages
-  ✓ L177 test: tests/session.rs:73 declares "blocks_compile_and_run_each_as_a_program_of_its_own" (not run by docattest)
-  ✓ L181 test: src/language/blocks.rs:74 declares "tests" > "a_snippet_is_the_body_of_main" (not run by docattest)
-  ✓ L182 test: src/language/blocks.rs:100 declares "tests" > "hidden_lines_are_part_of_the_program_and_keep_their_place" (not run by docattest)
-  ✓ L186 test: src/language/text.rs:159 declares "tests" > "a_block_asserts_when_something_in_it_can_end_the_program" (not run by docattest)
-  ✓ L190 test: src/toolchain/cargo.rs:237 declares "tests" > "errors_are_read_from_the_compilers_messages" (not run by docattest)
-  ✓ L201 example: every command printed what the block shows
-  ✓ L211 example: all assertions held
-  ✓ L216 test: src/toolchain/mod.rs:225 declares "tests" > "a_program_that_overruns_is_ended_with_what_it_started" (not run by docattest)
-  ✓ L219 test: tests/session.rs:146 declares "a_blocks_time_counts_from_when_its_code_starts" (not run by docattest)
-  ✓ L221 test: src/toolchain/mod.rs:244 declares "tests" > "a_program_that_never_starts_is_ended" (not run by docattest)
-  ✓ L221 test: src/running/blocks.rs:277 declares "tests" > "a_block_whose_program_never_starts_says_how_long_it_waited" (not run by docattest)
-  ✓ L227 example: every command printed what the block shows
-  ✓ L242 example: every command printed what the block shows
-  ✓ L247 fact: 9 items match ASSERTING_MACROS.map(|name| format!("{name}!"))
-  ✓ L258 fact: 4 items match ASSERTING_METHODS
-  ✓ L267 fact: 7 items match RUST_WORDS
-  ✓ L279 test: src/language/doc.rs:251 declares "tests" > "examples_are_the_rust_blocks_of_doc_comments" (not run by docattest)
-  ✓ L295 example: every command printed what the block shows
-  ✓ L322 test: tests/session.rs:213 declares "a_fact_without_a_value_says_why_and_costs_the_others_nothing" (not run by docattest)
-  ✓ L324 test: tests/workspace.rs:110 declares "a_fact_names_the_surface_exports_its_crate_paths_reach" (not run by docattest)
-  ✓ L327 test: tests/helpers.rs:155 declares "a_fact_names_what_the_setup_functions_it_calls_reach" (not run by docattest)
-  ✓ L330 example: every command printed what the block shows
-  ✓ L343 test: src/harness/observe.rs:234 declares "tests" > "maps_and_lists_of_pairs_show_their_keys" (not run by docattest)
-  ✓ L360 example: every proof on the sample page held in a copy of tests/fixture
-  ✓ L371 test: tests/constants.rs:90 declares "a_fact_reads_constants_from_source" (not run by docattest)
-  ✓ L375 test: tests/constants.rs:170 declares "a_library_that_does_not_compile_fails_only_the_facts_that_need_it" (not run by docattest)
-  ✓ L377 test: tests/constants.rs:90 declares "a_fact_reads_constants_from_source" (not run by docattest)
-  ✓ L383 test: src/analysis/constants/literal.rs:180 declares "tests" > "literal_values_of_std_types_are_reproduced" (not run by docattest)
-  ✓ L387 test: tests/constants.rs:131 declares "only_constants_are_read_from_source" (not run by docattest)
-  ✓ L390 test: tests/endtoend.rs:190 declares "impact_of_a_constant_read_from_source" (not run by docattest)
-  ✓ L395 test: tests/initializers.rs:117 declares "a_value_read_attests_what_its_initializer_uses" (not run by docattest)
-  ✓ L395 test: tests/initializers.rs:150 declares "where_and_uncovered_follow_initializers" (not run by docattest)
-  ✓ L397 test: tests/initializers.rs:117 declares "a_value_read_attests_what_its_initializer_uses" (not run by docattest)
-  ✓ L426 test: tests/helpers.rs:170 declares "a_fact_calls_a_docs_helper_by_its_name" (not run by docattest)
-  ✓ L431 test: tests/helpers.rs:245 declares "a_page_states_what_only_helpers_say" (not run by docattest)
-  ✓ L434 test: tests/helpers.rs:180 declares "a_fact_calls_only_a_docs_helper_that_is_pub_in_a_library" (not run by docattest)
-  ✓ L439 test: tests/helpers.rs:204 declares "a_fact_attests_a_docs_helper_and_what_it_reaches" (not run by docattest)
-  ✓ L439 test: tests/helpers.rs:245 declares "a_page_states_what_only_helpers_say" (not run by docattest)
-  ✓ L443 test: tests/helpers.rs:204 declares "a_fact_attests_a_docs_helper_and_what_it_reaches" (not run by docattest)
-  ✓ L443 test: tests/helpers.rs:245 declares "a_page_states_what_only_helpers_say" (not run by docattest)
-  ✓ L446 test: src/toolchain/cargo.rs:258 declares "tests" > "the_docs_cfg_joins_the_flags_the_project_builds_with" (not run by docattest)
-  ✓ L462 test: src/language/display.rs:29 declares "tests" > "a_data_blocks_values_show_as_rust_shows_them" (not run by docattest)
-  ✓ L464 test: src/harness/json.rs:296 declares "tests" > "values_are_written_as_json_and_shown_as_a_page_states_them" (not run by docattest)
-  ✓ L472 test: tests/session.rs:163 declares "facts_show_values_as_rust_prints_them" (not run by docattest)
-  ✓ L477 fact: file("LICENSE").split_whitespace().next().unwrap() is MIT
-  ✓ L485 test: tests/session.rs:163 declares "facts_show_values_as_rust_prints_them" (not run by docattest)
-  ✓ L486 fact: matched("LICENSE", r"^(\w+) License") is MIT
-  ✓ L487 fact: manifestField("Cargo.toml", "package.name") is docattest
-  ✓ L517 test: tests/cells.rs:85 declares "code_spans_are_what_a_column_fact_compares" (not run by docattest)
-  ✓ L519 example: all assertions held
-  ✓ L529 test: src/harness/cells/mod.rs:94 declares "tests" > "a_cells_code_spans_are_the_shared_tables" (not run by docattest)
-  ✓ L532 test: tests/cells.rs:113 declares "a_setup_file_reads_its_cells_with_code_spans" (not run by docattest)
-  ✓ L542 test: tests/helpers.rs:155 declares "a_fact_names_what_the_setup_functions_it_calls_reach" (not run by docattest)
-  ✓ L547 example: every command printed what the block shows
-  ✓ L560 test: tests/cases.rs:95 declares "a_tables_rows_share_its_process" (not run by docattest)
-  ✓ L562 test: tests/cases.rs:125 declares "tables_run_side_by_side" (not run by docattest)
-  ✓ L570 test: tests/statics.rs:76 declares "tests_are_listed_with_the_modules_around_them" (not run by docattest)
-  ✓ L582 test: src/analysis/tests/mod.rs:235 declares "listing" > "the_named_cases_of_parametrized_tests_are_tests" (not run by docattest)
-  ✓ L592 test: src/running/cited/selection.rs:106 declares "tests" > "each_kind_of_target_is_selected_by_its_own_flag" (not run by docattest)
-  ✓ L594 test: src/running/cited/selection.rs:129 declares "tests" > "a_file_belongs_to_the_target_whose_modules_lead_to_it" (not run by docattest)
-  ✓ L599 test: src/running/cited/selection.rs:116 declares "tests" > "a_run_lists_then_runs_exactly_the_names_it_listed" (not run by docattest)
-  ✓ L602 test: src/analysis/tests/mod.rs:193 declares "listing" > "a_test_is_printed_by_its_path_and_a_parametrized_one_by_its_cases" (not run by docattest)
-  ✓ L604 test: src/analysis/tests/parametrized.rs:149 declares "tests" > "an_rstest_case_is_printed_after_its_position" (not run by docattest)
-  ✓ L606 test: src/analysis/tests/parametrized.rs:159 declares "tests" > "a_test_case_case_is_printed_as_its_description_made_an_identifier" (not run by docattest)
-  ✓ L613 test: tests/cited.rs:105 declares "each_cited_test_is_run_exactly_and_reported_as_libtest_reports_it" (not run by docattest)
-  ✓ L615 test: src/running/cited/report.rs:208 declares "tests" > "a_test_passes_when_every_case_of_it_passed" (not run by docattest)
-  ✓ L617 test: src/running/cited/report.rs:221 declares "tests" > "a_run_whose_program_ended_early_fails_what_it_did_not_report" (not run by docattest)
-  ✓ L619 test: tests/cited.rs:139 declares "a_run_that_overruns_is_ended_and_fails_its_tests" (not run by docattest)
-  ✓ L623 fact: hello().ignored_names.join(", ") is target
-  ✓ L662 example: every command printed what the block shows
-  ✓ L676 test: tests/helpers.rs:195 declares "a_cargo_config_that_takes_the_place_of_build_rustflags_leaves_docs_helpers_out" (not run by docattest)
-  ✓ L680 test: src/project.rs:182 declares "tests" > "copies_of_a_project_that_share_a_target_directory_build_apart" (not run by docattest)
+  ✓ L66 test: src/launcher.rs:134 declares "tests" > "the_hand_over_adds_only_what_is_not_set" (not run by docattest)
+  ✓ L67 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
+  ✓ L85 test: tests/workspace.rs:98 declares "a_private_module_is_no_surface_and_says_why" (not run by docattest)
+  ✓ L95 test: tests/constants.rs:90 declares "a_fact_reads_constants_from_source" (not run by docattest)
+  ✓ L98 test: src/analysis/modules.rs:307 declares "tests" > "exports_are_public_items_and_what_is_reexported" (not run by docattest)
+  ✓ L107 example: every proof on the sample page held in a copy of tests/fixture
+  ✓ L147 example: every command printed what the block shows
+  ✓ L175 fact: 2 code spans match hello().block_languages
+  ✓ L178 test: tests/session.rs:73 declares "blocks_compile_and_run_each_as_a_program_of_its_own" (not run by docattest)
+  ✓ L182 test: src/language/blocks.rs:74 declares "tests" > "a_snippet_is_the_body_of_main" (not run by docattest)
+  ✓ L183 test: src/language/blocks.rs:100 declares "tests" > "hidden_lines_are_part_of_the_program_and_keep_their_place" (not run by docattest)
+  ✓ L187 test: src/language/text.rs:159 declares "tests" > "a_block_asserts_when_something_in_it_can_end_the_program" (not run by docattest)
+  ✓ L191 test: src/toolchain/cargo.rs:237 declares "tests" > "errors_are_read_from_the_compilers_messages" (not run by docattest)
+  ✓ L202 example: every command printed what the block shows
+  ✓ L212 example: all assertions held
+  ✓ L217 test: src/toolchain/mod.rs:225 declares "tests" > "a_program_that_overruns_is_ended_with_what_it_started" (not run by docattest)
+  ✓ L220 test: tests/session.rs:146 declares "a_blocks_time_counts_from_when_its_code_starts" (not run by docattest)
+  ✓ L222 test: src/toolchain/mod.rs:244 declares "tests" > "a_program_that_never_starts_is_ended" (not run by docattest)
+  ✓ L222 test: src/running/blocks.rs:277 declares "tests" > "a_block_whose_program_never_starts_says_how_long_it_waited" (not run by docattest)
+  ✓ L228 example: every command printed what the block shows
+  ✓ L243 example: every command printed what the block shows
+  ✓ L248 fact: 9 items match ASSERTING_MACROS.map(|name| format!("{name}!"))
+  ✓ L259 fact: 4 items match ASSERTING_METHODS
+  ✓ L268 fact: 7 items match RUST_WORDS
+  ✓ L280 test: src/language/doc.rs:251 declares "tests" > "examples_are_the_rust_blocks_of_doc_comments" (not run by docattest)
+  ✓ L296 example: every command printed what the block shows
+  ✓ L323 test: tests/session.rs:213 declares "a_fact_without_a_value_says_why_and_costs_the_others_nothing" (not run by docattest)
+  ✓ L325 test: tests/workspace.rs:110 declares "a_fact_names_the_surface_exports_its_crate_paths_reach" (not run by docattest)
+  ✓ L328 test: tests/helpers.rs:155 declares "a_fact_names_what_the_setup_functions_it_calls_reach" (not run by docattest)
+  ✓ L331 example: every command printed what the block shows
+  ✓ L344 test: src/harness/observe.rs:234 declares "tests" > "maps_and_lists_of_pairs_show_their_keys" (not run by docattest)
+  ✓ L361 example: every proof on the sample page held in a copy of tests/fixture
+  ✓ L372 test: tests/constants.rs:90 declares "a_fact_reads_constants_from_source" (not run by docattest)
+  ✓ L376 test: tests/constants.rs:170 declares "a_library_that_does_not_compile_fails_only_the_facts_that_need_it" (not run by docattest)
+  ✓ L378 test: tests/constants.rs:90 declares "a_fact_reads_constants_from_source" (not run by docattest)
+  ✓ L384 test: src/analysis/constants/literal.rs:180 declares "tests" > "literal_values_of_std_types_are_reproduced" (not run by docattest)
+  ✓ L388 test: tests/constants.rs:131 declares "only_constants_are_read_from_source" (not run by docattest)
+  ✓ L391 test: tests/endtoend.rs:190 declares "impact_of_a_constant_read_from_source" (not run by docattest)
+  ✓ L396 test: tests/initializers.rs:117 declares "a_value_read_attests_what_its_initializer_uses" (not run by docattest)
+  ✓ L396 test: tests/initializers.rs:150 declares "where_and_uncovered_follow_initializers" (not run by docattest)
+  ✓ L398 test: tests/initializers.rs:117 declares "a_value_read_attests_what_its_initializer_uses" (not run by docattest)
+  ✓ L427 test: tests/helpers.rs:170 declares "a_fact_calls_a_docs_helper_by_its_name" (not run by docattest)
+  ✓ L432 test: tests/helpers.rs:245 declares "a_page_states_what_only_helpers_say" (not run by docattest)
+  ✓ L435 test: tests/helpers.rs:180 declares "a_fact_calls_only_a_docs_helper_that_is_pub_in_a_library" (not run by docattest)
+  ✓ L440 test: tests/helpers.rs:204 declares "a_fact_attests_a_docs_helper_and_what_it_reaches" (not run by docattest)
+  ✓ L440 test: tests/helpers.rs:245 declares "a_page_states_what_only_helpers_say" (not run by docattest)
+  ✓ L444 test: tests/helpers.rs:204 declares "a_fact_attests_a_docs_helper_and_what_it_reaches" (not run by docattest)
+  ✓ L444 test: tests/helpers.rs:245 declares "a_page_states_what_only_helpers_say" (not run by docattest)
+  ✓ L447 test: src/toolchain/cargo.rs:258 declares "tests" > "the_docs_cfg_joins_the_flags_the_project_builds_with" (not run by docattest)
+  ✓ L463 test: src/language/display.rs:29 declares "tests" > "a_data_blocks_values_show_as_rust_shows_them" (not run by docattest)
+  ✓ L465 test: src/harness/json.rs:296 declares "tests" > "values_are_written_as_json_and_shown_as_a_page_states_them" (not run by docattest)
+  ✓ L473 test: tests/session.rs:163 declares "facts_show_values_as_rust_prints_them" (not run by docattest)
+  ✓ L478 fact: file("LICENSE").split_whitespace().next().unwrap() is MIT
+  ✓ L486 test: tests/session.rs:163 declares "facts_show_values_as_rust_prints_them" (not run by docattest)
+  ✓ L487 fact: matched("LICENSE", r"^(\w+) License") is MIT
+  ✓ L488 fact: manifestField("Cargo.toml", "package.name") is docattest
+  ✓ L518 test: tests/cells.rs:85 declares "code_spans_are_what_a_column_fact_compares" (not run by docattest)
+  ✓ L520 example: all assertions held
+  ✓ L530 test: src/harness/cells/mod.rs:94 declares "tests" > "a_cells_code_spans_are_the_shared_tables" (not run by docattest)
+  ✓ L533 test: tests/cells.rs:113 declares "a_setup_file_reads_its_cells_with_code_spans" (not run by docattest)
+  ✓ L543 test: tests/helpers.rs:155 declares "a_fact_names_what_the_setup_functions_it_calls_reach" (not run by docattest)
+  ✓ L548 example: every command printed what the block shows
+  ✓ L561 test: tests/cases.rs:95 declares "a_tables_rows_share_its_process" (not run by docattest)
+  ✓ L563 test: tests/cases.rs:125 declares "tables_run_side_by_side" (not run by docattest)
+  ✓ L571 test: tests/statics.rs:76 declares "tests_are_listed_with_the_modules_around_them" (not run by docattest)
+  ✓ L583 test: src/analysis/tests/mod.rs:235 declares "listing" > "the_named_cases_of_parametrized_tests_are_tests" (not run by docattest)
+  ✓ L593 test: src/running/cited/selection.rs:106 declares "tests" > "each_kind_of_target_is_selected_by_its_own_flag" (not run by docattest)
+  ✓ L595 test: src/running/cited/selection.rs:129 declares "tests" > "a_file_belongs_to_the_target_whose_modules_lead_to_it" (not run by docattest)
+  ✓ L600 test: src/running/cited/selection.rs:116 declares "tests" > "a_run_lists_then_runs_exactly_the_names_it_listed" (not run by docattest)
+  ✓ L603 test: src/analysis/tests/mod.rs:193 declares "listing" > "a_test_is_printed_by_its_path_and_a_parametrized_one_by_its_cases" (not run by docattest)
+  ✓ L605 test: src/analysis/tests/parametrized.rs:149 declares "tests" > "an_rstest_case_is_printed_after_its_position" (not run by docattest)
+  ✓ L607 test: src/analysis/tests/parametrized.rs:159 declares "tests" > "a_test_case_case_is_printed_as_its_description_made_an_identifier" (not run by docattest)
+  ✓ L614 test: tests/cited.rs:105 declares "each_cited_test_is_run_exactly_and_reported_as_libtest_reports_it" (not run by docattest)
+  ✓ L616 test: src/running/cited/report.rs:208 declares "tests" > "a_test_passes_when_every_case_of_it_passed" (not run by docattest)
+  ✓ L618 test: src/running/cited/report.rs:221 declares "tests" > "a_run_whose_program_ended_early_fails_what_it_did_not_report" (not run by docattest)
+  ✓ L620 test: tests/cited.rs:139 declares "a_run_that_overruns_is_ended_and_fails_its_tests" (not run by docattest)
+  ✓ L624 fact: hello().ignored_names.join(", ") is target
+  ✓ L663 example: every command printed what the block shows
+  ✓ L677 test: tests/helpers.rs:195 declares "a_cargo_config_that_takes_the_place_of_build_rustflags_leaves_docs_helpers_out" (not run by docattest)
+  ✓ L681 test: src/project.rs:182 declares "tests" > "copies_of_a_project_that_share_a_target_directory_build_apart" (not run by docattest)
 results: 88 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (88 attestations: 26 proofs, 0 of them weak, and 62 citations), 0 uncovered, 0 frozen
 surface default: 5 symbols, 4 attested, 1 not attested by any page
@@ -567,99 +568,99 @@ README.md
   ✓ L85 cases: README.md:85 Windows
   ✓ L86 cases: README.md:86 Windows
   ✓ L91 test: tests/test_launcher.py:206 declares "Launch" > "test_a_trace_names_the_core_it_runs" (not run by docattest)
-  ✓ L105 test: tests/test_launcher.py:271 declares "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" (not run by docattest)
-  ✓ L110 test: tests/test_launcher.py:242 declares "Launch" > "test_hooks_are_told_a_command_that_runs_docattest_without_node" (not run by docattest)
-  ✓ L111 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
-  ✓ L113 test: tests/test_launcher.py:234 declares "Launch" > "test_what_is_already_set_stands" (not run by docattest)
-  ✓ L121 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_PYTHON
-  ✓ L127 fact: CONFIG_FILE is docattest.config.json
-  ✓ L164 example: every proof on the sample page held in a copy of tests/fixture
-  ✓ L210 example: every command printed what the block shows
-  ✓ L235 fact: 5 code spans match BLOCK_LANGUAGES
-  ✓ L244 example: all assertions held
-  ✓ L251 test: tests/test_protocol.py:116 declares "Text" > "test_assertions" (not run by docattest)
-  ✓ L252 fact: ", ".join(SESSION_LANGUAGES) is pycon
-  ✓ L253 test: tests/test_running.py:44 declares "Running" > "test_sessions_run_as_doctest_runs_them" (not run by docattest)
-  ✓ L263 test: tests/test_static.py:108 declares "Static" > "test_compile_is_what_can_be_said_without_running" (not run by docattest)
-  ✓ L268 test: tests/test_running.py:121 declares "Running" > "test_blocks_are_isolated_from_each_other" (not run by docattest)
-  ✓ L269 fact: CONTINUE is continue
-  ✓ L273 test: tests/test_running.py:55 declares "Running" > "test_a_block_tagged_continue_goes_on_from_the_blocks_before_it" (not run by docattest)
-  ✓ L276 example: all assertions held
-  ✓ L283 example: all assertions held
-  ✓ L287 example: all assertions held
-  ✓ L301 test: tests/test_running.py:140 declares "Running" > "test_a_stuck_block_is_stopped_and_the_next_one_runs" (not run by docattest)
-  ✓ L304 test: tests/test_workers.py:111 declares "Interpreter" > "test_starting_the_interpreter_is_not_counted_against_a_block" (not run by docattest)
-  ✓ L307 test: tests/test_running.py:215 declares "Running" > "test_stdout_carries_nothing_but_responses" (not run by docattest)
-  ✓ L309 test: tests/test_running.py:158 declares "Running" > "test_network_is_off_unless_a_block_asks" (not run by docattest)
-  ✓ L319 test: tests/test_running.py:107 declares "Running" > "test_a_docstring_session_starts_with_its_module" (not run by docattest)
-  ✓ L347 test: tests/test_constants.py:102 declares "Constants" > "test_a_fact_reads_constants_from_source" (not run by docattest)
-  ✓ L352 test: tests/test_constants.py:79 declares "Constants" > "test_what_is_a_constant" (not run by docattest)
-  ✓ L366 test: tests/test_constants.py:123 declares "Constants" > "test_nothing_of_the_module_runs_unless_a_fact_reads_something_else" (not run by docattest)
-  ✓ L372 test: tests/test_constants.py:130 declares "Constants" > "test_only_constants_are_read_from_source" (not run by docattest)
-  ✓ L372 test: tests/test_constants.py:145 declares "Constants" > "test_a_program_offers_its_exported_constants_without_running" (not run by docattest)
-  ✓ L374 test: tests/test_constants.py:150 declares "Constants" > "test_a_fact_attests_the_constants_it_reads" (not run by docattest)
-  ✓ L376 test: tests/test_constants.py:161 declares "ImpactOfConstants" > "test_impact_lists_a_constant_with_the_facts_that_read_it" (not run by docattest)
-  ✓ L382 test: tests/test_initializers.py:61 declares "Initializers" > "test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses" (not run by docattest)
-  ✓ L382 test: tests/test_initializers.py:78 declares "InitializersInTheCore" > "test_where_uncovered_and_impact_count_the_names_an_initializer_uses" (not run by docattest)
+  ✓ L106 test: tests/test_launcher.py:271 declares "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" (not run by docattest)
+  ✓ L111 test: tests/test_launcher.py:242 declares "Launch" > "test_hooks_are_told_a_command_that_runs_docattest_without_node" (not run by docattest)
+  ✓ L112 fact: COMMAND_VARIABLE is DOCATTEST_COMMAND
+  ✓ L114 test: tests/test_launcher.py:234 declares "Launch" > "test_what_is_already_set_stands" (not run by docattest)
+  ✓ L122 fact: ADAPTER_VARIABLE is DOCATTEST_ADAPTER_PYTHON
+  ✓ L128 fact: CONFIG_FILE is docattest.config.json
+  ✓ L165 example: every proof on the sample page held in a copy of tests/fixture
+  ✓ L211 example: every command printed what the block shows
+  ✓ L236 fact: 5 code spans match BLOCK_LANGUAGES
+  ✓ L245 example: all assertions held
+  ✓ L252 test: tests/test_protocol.py:116 declares "Text" > "test_assertions" (not run by docattest)
+  ✓ L253 fact: ", ".join(SESSION_LANGUAGES) is pycon
+  ✓ L254 test: tests/test_running.py:44 declares "Running" > "test_sessions_run_as_doctest_runs_them" (not run by docattest)
+  ✓ L264 test: tests/test_static.py:108 declares "Static" > "test_compile_is_what_can_be_said_without_running" (not run by docattest)
+  ✓ L269 test: tests/test_running.py:121 declares "Running" > "test_blocks_are_isolated_from_each_other" (not run by docattest)
+  ✓ L270 fact: CONTINUE is continue
+  ✓ L274 test: tests/test_running.py:55 declares "Running" > "test_a_block_tagged_continue_goes_on_from_the_blocks_before_it" (not run by docattest)
+  ✓ L277 example: all assertions held
+  ✓ L284 example: all assertions held
+  ✓ L288 example: all assertions held
+  ✓ L302 test: tests/test_running.py:140 declares "Running" > "test_a_stuck_block_is_stopped_and_the_next_one_runs" (not run by docattest)
+  ✓ L305 test: tests/test_workers.py:111 declares "Interpreter" > "test_starting_the_interpreter_is_not_counted_against_a_block" (not run by docattest)
+  ✓ L308 test: tests/test_running.py:215 declares "Running" > "test_stdout_carries_nothing_but_responses" (not run by docattest)
+  ✓ L310 test: tests/test_running.py:158 declares "Running" > "test_network_is_off_unless_a_block_asks" (not run by docattest)
+  ✓ L320 test: tests/test_running.py:107 declares "Running" > "test_a_docstring_session_starts_with_its_module" (not run by docattest)
+  ✓ L348 test: tests/test_constants.py:102 declares "Constants" > "test_a_fact_reads_constants_from_source" (not run by docattest)
+  ✓ L353 test: tests/test_constants.py:79 declares "Constants" > "test_what_is_a_constant" (not run by docattest)
+  ✓ L367 test: tests/test_constants.py:123 declares "Constants" > "test_nothing_of_the_module_runs_unless_a_fact_reads_something_else" (not run by docattest)
+  ✓ L373 test: tests/test_constants.py:130 declares "Constants" > "test_only_constants_are_read_from_source" (not run by docattest)
+  ✓ L373 test: tests/test_constants.py:145 declares "Constants" > "test_a_program_offers_its_exported_constants_without_running" (not run by docattest)
+  ✓ L375 test: tests/test_constants.py:150 declares "Constants" > "test_a_fact_attests_the_constants_it_reads" (not run by docattest)
+  ✓ L377 test: tests/test_constants.py:161 declares "ImpactOfConstants" > "test_impact_lists_a_constant_with_the_facts_that_read_it" (not run by docattest)
+  ✓ L383 test: tests/test_initializers.py:61 declares "Initializers" > "test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses" (not run by docattest)
   ✓ L383 test: tests/test_initializers.py:78 declares "InitializersInTheCore" > "test_where_uncovered_and_impact_count_the_names_an_initializer_uses" (not run by docattest)
-  ✓ L394 fact: re.match(r"#!/usr/bin/env (\S+)", file("bin/docattest-adapter-python"))[1] is python3
-  ✓ L402 test: tests/test_protocol.py:352 declares "Values" > "test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes" (not run by docattest)
-  ✓ L403 fact: matched("bin/docattest-adapter-python", r"^#!/usr/bin/env (\S+)") is python3
-  ✓ L404 fact: manifestField("pyproject.toml", "project.name") is docattest
-  ✓ L419 example: every proof on the sample page held in a copy of tests/fixture
-  ✓ L433 example: compiles
-  ✓ L455 test: tests/test_setup_helpers.py:69 declares "SetupHelpers" > "test_a_named_fact_reads_what_the_surface_does_not_export" (not run by docattest)
-  ✓ L458 test: tests/test_setup_helpers.py:76 declares "SetupHelpers" > "test_a_named_fact_and_a_runner_attest_the_exports_and_constants_they_reach" (not run by docattest)
-  ✓ L460 test: tests/test_setup_helpers.py:100 declares "SetupHelpersInTheCore" > "test_where_uncovered_and_impact_count_what_a_named_fact_reaches" (not run by docattest)
-  ✓ L466 test: tests/test_cells.py:95 declares "CodeSpans" > "test_code_spans_are_what_a_column_fact_compares" (not run by docattest)
-  ✓ L468 example: all assertions held
-  ✓ L479 test: tests/test_cells.py:86 declares "CodeSpans" > "test_code_spans" (not run by docattest)
-  ✓ L490 test: tests/test_cases_rows.py:96 declares "CasesRows" > "test_a_tables_rows_share_its_process" (not run by docattest)
-  ✓ L492 test: tests/test_cases_rows.py:130 declares "CasesRows" > "test_tables_run_side_by_side_and_never_share_a_process" (not run by docattest)
-  ✓ L498 test: tests/test_static.py:184 declares "Static" > "test_tests_are_listed_from_syntax" (not run by docattest)
-  ✓ L514 test: tests/test_citations.py:119 declares "Citations" > "test_the_cases_of_parametrized_tests" (not run by docattest)
-  ✓ L520 test: tests/test_citations.py:151 declares "Citations" > "test_the_cases_of_subtests" (not run by docattest)
-  ✓ L522 test: tests/test_cells.py:80 declares "CodeSpans" > "test_what_a_runner_reads_of_a_cell" > "a longer run holds a backtick" (not run by docattest)
-  ✓ L527 test: tests/test_citations.py:147 declares "Citations" > "test_a_pytestmark_that_parametrizes_hides_the_cases" (not run by docattest)
-  ✓ L530 test: tests/test_citations.py:171 declares "Citations" > "test_a_case_is_cited_by_its_id" (not run by docattest)
-  ✓ L531 test: tests/test_citations.py:214 declares "Citations" > "test_a_case_attests_what_its_test_uses" (not run by docattest)
-  ✓ L538 test: tests/test_cited_tests.py:133 declares "CitedTestsOnDisk" > "test_each_cited_test_runs_and_ends_as_its_runner_reports" (not run by docattest)
-  ✓ L538 test: tests/test_selection.py:185 declares "Commands" > "test_the_tests_of_one_file_share_a_run_for_each_runner" (not run by docattest)
-  ✓ L540 test: tests/test_cited_tests.py:169 declares "CitedTestsOnDisk" > "test_a_run_that_overruns_its_time_fails_its_tests" (not run by docattest)
-  ✓ L541 test: tests/test_cited_tests.py:206 declares "CitedTestsInMemory" > "test_nothing_runs_in_a_project_in_memory" (not run by docattest)
-  ✓ L547 test: tests/test_selection.py:71 declares "Selection" > "test_pytest_selects_a_test_by_its_node_id_and_a_case_with_its_id_in_brackets" (not run by docattest)
-  ✓ L547 test: tests/test_selection.py:144 declares "Commands" > "test_pytest_gets_each_node_id_once_after_the_options_end" (not run by docattest)
-  ✓ L551 test: tests/test_pytest_report.py:67 declares "PytestReport" > "test_a_passed_failed_and_skipped_test_each_ends_as_its_testcase_says" (not run by docattest)
-  ✓ L551 test: tests/test_pytest_report.py:75 declares "PytestReport" > "test_an_expected_failure_is_skipped_and_an_error_in_setup_fails" (not run by docattest)
-  ✓ L551 test: tests/test_pytest_report.py:82 declares "PytestReport" > "test_a_case_ends_as_its_own_testcase_and_a_test_cited_whole_as_all_its_cases" (not run by docattest)
-  ✓ L551 test: tests/test_pytest_report.py:96 declares "PytestReport" > "test_a_test_with_no_testcase_did_not_run_and_the_message_quotes_pytest" (not run by docattest)
-  ✓ L553 test: tests/test_pytest_report.py:119 declares "PytestReport" > "test_a_run_pytest_refused_runs_again_one_test_at_a_time" (not run by docattest)
-  ✓ L557 test: tests/test_selection.py:121 declares "ModuleImports" > "test_a_file_is_imported_from_the_first_directory_above_it_that_is_not_a_package" (not run by docattest)
-  ✓ L557 test: tests/test_cited_tests.py:133 declares "CitedTestsOnDisk" > "test_each_cited_test_runs_and_ends_as_its_runner_reports" (not run by docattest)
-  ✓ L559 test: tests/test_selection.py:88 declares "Selection" > "test_unittest_runs_the_methods_of_classes_at_the_top_of_a_module" (not run by docattest)
-  ✓ L559 test: tests/test_cited_tests.py:164 declares "CitedTestsOnDisk" > "test_without_pytest_a_test_function_does_not_run" (not run by docattest)
-  ✓ L561 test: tests/test_unittest_report.py:88 declares "UnittestReport" > "test_a_failed_fixture_fails_its_tests_and_a_module_that_does_not_import_runs_none" (not run by docattest)
-  ✓ L561 test: tests/test_unittest_report.py:51 declares "UnittestReport" > "test_a_method_the_class_does_not_have_did_not_run" (not run by docattest)
-  ✓ L565 test: tests/test_cited_tests.py:149 declares "CitedTestsOnDisk" > "test_a_subtest_case_runs_with_its_test_and_ends_as_its_subtest" (not run by docattest)
-  ✓ L565 test: tests/test_unittest_report.py:60 declares "UnittestReport" > "test_a_subtest_case_ends_as_its_subtest_and_its_test_as_all_its_subtests" (not run by docattest)
-  ✓ L567 test: tests/test_unittest_report.py:75 declares "UnittestReport" > "test_a_subtest_case_its_test_never_reached_ends_as_its_test_or_did_not_run" (not run by docattest)
-  ✓ L570 test: tests/test_workers.py:156 declares "Bytecode" > "test_attested_code_writes_no_bytecode_into_the_project" (not run by docattest)
-  ✓ L580 example: every command printed what the block shows
-  ✓ L589 cases: README.md:589 set
-  ✓ L590 cases: README.md:590 not set
+  ✓ L384 test: tests/test_initializers.py:78 declares "InitializersInTheCore" > "test_where_uncovered_and_impact_count_the_names_an_initializer_uses" (not run by docattest)
+  ✓ L395 fact: re.match(r"#!/usr/bin/env (\S+)", file("bin/docattest-adapter-python"))[1] is python3
+  ✓ L403 test: tests/test_protocol.py:352 declares "Values" > "test_matched_and_field_are_what_the_core_worked_out_for_the_arguments_a_fact_writes" (not run by docattest)
+  ✓ L404 fact: matched("bin/docattest-adapter-python", r"^#!/usr/bin/env (\S+)") is python3
+  ✓ L405 fact: manifestField("pyproject.toml", "project.name") is docattest
+  ✓ L420 example: every proof on the sample page held in a copy of tests/fixture
+  ✓ L434 example: compiles
+  ✓ L456 test: tests/test_setup_helpers.py:69 declares "SetupHelpers" > "test_a_named_fact_reads_what_the_surface_does_not_export" (not run by docattest)
+  ✓ L459 test: tests/test_setup_helpers.py:76 declares "SetupHelpers" > "test_a_named_fact_and_a_runner_attest_the_exports_and_constants_they_reach" (not run by docattest)
+  ✓ L461 test: tests/test_setup_helpers.py:100 declares "SetupHelpersInTheCore" > "test_where_uncovered_and_impact_count_what_a_named_fact_reaches" (not run by docattest)
+  ✓ L467 test: tests/test_cells.py:95 declares "CodeSpans" > "test_code_spans_are_what_a_column_fact_compares" (not run by docattest)
+  ✓ L469 example: all assertions held
+  ✓ L480 test: tests/test_cells.py:86 declares "CodeSpans" > "test_code_spans" (not run by docattest)
+  ✓ L491 test: tests/test_cases_rows.py:96 declares "CasesRows" > "test_a_tables_rows_share_its_process" (not run by docattest)
+  ✓ L493 test: tests/test_cases_rows.py:130 declares "CasesRows" > "test_tables_run_side_by_side_and_never_share_a_process" (not run by docattest)
+  ✓ L499 test: tests/test_static.py:184 declares "Static" > "test_tests_are_listed_from_syntax" (not run by docattest)
+  ✓ L515 test: tests/test_citations.py:119 declares "Citations" > "test_the_cases_of_parametrized_tests" (not run by docattest)
+  ✓ L521 test: tests/test_citations.py:151 declares "Citations" > "test_the_cases_of_subtests" (not run by docattest)
+  ✓ L523 test: tests/test_cells.py:80 declares "CodeSpans" > "test_what_a_runner_reads_of_a_cell" > "a longer run holds a backtick" (not run by docattest)
+  ✓ L528 test: tests/test_citations.py:147 declares "Citations" > "test_a_pytestmark_that_parametrizes_hides_the_cases" (not run by docattest)
+  ✓ L531 test: tests/test_citations.py:171 declares "Citations" > "test_a_case_is_cited_by_its_id" (not run by docattest)
+  ✓ L532 test: tests/test_citations.py:214 declares "Citations" > "test_a_case_attests_what_its_test_uses" (not run by docattest)
+  ✓ L539 test: tests/test_cited_tests.py:133 declares "CitedTestsOnDisk" > "test_each_cited_test_runs_and_ends_as_its_runner_reports" (not run by docattest)
+  ✓ L539 test: tests/test_selection.py:185 declares "Commands" > "test_the_tests_of_one_file_share_a_run_for_each_runner" (not run by docattest)
+  ✓ L541 test: tests/test_cited_tests.py:169 declares "CitedTestsOnDisk" > "test_a_run_that_overruns_its_time_fails_its_tests" (not run by docattest)
+  ✓ L542 test: tests/test_cited_tests.py:206 declares "CitedTestsInMemory" > "test_nothing_runs_in_a_project_in_memory" (not run by docattest)
+  ✓ L548 test: tests/test_selection.py:71 declares "Selection" > "test_pytest_selects_a_test_by_its_node_id_and_a_case_with_its_id_in_brackets" (not run by docattest)
+  ✓ L548 test: tests/test_selection.py:144 declares "Commands" > "test_pytest_gets_each_node_id_once_after_the_options_end" (not run by docattest)
+  ✓ L552 test: tests/test_pytest_report.py:67 declares "PytestReport" > "test_a_passed_failed_and_skipped_test_each_ends_as_its_testcase_says" (not run by docattest)
+  ✓ L552 test: tests/test_pytest_report.py:75 declares "PytestReport" > "test_an_expected_failure_is_skipped_and_an_error_in_setup_fails" (not run by docattest)
+  ✓ L552 test: tests/test_pytest_report.py:82 declares "PytestReport" > "test_a_case_ends_as_its_own_testcase_and_a_test_cited_whole_as_all_its_cases" (not run by docattest)
+  ✓ L552 test: tests/test_pytest_report.py:96 declares "PytestReport" > "test_a_test_with_no_testcase_did_not_run_and_the_message_quotes_pytest" (not run by docattest)
+  ✓ L554 test: tests/test_pytest_report.py:119 declares "PytestReport" > "test_a_run_pytest_refused_runs_again_one_test_at_a_time" (not run by docattest)
+  ✓ L558 test: tests/test_selection.py:121 declares "ModuleImports" > "test_a_file_is_imported_from_the_first_directory_above_it_that_is_not_a_package" (not run by docattest)
+  ✓ L558 test: tests/test_cited_tests.py:133 declares "CitedTestsOnDisk" > "test_each_cited_test_runs_and_ends_as_its_runner_reports" (not run by docattest)
+  ✓ L560 test: tests/test_selection.py:88 declares "Selection" > "test_unittest_runs_the_methods_of_classes_at_the_top_of_a_module" (not run by docattest)
+  ✓ L560 test: tests/test_cited_tests.py:164 declares "CitedTestsOnDisk" > "test_without_pytest_a_test_function_does_not_run" (not run by docattest)
+  ✓ L562 test: tests/test_unittest_report.py:88 declares "UnittestReport" > "test_a_failed_fixture_fails_its_tests_and_a_module_that_does_not_import_runs_none" (not run by docattest)
+  ✓ L562 test: tests/test_unittest_report.py:51 declares "UnittestReport" > "test_a_method_the_class_does_not_have_did_not_run" (not run by docattest)
+  ✓ L566 test: tests/test_cited_tests.py:149 declares "CitedTestsOnDisk" > "test_a_subtest_case_runs_with_its_test_and_ends_as_its_subtest" (not run by docattest)
+  ✓ L566 test: tests/test_unittest_report.py:60 declares "UnittestReport" > "test_a_subtest_case_ends_as_its_subtest_and_its_test_as_all_its_subtests" (not run by docattest)
+  ✓ L568 test: tests/test_unittest_report.py:75 declares "UnittestReport" > "test_a_subtest_case_its_test_never_reached_ends_as_its_test_or_did_not_run" (not run by docattest)
+  ✓ L571 test: tests/test_workers.py:156 declares "Bytecode" > "test_attested_code_writes_no_bytecode_into_the_project" (not run by docattest)
+  ✓ L581 example: every command printed what the block shows
+  ✓ L590 cases: README.md:590 set
   ✓ L591 cases: README.md:591 not set
   ✓ L592 cases: README.md:592 not set
-  ✓ L598 fact: 5 code spans match IGNORED_NAMES
-  ✓ L599 fact: ", ".join(IGNORED_MARKERS) is pyvenv.cfg
-  ✓ L610 test: tests/test_running.py:258 declares "Running" > "test_without_fork_every_job_gets_its_own_process" (not run by docattest)
+  ✓ L593 cases: README.md:593 not set
+  ✓ L599 fact: 5 code spans match IGNORED_NAMES
+  ✓ L600 fact: ", ".join(IGNORED_MARKERS) is pyvenv.cfg
+  ✓ L611 test: tests/test_running.py:258 declares "Running" > "test_without_fork_every_job_gets_its_own_process" (not run by docattest)
 results: 111 pass, 0 fail, 0 error, 0 skipped
 coverage: 2 living pages, 2 covered (111 attestations: 48 proofs, 0 of them weak, and 63 citations), 0 uncovered, 0 frozen
-warning: README.md:382 citation names `total`, which `test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses` does not use
-warning: README.md:382 citation names `total`, which `test_where_uncovered_and_impact_count_the_names_an_initializer_uses` does not use
+warning: README.md:383 citation names `total`, which `test_a_proof_that_reads_a_value_attests_the_names_its_initializer_uses` does not use
+warning: README.md:383 citation names `total`, which `test_where_uncovered_and_impact_count_the_names_an_initializer_uses` does not use
 surface default: 29 symbols, 6 attested, 23 not attested by any page
-  docattest_python.language → docattest_python/language.py (docattest 0.5.1)
+  docattest_python.language → docattest_python/language.py (docattest 0.5.2)
 surface launcher: 25 symbols, 8 attested, 17 not attested by any page
-  docattest.launcher → docattest/launcher.py (docattest 0.5.1)
+  docattest.launcher → docattest/launcher.py (docattest 0.5.2)
 surface shop: 13 symbols, 3 attested, 10 not attested by any page
   shoplib → tests/fixture/src/shoplib/__init__.py (shoplib 1.2.3)
 snapshots: none
@@ -692,15 +693,15 @@ README.md
   ✓ L92 cases: README.md:92 Windows
   ✓ L93 cases: README.md:93 Windows
   ✓ L96 fact: TraceVariable is DOCATTEST_TRACE
-  ✓ L114 fact: CommandVariable is DOCATTEST_COMMAND
-  ✓ L117 fact: AdapterVariable is DOCATTEST_ADAPTER_GO
-  ✓ L121 test: internal/toolchain/toolchain_test.go:117 declares "TestTheChosenGoIsFirstOnThePath" (not run by docattest)
-  ✓ L125 example: every command printed what the block shows
-  ✓ L166 test: internal/analysis/symbols_test.go:108 declares "TestSymbolsAreResolvedByType" (not run by docattest)
-  ✓ L177 example: every proof on the sample page held in a copy of testdata/fixture
-  ✓ L232 example: every command printed what the block shows
-  ✓ L286 fact: 3 code spans match Hello().IgnoredNames
-  ✓ L295 test: internal/analysis/affected_test.go:26 declares "TestAffectedFollowsWhatNamesResolveTo" (not run by docattest)
+  ✓ L115 fact: CommandVariable is DOCATTEST_COMMAND
+  ✓ L118 fact: AdapterVariable is DOCATTEST_ADAPTER_GO
+  ✓ L122 test: internal/toolchain/toolchain_test.go:117 declares "TestTheChosenGoIsFirstOnThePath" (not run by docattest)
+  ✓ L126 example: every command printed what the block shows
+  ✓ L167 test: internal/analysis/symbols_test.go:108 declares "TestSymbolsAreResolvedByType" (not run by docattest)
+  ✓ L178 example: every proof on the sample page held in a copy of testdata/fixture
+  ✓ L233 example: every command printed what the block shows
+  ✓ L287 fact: 3 code spans match Hello().IgnoredNames
+  ✓ L296 test: internal/analysis/affected_test.go:26 declares "TestAffectedFollowsWhatNamesResolveTo" (not run by docattest)
 docs/cases.md
   ✓ L30 test: endtoend/cells_test.go:66 declares "TestCodeSpansAreWhatAColumnFactCompares" (not run by docattest)
   ✓ L32 example: printed the output it states

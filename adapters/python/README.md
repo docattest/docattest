@@ -102,7 +102,8 @@ python3 -m docattest check --root adapters/python/tests/fixture
 `docattest init --hooks`, `init --git-hook` and `init --agents` write down a command
 that runs docattest without Node: the virtualenv's own script when the virtualenv is inside
 the project, else `docattest` when that is the script the `PATH` finds, else the script by
-its full path, else this interpreter by its full path (`python -m docattest`). <!-- test: tests/test_launcher.py > "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" -->
+its full path, else this interpreter by its full path (`python -m docattest`). `AGENTS.md`
+is committed, so a full path is never written there: it gets `docattest` instead. <!-- test: tests/test_launcher.py > "Launch" > "test_every_command_that_writes_the_command_down_is_told_it" -->
 The launcher knows no coding agent. For a virtualenv inside the project it says
 `{root}/.venv/bin/docattest`, and the core writes the root as the reader of the command
 names it: `"$CLAUDE_PROJECT_DIR"/.venv/bin/docattest impact --hook` in a hook of Claude

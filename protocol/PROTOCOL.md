@@ -104,7 +104,7 @@ how docattest was installed. A launcher does three things and then gets out of t
    | variable | value | read by |
    |---|---|---|
    | `DOCATTEST_ADAPTER_<NAME>` | how to start the package's adapter: a JSON array, the program and its arguments | every command that needs the language |
-   | `DOCATTEST_COMMAND` | a shell command that runs docattest in this project, on one line; the core appends arguments to it. `{root}` in it stands for the project root | `init --hooks` / `init --git-hook`, which writes it into a coding agent's settings or a git hook, and `init --agents`, which writes it into `AGENTS.md` |
+   | `DOCATTEST_COMMAND` | a shell command that runs docattest in this project, on one line; the core appends arguments to it. `{root}` in it stands for the project root | `init --hooks` / `init --git-hook`, which writes it into a coding agent's settings or a git hook, and `init --agents`, which writes it into `AGENTS.md` (a command that starts with an absolute path is written there as `docattest`, since the file is committed) |
 
    A variable that is already set is left alone, so a developer's own adapter and a
    wrapper's own command stand. `DOCATTEST_COMMAND` is a shell command and not an array

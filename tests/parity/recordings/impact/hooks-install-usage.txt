@@ -1,5 +1,5 @@
 # hooks install: usage
-# recorded from: remove mutate, consolidate CLI into 9 commands, unified init, internal surfaces
+# recorded from: typed integrations JSON in init --json
 === init --local
 exit 1
 stdout empty
@@ -12,7 +12,7 @@ stderr 1 line
 docattest: --local cannot be used with --git-hook
 === init --hooks --no-audit --json --quiet
 exit 0
-stdout 15 lines
+stdout 18 lines
 {
   "file": "<root>/docattest.config.json",
   "dryRun": false,
@@ -24,8 +24,11 @@ stdout 15 lines
     ],
     "adapter": "none"
   },
-  "installed": {
-    "hooks": "<root>/.claude/settings.json"
+  "integrations": {
+    "hooks": {
+      "file": "<root>/.claude/settings.json",
+      "action": "add"
+    }
   }
 }
 stderr empty

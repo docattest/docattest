@@ -35,6 +35,6 @@ Two commands matter whatever else you do:
 - Inspect bindings without guessing: `docattest explain <page>[:<line>]`.
 - Find missing facts or drift: `docattest audit` (auto-insert matches with `docattest audit --apply`).
 - Find docs for a symbol: `docattest where <symbol>`; find unattested exports: `docattest uncovered`.
-- Prefer `<!-- test: ... -->` citations for heavy integration scenarios instead of putting setup scaffolding inside a `check` block; reserve `check` blocks for short examples readers benefit from seeing.
+- Prefer `<!-- test: ... -->` citations for heavy integration scenarios instead of putting setup scaffolding inside a `check` block; reserve `check` blocks for short examples readers benefit from seeing. Run `docattest check --run-cited` in CI so citations run their tests.
 - Never export internals just for docs — mark internal packages `"internal": true` in `surfaces` or use a docs helper.
 - Never make CI green by deleting a proof, weakening an assertion, or freezing a living page (`check --base` catches all three).

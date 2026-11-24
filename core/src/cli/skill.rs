@@ -3,6 +3,7 @@
 use std::path::Path;
 
 use super::args::Options;
+use super::integration::{Action, Integration};
 use super::{Io, resolve};
 use crate::agents::load_agent;
 use crate::api::errors::{Error, Result};
@@ -124,7 +125,7 @@ pub(super) fn install_project_skill(
     adapter: &str,
     options: &Options,
     io: &mut Io,
-) -> Result<String> {
+) -> Result<Integration> {
     let agent = load_agent(options.agent.as_deref(), |given| resolve(&io.cwd, given))?.agent;
     let Some(place) = &agent.skill else {
         return Err(Error::user(format!(
@@ -142,19 +143,20 @@ pub(super) fn install_project_skill(
     } else {
         install_skill(&path, &content, existing)?
     };
+    let (verb, action) = skill_outcome(outcome, options.dry_run);
     if !options.json {
-        io.out(&format!("docattest skill {} {file}", skill_verb(outcome, options.dry_run)));
+        io.out(&format!("docattest skill {verb} {file}"));
     }
-    Ok(file)
+    Ok(Integration { file, action })
 }
 
-fn skill_verb(outcome: InstallOutcome, dry_run: bool) -> &'static str {
+fn skill_outcome(outcome: InstallOutcome, dry_run: bool) -> (&'static str, Action) {
     match (outcome, dry_run) {
-        (InstallOutcome::Installed, false) => "installed",
-        (InstallOutcome::Installed, true) => "would install",
-        (InstallOutcome::Replaced, false) => "replaced",
-        (InstallOutcome::Replaced, true) => "would replace",
-        (InstallOutcome::Unchanged, _) => "already up to date:",
+        (InstallOutcome::Installed, false) => ("installed", Action::Add),
+        (InstallOutcome::Installed, true) => ("would install", Action::Add),
+        (InstallOutcome::Replaced, false) => ("replaced", Action::Replace),
+        (InstallOutcome::Replaced, true) => ("would replace", Action::Replace),
+        (InstallOutcome::Unchanged, _) => ("already up to date:", Action::Unchanged),
     }
 }
 

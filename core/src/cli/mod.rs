@@ -16,6 +16,8 @@ mod hook;
 pub(crate) mod hooks;
 mod impact;
 mod init;
+mod integration;
+mod moved;
 mod refresh;
 pub(crate) mod skill;
 pub(crate) mod usage;
@@ -72,6 +74,7 @@ impl Io<'_> {
     }
 
     fn err(&mut self, text: &str) {
+        let _ = self.out.flush();
         let _ = writeln!(self.err, "{text}");
     }
 }
@@ -113,7 +116,7 @@ fn dispatch(argv: &[String], io: &mut Io) -> Result<i32> {
         return Ok(1);
     };
     let Some(&(_, run)) = COMMANDS.iter().find(|(name, _)| *name == command) else {
-        return Err(Error::user(format!("unknown command \"{command}\"\n\n{USAGE}")));
+        return Err(Error::user(moved::unknown_command(command, USAGE)));
     };
     let root = project_root(command, &line.options, &io.cwd);
     run(&Invocation { args: &line.args, root: &root, options: &line.options }, io)

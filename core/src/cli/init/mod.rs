@@ -44,10 +44,10 @@ pub(super) fn init(root: &Path, options: &Options, io: &mut Io) -> Result<i32> {
     let has_integrations = options.write_agents || options.hooks || options.git_hook || options.skill;
     let step = prepare_config(root, options, has_integrations)?;
     print_config_step(&step, options, io);
-    let installed = install_integrations(root, step.adapter(), options, io)?;
+    let integrations = install_integrations(root, step.adapter(), options, io)?;
     let audit_json = maybe_audit(root, &step, options, io);
     if options.json {
-        io.out(&pretty(&json_output(&step, options.dry_run, installed, audit_json)));
+        io.out(&pretty(&json_output(&step, options.dry_run, integrations, audit_json)));
     }
     Ok(0)
 }
@@ -73,20 +73,21 @@ fn install_integrations(
     options: &Options,
     io: &mut Io,
 ) -> Result<Map<String, Value>> {
-    let mut installed = Map::new();
+    let mut integrations = Map::new();
     if options.write_agents {
-        installed.insert("agents".into(), json!(agents::install_agents(root, options, io)?));
+        integrations.insert("agents".into(), agents::install_agents(root, options, io)?.to_json());
     }
     if options.hooks {
-        installed.insert("hooks".into(), json!(hooks::install_agent_hooks(root, options, io)?));
+        integrations.insert("hooks".into(), hooks::install_agent_hooks(root, options, io)?.to_json());
     }
     if options.git_hook {
-        installed.insert("gitHook".into(), json!(hooks::install_git(root, options, io)?));
+        integrations.insert("gitHook".into(), hooks::install_git(root, options, io)?.to_json());
     }
     if options.skill {
-        installed.insert("skill".into(), json!(skill::install_project_skill(root, adapter, options, io)?));
+        integrations
+            .insert("skill".into(), skill::install_project_skill(root, adapter, options, io)?.to_json());
     }
-    Ok(installed)
+    Ok(integrations)
 }
 
 fn maybe_audit(root: &Path, step: &ConfigStep, options: &Options, io: &mut Io) -> Option<Value> {
@@ -171,7 +172,7 @@ fn initial_audit(root: &Path) -> Result<Vec<crate::audit::Suggestion>> {
 fn json_output(
     step: &ConfigStep,
     dry_run: bool,
-    installed: Map<String, Value>,
+    integrations: Map<String, Value>,
     audit: Option<Value>,
 ) -> Value {
     let mut out = Map::new();
@@ -187,8 +188,8 @@ fn json_output(
             out.insert("kept".into(), json!(true));
         }
     }
-    if !installed.is_empty() {
-        out.insert("installed".into(), Value::Object(installed));
+    if !integrations.is_empty() {
+        out.insert("integrations".into(), Value::Object(integrations));
     }
     if let Some(audit) = audit {
         out.insert("audit".into(), audit);
@@ -250,10 +251,25 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_str(&json_out).unwrap();
         assert_eq!(parsed["dryRun"], true);
         assert_eq!(parsed["kept"], true);
-        assert!(parsed["installed"]["agents"].is_string());
-        assert!(parsed["installed"]["hooks"].is_string());
-        assert!(parsed["installed"]["skill"].is_string());
+        assert_eq!(parsed["integrations"]["agents"]["action"], "add");
+        assert!(parsed["integrations"]["agents"]["file"].is_string());
+        assert_eq!(parsed["integrations"]["hooks"]["action"], "add");
+        assert_eq!(parsed["integrations"]["skill"]["action"], "add");
         assert!(!project.0.join("AGENTS.md").exists());
+
+        // Real write then dry-run reports unchanged / update / replace accurately.
+        let (code, _, stderr) = run_cli(&project.0, &["init", "--agents", "--hooks", "--local", "--skill"]);
+        assert_eq!(code, 0, "{stderr}");
+        project.write("AGENTS.md", "<!-- docattest:begin -->\nold\n<!-- docattest:end -->\n");
+        let (code, json_out, stderr) = run_cli(
+            &project.0,
+            &["init", "--agents", "--hooks", "--local", "--skill", "--force", "--dry-run", "--json"],
+        );
+        assert_eq!(code, 0, "{stderr}");
+        let parsed: serde_json::Value = serde_json::from_str(&json_out).unwrap();
+        assert_eq!(parsed["integrations"]["agents"]["action"], "update");
+        assert_eq!(parsed["integrations"]["hooks"]["action"], "unchanged");
+        assert_eq!(parsed["integrations"]["skill"]["action"], "unchanged");
     }
 
     #[test]

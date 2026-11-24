@@ -190,8 +190,10 @@ the owner's list below), published by it too.
    Every package is kept as an artifact of the run (`npm-packages`, `wheels`,
    `go-archives`); the Go archives are used by those install tests only.
    `workflow_dispatch` runs the same without a tag, to try a release before tagging one.
-3. Publish: only when the repository variable `DOCATTEST_PUBLISH` is `true`, and only once
-   someone approves the run in the `release` environment. The job publishes the five
+3. Publish: only when the repository variable `DOCATTEST_PUBLISH` is `true`, only when CI
+   passed the tagged commit on `main` (`scripts/release/ci-passed.ts`, which waits while CI
+   is still running it and refuses a commit CI failed or never ran), and only once someone
+   approves the run in the `release` environment. The job publishes the five
    platform packages first, waits until the registry lists them, then `docattest` (npm,
    with provenance), the wheels (PyPI), the three crates in the order they need each
    other (`docattest-markdown`, `docattest-core`, `docattest`), and the Go package

@@ -1,5 +1,5 @@
 # where --json
-# recorded from: refine docs, READMEs, and website
+# recorded from: docattest 0.5.2
 === where --json
 exit 0
 stdout 976 lines
@@ -295,15 +295,15 @@ stdout 976 lines
     },
     {
       "page": "docs/audit.md",
-      "line": 266,
+      "line": 268,
       "kind": "example",
       "claim": "The directive goes right after the value, where it is compared with that value alone, and the suggestion (target `scalar`) says in `after` how the page writes it. A page mentions a value more often than it states it, so each surface value is suggested once per page, where it first appears, and not at all on a page where a fact already reads it. The pasted directive is a working fact."
     },
     {
       "page": "docs/audit.md",
-      "line": 313,
+      "line": 317,
       "kind": "example",
-      "claim": "Anything a directive already binds, a sentence included, anything on a frozen page, and anything inside fenced code, where a list is code rather than a claim."
+      "claim": "Anything a value-binding directive (`fact` or `cases`) already binds, a sentence included (` ` citations attest behaviour rather than literal values, so they leave distinctive values open to audit), anything on a frozen page, and anything inside fenced code, where a list is code rather than a claim."
     },
     {
       "page": "docs/cases.md",

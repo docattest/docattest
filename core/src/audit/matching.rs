@@ -35,10 +35,11 @@ pub const MIN_VALUE_LENGTH: usize = 4;
 const TRIVIAL: [&str; 9] = ["true", "false", "null", "undefined", "yes", "no", "on", "off", "none"];
 
 /// Whether one value on its own could hardly equal a surface value by chance: a number of
-/// at least three digits, or text of at least four characters that is not a plain word,
-/// because it holds something other than letters (`DOCATTEST_CORE`, `batch-large`) or a
-/// lowercase letter followed by an uppercase one (`maxRetries`). A small number equals an
-/// index or a count, and a word equals the enum member named after it.
+/// at least three digits, or text of at least four characters whose core (after trimming
+/// leading/trailing punctuation) is not a plain word or short number — because it holds
+/// internal punctuation or digits (`DOCATTEST_CORE`, `batch-large`, `/etc/ld.so.preload`,
+/// `:8080`, `v1.2`) or camelCase (`maxRetries`). Single-word sigils (`/proc`, `.git`,
+/// `--help`) are still plain words and match unrelated prose too often.
 pub fn is_distinctive(value: &str) -> bool {
     if literals(value).first().is_some_and(|number| number == value) {
         return value.chars().filter(char::is_ascii_digit).count() >= MIN_VALUE_DIGITS;
@@ -46,7 +47,14 @@ pub fn is_distinctive(value: &str) -> bool {
     if value.chars().count() < MIN_VALUE_LENGTH || is_trivial(value) {
         return false;
     }
-    let chars: Vec<char> = value.chars().collect();
+    let core = value.trim_matches(|c: char| !c.is_alphanumeric());
+    if core.is_empty() {
+        return false;
+    }
+    if core.chars().all(|c| c.is_ascii_digit()) {
+        return core.len() >= MIN_VALUE_DIGITS;
+    }
+    let chars: Vec<char> = core.chars().collect();
     let camel = chars.windows(2).any(|pair| pair[0].is_lowercase() && pair[1].is_uppercase());
     camel || !chars.iter().all(|c| c.is_alphabetic())
 }
@@ -234,11 +242,40 @@ pub(crate) mod tests {
 
     #[test]
     fn distinctive_values_are_long_numbers_and_text_that_is_not_a_plain_word() {
-        for value in ["8080", "1.23", "-100", "DOCATTEST_CORE", "batch-large", "maxRetries", "a b c", "v1.2"]
-        {
+        for value in [
+            "8080",
+            "1.23",
+            "-100",
+            ":8080",
+            "DOCATTEST_CORE",
+            "batch-large",
+            "maxRetries",
+            "a b c",
+            "v1.2",
+            "/etc/ld.so.preload",
+            "/api/v1",
+            "--dry-run",
+        ] {
             assert!(is_distinctive(value), "{value}");
         }
-        for value in ["1", "90", "1.5", "queue", "Production", "JSON", "Größe", "a-b", "none", "True"] {
+        for value in [
+            "1",
+            "90",
+            "1.5",
+            "queue",
+            "Production",
+            "JSON",
+            "Größe",
+            "a-b",
+            "none",
+            "True",
+            "/proc",
+            "/tmp",
+            ".git",
+            "--help",
+            "----",
+            "--12",
+        ] {
             assert!(!is_distinctive(value), "{value}");
         }
     }

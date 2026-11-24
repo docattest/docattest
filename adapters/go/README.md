@@ -111,7 +111,8 @@ adapters/go/bin/docattest check --root adapters/go/testdata/fixture
 
 `docattest init --hooks`, `init --git-hook` and `init --agents` write down a command
 that runs docattest: `docattest` when that is what a shell finds on the `PATH`, else this
-command by its full path. To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher: CommandVariable -->
+command by its full path. `AGENTS.md` is committed, so a full path is never written there:
+it gets `docattest` instead. To have them write something else, set `DOCATTEST_COMMAND`. <!-- fact @launcher: CommandVariable -->
 
 A bare core, run without the launcher, finds the adapter as `docattest-adapter-go` on the
 `PATH`, or through a variable, `DOCATTEST_ADAPTER_GO`: <!-- fact @launcher: AdapterVariable -->

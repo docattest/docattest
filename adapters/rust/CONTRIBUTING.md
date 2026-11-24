@@ -14,7 +14,7 @@ with dependencies pointing one way, from the protocol loop down to cargo:
   reads what `open` says and routes each method either to the analysis or to the
   running side.
 - **The analysis** module answers from syntax: a crate's modules and exports, the
-  surfaces, `symbols`, `tests`, `affected`, `mutants`, the names of the setup module, which
+  surfaces, `symbols`, `tests`, `affected`, the names of the setup module, which
   constants a fact may read from source, and the docs helpers of a surface's module.
   The one thing it asks the compiler is what a module exports when a macro writes some
   of it.
@@ -68,9 +68,8 @@ and `tests/workspace.rs` a workspace whose names the generated programs must not
 are built with. `tests/constants.rs` covers the constants facts read from source, of a
 library and of a binary, `tests/helpers.rs` what facts and runners reach through the
 setup file's functions and through docs helpers, `tests/cases.rs` how the rows of cases
-tables run, `tests/cited.rs` how `cargo test` runs the tests citations name, `tests/mutants.rs`
-the literals `mutants` changes and where, and `tests/cells.rs` the cell helper against the
-core. These write small projects to the
+tables run, `tests/cited.rs` how `cargo test` runs the tests citations name, and
+`tests/cells.rs` the cell helper against the core. These write small projects to the
 temporary directory. What the tests
 share (opening a session, writing a project, running the `docattest` command) is in
 `tests/project/`. `tests/endtoend.rs` runs the conformance suite with this
